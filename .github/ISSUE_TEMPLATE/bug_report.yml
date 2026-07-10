@@ -1,0 +1,23 @@
+name: Bug Report
+description: Report a defect in Nexus behavior or repository structure.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the observed problem.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: What corpus artifacts, logs, or project evidence support the report?
+  - type: textarea
+    id: impact
+    attributes:
+      label: Architectural Impact
+      description: Which layer, capability, or invariant appears affected?

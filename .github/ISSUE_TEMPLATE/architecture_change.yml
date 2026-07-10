@@ -1,0 +1,23 @@
+name: Architecture Change
+description: Propose a new architectural direction, boundary, or capability contract.
+title: "architecture: "
+labels:
+  - architecture
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What architectural pressure or limitation are you addressing?
+    validations:
+      required: true
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Invariants
+      description: Which existing invariants must be preserved?
+  - type: textarea
+    id: corpus
+    attributes:
+      label: Corpus Impact
+      description: How should the Engineering Corpus evolve if this is accepted?

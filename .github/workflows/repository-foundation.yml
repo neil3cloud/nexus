@@ -1,0 +1,22 @@
+name: Repository Foundation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  foundation-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required foundation files exist
+        run: |
+          test -f README.md
+          test -f ARCHITECTURE.md
+          test -f CONTRIBUTING.md
+          test -f SECURITY.md
+          test -f knowledge/architecture/vision.md
+          test -f knowledge/decisions/adr/ADR-0001-shared-reality-first.md
+          test -f knowledge/decisions/adr/ADR-0002-capability-based-architecture.md
+      - name: Placeholder
+        run: echo "Repository foundation checks are intentionally minimal until build tooling is introduced."
