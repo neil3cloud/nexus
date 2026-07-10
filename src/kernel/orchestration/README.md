@@ -1,18 +1,23 @@
 # Kernel Orchestration
 
 ## Purpose
-Reserve space for orchestration logic as a kernel concern built on capabilities.
+
+Reserve space for orchestration logic as a kernel concern built on missions, Shared Reality, and role assignment.
 
 ## Responsibilities
+
 - Coordinate plans
-- Sequence capability use
-- Capture outcomes for corpus enrichment
+- Sequence provider execution
+- Capture outcomes for knowledge capture
 
 ## Scope
-This area should orchestrate capabilities but not redefine them.
+
+This area should orchestrate workflow execution without redefining kernel service responsibilities.
 
 ## Future Evolution
+
 Future work may introduce planners, state models, and execution policies.
 
-## Relationship to the Engineering Corpus
-Orchestration should consume and enrich Shared Reality rather than bypass it.
+## Relationship to Shared Reality
+
+Orchestration should consume and strengthen Shared Reality rather than bypass it.

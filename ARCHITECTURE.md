@@ -1,41 +1,56 @@
 # Nexus Architecture Overview
 
-Nexus is organized around a stable architectural flow:
+Nexus is organized around a stable engineering workflow:
 
-Developer → Host Application → Nexus Kernel → Capabilities → Adapters → Execution Providers
+Developer Request → Mission → Context Assembly → Shared Reality → Execution Strategy → Builder → Implementation → Reviewer → Structured Findings → Developer Approval → Knowledge Update
 
 ## Architectural Priorities
 
-1. Preserve Shared Reality as the center of the platform.
-2. Keep host applications thin and replaceable.
-3. Define capabilities as durable contracts.
-4. Treat providers as interchangeable implementations.
-5. Ensure recommendations are explainable through evidence.
+1. Improve software engineering inside Visual Studio Code.
+2. Keep the kernel intentionally small.
+3. Assemble Shared Reality from project evidence on demand.
+4. Assign stable engineering roles before invoking providers.
+5. Keep providers and adapters replaceable.
+
+## Kernel Responsibilities
+
+The kernel should own only the services required to coordinate engineering workflow:
+
+- Mission Service
+- Context Service
+- Execution Service
+- Review Service
+- Knowledge Service
+- Execution Strategy Service
 
 ## Layer Responsibilities
 
 ### Host Applications
-Hosts provide interaction surfaces such as VS Code, CLI, or web experiences. They do not own platform business logic.
+
+Hosts provide interaction surfaces such as Visual Studio Code. Hosts gather developer intent and return control to the developer, but they do not own engineering workflow logic.
 
 ### Nexus Kernel
-The kernel coordinates context assembly, shared reality access, planning, orchestration boundaries, and capability invocation.
 
-### Capabilities
-Capabilities represent stable platform behaviors such as evidence assembly, corpus evolution, planning, or orchestration.
+The kernel understands the request, assembles Shared Reality, selects execution strategy, assigns roles, coordinates provider execution, validates outcomes, and captures reusable engineering knowledge.
 
 ### Adapters
-Adapters translate between Nexus contracts and external systems such as Git, issue trackers, model APIs, or storage engines.
+
+Adapters translate between kernel contracts and external systems such as Git, diagnostics, storage, and provider CLIs.
 
 ### Execution Providers
-Providers supply concrete execution strategies without changing architectural contracts.
 
-## Shared Reality and the Engineering Corpus
+Providers implement assigned engineering responsibilities. They do not define mission logic, policies, architecture, or repository understanding.
 
-The Engineering Corpus is the evolving body of engineering knowledge that represents project Shared Reality. Nexus capabilities consume and enrich this corpus. The current repository stores initial corpus artifacts under `/knowledge`, but the concept must remain stable even if storage changes over time.
+## Shared Reality
+
+Shared Reality is assembled from engineering evidence such as source code, architecture documents, ADRs, repository policies, git state, diagnostics, active mission context, and accepted implementation history.
+
+Shared Reality is a mechanism for reliable engineering coordination. It is not a product identity, autonomous memory system, or knowledge graph platform.
 
 ## Implementation Guidance
 
-- Add contracts before implementations.
+- Prefer vertical slices over horizontal frameworks.
+- Add contracts before implementations when a boundary is stable.
 - Prefer new ADRs over implicit architectural drift.
-- Keep cross-layer dependencies explicit and minimal.
-- Preserve explainability by linking outcomes to evidence.
+- Keep provider-specific details outside the kernel.
+- Preserve explainability by linking outcomes to evidence and structured findings.

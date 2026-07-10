@@ -1,4 +1,4 @@
-export interface EngineeringCorpusEntry {
+export interface KnowledgeEntry {
   readonly id: string;
   readonly kind: string;
   readonly location: string;
@@ -14,4 +14,4 @@ export interface HostRequest {
   readonly originHost: string;
 }
 
-// TODO: Add richer platform-wide types as capability and specification contracts become clearer.
+// TODO: Add richer platform-wide types as workflow and specification contracts become clearer.

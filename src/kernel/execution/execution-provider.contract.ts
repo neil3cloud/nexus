@@ -1,6 +1,6 @@
 export interface ExecutionProviderDescriptor {
   readonly id: string;
-  readonly supportedCapabilities: readonly string[];
+  readonly supportedRoles: readonly string[];
 }
 
 export interface ExecutionProvider {

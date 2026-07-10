@@ -1,6 +1,6 @@
-# AI Responsibility Matrix
+# Legacy Responsibility Matrix
 
-| Capability               | Builder | Reviewer    |
+| Responsibility           | Builder | Reviewer    |
 | ------------------------ | ------- | ----------- |
 | Generate code            | ✓       | No          |
 | Refactor                 | ✓       | Review only |

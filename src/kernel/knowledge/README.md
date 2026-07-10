@@ -1,18 +1,23 @@
 # Kernel Knowledge
 
 ## Purpose
-Reserve kernel-facing knowledge and corpus evolution boundaries.
+
+Reserve kernel-facing knowledge capture and evolution boundaries.
 
 ## Responsibilities
-- Represent corpus operations
+
+- Represent knowledge capture operations
 - Support enrichment flows
 - Maintain knowledge integrity
 
 ## Scope
-Focused on corpus interaction policies rather than storage implementation.
+
+Focused on knowledge interaction policies rather than storage implementation.
 
 ## Future Evolution
+
 Future work may define ingestion, validation, lineage, and conflict-resolution contracts.
 
-## Relationship to the Engineering Corpus
-This area governs how Shared Reality is strengthened over time.
+## Relationship to Shared Reality
+
+This area governs how validated outcomes strengthen Shared Reality over time.

@@ -1,18 +1,23 @@
 # Source Architecture Skeleton
 
 ## Purpose
-Provide implementation-facing placeholders for the platform layers defined in the Engineering Corpus.
+
+Provide implementation-facing placeholders for the Nexus runtime architecture.
 
 ## Responsibilities
-- Establish layer boundaries in code
-- Hold contracts and placeholders
-- Prevent host logic from becoming the platform
+
+- Establish kernel, host, adapter, and provider boundaries in code
+- Hold service contracts and implementation scaffolding
+- Prevent host integrations from absorbing engineering workflow logic
 
 ## Scope
+
 This directory currently contains architecture-aligned placeholders only; no business logic is implemented.
 
 ## Future Evolution
-Future work should fill these areas incrementally behind stable contracts and ADR-backed design decisions.
 
-## Relationship to the Engineering Corpus
-The source skeleton exists to reflect the Shared Reality architecture in code structure without prematurely implementing it.
+Future work should fill these areas incrementally behind stable contracts and ADR-backed decisions, with complete workflow slices preferred over broad framework expansion.
+
+## Relationship to Shared Reality
+
+The source skeleton exists to reflect how Shared Reality is assembled and used during engineering missions without hardcoding provider-specific behavior into the kernel.

@@ -10,13 +10,13 @@ Prompt-centric AI workflows repeatedly rediscover context and fail to preserve e
 
 ## Decision
 
-Nexus will treat Shared Reality as its architectural foundation. Every capability must operate from project reality assembled from the Engineering Corpus rather than from isolated prompts.
+Nexus will treat Shared Reality as its architectural foundation. Every mission, role assignment, and provider execution must operate from project reality assembled from engineering evidence rather than from isolated prompts.
 
 ## Consequences
 
 - Evidence assembly becomes a mandatory precursor to AI-driven work.
-- The Engineering Corpus becomes a strategic asset rather than optional documentation.
-- Explanations and recommendations should be traceable to corpus evidence.
+- Repository knowledge becomes a strategic asset rather than optional documentation.
+- Explanations and recommendations should be traceable to evidence.
 - Hosts and providers cannot redefine project truth independently.
 
 ## Follow-On Guidance

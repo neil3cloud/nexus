@@ -1,18 +1,23 @@
-# Architecture Corpus
+# Architecture
 
 ## Purpose
-Provide the durable architectural narrative for Nexus.
+
+Provide the durable architectural narrative for Nexus as a role-based AI engineering workspace inside Visual Studio Code.
 
 ## Responsibilities
-- Capture architectural principles and system framing
-- Clarify layer responsibilities and invariants
-- Anchor future ADRs and design work
+
+- Capture the stable runtime shape of the workspace
+- Clarify kernel, host, adapter, and provider boundaries
+- Anchor future ADRs and implementation work
 
 ## Scope
-Focused on architecture, not implementation detail.
+
+Focused on architecture rather than implementation detail.
 
 ## Future Evolution
-These documents should evolve as the platform matures while preserving stable concepts and terminology.
 
-## Relationship to the Engineering Corpus
-Architecture documents define how Shared Reality should be interpreted and protected across the platform.
+These documents should evolve as implementation sharpens the design, but they should avoid speculative abstractions that fall outside the engineering workflow mission.
+
+## Relationship to Shared Reality
+
+Architecture documents are evidence used to evaluate missions, implementation decisions, and review findings.

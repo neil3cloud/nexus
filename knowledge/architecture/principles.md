@@ -1,18 +1,23 @@
 # Principles
 
 ## Purpose
+
 Record the immutable architectural principles that guide all future work.
 
 ## Scope
+
 Defines invariants rather than implementation choices.
 
 ## Intended Audience
+
 Architects, maintainers, reviewers, and contributors making structural decisions.
 
 ## Status
+
 Foundational
 
 ## Related Documents
+
 - vision.md
 - shared-reality.md
 - ../decisions/adr/ADR-0001-shared-reality-first.md
@@ -20,9 +25,9 @@ Foundational
 ## Invariants
 
 - Shared Reality First
-- Engineering Corpus as authoritative project knowledge
+- Engineering evidence as the basis for Shared Reality
 - AI providers are replaceable
-- Capabilities are stable architectural units
+- Roles are stable architectural units
 - Hosts remain thin and independent
 - Evidence precedes generation
 - Engineering activity must improve future work

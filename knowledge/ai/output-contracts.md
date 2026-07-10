@@ -1,18 +1,20 @@
-# AI Output Contracts
+# Legacy AI Output Contracts
 
 ## Purpose
 
-This document defines the standard output formats used by AI skills within Nexus.
+This document preserves an older output format reference.
 
-Every AI capability should produce structured, predictable outputs that can be:
+Current role guidance lives under `../roles/output-contracts.md`.
+
+Structured outputs should still be:
 
 - reviewed consistently
 - parsed automatically
-- stored in the Engineering Corpus
+- captured as reusable engineering knowledge
 - compared across providers
-- consumed by future Nexus capabilities
+- consumed by future engineering workflows
 
-The output contract is independent of the underlying AI provider.
+The output contract remains independent of the underlying AI provider.
 
 ---
 
