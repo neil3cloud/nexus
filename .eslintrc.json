@@ -1,0 +1,14 @@
+{
+  "root": true,
+  "ignorePatterns": ["dist/", "out/", "coverage/"],
+  "overrides": [
+    {
+      "files": ["**/*.ts"],
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+      },
+      "rules": {}
+    }
+  ]
+}
