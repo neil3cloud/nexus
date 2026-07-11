@@ -1,34 +1,44 @@
 # System Overview
 
 ## Purpose
-Describe the high-level architectural shape of the platform.
+
+Describe the high-level architectural shape of Nexus.
 
 ## Scope
-Covers layers, responsibilities, and directional dependencies.
+
+Covers workflow stages, runtime responsibilities, and directional dependencies.
 
 ## Intended Audience
-New contributors and architects seeking a platform map.
+
+New contributors and architects seeking a system map.
 
 ## Status
+
 Foundational
 
 ## Related Documents
-- principles.md
-- capability-model.md
+
+- repository-layout.md
 - extension-architecture.md
+- ../kernel/kernel.md
+- ../roles/workflow.md
 
-## Layer Model
+## Workflow Model
 
-Developer → Host Application → Nexus Kernel → Capabilities → Adapters → Execution Providers
+Developer Request → Mission → Context Assembly → Shared Reality → Execution Strategy → Role Assignment → Provider Execution → Review Findings → Developer Approval → Knowledge Update
+
+## Runtime Model
+
+Developer → VS Code Host → Nexus Kernel Services → Adapters → Provider CLIs and Repository Systems
 
 ## Responsibility Boundaries
 
-- Hosts expose user interaction.
-- The kernel coordinates platform behavior.
-- Capabilities define what Nexus can do.
-- Adapters connect Nexus to external systems.
-- Providers supply concrete execution strategies.
+- The host captures requests and presents outcomes.
+- The kernel coordinates engineering workflow.
+- Shared Reality is assembled from evidence, not guessed from prompts.
+- Execution strategy assigns roles before providers run.
+- Providers perform assigned responsibilities without owning repository policy or architecture.
 
 ## Dependency Guidance
 
-Dependencies should flow inward toward stable contracts. External tooling details should not leak upward into host or corpus concepts.
+Dependencies should flow inward toward stable kernel contracts. Provider- or storage-specific details should not leak into mission, review, or Shared Reality concepts.

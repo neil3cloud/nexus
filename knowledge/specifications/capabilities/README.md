@@ -1,18 +1,22 @@
-# Capability Specifications
+# Legacy Capability Specifications
 
 ## Purpose
-Reserve space for formal capability contracts.
+
+Preserve the placeholder left by the superseded capability-first model.
 
 ## Responsibilities
-- Define stable capability inputs and outputs
-- Document evidence requirements
-- Describe lifecycle and observability expectations
+
+- Redirect contributors to current role- and workflow-based specifications
+- Prevent new work from reviving the superseded abstraction
 
 ## Scope
-Capability specifications should remain provider-neutral and host-independent.
+
+Do not add new specifications here.
 
 ## Future Evolution
-Future documents should define contract versions, compatibility, and failure semantics.
 
-## Relationship to the Engineering Corpus
-Capabilities are how Shared Reality becomes actionable in the platform.
+This area can be removed once all historical references are gone.
+
+## Relationship to Shared Reality
+
+Current Shared Reality behavior should be specified through workflow, provider, event, and role-aligned contracts instead.

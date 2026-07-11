@@ -6,7 +6,7 @@ alwaysApply: true
 # MemoPilot Retrieval-First Rule
 
 Workspace: nexus
-Primary language: python
+Primary language: typescript
 Detected frameworks: none detected
 
 Before answering repository questions, call MemoPilot MCP tools first.

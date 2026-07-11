@@ -1,30 +1,19 @@
-# Capability Model
+# Legacy Capability Model
 
 ## Purpose
-Explain capability-based architecture as the stable shape of platform behavior.
 
-## Scope
-Covers capability contracts, provider substitution, and boundary design.
-
-## Intended Audience
-Architects and implementers defining platform services.
+Preserve historical context for the superseded capability-first framing used during repository initialization.
 
 ## Status
-Foundational
 
-## Related Documents
-- principles.md
-- orchestration.md
-- ../decisions/adr/ADR-0002-capability-based-architecture.md
+Superseded by the role-based engineering workspace model.
 
-## Capability First Design
+## Current Guidance
 
-A capability describes a stable architectural behavior, such as assembling evidence, evolving the corpus, planning work, or orchestrating execution.
+- Use `../kernel/` documents for kernel service concepts.
+- Use `../roles/` documents for stable engineering responsibilities.
+- Use `../decisions/adr/ADR-0003-role-based-engineering-workspace.md` for current architectural direction.
 
-## Provider Independence
+## Migration Note
 
-Capabilities should not encode assumptions about a specific model vendor, runtime, or storage engine.
-
-## Contract Guidance
-
-Future specifications should define inputs, outputs, evidence requirements, failure modes, and observability expectations for each capability.
+Provider independence remains important, but new contracts should be expressed in terms of missions, Shared Reality, execution strategy, roles, review, and knowledge capture rather than capabilities.

@@ -10,3 +10,7 @@ coverage/
 .DS_Store
 
 .memopilot/config.yaml
+.memopilot/agent.lock
+.memopilot/logs/agent-runs.jsonl
+.memopilot/memory/*.db-shm
+.memopilot/memory/*.db-wal

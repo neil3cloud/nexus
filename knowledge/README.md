@@ -1,18 +1,28 @@
-# Engineering Corpus
+# Nexus Knowledge
 
 ## Purpose
-Describe the initial repository-backed home of the Engineering Corpus and explain why Shared Reality is the center of Nexus.
+
+Describe the durable engineering knowledge that supports Nexus runtime behavior and future engineering sessions.
 
 ## Responsibilities
-- Capture durable engineering knowledge
-- Organize architecture, decisions, evidence, research, and specifications
-- Provide a stable starting point for future corpus implementations
+
+- Capture architectural intent, workflow rules, and accepted decisions
+- Organize engineering evidence, specifications, and research
+- Keep repository knowledge aligned with the runtime architecture
 
 ## Scope
-This directory contains conceptual artifacts, not final storage technology decisions.
 
-## Future Evolution
-The corpus may later move beyond repository files into richer storage models, but its conceptual boundaries should remain stable.
+This directory stores repository-backed engineering knowledge. It is not the design center for an autonomous memory system.
 
-## Relationship to the Engineering Corpus
-This directory is the first concrete expression of the Engineering Corpus and therefore the initial operational form of Shared Reality.
+## Structure
+
+- `vision/` defines purpose, principles, scope, and boundaries
+- `kernel/` documents the immutable kernel concepts
+- `roles/` defines engineering responsibilities and execution rules
+- `architecture/` explains host integration, adapters, and repository structure
+- `reference/` defines architectural HOW (service boundaries, interfaces, dependencies, events, persistence)
+- `decisions/`, `engineering/`, `specifications/`, `evidence/`, `research/`, and `roadmap/` hold supporting knowledge
+
+## Relationship to Shared Reality
+
+These documents are evidence inputs used to assemble Shared Reality for engineering missions inside VS Code.

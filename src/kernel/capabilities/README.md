@@ -1,18 +1,13 @@
-# Kernel Capabilities
+# Legacy Capability Surface
 
 ## Purpose
-Hold stable capability contracts exposed by the platform.
 
-## Responsibilities
-- Define durable capability interfaces
-- Separate behavior from implementation
-- Support provider substitution
+Document a superseded architectural surface that existed before the role-based realignment.
 
-## Scope
-Contains contracts, not concrete providers or business logic.
+## Current Guidance
 
-## Future Evolution
-This module should expand into versioned capability interfaces and policy definitions.
+Do not add new kernel contracts here. New workflow contracts should live under mission, context, execution, review, knowledge, and execution-strategy aligned surfaces.
 
-## Relationship to the Engineering Corpus
-Capabilities are the primary way Shared Reality is activated within Nexus.
+## Relationship to Current Architecture
+
+This module remains only as a migration marker while the repository transitions away from capability-first terminology.

@@ -1,28 +1,41 @@
 # Nexus
 
-Nexus is an AI-native Shared Reality Platform for software engineering.
+Nexus is a role-based AI engineering workspace for Visual Studio Code.
 
-It enables humans and AI systems to collaborate through a continuously evolving Engineering Corpus rather than isolated prompts.
+It improves software engineering by coordinating AI providers through explicit engineering workflows while maintaining a shared understanding of the current project.
 
-## Why Nexus Exists
+## Core Mission
 
-Modern AI-assisted development loses context between interactions. Architectural decisions, design rationale, implementation evidence, and engineering outcomes are often fragmented across tools and conversations. Nexus exists to make engineering knowledge cumulative, explainable, and reusable.
+Given an engineering request, Nexus should:
 
-## Core Ideas
+1. Understand the project.
+2. Assemble Shared Reality from engineering evidence.
+3. Select an execution strategy.
+4. Assign engineering roles.
+5. Coordinate one or more AI providers.
+6. Review and validate implementation.
+7. Capture engineering knowledge.
+8. Return control to the developer.
 
-- **Shared Reality First** — every capability operates from project reality, not transient prompts.
-- **Engineering Corpus** — the repository's evolving engineering knowledge is the platform's primary asset.
-- **Capability-Based Architecture** — capabilities are stable; providers are replaceable implementations.
-- **Host Independence** — VS Code is the first host, not the platform itself.
-- **Evidence Before Generation** — understanding precedes recommendation or orchestration.
+## Architectural Commitments
+
+- Shared Reality is an implementation mechanism, not the product identity.
+- The kernel remains small and owns mission, context, execution, review, knowledge, and execution strategy.
+- Providers are replaceable execution adapters.
+- Roles are stable; providers are interchangeable.
+- Every feature must directly improve software engineering inside VS Code.
+
+## Scope Boundaries
+
+Nexus does not aim to be an autonomous AI platform, a memory operating system, a distributed multi-agent framework, or a persistent reasoning engine.
 
 ## Repository Overview
 
-- `/knowledge` — the initial repository-backed representation of the Engineering Corpus
-- `/src` — platform contracts and placeholder modules for the kernel, hosts, and adapters
-- `/tests` — reserved structure for future validation layers
+- `/knowledge` — architectural guidance, decisions, workflows, and engineering evidence
+- `/src` — kernel contracts, host integration points, adapters, and implementation scaffolding
+- `/tests` — reserved structure for validation layers
 - `ARCHITECTURE.md` — top-level architectural orientation for contributors
 
 ## Current Status
 
-This repository is intentionally initialized as an architectural foundation. It contains structure, documentation, and interface placeholders only. Business logic and product capabilities should be added incrementally and should preserve the documented invariants.
+This repository remains an architectural foundation. The current implementation is intentionally thin, but the documented contracts now align around engineering workflow coordination inside VS Code rather than platform- or capability-first expansion.

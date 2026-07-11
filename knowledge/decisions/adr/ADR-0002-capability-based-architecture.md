@@ -1,6 +1,6 @@
 # ADR-0002 — Capability-Based Architecture
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0003
 - **Date:** 2026-07-10
 - **Related Principles:** Capability-Based Architecture, AI is Replaceable, Host Independence
 
@@ -10,15 +10,14 @@ AI-assisted tooling often hard-codes vendors, runtimes, or host constraints into
 
 ## Decision
 
-Nexus will be designed around stable capabilities rather than AI vendors, model APIs, storage products, or execution technologies. Providers will implement capability contracts rather than define them.
+At repository initialization, Nexus was framed around stable capabilities rather than AI vendors, model APIs, storage products, or execution technologies.
 
 ## Consequences
 
-- Architectural contracts should be expressed in capability terms.
-- Provider substitution should not require host or kernel redesign.
-- Orchestration logic must depend on capabilities, adapters, and evidence, not vendor-specific behavior.
-- Future ADRs should reference this decision when defining new execution or integration paths.
+- The repository started with provider-independence as a valid concern.
+- The capability-first framing proved too broad for the intended product scope.
+- Future architectural work should prefer workflow- and role-based kernel contracts instead.
 
 ## Follow-On Guidance
 
-When introducing a new integration, first identify which capability it supports and then define the provider or adapter boundary required to implement it.
+Use this ADR only as historical context. New architectural work should follow ADR-0003 and the role-based engineering workspace model.
