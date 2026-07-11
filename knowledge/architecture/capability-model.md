@@ -10,10 +10,10 @@ Superseded by the role-based engineering workspace model.
 
 ## Current Guidance
 
-- Use `../kernel/` documents for kernel service concepts.
-- Use `../roles/` documents for stable engineering responsibilities.
+- Use `../specifications/` for normative behavior and ownership.
+- Use `../reference/` for service boundaries and dependency mapping.
 - Use `../decisions/adr/ADR-0003-role-based-engineering-workspace.md` for current architectural direction.
 
 ## Migration Note
 
-Provider independence remains important, but new contracts should be expressed in terms of missions, Shared Reality, execution strategy, roles, review, and knowledge capture rather than capabilities.
+Adapter independence remains important, but new contracts should be expressed in terms of missions, Shared Reality, execution strategy, roles, review, and knowledge capture rather than capabilities.

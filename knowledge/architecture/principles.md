@@ -14,13 +14,18 @@ Architects, maintainers, reviewers, and contributors making structural decisions
 
 ## Status
 
-Foundational
+Deprecated for normative behavior; retained as explanatory context.
 
 ## Related Documents
 
-- vision.md
 - shared-reality.md
-- ../decisions/adr/ADR-0001-shared-reality-first.md
+- ../canon/nexus-kernel-canon.md
+- ../specifications/rfc-0003-shared-reality-projection-model.md
+- ../specifications/rfc-0004-execution-model.md
+
+## Normative Source of Truth
+
+Constitutional principles are governed by the Kernel Canon and related RFCs.
 
 ## Invariants
 
@@ -34,4 +39,4 @@ Foundational
 
 ## Decision Guidance
 
-When trade-offs appear, prefer the option that strengthens Shared Reality, improves evidence traceability, and reduces coupling to any host or provider.
+When trade-offs appear, prefer the option that strengthens Shared Reality, improves evidence traceability, and reduces coupling to any host or Adapter.

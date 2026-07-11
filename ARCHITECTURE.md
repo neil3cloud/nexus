@@ -31,11 +31,11 @@ Hosts provide interaction surfaces such as Visual Studio Code. Hosts gather deve
 
 ### Nexus Kernel
 
-The kernel understands the request, assembles Shared Reality, selects execution strategy, assigns roles, coordinates provider execution, validates outcomes, and captures reusable engineering knowledge.
+The kernel understands the request, assembles Shared Reality, selects execution strategy, assigns roles, coordinates Adapter execution, validates outcomes, and captures reusable engineering knowledge.
 
 ### Adapters
 
-Adapters translate between kernel contracts and external systems such as Git, diagnostics, storage, and provider CLIs.
+Adapters translate between kernel contracts and external systems such as Git, diagnostics, storage, and Adapter CLIs.
 
 ### Execution Providers
 
@@ -52,5 +52,5 @@ Shared Reality is a mechanism for reliable engineering coordination. It is not a
 - Prefer vertical slices over horizontal frameworks.
 - Add contracts before implementations when a boundary is stable.
 - Prefer new ADRs over implicit architectural drift.
-- Keep provider-specific details outside the kernel.
+- Keep Adapter-specific details outside the kernel.
 - Preserve explainability by linking outcomes to evidence and structured findings.

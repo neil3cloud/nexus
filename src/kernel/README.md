@@ -60,4 +60,4 @@ Compatibility note: existing `shared-reality/` contracts remain available during
 
 ## Relationship to Shared Reality
 
-The kernel is responsible for operationalizing Shared Reality without turning it into a product identity or coupling it to any single provider.
+The kernel is responsible for operationalizing Shared Reality without turning it into a product identity or coupling it to any single Adapter.

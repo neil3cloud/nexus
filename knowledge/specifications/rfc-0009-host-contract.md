@@ -327,7 +327,7 @@ Hosts SHALL expose configuration mechanisms.
 
 Configuration MAY include:
 
-- provider selection
+- Adapter selection
 - adapter registration
 - logging
 - telemetry preferences

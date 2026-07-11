@@ -20,7 +20,7 @@ Thank you for helping shape Nexus.
 
 ## Documentation Expectations
 
-New architecture-facing work should reference related corpus artifacts and explain how it affects Shared Reality, capabilities, or provider boundaries.
+New architecture-facing work should reference related corpus artifacts and explain how it affects Shared Reality, capabilities, or Adapter boundaries.
 
 ## Code Expectations
 

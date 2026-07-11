@@ -1,18 +1,18 @@
-# Provider Specifications
+# Adapter Specifications
 
 ## Purpose
 
-Reserve a provider-neutral place for execution and integration provider contracts.
+Reserve a Adapter-neutral place for execution and integration Adapter contracts.
 
 ## Responsibilities
 
 - Define what providers must do
-- Separate provider concerns from kernel and role contracts
+- Separate Adapter concerns from kernel and role contracts
 - Support interchangeable implementations
 
 ## Scope
 
-Provider specifications should never become vendor marketing or runtime-specific architecture.
+Adapter specifications should never become vendor marketing or runtime-specific architecture.
 
 ## Future Evolution
 

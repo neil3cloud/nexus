@@ -1,5 +1,9 @@
 # Engineering Practices
 
+## Status
+
+Deprecated.
+
 ## Purpose
 
 Capture how Nexus expects engineering work to be performed in a role-based engineering workspace.
@@ -16,7 +20,14 @@ Focused on engineering method rather than feature implementation.
 
 ## Future Evolution
 
-These documents should become more concrete as operating practices emerge across hosts, roles, and workflow slices.
+Normative behavior in this area is now governed by RFCs:
+
+- RFC-0002 (Evidence Model)
+- RFC-0003 (Shared Reality Projection Model)
+- RFC-0005 (Domain Event Model)
+- RFC-0007 (Knowledge Model)
+
+Reference architecture behavior should be documented under `knowledge/reference/`.
 
 ## Relationship to Shared Reality
 

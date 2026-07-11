@@ -24,6 +24,6 @@ A user-facing surface such as VS Code, CLI, web, or another IDE.
 
 A boundary component that integrates Nexus contracts with external systems.
 
-## Provider
+## Adapter
 
 A concrete implementation used to execute an assigned engineering role through a defined contract.

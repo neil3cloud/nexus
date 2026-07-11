@@ -25,7 +25,7 @@ The Nexus Kernel exists to coordinate AI-assisted software engineering through d
 
 The Kernel SHALL maintain a shared engineering understanding of a software project while remaining:
 
-- provider agnostic
+- Adapter agnostic
 - host independent
 - deterministic
 - explainable
@@ -374,12 +374,12 @@ Owns:
 
 ---
 
-### RFC-0008 — Provider Contract
+### RFC-0008 — Adapter Contract
 
 Owns:
 
-- Provider Interface
-- Provider Responsibilities
+- Adapter Interface
+- Adapter Responsibilities
 
 ---
 

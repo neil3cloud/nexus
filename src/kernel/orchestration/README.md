@@ -7,7 +7,7 @@ Reserve space for orchestration logic as a kernel concern built on missions, Sha
 ## Responsibilities
 
 - Coordinate plans
-- Sequence provider execution
+- Sequence Adapter execution
 - Capture outcomes for knowledge capture
 
 ## Scope

@@ -135,7 +135,7 @@ Attribution SHALL include:
 - Task (when applicable)
 - Execution Session (when applicable)
 - Engineering Role
-- Provider (when applicable)
+- Adapter (when applicable)
 
 Attribution SHALL remain immutable.
 

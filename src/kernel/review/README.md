@@ -12,7 +12,7 @@ Reserve assessment boundaries that evaluate execution outcomes against mission a
 
 ## Scope
 
-Focused on review contracts and outcomes, not reviewer-provider implementation details.
+Focused on review contracts and outcomes, not reviewer-Adapter implementation details.
 
 ## Relationship to Shared Reality
 

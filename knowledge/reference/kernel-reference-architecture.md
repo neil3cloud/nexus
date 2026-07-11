@@ -12,7 +12,7 @@ Developer
   -> Kernel Control Plane (RFC-0010)
   -> Kernel Domain Services (RFC-0001..RFC-0008)
   -> Adapter Contract Boundary (RFC-0008)
-  -> External Provider Systems
+  -> External Adapter Systems
 ```
 
 ## Core Service Topology

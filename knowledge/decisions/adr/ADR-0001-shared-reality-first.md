@@ -10,7 +10,7 @@ Prompt-centric AI workflows repeatedly rediscover context and fail to preserve e
 
 ## Decision
 
-Nexus will treat Shared Reality as its architectural foundation. Every mission, role assignment, and provider execution must operate from project reality assembled from engineering evidence rather than from isolated prompts.
+Nexus will treat Shared Reality as its architectural foundation. Every mission, role assignment, and Adapter execution must operate from project reality assembled from engineering evidence rather than from isolated prompts.
 
 ## Consequences
 

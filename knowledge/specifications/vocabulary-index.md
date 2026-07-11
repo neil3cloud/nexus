@@ -10,7 +10,7 @@ This index maps core normative vocabulary to its owning RFC and the RFCs that re
 - RFC-0004 - Execution Model
 - RFC-0005 - Domain Event Model
 - RFC-0006 - Engineering Assessment Model
-- RFC-0007 - Engineering Memory Model
+- RFC-0007 - Knowledge Model
 - RFC-0008 - Kernel Adapter Contract
 - RFC-0009 - Host Contract
 - RFC-0010 - Kernel Boundaries

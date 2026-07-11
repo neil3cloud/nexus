@@ -154,7 +154,7 @@ This RFC SHALL NOT define:
 
 - Evidence
 - Shared Reality
-- Provider behavior
+- Adapter behavior
 - Review behavior
 - Knowledge persistence
 - Host integration
@@ -319,7 +319,7 @@ These guarantees are consumed by:
 - RFC-0003 — Shared Reality Projection Model
 - RFC-0004 — Execution Model
 - RFC-0006 — Engineering Assessment Model
-- RFC-0007 — Engineering Memory Model
+- RFC-0007 — Knowledge Model
 
 ---
 

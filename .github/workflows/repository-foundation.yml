@@ -18,7 +18,7 @@ jobs:
           test -f ARCHITECTURE.md
           test -f CONTRIBUTING.md
           test -f SECURITY.md
-          test -f knowledge/architecture/vision.md
+          test -f knowledge/reference/kernel-reference-architecture.md
           test -f knowledge/decisions/adr/ADR-0001-shared-reality-first.md
           test -f knowledge/decisions/adr/ADR-0002-capability-based-architecture.md
       - name: Placeholder

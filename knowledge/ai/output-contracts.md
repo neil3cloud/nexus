@@ -14,7 +14,7 @@ Structured outputs should still be:
 - compared across providers
 - consumed by future engineering workflows
 
-The output contract remains independent of the underlying AI provider.
+The output contract remains independent of the underlying AI Adapter.
 
 ---
 

@@ -28,4 +28,4 @@ Define role-based assignment and execution session control.
 
 - Assignment preserves dependency ordering.
 - Execution outcomes are attributable and traceable.
-- Provider behavior remains adapter-bounded.
+- Adapter behavior remains adapter-bounded.

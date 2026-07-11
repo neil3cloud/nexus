@@ -233,7 +233,7 @@ Examples include:
 - Mission execution
 - Review outcomes
 - Human decisions
-- Provider outputs
+- Adapter outputs
 - Tool integrations
 
 Each acquisition SHALL preserve provenance.

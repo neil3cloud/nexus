@@ -51,7 +51,7 @@ Consumes:
 - RFC-0004 — Execution Model
 - RFC-0005 — Domain Event Model
 - RFC-0006 — Engineering Assessment Model
-- RFC-0007 — Engineering Memory Model
+- RFC-0007 — Knowledge Model
 - RFC-0008 — Kernel Adapter Contract
 - RFC-0009 — Host Contract
 
@@ -71,7 +71,7 @@ The Kernel SHALL remain:
 - deterministic
 - explainable
 - evidence-driven
-- provider-agnostic
+- Adapter-agnostic
 - host-independent
 - contract-driven
 - mission-centric
@@ -104,7 +104,7 @@ Engineering conclusions SHALL ultimately derive from Evidence.
 
 Shared Reality, Knowledge, Reviews, Mission execution, and engineering decisions SHALL consume Evidence either directly or through normative projections.
 
-No Host, Adapter, Provider, or external system SHALL establish authoritative engineering information.
+No Host, Adapter, or external system SHALL establish authoritative engineering information.
 
 Only the Evidence Model defines the lifecycle, authority, provenance, and conflict resolution of Evidence.
 
@@ -309,7 +309,7 @@ The Kernel SHALL NOT implement responsibilities owned by Hosts, including:
 
 The Kernel SHALL NOT implement responsibilities owned by Adapters, including:
 
-- provider-specific protocols
+- Adapter-specific protocols
 - external tool execution
 - implementation-specific behavior
 
@@ -443,7 +443,7 @@ Before introducing any capability, the following questions SHALL be answered.
 4. Does it preserve deterministic behavior?
 5. Does it preserve explainability?
 6. Does it preserve Host independence?
-7. Does it preserve Adapter replaceability?
+7. Does it preserve adapter replaceability?
 8. Can it be expressed through an existing architectural contract?
 
 If any answer is **No**, the capability SHALL NOT become part of the Kernel without an approved architectural amendment.
@@ -461,7 +461,7 @@ A Nexus Kernel implementation conforms to RFC-0010 only if it:
 - prevents responsibility leakage between architectural layers
 - preserves deterministic engineering behavior
 - maintains Host independence
-- maintains Adapter replaceability
+- maintains adapter replaceability
 - preserves explainability
 - preserves Mission-centric engineering
 

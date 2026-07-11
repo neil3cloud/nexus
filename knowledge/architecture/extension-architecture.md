@@ -27,4 +27,4 @@ The VS Code extension should provide commands, views, settings, and interaction 
 
 ## Thin Host Expectations
 
-The host should avoid owning Shared Reality assembly, orchestration policy, or provider-specific reasoning. Those concerns belong in stable kernel layers.
+The host should avoid owning Shared Reality assembly, orchestration policy, or Adapter-specific reasoning. Those concerns belong in stable kernel layers.

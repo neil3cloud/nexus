@@ -8,7 +8,7 @@ Provide stable contracts for roles, providers, workflows, events, and Shared Rea
 
 - Hold formal specifications as they emerge
 - Separate conceptual contracts from implementations
-- Preserve provider-neutral interface definitions
+- Preserve Adapter-neutral interface definitions
 
 ## Scope
 
