@@ -9,16 +9,22 @@ export interface KernelHealth {
   readonly services: readonly ServiceHealth[];
 }
 
+export type KernelServiceRegistration =
+  | readonly IKernelService[]
+  | ((eventBus: EventBusContract) => readonly IKernelService[]);
+
 export class Kernel {
   private readonly eventBus: EventBus;
+  private readonly services: readonly IKernelService[];
   private initialized = false;
   private disposed = false;
 
   public constructor(
-    private readonly services: readonly IKernelService[],
+    services: KernelServiceRegistration,
     private readonly logger: KernelLogger,
   ) {
     this.eventBus = new EventBus(logger);
+    this.services = typeof services === 'function' ? services(this.eventBus) : services;
   }
 
   /**

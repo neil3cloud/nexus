@@ -37,7 +37,7 @@ RFC Coverage
 
 ## Sprint 2 — Mission Foundation
 
-Status: Planned
+Status: Implemented — Review Remediation Complete, Pending Reviewer Validation
 
 Objective
 
@@ -57,6 +57,7 @@ Implemented Concepts
 - Mission Repository
 - Mission Service
 - Mission Domain Events
+- Mission Domain Exceptions
 
 Deferred Concepts
 
@@ -67,16 +68,17 @@ Deferred Concepts
 
 Definition of Done
 
+- Mission aggregate, lifecycle, repository, service, events, and domain exceptions are implemented.
 - All Mission tests pass.
-- Lifecycle conforms to RFC-0001.
-- Domain model validated.
-- Reviewer approval received.
+- Lifecycle conforms to RFC-0001 for implemented Mission states and transitions.
+- Deferred RFC-0001 concepts remain unimplemented.
+- Reviewer approval pending.
 
 ---
 
 ## Sprint 3 — Mission Planning
 
-Status: Planned
+Status: Implemented — Kernel Integration Remediation Complete, Pending Reviewer Validation
 
 RFC Coverage
 
@@ -88,6 +90,15 @@ Implemented Concepts
 - Mission Revision
 - Task
 - Task Graph
+
+Review Remediation
+
+- TASK-001 — Enforced exactly one MissionPlan per Mission.
+- TASK-002 — Made MissionPlan Task updates atomic for validation failures.
+- TASK-003 — Rejected planning operations for terminal Missions.
+- NEXUS-REV-2026-07-12-004 TASK-001 — Restored Kernel wiring for MissionService and MissionPlanningService with the Kernel-owned EventBus and one shared in-memory Mission repository.
+- NEXUS-REV-2026-07-12-004 TASK-002 — Closed with Option A by rejecting same-status update requests on terminal Tasks.
+- NEXUS-REV-2026-07-12-004 TASK-003 — Implemented authorized Task Graph cycle detection for direct and transitive dependency cycles.
 
 ---
 

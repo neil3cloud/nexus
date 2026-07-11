@@ -59,15 +59,15 @@ Kernel implementations SHALL NOT silently recover from illegal state changes.
 ## States
 
 ```
-Created
-
-↓
-
-Planning
+Draft
 
 ↓
 
 Planned
+
+↓
+
+Ready
 
 ↓
 
@@ -85,8 +85,6 @@ Completed
 Alternative states
 
 ```
-Paused
-
 Cancelled
 
 Failed
@@ -96,18 +94,16 @@ Failed
 
 ## Transition Table
 
-| Current    | Event                   | Next      | Notes                |
-| ---------- | ----------------------- | --------- | -------------------- |
-| Created    | MissionPlanningStarted  | Planning  | Initial planning     |
-| Planning   | MissionPlanned          | Planned   | Plan finalized       |
-| Planned    | MissionExecutionStarted | Executing | First task begins    |
-| Executing  | ReviewStarted           | Reviewing | Awaiting review      |
-| Reviewing  | ReviewAccepted          | Completed | Mission finished     |
-| Reviewing  | ActionableFindings      | Executing | Mission Plan evolves |
-| Any Active | MissionPaused           | Paused    | Manual pause         |
-| Paused     | MissionResumed          | Executing | Resume execution     |
-| Any Active | MissionCancelled        | Cancelled | Terminal             |
-| Any Active | MissionFailed           | Failed    | Terminal             |
+| Current                         | Event            | Next      | Notes                                  |
+| ------------------------------- | ---------------- | --------- | -------------------------------------- |
+| Draft                           | MissionPlanned   | Planned   | Mission plan established               |
+| Planned                         | MissionReady     | Ready     | Mission is ready for execution         |
+| Ready                           | MissionStarted   | Executing | Mission execution started              |
+| Executing                       | MissionReviewed  | Reviewing | Mission entered review                 |
+| Reviewing                       | MissionCompleted | Completed | Mission finished successfully          |
+| Executing                       | MissionFailed    | Failed    | Mission failed                         |
+| Reviewing                       | MissionResumed   | Executing | Mission returned to execution          |
+| Draft, Planned, Ready, Executing, Reviewing | MissionCancelled | Cancelled | Cancellation is terminal; terminal states do not transition |
 
 ---
 

@@ -132,7 +132,11 @@ Payload
 
 ---
 
-## MissionPlanningStarted
+## MissionPlanned
+
+Aggregate
+
+Mission
 
 Producer
 
@@ -140,59 +144,61 @@ Mission Service
 
 Consumers
 
-Execution Strategy
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
-## MissionPlanned
+## MissionReady
+
+Aggregate
+
+Mission
 
 Producer
 
-Planning Service
+Mission Service
 
 Consumers
 
-Execution Service
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
-## MissionExecutionStarted
+## MissionStarted
+
+Aggregate
+
+Mission
 
 Producer
 
-Execution Service
+Mission Service
 
 Consumers
 
-Task Coordination
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
 ## MissionPaused
 
-Producer
+Aggregate
 
-Mission Service
-
----
-
-## MissionResumed
-
-Producer
-
-Mission Service
-
----
-
-## MissionCancelled
-
-Producer
-
-Mission Service
-
----
-
-## MissionCompleted
+Mission
 
 Producer
 
@@ -200,15 +206,201 @@ Mission Service
 
 Consumers
 
-Knowledge Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionResumed
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionPlanRevised
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+- Mission Plan Revision
+
+---
+
+## TaskAdded
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+- Task Identifier
+
+---
+
+## TaskCompleted
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Mission Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+- Task Identifier
+
+---
+
+## TaskRemoved
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+- Task Identifier
+
+---
+
+## MissionReviewed
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionCompleted
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Knowledge Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionCancelled
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
 ## MissionFailed
 
+Aggregate
+
+Mission
+
 Producer
 
 Mission Service
+
+Consumers
+
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 

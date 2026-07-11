@@ -81,7 +81,7 @@ export class VscodeHost implements vscode.Disposable {
 export function createVscodeHost(): VscodeHost {
   const outputChannel = vscode.window.createOutputChannel('Nexus');
   const logger = new VscodeKernelLogger(outputChannel);
-  const kernel = new Kernel(createKernelServices(), logger);
+  const kernel = new Kernel(createKernelServices, logger);
 
   return new VscodeHost(outputChannel, kernel, logger);
 }
