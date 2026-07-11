@@ -2,7 +2,7 @@
 # MemoPilot Retrieval-First Instructions
 
 Workspace: nexus
-Primary language: python
+Primary language: typescript
 Detected frameworks: none detected
 
 Use MemoPilot as the primary source of workspace context before answering codebase questions.
