@@ -478,3 +478,15 @@ New capabilities SHALL:
 - avoid modifying existing Host Contract semantics
 
 Extensions SHALL NOT redefine concepts owned by this specification.
+
+---
+
+# Implementation Guidance
+
+This specification is implementation independent.
+
+Implementations MAY realize this specification across multiple development iterations.
+
+Partial implementations SHALL preserve all guarantees for the implemented concepts.
+
+Implementation sequencing is governed by the Implementation Plan.

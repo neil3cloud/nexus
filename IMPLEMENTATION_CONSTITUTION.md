@@ -60,10 +60,13 @@ Lower authority SHALL NOT contradict higher authority.
 Before producing implementation, every implementer SHALL read, in order:
 
 1. IMPLEMENTATION_CONSTITUTION.md
-2. Relevant RFCs
-3. Relevant Reference Documents
-4. Implementation Technology Standard
-5. Implementation Conventions
+2. IMPLEMENTATION_PLAN.md
+3. IMPLEMENTATION_MANIFEST.md
+4. Relevant Kernel Canon
+5. Relevant RFCs
+6. Relevant Reference Documents
+7. Implementation Technology Standard
+8. Implementation Conventions
 
 Implementers SHALL NOT begin implementation before understanding the governing documents.
 
@@ -82,6 +85,20 @@ Code is an implementation of documentation.
 When implementation reveals an architectural inconsistency, the inconsistency SHALL be reported.
 
 Implementation SHALL NOT silently compensate for architectural ambiguity.
+
+---
+
+# Architecture and Implementation Independence
+
+Architecture defines WHAT the system SHALL do.
+
+Implementation defines WHEN and HOW architectural concepts are delivered.
+
+Implementation sequencing SHALL NOT redefine architectural intent.
+
+Normative specifications SHALL remain implementation-independent.
+
+Implementation plans SHALL remain architecture-independent.
 
 ---
 
@@ -148,6 +165,15 @@ Builder AI SHALL NOT:
 - bypass architectural constraints
 - introduce speculative abstractions
 
+Builder AI SHALL additionally:
+
+- implement only the requested vertical slice;
+- avoid speculative implementation of future slices;
+- preserve deferred concepts without approximation;
+- report implementation gaps rather than filling them with assumptions.
+
+Builder AI SHALL NOT require complete RFC implementation unless explicitly instructed.
+
 ---
 
 # Reviewer AI
@@ -188,21 +214,26 @@ Partial implementation of multiple capabilities SHALL be avoided.
 
 ---
 
-# Capability Order
+# Implementation Roadmap
 
-Unless otherwise directed, implementation SHALL proceed in the following order.
+Implementation sequencing is governed by the Implementation Plan.
 
-1. Mission
-2. Evidence
-3. Shared Reality
-4. Execution
-5. Review
-6. Knowledge
-7. Adapter
-8. Host
-9. User Interface
+The Implementation Plan organizes work into milestones and vertical slices.
 
-Higher-level capabilities SHALL NOT be implemented before their dependencies exist.
+Vertical slices SHALL define implementation order.
+
+RFCs SHALL define architectural behavior.
+
+The implementation roadmap SHALL NOT redefine architectural contracts.
+
+Each vertical slice SHALL declare:
+
+- referenced RFCs;
+- implemented concepts;
+- deferred concepts;
+- completion criteria.
+
+Deferred concepts SHALL remain tracked in the Implementation Manifest.
 
 ---
 
@@ -246,6 +277,25 @@ Every implementation SHALL include a report describing:
 If no deviations exist, the report SHALL explicitly state:
 
 "No architectural deviations."
+
+---
+
+# Implementation Manifest
+
+IMPLEMENTATION_MANIFEST.md is the authoritative mapping between architectural specifications and implementation progress.
+
+The manifest SHALL record:
+
+- milestones;
+- vertical slices;
+- RFC coverage;
+- implementation status;
+- deferred concepts;
+- implementation dependencies.
+
+The Implementation Manifest SHALL NOT redefine architecture.
+
+It SHALL exist solely to describe implementation progress.
 
 ---
 
@@ -298,19 +348,67 @@ Implementers SHALL report the conflict rather than making assumptions.
 
 ---
 
-# Definition of Done
+# Vertical Slice Policy
 
-Implementation SHALL be considered complete only when:
+Nexus SHALL be implemented through incremental vertical slices.
 
-- relevant RFC requirements are satisfied
-- aggregate ownership is preserved
-- state machines are respected
-- event contracts are respected
-- capability contracts are respected
-- tests pass
-- documentation is updated where necessary
-- implementation report is complete
-- reviewer validation succeeds
+Each vertical slice SHALL deliver a complete, testable increment of functionality.
+
+A vertical slice MAY implement only a subset of one or more RFCs.
+
+Partial RFC implementation is an expected implementation state.
+
+Every implemented concept SHALL fully conform to its governing RFC.
+
+Deferred concepts SHALL:
+
+- remain normative;
+- be explicitly identified;
+- be tracked within the Implementation Manifest.
+
+Vertical slices SHALL optimize for continuous integration, continuous validation, and deterministic progress.
+
+Implementation sequencing SHALL NEVER redefine architectural behavior.
+
+---
+
+# Vertical Slice Policy
+
+Nexus SHALL be implemented through incremental vertical slices.
+
+Each vertical slice SHALL deliver a complete, testable increment of functionality.
+
+A vertical slice MAY implement only a subset of one or more RFCs.
+
+Partial RFC implementation is an expected implementation state.
+
+Every implemented concept SHALL fully conform to its governing RFC.
+
+Deferred concepts SHALL:
+
+- remain normative;
+- be explicitly identified;
+- be tracked within the Implementation Manifest.
+
+Vertical slices SHALL optimize for continuous integration, continuous validation, and deterministic progress.
+
+Implementation sequencing SHALL NEVER redefine architectural behavior.
+
+---
+
+# RFC Coverage
+
+Every implementation request SHALL explicitly declare:
+
+- Primary RFCs
+- Implemented Concepts
+- Deferred Concepts
+
+Implemented concepts SHALL conform completely to the governing specification.
+
+Deferred concepts SHALL NOT be approximated, substituted, or silently implemented.
+
+RFC coverage SHALL be maintained in IMPLEMENTATION_MANIFEST.md.
 
 ---
 
@@ -389,3 +487,45 @@ Amendments SHALL occur only when implementation experience demonstrates that the
 Personal preference SHALL NOT justify constitutional amendments.
 
 The burden of proof for modifying this Constitution SHALL be intentionally high.
+
+---
+
+# Vertical Slice Policy
+
+Nexus SHALL be implemented through incremental vertical slices.
+
+A sprint MAY implement only a subset of an RFC provided that:
+
+- implemented concepts remain conformant;
+- omitted concepts are explicitly declared;
+- deferred concepts remain tracked in the Implementation Manifest.
+
+Partial RFC implementation SHALL NOT be interpreted as architectural inconsistency.
+
+Implementation sequencing SHALL NOT modify normative behavior.
+
+---
+
+# Sprint Specifications
+
+Every implementation sprint SHALL be defined using the standard Sprint Template.
+
+The Sprint Template establishes the minimum required information for implementation requests.
+
+Each sprint SHALL define:
+
+- Sprint identifier
+- Sprint objective
+- RFC coverage
+- Implemented concepts
+- Deferred concepts
+- Deliverables
+- Acceptance criteria
+- Out-of-scope items
+- Completion requirements
+
+The canonical Sprint Template is located at:
+
+knowledge/implementation/sprint-template.md
+
+Implementation requests that do not conform to the Sprint Template SHOULD be considered incomplete and MAY require clarification before implementation proceeds.

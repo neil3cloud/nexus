@@ -469,6 +469,18 @@ Failure to satisfy these guarantees constitutes non-conformance with this specif
 
 ---
 
+# Implementation Guidance
+
+This specification is implementation independent.
+
+Implementations MAY realize this specification across multiple development iterations.
+
+Partial implementations SHALL preserve all guarantees for the implemented concepts.
+
+Implementation sequencing is governed by the Implementation Plan.
+
+---
+
 # Specification Completion
 
 RFC-0010 completes Version 1.0 of the Nexus Kernel normative specification suite.

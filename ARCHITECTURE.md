@@ -38,3 +38,17 @@ Architecture Overview
 - This file should remain index-only.
 - Do not place normative rules or architectural behavior definitions here.
 - Add new behavior in Canon, RFCs, or Reference Architecture as appropriate.
+
+## Development Strategy
+
+Nexus follows Vertical Slice Architecture.
+
+Implementation proceeds through small, testable increments.
+
+Architectural specifications remain complete before implementation begins.
+
+Development order SHALL NOT imply architectural dependency.
+
+RFCs define architectural contracts.
+
+Sprints define implementation order.
