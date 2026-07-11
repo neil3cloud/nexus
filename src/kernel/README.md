@@ -22,11 +22,41 @@ This layer should evolve through small, contract-first steps backed by ADRs and 
 ## Kernel Services
 
 - Mission Service
-- Context Service
+- Evidence Service
+- Projection Service
 - Execution Service
 - Review Service
 - Knowledge Service
-- Execution Strategy Service
+- Event Bus
+
+## Reference Implementation Layout
+
+```text
+src/kernel/
+	mission/
+	evidence/
+	projection/
+	execution/
+	review/
+	knowledge/
+	events/
+```
+
+This layout intentionally mirrors RFC ownership:
+
+- RFC-0001 -> mission/
+- RFC-0002 -> evidence/
+- RFC-0003 -> projection/
+- RFC-0004 -> execution/
+- RFC-0005 -> events/
+- RFC-0006 -> review/
+- RFC-0007 -> knowledge/
+
+Developer-facing bridge document:
+
+- knowledge/reference/kernel-service-map.md
+
+Compatibility note: existing `shared-reality/` contracts remain available during transition and should converge on `projection/` as the canonical RFC-0003 boundary.
 
 ## Relationship to Shared Reality
 

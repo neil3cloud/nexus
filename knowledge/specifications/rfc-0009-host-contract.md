@@ -1,7 +1,7 @@
 # RFC-0009 — Host Contract
 
 **Status:** Final
-**Version:** 1.1
+**Version:** 1.0
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -53,8 +53,8 @@ Consumes:
 
 - RFC-0001 — Mission Model
 - RFC-0002 — Evidence Model
-- RFC-0003 — Shared Reality Model
-- RFC-0005 — Event Model
+- RFC-0003 — Shared Reality Projection Model
+- RFC-0005 — Domain Event Model
 
 Owns:
 

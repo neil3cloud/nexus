@@ -20,6 +20,7 @@ This directory stores repository-backed engineering knowledge. It is not the des
 - `kernel/` documents the immutable kernel concepts
 - `roles/` defines engineering responsibilities and execution rules
 - `architecture/` explains host integration, adapters, and repository structure
+- `reference/` defines architectural HOW (service boundaries, interfaces, dependencies, events, persistence)
 - `decisions/`, `engineering/`, `specifications/`, `evidence/`, `research/`, and `roadmap/` hold supporting knowledge
 
 ## Relationship to Shared Reality

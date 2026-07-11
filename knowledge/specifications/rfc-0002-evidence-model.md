@@ -94,7 +94,15 @@ Evidence SHALL NOT represent assumptions or unsupported conclusions.
 
 # Evidence Authority
 
-Evidence SHALL become authoritative only through approved acquisition mechanisms.
+Evidence SHALL be the sole authoritative representation of engineering information.
+
+Authoritative engineering information SHALL originate exclusively from Evidence.
+
+No engineering participant SHALL establish authoritative engineering information through unsupported reasoning.
+
+Where Evidence conflicts exist, Evidence Authority SHALL determine the active authoritative engineering information in accordance with applicable Kernel policies.
+
+Shared Reality SHALL consume authoritative engineering information through normative projections defined by RFC-0003.
 
 Examples include:
 
@@ -274,20 +282,6 @@ Evidence progresses through the following lifecycle:
 6. Archived (optional)
 
 Lifecycle progression SHALL remain attributable.
-
----
-
-# Evidence Authority
-
-Evidence SHALL be the sole authoritative representation of engineering information.
-
-Authoritative engineering information SHALL originate exclusively from Evidence.
-
-No engineering participant SHALL establish authoritative engineering information through unsupported reasoning.
-
-Where Evidence conflicts exist, Evidence Authority SHALL determine the active authoritative engineering information in accordance with applicable Kernel policies.
-
-Shared Reality SHALL consume authoritative engineering information through normative projections defined by RFC-0003.
 
 ---
 

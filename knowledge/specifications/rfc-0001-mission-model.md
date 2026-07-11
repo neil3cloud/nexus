@@ -1,5 +1,3 @@
-# RFC-0001 — Mission Model
-
 > **NOTE**
 >
 > This document is the normative specification governing the Mission domain of the Nexus Kernel.
@@ -15,7 +13,7 @@
 
 # RFC-0001 — Mission Model
 
-**Status:** Proposed Standard
+**Status:** Final
 
 **Category:** Kernel Specification
 
@@ -317,11 +315,11 @@ This RFC guarantees:
 
 These guarantees are consumed by:
 
-- RFC-0002 Evidence Model
-- RFC-0003 Shared Reality
-- RFC-0004 Execution Model
-- RFC-0006 Review Model
-- RFC-0007 Knowledge Model
+- RFC-0002 — Evidence Model
+- RFC-0003 — Shared Reality Projection Model
+- RFC-0004 — Execution Model
+- RFC-0006 — Engineering Assessment Model
+- RFC-0007 — Engineering Memory Model
 
 ---
 

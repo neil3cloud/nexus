@@ -1,7 +1,7 @@
 # RFC-0010 — Kernel Boundaries
 
 **Status:** Final
-**Version:** 1.1
+**Version:** 1.0
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -47,11 +47,11 @@ Consumes:
 
 - RFC-0001 — Mission Model
 - RFC-0002 — Evidence Model
-- RFC-0003 — Shared Reality Model
+- RFC-0003 — Shared Reality Projection Model
 - RFC-0004 — Execution Model
-- RFC-0005 — Event Model
-- RFC-0006 — Review Model
-- RFC-0007 — Knowledge Model
+- RFC-0005 — Domain Event Model
+- RFC-0006 — Engineering Assessment Model
+- RFC-0007 — Engineering Memory Model
 - RFC-0008 — Kernel Adapter Contract
 - RFC-0009 — Host Contract
 
@@ -475,16 +475,16 @@ RFC-0010 completes Version 1.0 of the Nexus Kernel normative specification suite
 
 The complete specification consists of:
 
-- RFC-0001 — Mission Model
-- RFC-0002 — Evidence Model
-- RFC-0003 — Shared Reality Model
-- RFC-0004 — Execution Model
-- RFC-0005 — Event Model
-- RFC-0006 — Review Model
-- RFC-0007 — Knowledge Model
-- RFC-0008 — Kernel Adapter Contract
-- RFC-0009 — Host Contract
-- RFC-0010 — Kernel Boundaries
+- RFC-0001
+- RFC-0002
+- RFC-0003
+- RFC-0004
+- RFC-0005
+- RFC-0006
+- RFC-0007
+- RFC-0008
+- RFC-0009
+- RFC-0010
 
 Future RFCs MAY extend the architecture.
 
