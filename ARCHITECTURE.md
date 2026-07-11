@@ -1,56 +1,40 @@
-# Nexus Architecture Overview
+# Architecture Index
 
-Nexus is organized around a stable engineering workflow:
+This document is an index, not a behavioral specification.
 
-Developer Request → Mission → Context Assembly → Shared Reality → Execution Strategy → Builder → Implementation → Reviewer → Structured Findings → Developer Approval → Knowledge Update
+Normative behavior is defined by the Kernel Canon and RFC suite.
 
-## Architectural Priorities
+## Navigation Flow
 
-1. Improve software engineering inside Visual Studio Code.
-2. Keep the kernel intentionally small.
-3. Assemble Shared Reality from project evidence on demand.
-4. Assign stable engineering roles before invoking providers.
-5. Keep providers and adapters replaceable.
+Architecture Overview
 
-## Kernel Responsibilities
+↓
 
-The kernel should own only the services required to coordinate engineering workflow:
+[Kernel Canon](knowledge/canon/nexus-kernel-canon.md)
 
-- Mission Service
-- Context Service
-- Execution Service
-- Review Service
-- Knowledge Service
-- Execution Strategy Service
+↓
 
-## Layer Responsibilities
+[RFC Suite](knowledge/specifications/README.md)
 
-### Host Applications
+↓
 
-Hosts provide interaction surfaces such as Visual Studio Code. Hosts gather developer intent and return control to the developer, but they do not own engineering workflow logic.
+[Reference Architecture](knowledge/reference/README.md)
 
-### Nexus Kernel
+↓
 
-The kernel understands the request, assembles Shared Reality, selects execution strategy, assigns roles, coordinates Adapter execution, validates outcomes, and captures reusable engineering knowledge.
+[Implementation](src/README.md)
 
-### Adapters
+## Canonical Sources
 
-Adapters translate between kernel contracts and external systems such as Git, diagnostics, storage, and Adapter CLIs.
+- Constitutional source: [knowledge/canon/nexus-kernel-canon.md](knowledge/canon/nexus-kernel-canon.md)
+- Normative specifications: [knowledge/specifications/README.md](knowledge/specifications/README.md)
+- Architecture HOW: [knowledge/reference/README.md](knowledge/reference/README.md)
+- Dependency and DI blueprint: [knowledge/reference/kernel-dependency-graph.md](knowledge/reference/kernel-dependency-graph.md)
+- Service-to-code bridge: [knowledge/reference/kernel-service-map.md](knowledge/reference/kernel-service-map.md)
+- Source layout: [src/README.md](src/README.md)
 
-### Execution Providers
+## Scope Boundary
 
-Providers implement assigned engineering responsibilities. They do not define mission logic, policies, architecture, or repository understanding.
-
-## Shared Reality
-
-Shared Reality is assembled from engineering evidence such as source code, architecture documents, ADRs, repository policies, git state, diagnostics, active mission context, and accepted implementation history.
-
-Shared Reality is a mechanism for reliable engineering coordination. It is not a product identity, autonomous memory system, or knowledge graph platform.
-
-## Implementation Guidance
-
-- Prefer vertical slices over horizontal frameworks.
-- Add contracts before implementations when a boundary is stable.
-- Prefer new ADRs over implicit architectural drift.
-- Keep Adapter-specific details outside the kernel.
-- Preserve explainability by linking outcomes to evidence and structured findings.
+- This file should remain index-only.
+- Do not place normative rules or architectural behavior definitions here.
+- Add new behavior in Canon, RFCs, or Reference Architecture as appropriate.
