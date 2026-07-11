@@ -1,0 +1,43 @@
+{
+  "name": "nexus",
+  "displayName": "Nexus",
+  "description": "Nexus VS Code extension foundation.",
+  "version": "0.0.1",
+  "private": true,
+  "publisher": "nexus",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "nexus.initializeWorkspace",
+        "title": "Nexus: Initialize Workspace"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "compile": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "vitest run",
+    "validate": "npm run compile && npm run lint && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.15",
+    "@types/vscode": "^1.92.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.4",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "pino": "^10.3.1"
+  }
+}
