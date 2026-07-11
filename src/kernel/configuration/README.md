@@ -12,7 +12,7 @@ Reserve configuration boundaries for workspace behavior and host integration.
 
 ## Scope
 
-Configuration should not become an implicit backdoor for provider-specific architecture.
+Configuration should not become an implicit backdoor for Adapter-specific architecture.
 
 ## Future Evolution
 

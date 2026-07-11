@@ -17,5 +17,5 @@ Please report suspected vulnerabilities privately to the maintainers rather than
 ## Secure Development Guidance
 
 - Avoid embedding secrets in source or documentation.
-- Preserve provider independence and least-privilege boundaries.
+- Preserve Adapter independence and least-privilege boundaries.
 - Prefer explainable, auditable flows over opaque automation.

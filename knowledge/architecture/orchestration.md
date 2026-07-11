@@ -30,4 +30,4 @@ Orchestration is downstream of understanding. It consumes Shared Reality, select
 
 - Orchestration must not bypass evidence assembly.
 - Orchestration must remain explainable.
-- Provider-specific coordination logic belongs behind provider contracts or adapters.
+- Adapter-specific coordination logic belongs behind Adapter contracts or adapters.

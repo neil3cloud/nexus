@@ -37,7 +37,7 @@ This specification implements:
 - Canon 3 — Mission-Centric Engineering
 - Canon 5 — Controlled Mission Evolution
 - Canon 7 — Shared Engineering Roles
-- Canon 8 — Provider Replaceability
+- Canon 8 — Replaceable Integrations
 - Canon 9 — Deterministic Engineering
 
 Where conflicts exist, the Kernel Canon SHALL prevail.
@@ -67,7 +67,7 @@ Owns:
 Execution SHALL:
 
 - remain deterministic
-- remain provider agnostic
+- remain adapter agnostic
 - preserve traceability
 - preserve explainability
 - preserve Mission identity
@@ -151,7 +151,7 @@ Roles SHALL remain independent of implementation providers.
 
 ---
 
-# Provider Independence
+# Adapter Independence
 
 Providers execute Roles.
 
@@ -184,7 +184,7 @@ Assignments SHALL remain attributable.
 Assignment policies MAY consider:
 
 - required role
-- provider capability
+- Adapter capability
 - repository configuration
 - execution constraints
 - human preferences
@@ -241,7 +241,7 @@ An Execution Session represents one coordinated execution attempt.
 Execution Sessions SHALL record:
 
 - assigned role
-- assigned provider
+- assigned adapter
 - execution timestamps
 - consumed Projection version
 - produced artifacts
@@ -287,7 +287,7 @@ Failure handling SHALL preserve traceability.
 Every execution decision SHALL identify:
 
 - responsible role
-- assigned provider
+- assigned adapter
 - consumed Shared Reality
 - executed Task
 - produced outcome
@@ -314,7 +314,7 @@ Human authority SHALL supersede automated execution decisions.
 Execution SHALL respect:
 
 - repository permissions
-- provider capabilities
+- Adapter capabilities
 - execution policies
 - workspace restrictions
 
@@ -327,7 +327,7 @@ Execution SHALL NOT exceed granted authority.
 Implementations SHALL:
 
 - support deterministic assignment
-- support provider replacement
+- support Adapter replacement
 - support concurrent execution
 - preserve execution traceability
 - preserve dependency ordering
@@ -344,7 +344,7 @@ A Kernel implementation conforms to RFC-0004 only if it:
 - executes approved Mission Plans
 - preserves Mission identity
 - coordinates work through Execution Roles
-- remains provider agnostic
+- remains adapter agnostic
 - preserves deterministic behavior
 - preserves execution traceability
 - preserves dependency ordering

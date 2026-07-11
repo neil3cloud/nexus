@@ -6,7 +6,7 @@ Provide implementation-facing placeholders for the Nexus runtime architecture.
 
 ## Responsibilities
 
-- Establish kernel, host, adapter, and provider boundaries in code
+- Establish kernel, host, adapter, and Adapter boundaries in code
 - Hold service contracts and implementation scaffolding
 - Prevent host integrations from absorbing engineering workflow logic
 
@@ -20,4 +20,4 @@ Future work should fill these areas incrementally behind stable contracts and AD
 
 ## Relationship to Shared Reality
 
-The source skeleton exists to reflect how Shared Reality is assembled and used during engineering missions without hardcoding provider-specific behavior into the kernel.
+The source skeleton exists to reflect how Shared Reality is assembled and used during engineering missions without hardcoding Adapter-specific behavior into the kernel.

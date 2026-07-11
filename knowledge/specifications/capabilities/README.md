@@ -19,4 +19,4 @@ This area can be removed once all historical references are gone.
 
 ## Relationship to Shared Reality
 
-Current Shared Reality behavior should be specified through workflow, provider, event, and role-aligned contracts instead.
+Current Shared Reality behavior should be specified through workflow, Adapter, event, and role-aligned contracts instead.

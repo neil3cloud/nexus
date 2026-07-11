@@ -10,7 +10,7 @@ This matrix maps Kernel Canon principles to the RFCs that explicitly implement t
 - RFC-0004 - Execution Model
 - RFC-0005 - Domain Event Model
 - RFC-0006 - Engineering Assessment Model
-- RFC-0007 - Engineering Memory Model
+- RFC-0007 - Knowledge Model
 - RFC-0008 - Kernel Adapter Contract
 - RFC-0009 - Host Contract
 - RFC-0010 - Kernel Boundaries
@@ -36,7 +36,7 @@ This matrix maps Kernel Canon principles to the RFCs that explicitly implement t
 | Canon 6 - Evidence-Driven Review        | RFC-0006 | Engineering Assessment, Evidence-backed Findings      |
 | Canon 7 - Shared Engineering Roles      | RFC-0004 | Execution Roles, Assignment Policy                    |
 | Canon 7 - Shared Engineering Roles      | RFC-0008 | Engineering Roles, Adapter Capability                 |
-| Canon 8 - Replaceable Integrations      | RFC-0004 | Provider Independence                                 |
+| Canon 8 - Replaceable Integrations      | RFC-0004 | Adapter Independence                                 |
 | Canon 8 - Replaceable Integrations      | RFC-0008 | Adapter Contract, Adapter Lifecycle                   |
 | Canon 8 - Replaceable Integrations      | RFC-0010 | Contract Rule, Architectural Layering                 |
 | Canon 9 - Deterministic Engineering     | RFC-0003 | Deterministic Projection, Freshness Rules             |

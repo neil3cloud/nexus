@@ -25,11 +25,11 @@ Foundational
 
 ## Workflow Model
 
-Developer Request → Mission → Context Assembly → Shared Reality → Execution Strategy → Role Assignment → Provider Execution → Review Findings → Developer Approval → Knowledge Update
+Developer Request → Mission → Context Assembly → Shared Reality → Execution Strategy → Role Assignment → Adapter Execution → Review Findings → Developer Approval → Knowledge Update
 
 ## Runtime Model
 
-Developer → VS Code Host → Nexus Kernel Services → Adapters → Provider CLIs and Repository Systems
+Developer → VS Code Host → Nexus Kernel Services → Adapters → Adapter CLIs and Repository Systems
 
 ## Responsibility Boundaries
 
@@ -41,4 +41,4 @@ Developer → VS Code Host → Nexus Kernel Services → Adapters → Provider C
 
 ## Dependency Guidance
 
-Dependencies should flow inward toward stable kernel contracts. Provider- or storage-specific details should not leak into mission, review, or Shared Reality concepts.
+Dependencies should flow inward toward stable kernel contracts. Adapter- or storage-specific details should not leak into mission, review, or Shared Reality concepts.

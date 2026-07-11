@@ -6,7 +6,7 @@ Describe the change and how it strengthens Nexus.
 
 - Shared Reality implications:
 - Engineering Corpus implications:
-- Capability or provider boundary implications:
+- Capability or Adapter boundary implications:
 
 ## Validation
 

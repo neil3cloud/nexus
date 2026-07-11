@@ -7,7 +7,7 @@ Reserve execution coordination contracts that connect assigned engineering roles
 ## Responsibilities
 
 - Mediate execution boundaries
-- Preserve provider independence
+- Preserve Adapter independence
 - Record implementation and review outcomes
 
 ## Scope

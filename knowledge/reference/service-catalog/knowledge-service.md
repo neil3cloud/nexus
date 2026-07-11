@@ -2,7 +2,7 @@
 
 ## Owned RFCs
 
-- RFC-0007 - Engineering Memory Model
+- RFC-0007 - Knowledge Model
 
 ## Interfaces
 

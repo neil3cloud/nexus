@@ -6,7 +6,7 @@
 
 ## Context
 
-AI-assisted tooling often hard-codes vendors, runtimes, or host constraints into its core architecture. That makes evolution expensive and provider substitution difficult.
+AI-assisted tooling often hard-codes vendors, runtimes, or host constraints into its core architecture. That makes evolution expensive and Adapter substitution difficult.
 
 ## Decision
 
@@ -14,7 +14,7 @@ At repository initialization, Nexus was framed around stable capabilities rather
 
 ## Consequences
 
-- The repository started with provider-independence as a valid concern.
+- The repository started with Adapter-independence as a valid concern.
 - The capability-first framing proved too broad for the intended product scope.
 - Future architectural work should prefer workflow- and role-based kernel contracts instead.
 

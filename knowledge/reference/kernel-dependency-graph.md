@@ -151,7 +151,7 @@ Composition roots:
 
 - Host composition root: wires host-facing contracts to kernel orchestration entrypoints.
 - Kernel composition root: wires services to interfaces and repositories.
-- Adapter composition root: wires adapter contracts to concrete provider adapters.
+- Adapter composition root: wires adapter contracts to concrete Adapter adapters.
 
 Injection constraints:
 

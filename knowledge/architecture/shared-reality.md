@@ -14,13 +14,17 @@ Architects, workflow designers, and contributors shaping engineering behavior.
 
 ## Status
 
-Foundational
+Deprecated for normative behavior; retained as explanatory context.
 
 ## Related Documents
 
-- vision.md
-- principles.md
+- ../canon/nexus-kernel-canon.md
+- ../specifications/rfc-0003-shared-reality-projection-model.md
 - ../engineering/shared-reality-engineering.md
+
+## Normative Source of Truth
+
+Behavioral rules for Shared Reality are governed by the Kernel Canon and RFC-0003.
 
 ## Definition
 

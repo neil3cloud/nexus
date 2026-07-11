@@ -158,7 +158,7 @@ Code Boundary
 
 Implements
 
-- RFC-0007 - Engineering Memory Model
+- RFC-0007 - Knowledge Model
 
 Consumes
 

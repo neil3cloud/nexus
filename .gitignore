@@ -14,3 +14,11 @@ coverage/
 .memopilot/logs/agent-runs.jsonl
 .memopilot/memory/*.db-shm
 .memopilot/memory/*.db-wal
+
+# Local machine/workspace state (do not commit)
+.claude/
+.mcp.json
+.cursor/mcp.json
+.vscode/mcp.json
+.memopilot/workspace.profile.yaml
+.memopilot/memory/*.db
