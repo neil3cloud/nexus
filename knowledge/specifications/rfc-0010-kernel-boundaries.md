@@ -1,7 +1,7 @@
 # RFC-0010 — Kernel Boundaries
 
 **Status:** Final
-**Version:** 1.0
+**Version:** 1.1
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -9,17 +9,16 @@
 
 # Purpose
 
-This specification defines the architectural boundaries of the Nexus Kernel.
+This specification defines the constitutional boundaries of the Nexus Kernel.
 
-The Kernel Boundary specifies what responsibilities belong to the Kernel and what responsibilities SHALL remain outside the Kernel.
+The Kernel Boundary specifies the responsibilities that belong to the Kernel and the responsibilities that SHALL remain outside the Kernel.
 
-The purpose of this specification is to preserve the constitutional integrity, determinism, and long-term maintainability of the Nexus Kernel.
+The purpose of this specification is to preserve the deterministic, evidence-driven, contract-based architecture established by the Nexus Kernel Canon.
 
 This specification owns:
 
 - Kernel Boundary
 - Boundary Rule
-- Domain Ownership
 - Responsibility Allocation
 - Architectural Scope
 
@@ -31,13 +30,14 @@ No other specification may redefine these concepts.
 
 This specification implements:
 
+- Canon 2 — Evidence Before Generation
 - Canon 3 — Mission-Centric Engineering
 - Canon 8 — Replaceable Integrations
 - Canon 9 — Deterministic Engineering
 - Canon 12 — Human Authority
 - Canon 13 — Contract-Driven Architecture
 
-Where conflicts exist, the Kernel Canon SHALL prevail.
+Where conflicts exist between this specification and the Kernel Canon, the Kernel Canon SHALL prevail.
 
 ---
 
@@ -70,55 +70,173 @@ The Kernel SHALL remain:
 
 - deterministic
 - explainable
+- evidence-driven
 - provider-agnostic
 - host-independent
 - contract-driven
-- evidence-based
 - mission-centric
 
 The Kernel SHALL remain intentionally small.
 
 ---
 
+# Architectural Responsibilities
+
+The Nexus architecture separates engineering responsibilities into bounded domains.
+
+The Evidence Model owns engineering truth.
+
+The Kernel owns engineering coordination.
+
+Hosts own platform integration.
+
+Adapters own delegated execution.
+
+No architectural component SHALL assume responsibilities owned by another specification.
+
+---
+
+# Evidence Authority
+
+Evidence SHALL be the sole authoritative representation of engineering truth.
+
+Engineering conclusions SHALL ultimately derive from Evidence.
+
+Shared Reality, Knowledge, Reviews, Mission execution, and engineering decisions SHALL consume Evidence either directly or through normative projections.
+
+No Host, Adapter, Provider, or external system SHALL establish authoritative engineering information.
+
+Only the Evidence Model defines the lifecycle, authority, provenance, and conflict resolution of Evidence.
+
+---
+
 # Kernel Responsibility
 
-The Kernel exclusively owns engineering coordination.
+The Kernel SHALL coordinate engineering workflows.
 
 The Kernel SHALL:
 
 - coordinate Missions
-- manage Mission Plans
-- assemble Shared Reality
-- evaluate Evidence
+- coordinate Mission Plans
+- compute Shared Reality from Evidence
 - coordinate Execution
-- manage Engineering Roles
+- coordinate Engineering Roles
 - coordinate Reviews
-- evolve Knowledge
+- coordinate Knowledge evolution
 - enforce architectural contracts
 
-The Kernel SHALL NOT perform responsibilities owned by Hosts or Adapters.
+The Kernel SHALL NOT:
+
+- redefine Evidence
+- create engineering truth outside the Evidence Model
+- resolve responsibilities owned by Hosts
+- execute responsibilities owned by Adapters
+
+---
+
+# Coordination State
+
+The Kernel MAY maintain transient coordination state required to execute engineering workflows.
+
+Examples include:
+
+- active Missions
+- execution progress
+- scheduling information
+- runtime coordination metadata
+
+Coordination state SHALL NOT become authoritative engineering information.
+
+Authoritative engineering information SHALL remain represented exclusively as Evidence.
 
 ---
 
 # Domain Ownership
 
-Engineering domains SHALL have exactly one owner.
+Each architectural domain SHALL have exactly one owning specification.
 
-Responsibilities SHALL NOT be duplicated.
+Only the owning specification MAY define or redefine its vocabulary.
 
-No implementation SHALL redefine ownership established by another RFC.
+Other specifications MAY consume owned concepts.
+
+Other specifications SHALL NOT redefine owned concepts.
 
 ---
 
 # Boundary Rule
 
-The Kernel SHALL coordinate.
+The architectural separation SHALL remain:
 
-The Host SHALL integrate.
-
-The Adapter SHALL execute.
+- Evidence owns truth.
+- The Kernel coordinates engineering.
+- Hosts integrate platforms.
+- Adapters execute delegated responsibilities.
 
 This separation SHALL remain invariant.
+
+---
+
+# State Ownership
+
+Authoritative engineering information SHALL remain represented exclusively as Evidence.
+
+The Kernel SHALL own coordination state.
+
+Hosts SHALL NOT own authoritative engineering information.
+
+Adapters SHALL NOT own authoritative engineering information.
+
+External systems SHALL NOT own authoritative engineering information.
+
+---
+
+# Evidence Conflict
+
+Evidence conflict resolution SHALL remain exclusively governed by RFC-0002.
+
+Hosts SHALL NOT resolve Evidence conflicts.
+
+Adapters SHALL NOT resolve Evidence conflicts.
+
+Execution Providers SHALL NOT resolve Evidence conflicts.
+
+Kernel capabilities SHALL consume resolved Evidence in accordance with RFC-0002.
+
+---
+
+# Shared Reality
+
+Shared Reality SHALL be computed from authoritative Evidence.
+
+Shared Reality SHALL remain a deterministic projection.
+
+Shared Reality SHALL NOT become persistent engineering truth.
+
+No architectural component SHALL bypass the Shared Reality computation process defined by RFC-0003.
+
+---
+
+# Knowledge
+
+Knowledge SHALL originate only from accepted Evidence.
+
+Knowledge SHALL remain a projection derived from Evidence.
+
+Knowledge SHALL NOT exist independently of Evidence.
+
+Knowledge ownership remains governed by RFC-0007.
+
+---
+
+# Engineering Authority
+
+Humans remain the final engineering authority.
+
+The Kernel coordinates engineering.
+
+The Kernel SHALL NOT redefine project intent.
+
+The Kernel SHALL NOT approve engineering work on behalf of humans unless explicitly authorized by repository policy.
 
 ---
 
@@ -156,10 +274,10 @@ The Kernel SHALL NOT implement:
 
 - memory operating systems
 - persistent cognitive memory
-- long-term autonomous memory
+- autonomous long-term memory
 - knowledge graph platforms
 
-The Kernel MAY retain accepted engineering knowledge as defined by RFC-0007.
+Engineering Knowledge governed by RFC-0007 SHALL NOT be interpreted as a general-purpose memory system.
 
 ---
 
@@ -171,31 +289,29 @@ The Kernel SHALL NOT implement:
 - distributed consensus
 - distributed cognition
 - cluster coordination
+- autonomous distributed orchestration
 
 ---
 
-## Provider Ownership
+## Platform Responsibilities
 
-The Kernel SHALL NOT depend upon:
+The Kernel SHALL NOT implement responsibilities owned by Hosts, including:
 
-- specific AI models
-- specific providers
-- specific IDEs
-- specific execution technologies
-
-All external integrations SHALL occur through contractual interfaces.
+- user interface
+- workspace management
+- editor integration
+- platform security
+- platform lifecycle
 
 ---
 
-# Engineering Authority
+## Execution Responsibilities
 
-The Kernel coordinates engineering.
+The Kernel SHALL NOT implement responsibilities owned by Adapters, including:
 
-Humans retain engineering authority.
-
-The Kernel SHALL NOT redefine project intent.
-
-The Kernel SHALL NOT approve engineering work on behalf of humans unless explicitly authorized by project policy.
+- provider-specific protocols
+- external tool execution
+- implementation-specific behavior
 
 ---
 
@@ -219,9 +335,9 @@ Adapters
 External Systems
 ```
 
-Dependencies SHALL flow downward.
+Dependencies SHALL flow downward through contractual interfaces.
 
-Knowledge SHALL flow upward through accepted Evidence.
+Engineering understanding SHALL flow upward through Evidence.
 
 ---
 
@@ -237,33 +353,23 @@ Circular dependencies SHALL NOT exist.
 
 # Contract Rule
 
-All collaboration SHALL occur through explicit contracts.
+Architectural collaboration SHALL occur exclusively through explicit contracts.
 
-Shared implementation details SHALL NOT become architectural dependencies.
-
----
-
-# State Ownership
-
-Engineering state SHALL remain owned by the Kernel.
-
-Hosts SHALL NOT own engineering state.
-
-Adapters SHALL NOT own engineering state.
-
-External systems SHALL NOT own engineering state.
+Implementations SHALL NOT create implicit coupling through shared internal behavior.
 
 ---
 
 # Explainability
 
-Every engineering decision SHALL be attributable.
+Every engineering decision SHALL reference supporting Evidence.
 
-Every architectural decision SHALL reference supporting Evidence.
+Every engineering conclusion SHALL remain attributable.
 
-Every Mission evolution SHALL remain explainable.
+Every Mission evolution SHALL identify supporting Evidence.
 
-Hidden architectural behavior SHALL NOT influence Kernel outcomes.
+Every architectural decision SHALL reference one or more Evidence objects through explicit Evidence Relationships.
+
+Hidden reasoning SHALL NOT influence engineering outcomes.
 
 ---
 
@@ -273,6 +379,8 @@ Future extensions SHALL preserve:
 
 - Mission identity
 - Evidence authority
+- Evidence provenance
+- Evidence relationships
 - Shared Reality semantics
 - deterministic execution
 - engineering traceability
@@ -284,11 +392,11 @@ Extensions SHALL NOT weaken constitutional guarantees.
 
 # Architectural Evolution
 
-Architectural evolution SHALL occur through:
+Architectural evolution SHALL occur only through:
 
-- new RFCs
 - Canon amendments
-- ADRs
+- Normative RFC revisions
+- Architectural Decision Records
 
 Implementations SHALL NOT establish architectural precedent.
 
@@ -302,10 +410,10 @@ Implementations MAY vary in:
 - runtime
 - storage technology
 - communication protocol
-- internal algorithms
 - optimization techniques
+- internal algorithms
 
-Implementations SHALL preserve externally observable behavior defined by this specification suite.
+Implementations SHALL preserve the observable behavior defined by this specification suite.
 
 ---
 
@@ -317,29 +425,11 @@ The Nexus Kernel is not:
 - an AI operating system
 - a distributed agent platform
 - a cognitive architecture
-- a general-purpose orchestration framework
 - a memory operating system
 - a knowledge graph platform
+- a general-purpose orchestration framework
 
-These concerns intentionally exist outside the Kernel boundary.
-
----
-
-# Conformance
-
-A Nexus Kernel implementation conforms to RFC-0010 only if it:
-
-- preserves all architectural boundaries defined by this specification
-- respects domain ownership
-- maintains contract-driven architecture
-- prevents responsibility leakage between architectural layers
-- preserves deterministic engineering behavior
-- maintains provider independence
-- maintains host independence
-- preserves explainability
-- preserves Mission-centric engineering
-
-Failure to satisfy these guarantees constitutes non-conformance with this specification.
+These concerns intentionally remain outside the constitutional boundary of the Nexus Kernel.
 
 ---
 
@@ -348,22 +438,42 @@ Failure to satisfy these guarantees constitutes non-conformance with this specif
 Before introducing any capability, the following questions SHALL be answered.
 
 1. Does this capability directly improve AI-assisted software engineering?
-2. Does it belong within an existing bounded domain?
-3. Can it be implemented without violating Kernel boundaries?
+2. Does it belong to an existing architectural domain?
+3. Does it preserve Evidence Authority?
 4. Does it preserve deterministic behavior?
 5. Does it preserve explainability?
-6. Does it maintain provider and Host independence?
-7. Can it be expressed through an existing contract?
+6. Does it preserve Host independence?
+7. Does it preserve Adapter replaceability?
+8. Can it be expressed through an existing architectural contract?
 
 If any answer is **No**, the capability SHALL NOT become part of the Kernel without an approved architectural amendment.
 
 ---
 
+# Conformance
+
+A Nexus Kernel implementation conforms to RFC-0010 only if it:
+
+- preserves the constitutional boundaries defined by this specification
+- preserves Evidence Authority
+- respects domain ownership
+- maintains contract-driven architecture
+- prevents responsibility leakage between architectural layers
+- preserves deterministic engineering behavior
+- maintains Host independence
+- maintains Adapter replaceability
+- preserves explainability
+- preserves Mission-centric engineering
+
+Failure to satisfy these guarantees constitutes non-conformance with this specification.
+
+---
+
 # Specification Completion
 
-RFC-0010 completes the constitutional specification suite of the Nexus Kernel.
+RFC-0010 completes Version 1.0 of the Nexus Kernel normative specification suite.
 
-The complete normative specification consists of:
+The complete specification consists of:
 
 - RFC-0001 — Mission Model
 - RFC-0002 — Evidence Model
@@ -376,4 +486,6 @@ The complete normative specification consists of:
 - RFC-0009 — Host Contract
 - RFC-0010 — Kernel Boundaries
 
-Future specifications MAY extend the Nexus architecture but SHALL NOT redefine concepts owned by this specification suite.
+Future RFCs MAY extend the architecture.
+
+Future RFCs SHALL NOT redefine concepts owned by this specification suite.

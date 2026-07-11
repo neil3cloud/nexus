@@ -76,7 +76,9 @@ Other RFCs SHALL NOT redefine Evidence semantics.
 
 # Evidence
 
-Evidence is an authoritative engineering fact.
+Evidence is the authoritative representation of engineering information.
+
+Evidence represents observable engineering information together with its provenance, version, confidence, and relationships.
 
 Evidence SHALL:
 
@@ -186,6 +188,18 @@ Relationship ownership SHALL remain explicit.
 
 ---
 
+# Shared Reality Projection
+
+Shared Reality SHALL be computed exclusively from the active authoritative Evidence Set.
+
+Shared Reality SHALL NOT establish new engineering information.
+
+Shared Reality SHALL remain a deterministic projection governed by RFC-0003.
+
+Changes to Shared Reality SHALL occur only as a consequence of changes to the active Evidence Set.
+
+---
+
 # Evidence Conflict
 
 Conflicting Evidence SHALL coexist.
@@ -263,23 +277,27 @@ Lifecycle progression SHALL remain attributable.
 
 ---
 
-# Engineering Truth
+# Evidence Authority
 
-Engineering truth SHALL be derived from authoritative Evidence.
+Evidence SHALL be the sole authoritative representation of engineering information.
 
-No engineering participant SHALL establish truth through unsupported reasoning.
+Authoritative engineering information SHALL originate exclusively from Evidence.
 
-Where Evidence conflicts exist, Shared Reality SHALL defer to Evidence Authority and applicable Kernel policies.
+No engineering participant SHALL establish authoritative engineering information through unsupported reasoning.
+
+Where Evidence conflicts exist, Evidence Authority SHALL determine the active authoritative engineering information in accordance with applicable Kernel policies.
+
+Shared Reality SHALL consume authoritative engineering information through normative projections defined by RFC-0003.
 
 ---
 
 # Explainability
 
-Every engineering conclusion SHALL identify the Evidence supporting it.
+Every engineering conclusion SHALL identify the supporting Evidence.
 
-Engineering reasoning SHALL remain reproducible.
+Engineering reasoning SHALL remain reproducible from the supporting Evidence and its explicit Evidence Relationships.
 
-Hidden Evidence SHALL NOT influence Kernel behavior.
+Evidence outside the active Evidence Set SHALL NOT influence engineering conclusions.
 
 ---
 
@@ -316,7 +334,7 @@ Implementation details remain outside the scope of this specification.
 
 A Kernel implementation conforms to RFC-0002 only if it:
 
-- treats Evidence as the sole authoritative engineering fact
+- treats Evidence as the sole authoritative representation of engineering information
 - preserves Evidence immutability
 - preserves provenance
 - preserves version history

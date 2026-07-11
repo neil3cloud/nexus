@@ -142,7 +142,7 @@ The Host owns platform interaction.
 
 The Kernel owns engineering coordination.
 
-The Evidence Model owns engineering truth.
+The Evidence Model owns authoritative engineering information.
 
 The Host SHALL NOT:
 
@@ -254,11 +254,11 @@ Host Context SHALL NOT become authoritative engineering information.
 
 # Evidence Authority
 
-Hosts SHALL treat Evidence as the sole authoritative representation of engineering truth.
+Hosts SHALL treat Evidence as the sole authoritative representation of engineering information.
 
 Hosts SHALL NOT:
 
-- create authoritative engineering facts
+- create authoritative engineering information
 - modify Evidence
 - resolve Evidence conflicts
 - compute Shared Reality
