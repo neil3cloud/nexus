@@ -66,28 +66,45 @@ Each Event SHALL belong to exactly one Aggregate Root.
 
 Every Event SHALL preserve:
 
-- aggregate identity
+- event identity
 - timestamp
-- causation
+- causality
 - correlation
+- attribution
 
 ---
 
 # Standard Event Envelope
 
-Every Domain Event SHALL contain:
+Every Domain Event SHALL contain the RFC-0005 envelope:
 
-| Field         | Description               |
-| ------------- | ------------------------- |
-| eventId       | Unique event identifier   |
-| eventType     | Canonical event name      |
-| aggregateType | Aggregate Root type       |
-| aggregateId   | Aggregate Root identifier |
-| revision      | Aggregate revision        |
-| occurredAt    | UTC timestamp             |
-| causationId   | Triggering event          |
-| correlationId | Mission correlation       |
-| payload       | Event-specific data       |
+| Field         | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| eventId       | Globally unique immutable event identifier                                  |
+| missionId     | Mission identifier for the Mission event stream                             |
+| eventType     | Canonical event name                                                        |
+| timestamp     | Immutable UTC timestamp at which the represented fact became true           |
+| causality     | Explicit references to one or more preceding events when causality exists   |
+| correlationId | Optional correlation group for reconstructing related engineering workflows |
+| attribution   | Immutable event origin attribution                                          |
+| payload       | Event-specific data                                                         |
+
+Attribution SHALL identify:
+
+- Mission
+- Mission Plan Revision
+- Task, when applicable
+- Execution Session, when applicable
+- Engineering Role
+- Adapter, when applicable
+
+---
+
+# Reconciliation Notes
+
+The Standard Event Envelope is governed by RFC-0005. Earlier aggregate-oriented envelope fields have been superseded by the RFC-0005 event identity, Mission stream, causality, correlation, attribution, and payload model.
+
+The reference corpus contains existing "Projection Service" naming in service catalog and dependency reference documents. The Domain Schema identifies the owning domain as Shared Reality, while RFC-0003 is titled "Shared Reality Projection Model" and several reference documents still use "Projection Service." This naming conflict is not mechanically reconciled in this catalog and requires human ratification before broad reference-document renaming.
 
 ---
 
