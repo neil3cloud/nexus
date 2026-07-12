@@ -243,6 +243,114 @@ Notes:
 
 ---
 
+## Sprint 6 — Shared Reality Foundation
+
+Status: Approved with Findings — NEXUS-REV-2026-07-12-011; remediation verified by NEXUS-REV-2026-07-12-012
+
+RFC Coverage:
+
+- RFC-0003 — Shared Reality Projection Model (Partial)
+- RFC-0002 — Evidence Model (Referenced)
+- RFC-0001 — Mission Model (Referenced)
+
+Implemented Concepts:
+
+- SharedReality immutable read model for the computed engineering understanding of an active Mission.
+- ProjectionService for projection orchestration through constructor-injected Mission and Evidence repository contracts.
+- ProjectionResult immutable output exposing Projection Version, Active Mission, Mission Plan, Mission Execution State, Evidence References, and Projection Metadata.
+- ProjectionVersion immutable value object with deterministic SHA-256 generation from stable projection inputs.
+- Context aggregation by Evidence type and Evidence source.
+- Projection validation for missing Mission, inactive Mission, missing MissionPlan, missing Evidence, empty Evidence sets, duplicate Evidence references, inconsistent Evidence versions, unsupported Evidence types, and internal context consistency.
+- Kernel service composition updated so ProjectionService receives the shared in-memory Mission repository and Evidence repository.
+- Unit tests for Shared Reality projection behavior, immutability, deterministic versioning, validation diagnostics, and repository retrieval.
+
+Deferred Concepts:
+
+- Context Assembly
+- AI Context Packaging
+- Provider Context
+- Adapter Framework
+- Execution Roles
+- Review Engine
+- Knowledge
+- Governance
+- Event Bus integration
+- Incremental projections
+- Projection caching
+- Projection Scope (full scope declaration)
+- Projection Freshness / stale projection invalidation
+- Projection persistence
+- Projection persistence optimization
+- Search
+- Indexing
+
+Notes:
+
+- Shared Reality is a disposable read model and does not own engineering truth or mutate Evidence.
+- Evidence remains the authoritative source for projected engineering facts.
+- ProjectionService owns orchestration only; Mission and Evidence state ownership remains with their respective domains.
+- The active Evidence set for this foundation slice is the explicitly requested Evidence references, or all Evidence returned by the injected Evidence repository when no references are supplied. Evidence authority resolution remains deferred.
+
+Review Remediation:
+
+- TASK-001 — Recorded Projection Scope and Projection Freshness as deferred Sprint 6 concepts in the Implementation Manifest, Sprint 6 record, Implementation Plan, and Implementation Report.
+- TASK-002 — Reconciled the ratified RFC-0003 contract surface by removing the duplicate `projection.contract.ts` request/service placeholders, removing the obsolete `SharedRealityService` alias, removing legacy Shared Reality placeholder interfaces, and updating placeholder consumers to use the canonical `SharedRealitySnapshot` type.
+
+---
+
+## Sprint 7 — Adapter Framework
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Partial)
+
+Implemented Concepts:
+
+- Adapter contract defining the minimum implementation-independent adapter interface.
+- Adapter domain model with immutable AdapterId, AdapterName, AdapterVersion, ProtocolVersion, AdapterMetadata, and AdapterLifecycle value objects.
+- AdapterCapability technical capability declaration and validation for CodeGeneration, CodeModification, StaticAnalysis, DocumentationGeneration, and TestGeneration.
+- AdapterRequest immutable execution request containing Engineering Role name, Task Identifier, Context Package Reference, Execution Constraints, and Request Metadata.
+- AdapterResponse immutable execution outcome containing status, diagnostics, produced artifacts, findings, and execution metadata.
+- AdapterRegistry contract and InMemoryAdapterRegistry for deterministic registration, unregistration, lookup, discovery, and duplicate validation.
+- AdapterService orchestration for registry lookup, protocol compatibility validation, capability validation, and request dispatch.
+- Deterministic adapter diagnostics for duplicate registration, adapter not found, unsupported capability, invalid lifecycle transition, invalid definitions, invalid requests, invalid responses, and incompatible protocol version.
+- Kernel service composition updated to register AdapterService with an empty in-memory AdapterRegistry.
+- Unit tests for Adapter value objects, lifecycle, request, response, registry, service dispatch, and diagnostics.
+
+Deferred Concepts:
+
+- AI Providers
+- Copilot Adapter
+- Claude Adapter
+- Gemini Adapter
+- Codex Adapter
+- Human Adapter
+- Execution Roles
+- Execution Strategy
+- Builder
+- Reviewer
+- Review Engine
+- Shared Reality enhancements
+- Context Assembly
+- Knowledge
+- Governance
+- AdapterRequest applicable-policies element (pending Kernel policy concepts)
+- Event Bus integration
+- Provider configuration
+- Retry policies
+- Adapter security policies
+
+Notes:
+
+- Engineering Roles are represented only as Kernel-assigned role-name strings and are not enumerated or owned by the Adapter Framework.
+- AdapterRequest applicable policies remain deferred because Kernel policy concepts are not implemented in this slice.
+- Context Package handling is reference-only; no Context Assembly or Shared Reality expansion was introduced.
+- Adapter lifecycle transitions are deterministic and local to Adapter metadata; Event Bus integration remains deferred.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

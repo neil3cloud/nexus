@@ -1,5 +1,5 @@
-import type { Mission } from "../mission/mission.contract";
-import type { SharedRealityView } from "../shared-reality/shared-reality.contract";
+import type { Mission } from '../mission/mission.contract';
+import type { SharedRealitySnapshot } from '../shared-reality/shared-reality.contract';
 
 export interface ReviewFinding {
   readonly severity: "info" | "warning" | "error";
@@ -9,7 +9,7 @@ export interface ReviewFinding {
 
 export interface ReviewRequest {
   readonly mission: Mission;
-  readonly sharedReality: SharedRealityView;
+  readonly sharedReality: SharedRealitySnapshot;
   readonly implementationSummary: string;
 }
 

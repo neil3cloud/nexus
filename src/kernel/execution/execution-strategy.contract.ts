@@ -1,5 +1,5 @@
-import type { Mission } from "../mission/mission.contract";
-import type { SharedRealityView } from "../shared-reality/shared-reality.contract";
+import type { Mission } from '../mission/mission.contract';
+import type { SharedRealitySnapshot } from '../shared-reality/shared-reality.contract';
 
 export type EngineeringRole =
   | "builder"
@@ -13,7 +13,7 @@ export type EngineeringRole =
 
 export interface ExecutionStrategyRequest {
   readonly mission: Mission;
-  readonly sharedReality: SharedRealityView;
+  readonly sharedReality: SharedRealitySnapshot;
 }
 
 export interface RoleAssignment {

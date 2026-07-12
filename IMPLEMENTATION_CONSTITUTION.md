@@ -549,3 +549,104 @@ The canonical Sprint Template is located at:
 knowledge/implementation/sprint-template.md
 
 Implementation requests that do not conform to the Sprint Template SHOULD be considered incomplete and MAY require clarification before implementation proceeds.
+
+# Sprint Owner Ratifications
+
+Sprint Owner Ratifications are permanent implementation-governance decisions.
+
+Ratifications formally authorize, clarify, constrain, or amend implementation governance without modifying the Kernel Canon or RFC suite.
+
+Ratifications SHALL NOT redefine architecture.
+
+Ratifications SHALL NOT reinterpret previously ratified governance decisions unless they explicitly supersede or withdraw an earlier ratification.
+
+Every ratification SHALL:
+
+- have a unique identifier;
+- record the date of ratification;
+- identify the originating Review Finding(s), if applicable;
+- clearly state the governance decision;
+- define the authorized Builder scope;
+- define any implementation restrictions;
+- remain permanently traceable.
+
+Ratifications SHALL be recorded in:
+
+`knowledge/governance/RATIFICATION_LEDGER.md`
+
+The Ratification Ledger is the authoritative repository for all Sprint Owner Ratifications.
+
+Ratifications SHALL NOT exist solely in transient implementation artifacts, including:
+
+- builder-task.md
+- Work Orders
+- Sprint prompts
+- chat conversations
+
+Builder and Reviewer workflows MAY reference ratifications, but the Ratification Ledger remains the single source of truth.
+
+If a ratification supersedes or withdraws an earlier ratification, both SHALL remain recorded, and the superseding or withdrawal relationship SHALL be explicitly documented.
+
+The Builder SHALL modify the Ratification Ledger only when explicitly authorized by a Sprint Owner Ratification.
+
+The Reviewer SHALL reference ratifications during certification but SHALL NOT create, amend, or withdraw Sprint Owner Ratifications.
+
+### Ratification Identifier Convention
+
+Sprint Owner Ratifications SHALL use the following identifier format:
+
+`NEXUS-RAT-YYYY-MM-DD-###`
+
+Where:
+
+- `NEXUS-RAT` identifies a Sprint Owner Ratification.
+- `YYYY-MM-DD` is the ratification date.
+- `###` is a sequential three-digit number assigned for that date.
+
+Ratification identifiers SHALL be:
+
+- globally unique;
+- immutable;
+- permanently traceable;
+- assigned only once;
+- never reused, even if a ratification is superseded, withdrawn, or determined to have been issued in error.
+
+If a ratification supersedes an earlier ratification, the superseding ratification SHALL receive a new identifier and SHALL explicitly reference the superseded identifier.
+
+If an identifier collision is discovered, the existing assignment SHALL remain unchanged and the new ratification SHALL receive the next available sequence number unless the Sprint Owner explicitly directs another unused identifier.
+
+The Ratification Ledger SHALL maintain the complete history of all issued ratifications.
+
+# Governance Artifacts
+
+The implementation governance of the Nexus repository is maintained through permanent governance artifacts.
+
+Each governance artifact has a single authoritative purpose and ownership.
+
+The governance artifacts are:
+
+| Artifact                                    | Purpose                                                                                       | Authority               |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| IMPLEMENTATION_CONSTITUTION.md              | Defines implementation governance, roles, responsibilities, and governance rules.             | Constitutional          |
+| IMPLEMENTATION_PLAN.md                      | Defines the implementation roadmap, sprint sequencing, and current implementation state.      | Implementation Planning |
+| IMPLEMENTATION_MANIFEST.md                  | Defines implementation scope, RFC coverage, deferred concepts, and implementation boundaries. | Implementation Planning |
+| IMPLEMENTATION_REPORT.md                    | Records Builder implementation outcomes for each completed vertical slice.                    | Builder                 |
+| REVIEW_HISTORY.md                           | Records Reviewer findings, certifications, repository state transitions, and review history.  | Reviewer                |
+| knowledge/governance/RATIFICATION_LEDGER.md | Records all Sprint Owner Ratifications as the permanent implementation-governance record.     | Sprint Owner            |
+
+Governance artifacts SHALL remain permanently traceable.
+
+Each governance decision SHALL have exactly one authoritative source.
+
+Transient workflow artifacts, including Sprint prompts, Work Orders, and `builder-task.md`, SHALL NOT become the permanent system of record for implementation governance.
+
+Where conflicts exist between governance artifacts, the following precedence SHALL apply:
+
+1. IMPLEMENTATION_CONSTITUTION.md
+2. RATIFICATION_LEDGER.md
+3. IMPLEMENTATION_PLAN.md
+4. IMPLEMENTATION_MANIFEST.md
+5. IMPLEMENTATION_REPORT.md
+6. REVIEW_HISTORY.md
+
+A lower-precedence artifact SHALL NOT redefine or contradict a higher-precedence governance artifact.

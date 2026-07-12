@@ -1,5 +1,240 @@
 # Nexus Implementation Report
 
+## Sprint 7 — Adapter Framework
+
+### Implemented Slice
+
+Implemented the RFC-0008 Adapter Framework vertical slice.
+
+Implemented scope:
+
+- `Adapter` contract defining the minimum implementation-independent adapter interface.
+- `AdapterId`, `AdapterName`, `AdapterVersion`, and `ProtocolVersion` immutable value objects.
+- `AdapterMetadata` immutable metadata containing adapter identity, version, protocol version, declared capabilities, supported engineering role names, lifecycle, and attributes.
+- `AdapterCapability` immutable technical capability value object for CodeGeneration, CodeModification, StaticAnalysis, DocumentationGeneration, and TestGeneration.
+- `AdapterLifecycle` immutable lifecycle value object with deterministic transitions through Registered, Available, Active, Completed, and Unavailable.
+- `AdapterRequest` immutable execution request containing Engineering Role name, Task Identifier, Context Package Reference, Execution Constraints, and Request Metadata.
+- `AdapterResponse` immutable execution outcome containing status, diagnostics, produced artifacts, findings, and execution metadata.
+- `AdapterRegistry` contract and `InMemoryAdapterRegistry` for deterministic registration, unregistration, lookup, discovery, and duplicate validation.
+- `AdapterService` for orchestration-only registry lookup, protocol compatibility validation, capability validation, and request dispatch.
+- Deterministic adapter diagnostics for duplicate registration, adapter not found, unsupported capability, invalid lifecycle transition, incompatible protocol version, invalid definitions, invalid requests, and invalid responses.
+- Kernel service composition updated so AdapterService is registered with an empty in-memory AdapterRegistry.
+
+Out of scope and not implemented:
+
+- AI Providers.
+- Copilot Adapter.
+- Claude Adapter.
+- Gemini Adapter.
+- Codex Adapter.
+- Human Adapter.
+- Execution Roles.
+- Execution Strategy.
+- Builder.
+- Reviewer.
+- Review Engine.
+- Shared Reality enhancements.
+- Context Assembly.
+- Knowledge.
+- Governance.
+- AdapterRequest applicable-policies element pending Kernel policy concepts.
+- Event Bus integration.
+- Provider configuration.
+- Retry policies.
+- Adapter security policies.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0008 — Kernel Adapter Contract (Partial).
+
+Implemented Concepts:
+
+- Adapter contract.
+- AdapterRegistry.
+- AdapterRequest.
+- AdapterResponse.
+- AdapterMetadata.
+- AdapterCapability.
+- Adapter lifecycle.
+- AdapterService.
+
+Deferred Concepts:
+
+- AI Providers.
+- Provider-specific adapters.
+- Human Adapter.
+- Execution Roles and Execution Strategy.
+- Review Engine, Builder, and Reviewer.
+- Shared Reality expansion and Context Assembly.
+- Knowledge and Governance.
+- AdapterRequest applicable-policies element pending Kernel policy concepts.
+- Event Bus integration.
+- Provider configuration, retry policies, and Adapter security policies.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `.github/copilot-instructions.md`.
+
+### Architectural Assumptions
+
+- Engineering Roles are Kernel-assigned role-name strings in this slice; the Adapter Framework declares role support but does not define, enumerate, or own Execution Roles.
+- Context Package handling is limited to an immutable reference string; Context Assembly and Shared Reality expansion remain deferred.
+- AdapterService compatibility checks for protocol version and declared capability are contract orchestration, not business-rule ownership.
+- Adapter lifecycle validation is local and deterministic; lifecycle observability through Event Bus integration remains deferred.
+
+### Limitations
+
+- No provider adapters are implemented.
+- Registry persistence is in-memory and process-local.
+- AdapterResponse produced artifacts and findings are immutable references/strings and are not promoted to Evidence.
+- AdapterRequest applicable policies are not modeled because Kernel policy concepts are not implemented in this slice.
+- AdapterService does not retry requests, configure providers, enforce security policy, publish events, or assemble context.
+
+### Test Summary
+
+- Targeted Adapter Framework tests passed: 3 files, 11 tests.
+- Full validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 18 files, 117 tests.
+
+### Deviations
+
+No architectural deviations.
+
+### Governance Notes
+
+- Sprint Owner authorized persisting the Sprint 7 specification and activating `builder-task.md` from the inline Sprint 7 work order on 2026-07-12T19:57:09.375+08:00 before implementation began.
+
+---
+
+## Sprint 6 — Shared Reality Foundation
+
+### Implemented Slice
+
+Implemented the RFC-0003 Shared Reality Foundation vertical slice.
+
+Implemented scope:
+
+- `SharedReality` immutable read model for the computed engineering understanding of an active Mission.
+- `ProjectionService` for deterministic projection orchestration through injected Mission and Evidence repository contracts.
+- `ProjectionResult` immutable result exposing Projection Version, Active Mission, Mission Plan, Mission Execution State, Evidence References, and Projection Metadata.
+- `ProjectionVersion` immutable value object generated deterministically from stable projection inputs.
+- Context aggregation by Evidence type and Evidence source.
+- Deterministic projection diagnostics for missing Mission, inactive Mission, missing MissionPlan, missing Evidence, empty Evidence sets, duplicate Evidence references, inconsistent Evidence versions, unsupported Evidence types, and internal context consistency.
+- Kernel service composition updated so ProjectionService receives the shared in-memory Mission repository and Evidence repository.
+
+Out of scope and not implemented:
+
+- Context Assembly.
+- AI Context Packaging and prompt construction.
+- Provider Context.
+- Adapter Framework.
+- Execution Roles.
+- Review Engine.
+- Knowledge.
+- Governance.
+- Event Bus integration.
+- Incremental projections.
+- Projection caching.
+- Projection persistence and persistence optimization.
+- Search and indexing.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0003 — Shared Reality Projection Model (Partial).
+
+Referenced RFCs:
+
+- RFC-0002 — Evidence Model.
+- RFC-0001 — Mission Model.
+
+Implemented Concepts:
+
+- Shared Reality.
+- Projection.
+- Projection Version.
+- Context aggregation for the foundation slice.
+- Projection validation.
+
+Deferred Concepts:
+
+- Context Assembly.
+- Context Package / AI Context Packaging.
+- Provider Context.
+- Adapter Framework.
+- Execution Roles.
+- Review Engine.
+- Knowledge.
+- Governance.
+- Event Bus integration.
+- Incremental projections.
+- Projection caching.
+- Projection Scope (full scope declaration).
+- Projection Freshness / stale projection invalidation.
+- Projection persistence.
+- Search and indexing.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/specifications/rfc-0003-shared-reality-projection-model.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `.github/copilot-instructions.md`.
+
+### Architectural Assumptions
+
+- The active Evidence set for this foundation slice is either the explicitly requested Evidence references or all Evidence returned by the injected Evidence repository when no references are supplied.
+- Evidence authority resolution, conflict resolution, policy application, and freshness invalidation remain deferred; ProjectionService does not approximate those concepts.
+- Mission execution state is projected from existing Mission status and MissionPlan Task statuses; Shared Reality does not own or mutate execution state.
+- Projection metadata is intentionally deterministic and excludes wall-clock generation timestamps.
+
+### Limitations
+
+- Repository persistence remains in-memory and process-local.
+- ProjectionService does not cache, persist, incrementally update, or publish projections.
+- Context aggregation is limited to deterministic grouping of Evidence references by type and source.
+- Projection validation rejects empty Evidence sets because Shared Reality must be computed from Evidence.
+- Unsupported Evidence type rejection is defensive for repository-contract consumers; the current Evidence aggregate already restricts registered Evidence to supported Sprint 5 types.
+
+### Test Summary
+
+- Targeted Shared Reality tests passed: 1 file, 8 tests.
+- Full validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 15 files, 106 tests.
+
+### Deviations
+
+No architectural deviations.
+
+### Review Remediation
+
+- TASK-001 — Recorded Projection Scope and Projection Freshness as deferred Sprint 6 concepts in the Implementation Manifest, Sprint 6 record, Implementation Plan, and Implementation Report.
+- TASK-002 — Reconciled the NEXUS-RAT-2026-07-12-002 canonical RFC-0003 contract surface by removing the duplicate `projection.contract.ts` request/service placeholders, removing the obsolete `SharedRealityService` alias, removing legacy Shared Reality placeholder interfaces, and updating placeholder consumers to use the canonical `SharedRealitySnapshot` type.
+
+### Governance Notes
+
+- Sprint 6 implementation proceeded using the human-authorized inline Sprint 6 request as the active Sprint Specification and Builder Work Order because `builder-task.md` remained closed for Sprint 5 and no persisted Sprint 6 sprint specification existed before implementation.
+- NEXUS-RAT-2026-07-12-004 — Sprint Owner acknowledged and ratified the Sprint 6 concurrent-Sprint-Specification deviation and established the mandatory Sprint 7+ specification-first workflow.
+
+---
+
 ## Sprint 5 — Evidence Foundation
 
 ### Implemented Slice

@@ -1,5 +1,5 @@
-import type { Mission } from "../mission/mission.contract";
-import type { SharedRealityView } from "../shared-reality/shared-reality.contract";
+import type { Mission } from '../mission/mission.contract';
+import type { SharedRealitySnapshot } from '../shared-reality/shared-reality.contract';
 
 export interface ContextRequest {
   readonly mission: Mission;
@@ -7,5 +7,5 @@ export interface ContextRequest {
 }
 
 export interface ContextService {
-  assemble(request: ContextRequest): Promise<SharedRealityView>;
+  assemble(request: ContextRequest): Promise<SharedRealitySnapshot>;
 }

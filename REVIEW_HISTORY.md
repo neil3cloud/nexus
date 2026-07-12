@@ -1,5 +1,437 @@
 ﻿# Nexus Review History
 
+## NEXUS-REV-2026-07-12-016 — Sprint 7 — Adapter Framework (Governance Ledger Remediation Review)
+
+- **Reviewed Sprint:** Sprint 7 — Adapter Framework
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-12-015 findings per builder-task.md (TASK-001, TASK-002) under Sprint Owner Ratification NEXUS-RAT-2026-07-12-005
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Partial); governance layer
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Both remediation tasks are correctly executed within the ratified documentation-only scope. TASK-001: the AdapterRequest applicable-policies deferral is recorded in all four implementation-layer documents. TASK-002: `knowledge/governance/RATIFICATION_LEDGER.md` exists as the authoritative system of record and permanently records NEXUS-RAT-2026-07-12-001 through -005 with all eleven required entry fields; identifiers are preserved exactly; cross-references to related sprints and reviews are correct; and IMPLEMENTATION_CONSTITUTION.md gains the authorized "Sprint Owner Ratifications", "Ratification Identifier Convention", and "Governance Artifacts" sections, including the governance artifact ownership table and precedence order. The Reviewer compared the reconstructed historical texts against the surviving authoritative sources (the superseded Builder Task documents read during reviews -011 through -015, REVIEW_HISTORY.md summaries, and sprint records): the -002 canonical naming table and the -004 five-point specification-first policy are verbatim-faithful, and -001/-003/-005 are substantively accurate with no reinterpretation of ratified decisions. No Kernel Canon, RFC, source, or test file changed; validation passes (TypeScript compile, ESLint, Vitest 18 files / 117 tests, esbuild). **No architectural violations detected.** The Sprint 7 review cycle is complete with no open findings.
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-12-015-F-001, Minor) — RESOLVED.** Deferral recorded in IMPLEMENTATION_MANIFEST.md (Deferred Concepts and Notes), the Sprint 7 record (Deferred Concepts and Known Limitations), IMPLEMENTATION_PLAN.md, and IMPLEMENTATION_REPORT.md.
+- **TASK-002 (NEXUS-REV-2026-07-12-015-F-002, Minor) — RESOLVED.** All NEXUS-RAT-2026-07-12-005 acceptance criteria satisfied: ledger exists at the directed location; all five ratifications permanently recorded with required fields and Active status; identifiers unchanged; review history consistent with the ledger; Constitution updated strictly within the ratified authorization; no implementation or architectural changes.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-016-F-001 — Sprint Owner confirmation of reconstructed historical texts
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** NEXUS-RAT-2026-07-12-005 (reconstruction authorized from repository artifacts); RATIFICATION_LEDGER.md § Ledger Rules (entries immutable once recorded)
+- **Summary:** Entries -001 through -004 are marked as reconstructed. The Reviewer verified them against surviving sources, but a one-time Sprint Owner confirmation of the reconstructed texts would formalize their immutability baseline before the ledger's first commit.
+- **Recommended Disposition:** Optional Sprint Owner confirmation; no Builder action.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 (TASK-001, TASK-002 of NEXUS-REV-2026-07-12-015) |
+| New findings | 1 (Informational observation) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 18 files / 117 tests, build |
+
+### Deferred Concept Validation
+
+Unchanged; the remediation was documentation-only. All Sprint 7 deferred concepts, now including the AdapterRequest applicable-policies element, remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 7 baseline is unchanged since NEXUS-REV-2026-07-12-015. The governance layer now has a durable, constitutionally recognized system of record for ratifications with defined precedence, closing the transient-artifact record-keeping gap identified across reviews -013 and -015.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0007-adapter-framework.md`) — Reviewer Notes updated; status remains **Approved with Findings** with all findings now resolved.
+- IMPLEMENTATION_PLAN.md — unchanged (Sprint 7 remains Approved with Findings; no Sprint 8 exists to advance).
+- builder-task.md — TASK-002 marked RESOLVED; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 7 review cycle is complete. Next steps are Sprint Owner actions: optionally confirm the reconstructed ledger texts (F-001), plan Sprint 8 under the specification-first workflow, and commit the accumulated Sprint 6–7 history (standing recommendation from -015-F-003) — the ratification ledger in particular should be committed to fulfill its permanence mandate.
+
+---
+
+## NEXUS-REV-2026-07-12-015 — Sprint 7 — Adapter Framework
+
+- **Reviewed Sprint:** Sprint 7 — Adapter Framework
+- **Reviewed Vertical Slice:** Adapter contract, adapter domain model and value objects, AdapterCapability, AdapterLifecycle, AdapterRegistry (contract + in-memory), AdapterRequest, AdapterResponse, AdapterService, deterministic diagnostics, Kernel wiring
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Partial)
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 7 implements the provider-agnostic Adapter Framework in conformance with RFC-0008 for every implemented concept. **No architectural violations detected.** The `Adapter` contract is implementation-independent (metadata plus a single `execute(request) → response` operation) and owns no engineering state, preserving RFC-0008 statelessness. AdapterMetadata declares identity, version, protocol version, capabilities, and supported roles, and is discoverable through registry enumeration. AdapterCapability enforces technical-function semantics — engineering-role names are rejected as capabilities (test-verified) — and role assignment remains outside the framework, represented only as Kernel-assigned role name strings, consistent with the declared RFC-0004 deferral. The lifecycle implements the five RFC states with deterministic, validated transitions and a terminal `Unavailable` state; no undocumented states or transitions exist. AdapterRequest and AdapterResponse are immutable, deeply frozen, and validated; Context Package handling is reference-only as declared, avoiding deferred Context Assembly. InMemoryAdapterRegistry provides serialized, deterministic registration, unregistration, lookup, discovery (canonically ordered), and duplicate detection. AdapterService is orchestration-only: registry resolution, strict protocol-version compatibility, optional capability validation, and dispatch — no business rules. All nine required diagnostics exist and are exercised by tests. Kernel composition registers AdapterService with an empty in-memory registry and protocol version 1.0. Independent validation passes: TypeScript compile, ESLint, Vitest 18 files / 117 tests (3 adapter files, 11 tests), esbuild — matching the sprint record. Findings are limited to documentation: an undeclared deferral of the AdapterRequest "applicable policies" element, and the loss of the full ratification texts when `builder-task.md` was repurposed for Sprint 7.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-015-F-001 — AdapterRequest "applicable policies" element not declared as deferred
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** RFC-0008 § Adapter Request ("Every Adapter Request SHALL include: … applicable policies"); IMPLEMENTATION_CONSTITUTION.md — Vertical Slice Policy
+- **Summary:** RFC-0008 requires Adapter Requests to include applicable policies. `AdapterRequest` carries Engineering Role, Task Identifier, Context Package Reference, Execution Constraints, and Request Metadata, but no policies element. Kernel policy concepts do not yet exist in any implemented slice, so the omission is a legitimate vertical-slice deferral — but it is not declared: the Sprint 7 deferred lists mention "Adapter security policies" (a different concept) and the Architectural Decisions note Context Package reference-only handling without addressing the request policies element.
+- **Evidence:** `src/kernel/adapter/adapter-request.ts:6-12`; RFC-0008 § Adapter Request; sprint-0007 record §§ Deferred Concepts, Architectural Decisions.
+- **Impact:** A future policy slice could overlook the undeclared RFC-0008 request element.
+- **Recommended Disposition:** Documentation Task — declare "AdapterRequest applicable-policies element (pending Kernel policy concepts)" in the Sprint 7 deferred concepts of the Manifest and sprint record.
+- **Builder Action:** Update documentation only.
+
+#### NEXUS-REV-2026-07-12-015-F-002 — Full ratification texts lost when builder-task.md was repurposed
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Documentation Before Code (documentation is authoritative); ratification ledger NEXUS-RAT-2026-07-12-001 … -004
+- **Summary:** The Sprint 7 work order replaced the closed Sprint 6 Builder Task document, which was the only artifact holding the full recorded texts of ratifications NEXUS-RAT-2026-07-12-002 (canonical naming table), -003 (documentation authorizations), and -004 (the five-point Sprint 7+ specification-first policy). Because the repository state is uncommitted, those full texts now exist nowhere. Summaries survive in REVIEW_HISTORY.md and the sprint records (the canonical naming is restated in NEXUS-REV-2026-07-12-012's compliance summary; the -004 policy is summarized one line each in the Plan, Sprint 6 record, and Report), so substance remains traceable — but builder-task.md is demonstrably a transient artifact and unsuitable as the system of record for ratifications.
+- **Evidence:** builder-task.md (current content is the Sprint 7 work order); prior content verified by NEXUS-REV-2026-07-12-013/-014; REVIEW_HISTORY.md ratification summaries.
+- **Impact:** Full ratification texts (notably the -004 five-point policy wording) are recoverable only from conversation history, not the repository.
+- **Recommended Disposition:** Sprint Owner-directed Documentation Task — persist a durable ratification ledger (for example `knowledge/governance/ratifications.md`) recording the full text of NEXUS-RAT-2026-07-12-001 through -004, and record future ratifications there rather than in builder-task.md. Introducing the new governance artifact requires Sprint Owner direction.
+- **Builder Action:** Update documentation only, under Sprint Owner direction.
+
+#### NEXUS-REV-2026-07-12-015-F-003 — Specification-first workflow compliance as disclosed
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** NEXUS-RAT-2026-07-12-004 (specification-first policy)
+- **Summary:** The sprint record's Governance Deviations section discloses that the Sprint Owner authorized persisting the Sprint 7 specification and activating builder-task.md from the inline work order at 2026-07-12T19:57:09+08:00 **before implementation began**. Sprint 7 was already recorded in IMPLEMENTATION_PLAN.md (Planned) by TASK-003. As disclosed, this satisfies policy points 1–2 and uses the inline prompt only as the drafting source per point 4. The Reviewer cannot independently verify event ordering from the uncommitted working tree; conformance is accepted on the strength of the disclosure and the Sprint Owner's authorization.
+- **Recommended Disposition:** No action. Committing sprint boundaries would make ordering independently verifiable in future reviews.
+- **Builder Action:** None.
+
+#### NEXUS-REV-2026-07-12-015-F-004 — Response attribution is conventional, not structural
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** RFC-0008 § Adapter Response ("Responses SHALL remain attributable")
+- **Summary:** AdapterResponse carries no dedicated attribution field; attribution is achievable via `executionMetadata` (as the tests demonstrate with `adapterId`) and via the dispatch call context. A future slice may formalize structural attribution when responses begin flowing toward Evidence acceptance.
+- **Recommended Disposition:** No action required for this slice.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 4 |
+| Critical / Major | 0 / 0 |
+| Minor | 2 (F-001, F-002 — documentation) |
+| Informational | 2 (F-003, F-004) |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 18 files / 117 tests, build |
+
+### Deferred Concept Validation
+
+All declared deferred concepts remain unimplemented: no provider adapters (Copilot/Claude/Gemini/Codex/Human), no AI providers, no Execution Roles enumeration or Execution Strategy, no Review Engine, no Context Assembly (Context Package is an opaque reference string), no Event Bus integration, no retry policies, no provider configuration, and no adapter security policies. The capability enumeration implements the five technical functions authorized by the work order (a subset of RFC-0008's non-normative examples); expansion remains available to future slices. One undeclared deferral exists — the AdapterRequest applicable-policies element (F-001).
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The implemented concepts conform to RFC-0008: contract-driven (Canon 13), replaceable (Canon 8), deterministic (Canon 9); adapters are stateless boundary components; capabilities are technical functions distinct from Kernel-assigned Engineering Roles (Canon 7); lifecycle states and transitions match the RFC exactly; the Kernel depends only on the Adapter contract and registry contract. Aggregate ownership of Mission, Evidence, and Shared Reality is untouched. Terminology matches RFC-0008 throughout. No events were introduced, consistent with the deferred Event Bus integration.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0007-adapter-framework.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- IMPLEMENTATION_PLAN.md — Sprint 7 status set to **Approved with Findings** (NEXUS-REV-2026-07-12-015). No Sprint 8 exists to advance to Current (Sprint Owner action; specification-first policy applies).
+- builder-task.md — all ten Sprint 7 work-order tasks verified against their acceptance criteria and marked Completed; document CLOSED.
+
+### Builder Task Recommendation
+
+Via the `nexus-sprint` workflow: one Documentation Task for F-001 (declare the AdapterRequest applicable-policies deferral) and one Sprint Owner-directed Documentation Task for F-002 (persist a durable ratification ledger). F-003 and F-004 require no action.
+
+---
+
+## NEXUS-REV-2026-07-12-014 — Sprint 6 — Shared Reality Foundation (Governance Documentation Review)
+
+- **Reviewed Sprint:** Sprint 6 — Shared Reality Foundation
+- **Reviewed Vertical Slice:** Remediation of builder-task.md TASK-003 (governance documentation) under Sprint Owner Ratification NEXUS-RAT-2026-07-12-004
+- **RFC Coverage:** RFC-0003 — Shared Reality Projection Model (Partial); governance layer only
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-003 is correctly executed as a documentation-only governance update. The NEXUS-RAT-2026-07-12-004 citation is present in the Sprint 6 governance sections of all three implementation-layer documents: IMPLEMENTATION_PLAN.md (Governance Ratification), the Sprint Implementation Record (Governance Deviations), and IMPLEMENTATION_REPORT.md (Governance Notes). Sprint 7 exists in IMPLEMENTATION_PLAN.md with status **Planned**, contains planning metadata only, and carries the ratified specification-first guard: it SHALL NOT transition to Current until its Sprint Specification is created and persisted. No source code, test, RFC, or architectural artifact changed since NEXUS-REV-2026-07-12-013; independent validation passes (TypeScript compile, ESLint, Vitest 15 files / 106 tests, esbuild). **No architectural violations detected.** With this review, every finding from the Sprint 6 review cycle (NEXUS-REV-2026-07-12-011 through -013) is closed and the Builder Task document has no remaining actionable tasks.
+
+### Remediation Verification
+
+- **TASK-003 (NEXUS-REV-2026-07-12-011-F-001, Minor, Governance) — RESOLVED.** All acceptance criteria satisfied: ratification citation recorded in all three implementation-layer documents; Sprint 7 entry present with status Planned and no implementation content beyond planning metadata; no code changes introduced.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (TASK-003 of NEXUS-REV-2026-07-12-011) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 15 files / 106 tests, build |
+
+### Deferred Concept Validation
+
+Unchanged; the update was governance-documentation only. All Sprint 6 deferred concepts remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 6 baseline is unchanged since NEXUS-REV-2026-07-12-011; the repository governance layer now reflects the complete ratification ledger (-001 through -004) and the mandatory Sprint 7+ specification-first workflow.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record — Reviewer Notes updated; review trail extended to -014.
+- IMPLEMENTATION_PLAN.md — no status change: Sprint 6 remains Approved with Findings; Sprint 7 remains **Planned** and is intentionally not advanced to Current, per the NEXUS-RAT-2026-07-12-004 requirement that its Sprint Specification be created and persisted first (the ratification governs over the default advance-to-Current workflow step).
+- builder-task.md — TASK-003 marked RESOLVED; all tasks in the document are now resolved and the document status is CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 6 review cycle is complete. The next Builder action is Sprint 7 specification authoring under the ratified specification-first workflow, initiated by the Sprint Owner.
+
+---
+
+## NEXUS-REV-2026-07-12-013 — Sprint 6 — Shared Reality Foundation (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 6 — Shared Reality Foundation
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-12-012 findings per builder-task.md (TASK-004, TASK-005) under Sprint Owner Ratification NEXUS-RAT-2026-07-12-003
+- **RFC Coverage:** RFC-0003 — Shared Reality Projection Model (Partial)
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Both ratified documentation tasks are correctly executed within their single-file scope restrictions. TASK-004: `src/kernel/projection/README.md` is deleted (the ratified removal option), eliminating the last artifact describing the superseded parallel projection boundary; no source code changed. TASK-005: the IMPLEMENTATION_MANIFEST.md Sprint 6 status now reads "Approved with Findings — NEXUS-REV-2026-07-12-011; remediation verified by NEXUS-REV-2026-07-12-012", matching the approved state in IMPLEMENTATION_PLAN.md and the Sprint Implementation Record. Independent validation passes: TypeScript compile, ESLint, Vitest 15 files / 106 tests, esbuild. **No architectural violations detected.** Concurrent MemoPilot-managed whitespace normalization in `CLAUDE.md` and `.github/copilot-instructions.md` is tool-managed and outside review scope. This review also receives the Sprint Owner's TASK-003 governance ratification (recorded as NEXUS-RAT-2026-07-12-004 — see F-002 for the identifier collision in the ratification text).
+
+### Remediation Verification
+
+- **TASK-004 (NEXUS-REV-2026-07-12-012-F-001, Minor) — RESOLVED.** README removed; no file in the repository now describes the reserved "Kernel Projection" boundary; consistent with the NEXUS-RAT-2026-07-12-002 canonical layout; no code changes; validation passes.
+- **TASK-005 (NEXUS-REV-2026-07-12-012-F-002, Informational) — RESOLVED.** Manifest Sprint 6 status synchronized with the approved repository state; no other implementation metadata altered.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-013-F-001 — Empty projection folder remains on disk
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A (filesystem residue)
+- **Summary:** `src/kernel/projection/` still exists on disk as an empty directory after both of its files were deleted. Git does not track empty directories, so the folder disappears from any clone after commit; the residue is local-only.
+- **Recommended Disposition:** No action required; the folder may be deleted locally at any time.
+- **Builder Action:** None.
+
+#### NEXUS-REV-2026-07-12-013-F-002 — TASK-003 ratification directs an already-assigned identifier
+
+- **Category:** Category 5 — Governance Decision Required
+- **Severity:** Minor
+- **Authority:** Sprint Owner Ratification of TASK-003 (2026-07-12); NEXUS-RAT-2026-07-12-002 (already assigned to the canonical naming ratification)
+- **Summary:** The Sprint Owner's TASK-003 ratification instructs "Record this ratification using the identifier: NEXUS-RAT-2026-07-12-002", but -002 already identifies the canonical-naming ratification and -003 the F-001/F-002 documentation ratification. To avoid corrupting existing traceability, the Reviewer recorded the TASK-003 ratification as **NEXUS-RAT-2026-07-12-004** (next in sequence).
+- **Impact:** None if the sequential assignment is accepted; citations in builder-task.md use -004.
+- **Recommended Disposition:** Sprint Owner confirmation of the -004 identifier (or designation of an alternative, with citations updated accordingly).
+- **Builder Action:** None pending confirmation.
+- **Resolution (2026-07-12):** Sprint Owner confirmed NEXUS-RAT-2026-07-12-004 as the TASK-003 ratification identifier, ratifying the ledger sequence -001 (initial governance), -002 (canonical naming), -003 (documentation F-001/F-002), -004 (TASK-003 governance). No document ever cited the TASK-003 ratification as -002, so no citation corrections were required; existing -002 citations refer to the canonical-naming ratification and remain correct. Finding closed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 (TASK-004, TASK-005 of NEXUS-REV-2026-07-12-012) |
+| New findings | 2 (1 Informational, 1 Minor identifier-collision governance note) |
+| Critical / Major | 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 15 files / 106 tests, build |
+
+### Deferred Concept Validation
+
+Unchanged. No deferred RFC-0003 concept was introduced; the remediation was documentation/status-only.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The repository presents exactly one RFC-0003 contract surface; runtime behavior and the approved Sprint 6 baseline are unchanged since NEXUS-REV-2026-07-12-011.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record — Reviewer Notes updated with this verification.
+- IMPLEMENTATION_PLAN.md — unchanged by this review (Sprint 6 remains Approved with Findings). Sprint 7 creation is authorized by NEXUS-RAT-2026-07-12-004 and assigned to the Builder via builder-task.md TASK-003 (now OPEN).
+- builder-task.md — TASK-004 and TASK-005 marked RESOLVED; TASK-003 transitioned BLOCKED → OPEN as a governance documentation task under NEXUS-RAT-2026-07-12-004.
+
+### Builder Task Recommendation
+
+TASK-003 (now OPEN) is the only actionable item: record the ratification citations in the Sprint 6 governance sections and add Sprint 7 to IMPLEMENTATION_PLAN.md in **Planned** status (not Current) per the ratified workflow policy. F-002 awaits Sprint Owner confirmation of the -004 identifier.
+
+---
+
+## NEXUS-REV-2026-07-12-012 — Sprint 6 — Shared Reality Foundation (Remediation Review)
+
+- **Reviewed Sprint:** Sprint 6 — Shared Reality Foundation
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-12-011 findings per builder-task.md (TASK-001, TASK-002) under Sprint Owner Ratification NEXUS-RAT-2026-07-12-002
+- **RFC Coverage:** RFC-0003 — Shared Reality Projection Model (Partial)
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Both remediation tasks from NEXUS-REV-2026-07-12-011 are correctly executed within the ratified scope. TASK-001's deferred-concept tracking is present in all four implementation-layer documents. TASK-002's reconciliation matches Ratification NEXUS-RAT-2026-07-12-002 exactly: the duplicate `projection.contract.ts` request/service surface is deleted, the legacy `SharedRealityRequest` / `SharedRealityEvidence` / `SharedRealityView` / `SharedRealityAssembler` placeholders are removed, `shared-reality.contract.ts` is now a pure barrel of the implemented RFC-0003 surface, the obsolete `SharedRealityService` alias file is deleted, and the three placeholder consumers (context, execution-strategy, review contracts) were updated to the canonical `SharedRealitySnapshot` as type-reference-only changes. Exactly one published `ProjectionRequest` / `ProjectionService` surface remains, verified by repository-wide search. No deferred RFC-0003 capability, Context Assembly concept, or functional expansion was introduced; the runtime `ProjectionService` and its tests are byte-identical to the state approved by NEXUS-REV-2026-07-12-011. Independent validation passes: TypeScript compile, ESLint, Vitest 15 files / 106 tests, esbuild. **No architectural violations detected.** Two residual documentation observations remain; neither reopens the sprint disposition.
+
+### Remediation Verification
+
+- **TASK-001 (F-002, Minor) — RESOLVED.** "Projection Scope (full scope declaration)" and "Projection Freshness / stale projection invalidation" verified present in the Sprint 6 deferred-concept lists of IMPLEMENTATION_MANIFEST.md, the Sprint Implementation Record, IMPLEMENTATION_PLAN.md, and IMPLEMENTATION_REPORT.md. Documentation only; no code changes.
+- **TASK-002 (F-003, Minor) — RESOLVED.** All acceptance criteria satisfied: single canonical `ProjectionRequest` / `ProjectionService` surface (no other definitions exist under `src/`); no legacy placeholder interfaces remain anywhere in `src/`; `SharedRealityService` alias removed with no remaining references; placeholder consumers compile against `SharedRealitySnapshot` without semantic change (all three remain unimplemented capability placeholders); `npm run validate` passes. Remediation recorded in IMPLEMENTATION_REPORT.md and IMPLEMENTATION_MANIFEST.md Review Remediation sections.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-012-F-001 — Stale projection boundary README
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** NEXUS-RAT-2026-07-12-002 (single canonical RFC-0003 surface); IMPLEMENTATION_GATE.md Gate 12
+- **Summary:** `src/kernel/projection/README.md` is now the only file in `src/kernel/projection/` and still describes a reserved "Kernel Projection" boundary that would "publish context packages for execution and review" — a surface superseded by the ratified single Shared Reality capability and overlapping deferred Context Assembly. The README was not a TASK-002 implementation target, so the Builder correctly left it untouched.
+- **Evidence:** `src/kernel/projection/README.md`; `src/kernel/projection/projection.contract.ts` deleted by TASK-002; NEXUS-RAT-2026-07-12-002 canonical naming table.
+- **Impact:** A dead folder whose README contradicts the ratified capability layout could mislead future Builders into re-creating a parallel projection surface.
+- **Recommended Disposition:** Documentation Task — remove the folder/README or reconcile it with the ratified Shared Reality capability boundary.
+- **Builder Action:** Update documentation only.
+
+#### NEXUS-REV-2026-07-12-012-F-002 — Manifest Sprint 6 status line predates approval
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** IMPLEMENTATION_MANIFEST.md (Builder-owned status text); NEXUS-REV-2026-07-12-011
+- **Summary:** IMPLEMENTATION_MANIFEST.md Sprint 6 still reads "Implemented — Pending Reviewer Validation" although Sprint 6 was approved with findings by NEXUS-REV-2026-07-12-011. The authoritative approval status is correctly recorded in IMPLEMENTATION_PLAN.md and the Sprint Implementation Record; the Manifest is Builder-owned, so the Reviewer does not correct it.
+- **Recommended Disposition:** Optional one-line Builder documentation touch-up in a future pass.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 ratified tasks (TASK-001, TASK-002 of NEXUS-REV-2026-07-12-011) |
+| New findings | 2 (1 Minor documentation, 1 Informational) |
+| Critical / Major | 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 15 files / 106 tests, build |
+
+### Deferred Concept Validation
+
+Unchanged from NEXUS-REV-2026-07-12-011 and now fully tracked: Projection Scope and Projection Freshness appear in every Sprint 6 deferred list. The reconciliation introduced no deferred concept — the placeholder consumers' switch to `SharedRealitySnapshot` is type-reference-only and Context Assembly remains entirely absent.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The repository now presents exactly one RFC-0003 contract surface, matching the ratified canonical naming (capability Shared Reality; service ProjectionService; request ProjectionRequest; result ProjectionResult). Runtime behavior, aggregate ownership, and the approved Sprint 6 implementation baseline are unchanged.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record — Status remains **Approved with Findings**; Reviewer Notes updated to record remediation verification.
+- IMPLEMENTATION_PLAN.md — Sprint 6 status unchanged (Approved with Findings, NEXUS-REV-2026-07-12-011; remediation verified by this review). No next planned sprint exists to advance to Current (Sprint Owner action outstanding per builder-task.md TASK-003).
+- builder-task.md — TASK-002 marked RESOLVED (verified by this review); only TASK-003 (governance, BLOCKED) remains open in the document.
+
+### Builder Task Recommendation
+
+One Documentation Task for F-001 (stale `src/kernel/projection/` README) via the `nexus-sprint` workflow, or fold it into the next authorized documentation pass. F-002 requires no action. TASK-003 of builder-task.md remains awaiting Sprint Owner acknowledgment and Sprint 7 planning.
+
+---
+
+## NEXUS-REV-2026-07-12-011 — Sprint 6 — Shared Reality Foundation
+
+- **Reviewed Sprint:** Sprint 6 — Shared Reality Foundation
+- **Reviewed Vertical Slice:** Shared Reality projection foundation (SharedReality read model, ProjectionService, ProjectionResult, ProjectionVersion, context aggregation, projection validation, Kernel wiring) as staged in the working tree
+- **RFC Coverage:** RFC-0003 — Shared Reality Projection Model (Partial); RFC-0002 — Evidence Model (Referenced); RFC-0001 — Mission Model (Referenced)
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 6 implements the first deterministic Shared Reality projection in conformance with RFC-0003 for every implemented concept. **No architectural violations detected.** The projection originates exclusively from Evidence retrieved through the injected Evidence repository contract, remains Mission-scoped, never mutates Mission, MissionPlan, or Evidence state, and is disposable — no persistence, caching, or event publication was introduced. Determinism is preserved end to end: Evidence is canonically sorted before projection, context aggregation groups deterministically by Evidence type and source, projection metadata excludes wall-clock time, and ProjectionVersion is a SHA-256 over a stable key-sorted serialization of the projection snapshot, satisfying the RFC requirement that the version change whenever the Evidence set changes and remain reproducible. Immutability is enforced by deep freezing across SharedReality, ProjectionResult, and all snapshot exposure paths, and is verified by tests. Kernel composition injects the shared in-memory Mission repository and Evidence repository into ProjectionService, replacing the Sprint 1 placeholder SharedRealityService. Independent validation passes: TypeScript compile, ESLint, Vitest 15 files / 106 tests (including the 8 Shared Reality tests), esbuild — matching the Implementation Report. Findings are limited to a recurring governance deviation requiring Sprint Owner acknowledgment, deferred-concept tracking gaps for RFC-0003-owned Projection Scope and Projection Freshness, and pre-existing naming/placeholder drift now made visible by the real RFC-0003 implementation.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-011-F-001 — Sprint Specification again created concurrently with implementation
+
+- **Category:** Category 5 — Governance Decision Required
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Sprint Specifications; NEXUS-RAT-2026-07-12-001 ("Future planned sprints SHALL create the Sprint Specification before implementation begins")
+- **Summary:** Sprint 6 implementation proceeded from a human-authorized inline request; the persisted Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0006-shared-reality-foundation.md`) was created with the implementation rather than before it. This repeats the deviation that ratification NEXUS-RAT-2026-07-12-001 directed must not recur, although here the deviation is disclosed in the sprint record and Implementation Report, the record conforms to the revised template, and the implementation was human-authorized.
+- **Evidence:** Sprint record § Governance Deviations; IMPLEMENTATION_REPORT.md Sprint 6 § Governance Notes; NEXUS-RAT-2026-07-12-001 ratification text in builder-task.md TASK-003.
+- **Impact:** Governance process only; no architecture or implementation impact. The disclosed inline authorization prevented an undocumented-scope implementation.
+- **Recommended Disposition:** Sprint Owner acknowledgment or ratification of the recurrence, and creation of the Sprint 7 specification before its implementation begins.
+- **Builder Action:** None (governance decision; no implementation change).
+
+#### NEXUS-REV-2026-07-12-011-F-002 — Projection Scope and Projection Freshness not tracked as deferred concepts
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Vertical Slice Policy (deferred concepts SHALL be tracked in the Implementation Manifest); RFC-0003 §§ Projection Scope, Projection Freshness (owned concepts)
+- **Summary:** RFC-0003 owns Projection Scope (Mission, Repository, Branch, Workspace, Repository Policies, Applicable Architecture, Active Evidence Set) and Projection Freshness. The implemented projection declares only Mission and the Active Evidence Set; the remaining scope elements and freshness invalidation are unimplemented, which is a legitimate vertical-slice deferral — but neither concept appears in the Sprint 6 deferred lists in IMPLEMENTATION_MANIFEST.md, IMPLEMENTATION_PLAN.md, or the sprint record. Freshness is mentioned only under the sprint record's Known Limitations; Projection Scope is not mentioned at all.
+- **Evidence:** RFC-0003 §§ Projection Scope, Projection Freshness, Domain Ownership; IMPLEMENTATION_MANIFEST.md Sprint 6 Deferred Concepts; sprint record §§ Deferred Concepts, Known Limitations.
+- **Impact:** Deferred-concept tracking is incomplete for two RFC-0003-owned concepts; a future slice could overlook them.
+- **Recommended Disposition:** Documentation Task — add "Projection Scope (full scope declaration)" and "Projection Freshness / stale projection invalidation" to the Sprint 6 deferred concepts in the Manifest and sprint record.
+- **Builder Action:** Update documentation only.
+
+#### NEXUS-REV-2026-07-12-011-F-003 — Pre-existing RFC-0003 vocabulary drift now visible against the real implementation
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gates 3, 8, 10; bootstrap Implementation Report (Projection Service vs Shared Reality naming conflict pending human ratification); Sprint 2 TASK-004 precedent
+- **Summary:** Three pre-existing bootstrap artifacts now diverge from the implemented RFC-0003 surface: (1) `src/kernel/projection/projection.contract.ts` publishes an unimplemented `ProjectionService` interface and a second `ProjectionRequest` type that conflict with the Sprint 6 `ProjectionService` class and `ProjectionRequest` in `shared-reality.types.ts`; (2) `shared-reality.contract.ts` retains the placeholder `SharedRealityRequest` / `SharedRealityEvidence` / `SharedRealityView` / `SharedRealityAssembler` interfaces alongside the new barrel exports (`SharedRealityView` is still consumed by the placeholder context, execution-strategy, and review contracts, and `SharedRealityAssembler.assemble` overlaps deferred Context Assembly); (3) `shared-reality.service.ts` aliases `ProjectionService` as `SharedRealityService` with no remaining consumers. All three pre-date Sprint 6 and relate to the unresolved Projection-vs-Shared-Reality naming ratification recorded since the bootstrap report; Sprint 6 was not authorized to resolve them and correctly left cross-capability placeholders untouched.
+- **Evidence:** `src/kernel/projection/projection.contract.ts`; `src/kernel/shared-reality/shared-reality.contract.ts:29-50`; `src/kernel/shared-reality/shared-reality.service.ts`; git diff for Sprint 6 (placeholders retained, not added); bootstrap Implementation Report § Limitations.
+- **Impact:** Two divergent `ProjectionRequest` / `ProjectionService` surfaces exist within the Kernel; consumers could bind to the dead placeholder contract.
+- **Recommended Disposition:** Sprint Owner ratification of the canonical Shared Reality / Projection naming direction, followed by a documentation/contract reconciliation task that retires or reconciles the placeholder surfaces (consistent with the Sprint 2 TASK-004 and Sprint 5 TASK-005 precedent).
+- **Builder Action:** Update documentation/contracts only, after ratification.
+
+#### NEXUS-REV-2026-07-12-011-F-004 — Terminal Mission status set duplicated in ProjectionService
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Domain Ownership (advisory)
+- **Summary:** `ProjectionService.project` hardcodes the terminal status set (`'Completed' | 'Cancelled' | 'Failed'`) to reject inactive Missions, duplicating RFC-0001 lifecycle knowledge owned by the Mission domain (the same pattern MissionPlanningService uses). A Mission-owned active/terminal predicate would centralize this in a future slice.
+- **Evidence:** `src/kernel/shared-reality/projection.service.ts:48`.
+- **Recommended Disposition:** No action required; candidate for a future refactoring slice.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 4 |
+| Critical / Major | 0 / 0 |
+| Minor | 3 (F-001 governance, F-002 and F-003 documentation) |
+| Informational | 1 (F-004) |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 15 files / 106 tests, build |
+
+### Deferred Concept Validation
+
+All declared deferred concepts remain unimplemented: no Context Assembly, Context Package, provider context, adapter, execution-role, review, knowledge, governance, event-bus, caching, persistence, incremental-projection, search, or indexing code exists in the Shared Reality slice. ProjectionService reads through `Pick`-narrowed repository contracts only and does not approximate Evidence authority resolution, conflict resolution, or policy application (its Evidence set is the explicit request references or the full repository enumeration, as declared in the sprint record). Two RFC-0003-owned concepts (Projection Scope, Projection Freshness) are correctly unimplemented but untracked as deferred — see F-002.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The implemented concepts conform to RFC-0003: Shared Reality is computed exclusively from Evidence (Canon 1, Canon 2), is Mission-scoped, deterministic (Canon 9), reproducible, explainable through Evidence references carrying id/type/version/source/hash (Canon 10), and disposable. Aggregate ownership is preserved — Mission, MissionPlan, and Evidence state are read through published repository contracts and never mutated; snapshots are the only cross-domain data exchanged. ProjectionVersion satisfies the RFC versioning requirements. Terminology matches RFC-0003 (Shared Reality, Projection, Projection Version). No events were introduced, consistent with the deferred Event Bus integration. The Sprint 5 approved Evidence baseline was consumed without modification, honoring Approved Vertical Slice Immutability.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0006-shared-reality-foundation.md`) — Status: **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- IMPLEMENTATION_PLAN.md — Sprint 6 status set to **Approved with Findings** (citing NEXUS-REV-2026-07-12-011).
+- Next planned sprint — none exists in IMPLEMENTATION_PLAN.md; advancement to Current is not possible (recurrence of NEXUS-REV-2026-07-12-010-F-002; Sprint Owner action to plan Sprint 7).
+- Work items — no Sprint 6 Builder Task document or Work Order exists (`builder-task.md` remains the closed Sprint 5 document); no task-state reconciliation is applicable.
+
+### Builder Task Recommendation
+
+No implementation Builder Tasks. Recommend, via the `nexus-sprint` workflow: one Documentation Task for F-002 (deferred-concept tracking), one ratification-gated Documentation Task for F-003 (naming/placeholder reconciliation), and Sprint Owner acknowledgment for F-001. F-004 requires no action.
+
+---
+
 ## NEXUS-REV-2026-07-12-010 — Sprint 5 — Evidence Foundation (Final Disposition and Repository State Update)
 
 - **Reviewed Sprint:** Sprint 5 — Evidence Foundation
