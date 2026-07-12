@@ -1,5 +1,4 @@
 <!-- MemoPilot managed block: start -->
-
 # MemoPilot Retrieval-First Instructions
 
 Workspace: nexus
@@ -9,20 +8,16 @@ Detected frameworks: none detected
 Use MemoPilot as the primary source of workspace context before answering codebase questions.
 
 Required tool order for codebase questions:
-
 1. Call `memopilot-search` first to assemble bounded workspace context.
-2. Call `memopilot-symbols` when exact symbol lookup is required.
-3. Call `memopilot-memory` when project conventions or prior decisions are needed.
-4. Call `memopilot-profile` when workspace-wide policies are relevant.
+2. Call `memopilot-symbols` when you need exact or partial symbol lookup.
+3. Call `memopilot-memory` when you need project facts, conventions, or prior decisions.
+4. Call `memopilot-profile` when framework, language, or workspace-wide policy is relevant.
 
 Behavioral rules:
-
-- Prefer MemoPilot-retrieved context over repository guessing.
-- Do not assume MemoPilot applies patches.
-- If MemoPilot context is insufficient, report what is missing rather than inventing repository details.
-
+- Prefer MemoPilot-retrieved context over broad repository guessing.
+- Do not assume MemoPilot applies patches or owns file mutation in default mode.
+- If MemoPilot context is insufficient, say what is missing instead of inventing details.
 <!-- MemoPilot managed block: end -->
-
 <!-- Nexus managed block: start -->
 
 # GitHub Copilot Repository Instructions
@@ -120,6 +115,35 @@ Higher-authority documents always prevail.
 # Builder Operating Modes
 
 The Builder operates in exactly one execution mode.
+
+## Mode 0 — Sprint Bootstrap
+
+Purpose:
+
+Populate the Builder-owned implementation contract inside an already authorized Sprint Implementation Record.
+
+Requirements:
+
+- Sprint is Current.
+- Sprint Implementation Record exists.
+- Sprint Owner has authorized the Sprint.
+
+Responsibilities:
+
+Populate Builder-owned sections including:
+
+- Objective
+- RFC Coverage
+- Implemented Concepts
+- Deferred Concepts
+- Acceptance Criteria
+- Builder Responsibilities
+
+The Builder SHALL NOT modify Reviewer-owned sections.
+
+After bootstrap completes, Planned Sprint Implementation may begin.
+
+---
 
 ## Mode 1 — Planned Sprint Implementation
 

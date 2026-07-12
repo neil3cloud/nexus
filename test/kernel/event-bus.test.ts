@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { KernelLogger } from '../../src/kernel/common/kernel-logger';
+import type { EventBusEvent } from '../../src/kernel/common/event-bus-contract';
 import { KernelError } from '../../src/kernel/common/kernel-error';
 import { EventBus } from '../../src/kernel/events/event-bus';
 import type { DomainEvent } from '../../src/kernel/events/domain-event';
@@ -53,7 +54,7 @@ describe('EventBus', () => {
     const handledEvents: string[] = [];
     const subscription = {
       eventType: 'MissionCreated',
-      handler: (event: DomainEvent) => {
+      handler: (event: EventBusEvent) => {
         handledEvents.push(event.eventId);
       },
     };

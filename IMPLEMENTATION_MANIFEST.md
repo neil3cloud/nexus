@@ -393,6 +393,145 @@ Notes:
 
 ---
 
+## Sprint 9 — Review Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0006 — Engineering Assessment Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-12-006 — canonical "Review" implementation-layer vocabulary for RFC-0006: `Review`, `ReviewStatus` (`Pending → In Progress → Completed`), `ReviewOutcome` (Accepted / Accepted With Observations / Action Required / Rejected), `ReviewCriteria`, `Finding`, `Severity`, `FindingCategory`, `FindingStatus` (`Created → Accepted / Resolved / Dismissed`). Also corrects an unrelated RFC-0005 title citation in `domain-schema.md`. RFC-0006 and RFC-0005 are unmodified.
+
+Implemented Concepts:
+
+- Review aggregate with immutable ReviewId, Mission reference, MissionPlan revision reference, explicit ReviewCriteria, consumed Evidence references, ReviewStatus lifecycle, ReviewOutcome assignment, and owned Finding collection.
+- ReviewId and FindingId immutable identity value objects.
+- ReviewStatus lifecycle: Pending → In Progress → Completed.
+- ReviewOutcome value object supporting Accepted, Accepted With Observations, Action Required, and Rejected.
+- ReviewCriteria value object for explicit assessment criteria.
+- Finding entity with FindingId, owning ReviewId, Severity, optional FindingCategory for actionable Findings, summary, description, supporting Evidence references, affected artifact references, criteria references, and FindingStatus lifecycle.
+- Severity, FindingCategory, and FindingStatus value objects using the ratified vocabulary.
+- IReviewRepository contract and InMemoryReviewRepository process-local snapshot persistence for Reviews and Findings.
+- ReviewService orchestration for start Review, publish Finding, finalize Review outcome, retrieve Review, enumerate Reviews, and enumerate Findings through constructor injection.
+- Kernel service composition updated so ReviewService receives an injected in-memory Review repository.
+- Deterministic diagnostics for invalid Review definitions, invalid lifecycle transitions, duplicate Reviews, duplicate Findings, missing Evidence references, missing Reviews, rejected completion, and invalid Finding transitions.
+- Unit tests for Review aggregate behavior, Finding behavior, value objects, repository behavior, service orchestration, lifecycle validation, duplicate validation, evidence-backed Findings, and completion rules.
+
+Deferred Concepts:
+
+- AI review execution (Claude, Copilot, or any Adapter-driven Review execution).
+- Adapter invocation from the Review domain.
+- Governance decisions / policy-driven Assessment Criteria selection.
+- Event Bus integration (`ReviewStarted`, `ReviewCompleted`, `ReviewAccepted`, `ReviewRejected`, `FindingCreated`, `FindingAccepted`, `FindingResolved`, `FindingDismissed`).
+- Multi-Assessment-Session Reviews.
+- Actionable Finding to Mission Plan revision / Mission Evolution wiring.
+- Human Authority operations (approve/reject/override Assessment Outcomes) and Override-as-Evidence.
+- Execution Session consumption (RFC-0004 Execution Session remains unimplemented).
+- Shared Reality Projection consumption as an Assessment input.
+- Produced Artifacts consumption as an Assessment input.
+- Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability).
+- Produced Artifacts becoming Knowledge.
+- Workflow automation and repository state transitions outside Review and Finding lifecycles.
+- Sensitive Finding access control.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0009-review-foundation.md` for the complete Sprint Implementation Record, including the full canonical vocabulary table.
+- RFC-0006 is not modified by this sprint or by its ratification; RFC-0006 remains the sole normative owner of Engineering Assessment semantics.
+- `ReviewStatus` and `FindingStatus` are implementation-layer operational lifecycle concepts, not RFC-0006-normative concepts, and SHALL NOT be conflated with `ReviewOutcome` (the RFC-0006-owned Assessment Outcome).
+- Review remains deterministic and provider-agnostic.
+- ReviewService coordinates repository access and aggregate operations only; Review and Finding own lifecycle and validation rules.
+- Evidence, Shared Reality, Execution Roles, Governance, Mission Plan mutation, Adapter invocation, Event Bus integration, and Knowledge capture remain outside this slice.
+
+---
+
+## Sprint 10 — Execution Strategy
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-12-007 — corrects `knowledge/reference/domain-schema.md`'s Execution Domain description: `Assignment` (the approved Sprint 8 `RoleAssignment` model) remains independently owned; Execution Strategy coordinates and references `RoleAssignment` records rather than exclusively owning them. RFC-0004 is unmodified. Sprint 8's approved implementation is not reopened.
+
+Implemented Concepts:
+
+- `ExecutionStrategy` aggregate representing one Mission's deterministic execution-coordination rules (dependency-ordering rule, concurrency rule as deterministic policy data).
+- `ExecutionStrategyId`.
+- Advisory/evaluative dependency-ordering readiness query for `RoleAssignment` via `ExecutionStrategyService.evaluateAssignmentReadiness` against MissionPlan Task Graph dependencies (direct and transitive); not an enforced precondition on `RoleService.assignRole`.
+- `ExecutionStrategyService` orchestration through constructor-injected repository contracts, reading `RoleAssignmentRepository` and `IMissionPlanRepository` without mutating them.
+- `IExecutionStrategyRepository` contract and `InMemoryExecutionStrategyRepository`.
+- Deterministic diagnostics for unsatisfied dependency ordering, unknown references, and duplicate ExecutionStrategy per Mission.
+
+Deferred Concepts:
+
+- Execution State (full RFC-0004 minimum state set: Pending, Ready, Assigned, Executing, Awaiting Review, Completed, Failed, Blocked).
+- Execution Session.
+- Review requirements enforcement / RFC-0006 Review gating of execution progression.
+- Adapter invocation and Adapter selection.
+- AI Providers and provider coordination.
+- Actual parallel/concurrent execution runtime; only deterministic concurrency policy data is in scope.
+- Governance.
+- Assignment Policy elements beyond dependency ordering (Adapter capability matching, repository configuration, execution constraints, human preferences).
+- Human Authority operations.
+- Event Bus integration.
+- Explainability reporting beyond deterministic validation diagnostics.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0010-execution-strategy.md` for the complete Sprint Implementation Record.
+- RFC-0004 is not modified by this sprint or by its ratification.
+- `ExecutionStrategy` does not mutate Mission, MissionPlan, Task, or RoleAssignment aggregates; all cross-domain interaction occurs through existing published repository contracts.
+- `ExecutionStrategy` is advisory/evaluative this slice; it does not gate or trigger Task execution. `MissionExecutionService` (Sprint 4) remains the sole Task execution entry point and already performs its own independent Task-dependency validation before Task start.
+
+---
+
+## Sprint 11 — Domain Event Publication (Evidence, Review)
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-001 — authorizes an optional `missionId` field on `RegisterEvidenceRequest`/`EvidenceSnapshot` (additive extension to the approved Sprint 5 Evidence model), resolving the RFC-0005 `EvidenceCaptured` envelope attribution gap identified by the Builder before implementation began. RFC-0002 and RFC-0005 are unmodified; Evidence remains Mission-independent by design.
+- NEXUS-RAT-2026-07-13-002 — restores required `missionId` on the shared Kernel `DomainEvent` / `DomainEventAttribution` contract and authorizes an Evidence-specific publication variant for Mission-independent `EvidenceCaptured` events.
+
+Implemented Concepts:
+
+- Optional `missionId?: string` on `RegisterEvidenceRequest`/`EvidenceSnapshot` and the `Evidence` aggregate (NEXUS-RAT-2026-07-13-001).
+- `EvidenceService` and `ReviewService` optional constructor-injected `EventBusContract`, matching `MissionService`'s established pattern.
+- `Evidence` and `Review` aggregate internal recorded-events collections and `pullDomainEvents()`, mirroring `Mission`.
+- `EvidenceCaptured` event (Evidence Service producer); Mission-associated Evidence uses the shared `DomainEvent` envelope with `missionId`, while Mission-independent Evidence uses the Evidence-specific publication variant authorized by NEXUS-RAT-2026-07-13-002 and omits `missionId` as authorized by NEXUS-RAT-2026-07-13-001.
+- `ReviewStarted`, `ReviewCompleted`, `ReviewAccepted`, `ReviewRejected`, `FindingCreated` events (Review Service producer).
+
+Deferred Concepts:
+
+- Execution Strategy event publication — no cataloged event category currently assigns `ExecutionStrategyService` a producible event.
+- `EvidenceAccepted`, `EvidenceRejected` (catalog Producer: Review Service; no corresponding operation exists).
+- `FindingAccepted`, `FindingDismissed` (catalog Producer: Developer; no human-action command pathway exists).
+- `FindingResolved` (catalog Producer: Execution Strategy; no trigger exists).
+- Mission Plan Events and Task Events — deferred pending resolution of the Task Lifecycle three-way naming mismatch between RFC-0004's Execution State, `kernel-state-machine.md`'s Task Lifecycle, and the approved Sprint 3 `TaskStatus` enum.
+- Knowledge Events, Shared Reality Events, Context Package Events, Policy Events.
+- Event subscription/consumption by other services.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md` for the complete Sprint Implementation Record, including the full Producer-mismatch scoping table.
+- This sprint does not modify RFC-0005, the Kernel Canon, or `ExecutionStrategyService`.
+- Save-then-publish non-atomicity for Evidence and Review mirrors the disclosed Mission (Sprint 2) limitation; it is not resolved by this sprint.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

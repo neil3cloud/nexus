@@ -1,5 +1,472 @@
 ﻿# Nexus Review History
 
+## NEXUS-REV-2026-07-13-005 — Sprint 11 — Domain Event Publication (Evidence, Review) (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 11 — Domain Event Publication (Evidence, Review)
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-13-004-F-001 through F-004 (`builder-task.md` TASK-001 through TASK-004, generated from NEXUS-REV-2026-07-13-004)
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Partial); documentation layer only
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+All four Documentation Tasks from `builder-task.md` (generated from NEXUS-REV-2026-07-13-004) are correctly resolved, each within its authorized documentation-only scope and with no code changes:
+
+- **TASK-001 (F-001):** The Sprint 11 record's Known Limitations now documents the `common`→Evidence coupling accepted as part of NEXUS-RAT-2026-07-13-002's remediation ("`EventBusContract` and `EventBus` directly import the Evidence domain's `EvidenceDomainEvent` type... an accepted common-to-Evidence coupling trade-off").
+- **TASK-002 (F-002):** Both the Sprint 11 record's and `IMPLEMENTATION_REPORT.md`'s Test Summary sections now correctly state "28 files, 163 tests," matching an independent re-run.
+- **TASK-003 (F-003):** `IMPLEMENTATION_REPORT.md`'s Sprint 11 § Deviations section no longer claims "No architectural deviations"; it now accurately discloses that the initial delivery exceeded NEXUS-RAT-2026-07-13-001's Authorized Builder Scope and was corrected within the same sprint per NEXUS-RAT-2026-07-13-002.
+- **TASK-004 (F-004):** `IMPLEMENTATION_MANIFEST.md`'s Sprint 11 section now cites both NEXUS-RAT-2026-07-13-001 and NEXUS-RAT-2026-07-13-002, and its `EvidenceCaptured` Implemented Concepts line accurately describes the Evidence-specific publication variant.
+
+`git status` confirms this remediation touched only documentation files (`knowledge/implementation/sprints/sprint-0011-domain-event-publication.md`, `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_MANIFEST.md`); no source or test file changed relative to the state verified in NEXUS-REV-2026-07-13-004. Independent re-validation confirms no regression: `tsc --noEmit` compiles cleanly, ESLint is clean, `esbuild` builds successfully, and Vitest passes 28 files / 163 tests, matching the now-corrected figures in both documents. **No architectural violations detected.** No new findings are raised. The Sprint 11 review cycle (spanning NEXUS-REV-2026-07-13-003, -004, and this entry) is complete with no open findings.
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-13-004-F-001, Minor) — RESOLVED.** Coupling trade-off documented in the Sprint 11 record's Known Limitations.
+- **TASK-002 (NEXUS-REV-2026-07-13-004-F-002, Minor) — RESOLVED.** Test count corrected to 163 in both the Sprint 11 record and `IMPLEMENTATION_REPORT.md`, and independently confirmed accurate.
+- **TASK-003 (NEXUS-REV-2026-07-13-004-F-003, Minor) — RESOLVED.** `IMPLEMENTATION_REPORT.md`'s Deviations section now accurately discloses the F-001 deviation-and-remediation.
+- **TASK-004 (NEXUS-REV-2026-07-13-004-F-004, Minor) — RESOLVED.** `IMPLEMENTATION_MANIFEST.md`'s Sprint 11 section cites NEXUS-RAT-2026-07-13-002 and describes the Evidence-specific variant.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 4 of 4 (TASK-001 through TASK-004 of NEXUS-REV-2026-07-13-004) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `esbuild` build, Vitest 28 files / 163 tests |
+
+### Deferred Concept Validation
+
+Unchanged; this remediation was documentation-only. All Sprint 11 deferred concepts remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The Sprint 11 baseline, as remediated by NEXUS-RAT-2026-07-13-002 and verified by NEXUS-REV-2026-07-13-004, is otherwise unchanged. All governance and documentation-accuracy findings raised across the Sprint 11 review cycle (NEXUS-REV-2026-07-13-003 and -004) are now closed with no open findings.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0011-domain-event-publication.md`) — Status → **Approved**; Reviewer Notes and Final Disposition updated to reflect full closure.
+- IMPLEMENTATION_PLAN.md — Sprint 11 status set to **Approved** (NEXUS-REV-2026-07-13-005). No Sprint 12 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+- `builder-task.md` — TASK-001 through TASK-004 marked Completed; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 11 review cycle is complete with no open findings. Next steps are Sprint Owner actions: plan Sprint 12 under the specification-first workflow.
+
+---
+
+## NEXUS-REV-2026-07-13-004 — Sprint 11 — Domain Event Publication (Evidence, Review) (TASK-002/TASK-004 Remediation Review)
+
+- **Reviewed Sprint:** Sprint 11 — Domain Event Publication (Evidence, Review)
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-13-003-F-001 (TASK-002, per NEXUS-RAT-2026-07-13-002 direction (b)) and NEXUS-REV-2026-07-13-003-F-003 (TASK-004); TASK-001 and TASK-003 folded into TASK-002 per `builder-task.md`.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Partial); unchanged from NEXUS-REV-2026-07-13-003
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+The Builder correctly implemented NEXUS-RAT-2026-07-13-002's authorized remediation. `src/kernel/events/domain-event.ts` — `DomainEvent.missionId` and `DomainEventAttribution.missionId` — are required (`string`) again, exactly as before Sprint 11, closing the Kernel-wide type-enforcement gap identified as NEXUS-REV-2026-07-13-003-F-001. `src/kernel/evidence/evidence.events.ts` now defines an Evidence-specific `MissionIndependentEvidenceDomainEvent` type (with a matching `EvidenceEventAttribution`), and `EvidenceDomainEvent` is a union of the Mission-scoped and Mission-independent shapes; `createEvidenceCapturedEvent` selects the correct shape based on whether the registered Evidence carries a `missionId`. `src/kernel/common/event-bus-contract.ts` and `src/kernel/events/event-bus.ts` were widened, via a new `EventBusEvent = DomainEvent | EvidenceDomainEvent` union, to accept the Evidence-specific variant without reintroducing optionality on the shared `DomainEvent` type itself. Mission and Review event publication (`mission.events.ts`, `review.events.ts`, `MissionService`, `ReviewService`, `evidence.aggregate.ts`, `evidence.service.ts`, `evidence.errors.ts`) are confirmed untouched by this remediation, matching TASK-002's scope restriction. The Sprint 11 record's Implemented Concepts, Ratification References, Known Limitations, and Builder Results sections were all updated to describe the corrected architecture and reference NEXUS-RAT-2026-07-13-002 — closing TASK-001 and TASK-003's documentation gaps as authorized — and the record's Known Limitations now discloses the `EventBusContract.replay()` gap for Mission-independent `EvidenceCaptured` events (TASK-004). Independent re-validation confirms: `tsc --noEmit` compiles cleanly, ESLint is clean, `esbuild` builds successfully, and Vitest passes 28 files / **163** tests (one more than the 162 both the Sprint 11 record and `IMPLEMENTATION_REPORT.md` still report, per F-002 below — the new Evidence-specific-variant aggregate test was added but the count was not updated).
+
+Four Minor findings are raised, none blocking. **F-001** is a code-quality/coupling-direction observation: `src/kernel/common/event-bus-contract.ts`, the shared Kernel-wide Event Bus contract every domain depends on, now directly imports `EvidenceDomainEvent` from the Evidence domain module — this is the "equivalent domain-scoped abstraction" NEXUS-RAT-2026-07-13-002 authorized, and it does preserve `DomainEvent`'s required `missionId` for every other domain, but it does so by making the common/shared contract file aware of one specific bounded context, which inverts the usual common-is-domain-agnostic direction and would compound if a second domain needed the same accommodation. **F-002** and **F-003** are stale-figure/stale-claim documentation gaps (test count; `IMPLEMENTATION_REPORT.md`'s "No architectural deviations" line, which is inconsistent with the same report's own account of the F-001 deviation-and-remediation). **F-004** is a Manifest gap: `IMPLEMENTATION_MANIFEST.md`'s Sprint 11 section was not updated to cite NEXUS-RAT-2026-07-13-002 or describe the Evidence-specific variant (Builder-owned artifact, not modified by the Reviewer; flagged for Builder follow-up).
+
+### Remediation Verification
+
+- **TASK-002 (NEXUS-REV-2026-07-13-003-F-001, Major) — RESOLVED.** `DomainEvent`/`DomainEventAttribution` restored to required `missionId`; Evidence-specific publication variant introduced and used exclusively by `evidence.events.ts`; `EventBus`/`EventBusContract` updated only as strictly required to accept the variant; Mission/Review publication unaffected; Sprint 11 record and `IMPLEMENTATION_REPORT.md` updated to describe the corrected architecture. All TASK-002 Acceptance Criteria satisfied.
+- **TASK-004 (NEXUS-REV-2026-07-13-003-F-003, Minor) — RESOLVED.** The Sprint 11 record's Known Limitations now discloses that Mission-independent `EvidenceCaptured` events are not retrievable through `EventBusContract.replay()`.
+- **TASK-001 and TASK-003 — RESOLVED as folded into TASK-002.** Both documentation gaps (recording the deviation; correcting the "no envelope changes" claim) are addressed by TASK-002's own documentation updates, consistent with `builder-task.md`'s SUPERSEDED disposition for both.
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-004-F-001 — Shared EventBusContract now directly imports the Evidence domain's event type
+
+- **Category:** Category 4 — Documentation Drift (architectural observation; not a violation of the governing ratification, which explicitly authorized "an equivalent domain-scoped abstraction")
+- **Severity:** Minor
+- **Authority:** `knowledge/implementation/implementation-technology-standard.md` § Implementation Principles ("Implementations SHALL avoid: ... hidden dependencies"); § Dependency Rules (general low-coupling intent for Kernel capability boundaries, though the explicit prohibited-dependency table does not name intra-Kernel common→domain imports specifically)
+- **Evidence:** `src/kernel/common/event-bus-contract.ts:1-4` — imports `EvidenceDomainEvent` from `../evidence/evidence.events` and defines `EventBusEvent = DomainEvent | EvidenceDomainEvent`; `src/kernel/events/event-bus.ts:1-12` — same import, used for `EventBus implements EventBusContract`.
+- **Impact:** Every domain that depends on `EventBusContract` (all of them, via `create-kernel-services.ts`) now has a transitive compile-time dependency on the Evidence domain module, even domains unrelated to Evidence. This satisfies NEXUS-RAT-2026-07-13-002's letter (the Kernel-wide `DomainEvent` type itself keeps required `missionId`) but the chosen "equivalent domain-scoped abstraction" couples the common contract to one specific domain rather than remaining domain-agnostic. No current functional defect results.
+- **Recommended Disposition:** Documentation Task now (note the coupling-direction trade-off was accepted as part of NEXUS-RAT-2026-07-13-002's remediation, for future maintainers). Optional future improvement, not required: define the Mission-independent variant's shape locally within `common` (or a neutral shared-events module) rather than importing a concrete domain type, if a second domain later needs the same accommodation.
+- **Builder Action:** Documentation Task; no code change required this cycle.
+
+#### NEXUS-REV-2026-07-13-004-F-002 — Test count in Sprint 11 record and IMPLEMENTATION_REPORT.md is stale
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md § Documentation Before Code (documentation is authoritative and must be accurate)
+- **Evidence:** `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md` § Test Summary and `IMPLEMENTATION_REPORT.md` § Sprint 11 § Test Summary both state "Vitest passed: 28 files, 162 tests"; independent re-run shows 28 files / **163** tests.
+- **Impact:** Minor — the discrepancy is exactly the one new test added for the Evidence-specific variant during this remediation; no coverage is actually missing, only the reported count is stale.
+- **Recommended Disposition:** Documentation Task — update both Test Summary sections to 163 tests.
+- **Builder Action:** Documentation Task.
+
+#### NEXUS-REV-2026-07-13-004-F-003 — IMPLEMENTATION_REPORT.md's "No architectural deviations" is inconsistent with its own account of the F-001 deviation
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md § Implementation Report ("If no deviations exist, the report SHALL explicitly state: 'No architectural deviations.'")
+- **Evidence:** `IMPLEMENTATION_REPORT.md` § Sprint 11 § Deviations — "No architectural deviations." vs. the same section's own Implemented scope / Architectural Assumptions entries describing the NEXUS-RAT-2026-07-13-002 remediation, and the Sprint 11 record's Builder Results entry: "Remediated NEXUS-REV-2026-07-13-003-F-001 per NEXUS-RAT-2026-07-13-002..."
+- **Impact:** A reader relying solely on the Deviations section — the Constitution's designated disclosure location — would not learn that a real scope deviation occurred and was corrected within this sprint.
+- **Recommended Disposition:** Documentation Task — replace "No architectural deviations" with a short statement disclosing the F-001 deviation and its NEXUS-RAT-2026-07-13-002 remediation, consistent with how the rest of the same report already describes it.
+- **Builder Action:** Documentation Task.
+
+#### NEXUS-REV-2026-07-13-004-F-004 — IMPLEMENTATION_MANIFEST.md's Sprint 11 section does not reference NEXUS-RAT-2026-07-13-002
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md § Implementation Manifest ("the authoritative mapping between architectural specifications and implementation progress")
+- **Evidence:** `IMPLEMENTATION_MANIFEST.md` § Sprint 11 § Ratification / Implemented Concepts — cites only NEXUS-RAT-2026-07-13-001 and describes `EvidenceCaptured`'s missionId-omission without mentioning the Evidence-specific publication variant that now implements it.
+- **Impact:** A reader consulting the Manifest — the Constitution's authoritative implementation-progress mapping — for Sprint 11's ratification history would miss NEXUS-RAT-2026-07-13-002 and the corrected architecture entirely.
+- **Recommended Disposition:** Documentation Task — add NEXUS-RAT-2026-07-13-002 to the Ratification list and update the Implemented Concepts line to describe the Evidence-specific variant, mirroring the correction already made to the Sprint 11 record and `IMPLEMENTATION_REPORT.md`.
+- **Builder Action:** Documentation Task. (IMPLEMENTATION_MANIFEST.md is Builder-owned; the Reviewer does not modify it.)
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 (TASK-002 resolving F-001; TASK-004 resolving F-003; TASK-001/TASK-003 resolved as folded into TASK-002) |
+| New findings | 4 |
+| Critical / Major / Minor | 0 / 0 / 4 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `esbuild` build, Vitest 28 files / 163 tests (one more than the stale 162 figure in the sprint record and IMPLEMENTATION_REPORT.md — see F-002) |
+
+### Deferred Concept Validation
+
+Unchanged from NEXUS-REV-2026-07-13-003. This remediation cycle touched only the Domain Event envelope type, the Evidence event publication path, and the EventBus contract; all Sprint 11 deferred concepts (Execution Strategy event publication, `EvidenceAccepted`/`EvidenceRejected`, `FindingAccepted`/`FindingResolved`/`FindingDismissed`, Mission Plan/Task events, Knowledge/Shared Reality/Context Package/Policy events, event consumers, durable Event Streams) remain correctly unimplemented and unapproximated.
+
+### Architectural Compliance Summary
+
+The remediation resolves the prior Major finding: RFC-0005's unqualified `missionId` envelope requirement is once again enforced at the type level for every domain except the explicitly ratified Evidence exception, and that exception is now implemented as a scoped, additive variant rather than a Kernel-wide relaxation, exactly as NEXUS-RAT-2026-07-13-002 authorized. Aggregate ownership, event-as-fact-not-command semantics, and the Governance Constraint (no new subscribers, publication strictly after commit/persistence) remain preserved and unaffected by this remediation. **No architectural violations detected.** The four new findings are documentation-accuracy and coupling-direction observations, not violations of Constitution § Architectural Violations.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0011-domain-event-publication.md`) — Status remains **Approved with Findings**; Reviewer Notes and Final Disposition updated below to reflect the remediation review.
+- IMPLEMENTATION_PLAN.md — Sprint 11 status remains **Approved with Findings**, now citing NEXUS-REV-2026-07-13-004. No Sprint 12 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+- `builder-task.md` — TASK-002 and TASK-004 marked Completed; TASK-001 and TASK-003 marked Closed (resolved as folded into TASK-002), per the Builder Task Recommendation below.
+
+### Builder Task Recommendation
+
+Four Documentation Tasks are recommended for generation through the `nexus-sprint` workflow, tracing to F-001 through F-004 above. None require a Sprint Owner governance decision; all are direct documentation corrections. F-004 targets a Builder-owned artifact (`IMPLEMENTATION_MANIFEST.md`) the Reviewer does not modify.
+
+---
+
+## NEXUS-REV-2026-07-13-003 — Sprint 11 — Domain Event Publication (Evidence, Review)
+
+- **Reviewed Sprint:** Sprint 11 — Domain Event Publication (Evidence, Review)
+- **Reviewed Vertical Slice:** `EvidenceService`/`ReviewService` optional `EventBusContract` injection and Domain Event publication (`EvidenceCaptured`; `ReviewStarted`, `ReviewCompleted`, `ReviewAccepted`, `ReviewRejected`, `FindingCreated`), plus the ratified optional `missionId` extension to the Sprint 5 Evidence model.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Partial); RFC-0002 — Evidence Model (Referenced); RFC-0006 — Engineering Assessment Model (Referenced)
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 11 extends Kernel-owned Domain Event publication to Evidence and Review, mirroring the approved Sprint 2 Mission pattern exactly: both services gain an optional constructor-injected `EventBusContract` with a `requireEventBus()` guard, both aggregates gain a `recordedEvents`/`pullDomainEvents()` collection, and both services publish only after the corresponding state transition is committed and persisted (`src/kernel/evidence/evidence.service.ts:26-36`, `src/kernel/review/review.service.ts:30-81`). Only the event names cataloged for the producer roles actually implemented this slice are used (`EvidenceCaptured`; `ReviewStarted`, `ReviewCompleted`, `ReviewAccepted`, `ReviewRejected`, `FindingCreated` — all confirmed against `knowledge/reference/kernel-event-catalog.md`), no event consumer/subscriber was introduced anywhere in the Kernel, `ExecutionStrategyService` was left untouched and event-silent, and outcome-conditional Review event selection (`Accepted`/`Accepted With Observations` → `ReviewAccepted`; `Rejected` → `ReviewRejected`; `Action Required` → neither) is correctly implemented in `Review.recordCompletedEvents` (`src/kernel/review/review.aggregate.ts:243-256`) and covered by test. Independent validation confirms the record's claims: TypeScript compiles cleanly, ESLint is clean, `npm run build` (esbuild) succeeds, and Vitest passes 28 files / 162 tests.
+
+One Major finding is raised. The Builder correctly identified, before writing code, that RFC-0005's Standard Event Envelope requires every event to carry `missionId` while Mission-independent Evidence has no Mission relationship, and correctly escalated this as a Category 3 Specification Conflict rather than guessing — this is the Constitution's stop-and-ratify process working as intended, and NEXUS-RAT-2026-07-13-001 is a properly formed ratification for the Evidence-specific problem it describes. However, the actual code change went further than the ratification's Authorized Builder Scope: it made `DomainEvent.missionId` and `DomainEventAttribution.missionId` optional on the shared, RFC-0005-owned envelope type (`src/kernel/events/domain-event.ts`) used by every domain — Mission and Review included — rather than confining the relaxation to the Evidence event path. The ratification's Authorized Builder Scope lists four specific, Evidence-scoped items and does not list `domain-event.ts`; its Scope Restrictions state plainly "RFC-0005 SHALL NOT be modified." Two related Minor findings follow from the same root cause: the Sprint 11 record's own claim of "no envelope changes" is inaccurate given this diff, and the resulting inability to `replay()` Mission-independent `EvidenceCaptured` events (the `EventBusContract.replay(missionId: string)` signature still requires a string, so events stored under the `undefined` key are unreachable through the public contract) is not disclosed as a Known Limitation.
+
+None of these findings indicate incorrect behavior for Mission or Review — both continue to always supply `missionId`, and all existing and new tests pass. The findings are about the ratified scope boundary and documentation accuracy, not a functional regression, and do not warrant blocking Sprint 11's approval.
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-003-F-001 — Shared RFC-0005 envelope type relaxed Kernel-wide, beyond NEXUS-RAT-2026-07-13-001's authorized scope
+
+- **Category:** Category 3 — Specification Conflict (ratification-scope overreach)
+- **Severity:** Major
+- **Authority:** NEXUS-RAT-2026-07-13-001 (Authorized Builder Scope; Scope Restrictions — "RFC-0005 SHALL NOT be modified"); RFC-0005 § Standard Event Envelope ("missionId — Mission identifier for the Mission event stream", no "when applicable" qualifier, unlike `taskId`/`executionSessionId`/`adapterId`); IMPLEMENTATION_CONSTITUTION.md § RFC Coverage ("If implementation requires extending or modifying a concept owned by an RFC outside the declared RFC Coverage, implementation SHALL stop and request human ratification")
+- **Evidence:** `src/kernel/events/domain-event.ts:12,25` — `DomainEventAttribution.missionId` and `DomainEvent.missionId` changed from required (`string`) to optional (`string?`); this type is shared by `MissionDomainEvent` and `ReviewDomainEvent`, not Evidence-specific. `knowledge/governance/RATIFICATION_LEDGER.md:527-542` (NEXUS-RAT-2026-07-13-001 Authorized Builder Scope / Scope Restrictions) — authorizes only `RegisterEvidenceRequest`, `EvidenceSnapshot`, `Evidence.register`/`fromSnapshot`, `EvidenceService.registerEvidence`, and the `EvidenceCaptured` envelope; does not list `domain-event.ts`.
+- **Impact:** The RFC-0005 envelope's `missionId` requirement — stated without qualification, unlike the explicitly optional attribution fields — is now unenforced at the type level for every current and future Domain Event producer in the Kernel, not only `EvidenceCaptured`. No current producer (Mission, Review) is affected in practice, since both continue to always supply `missionId`, but the type system no longer catches a future regression the way it did before this sprint.
+- **Recommended Disposition:** Documentation Task now (record the actual scope of the envelope-type change against the ratification), with a follow-up Builder Task to either (a) obtain an explicit ratification amendment authorizing the shared-type change with its Kernel-wide rationale, or (b) narrow the relaxation so only the Evidence event-construction path is affected (e.g., a distinct optional-missionId event variant) while `DomainEvent`/`DomainEventAttribution` keep `missionId` required for domains that are always Mission-scoped.
+- **Builder Action:** Documentation Task (record the deviation) plus a Builder Task per the chosen remediation direction above; Sprint Owner input needed to choose (a) or (b).
+
+#### NEXUS-REV-2026-07-13-003-F-002 — Sprint 11 record's "no envelope changes" claim is inaccurate
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md § Documentation Before Code (documentation is authoritative and must be accurate)
+- **Evidence:** `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md:57` — "via the existing `DomainEvent`/`DomainEventMetadata` infrastructure — no envelope changes" vs. the actual diff to `src/kernel/events/domain-event.ts` described in F-001.
+- **Impact:** A future reader relying on the Sprint 11 record would not know the shared envelope type was modified.
+- **Recommended Disposition:** Documentation Task — correct the Sprint 11 record's Implemented Concepts line to acknowledge the `domain-event.ts` type change, consistent with the Implementation Report's own (more accurate) "EventBus support for the ratified Mission-independent EvidenceCaptured partial-conformance case" wording.
+- **Builder Action:** Documentation Task.
+
+#### NEXUS-REV-2026-07-13-003-F-003 — Mission-independent EvidenceCaptured events are unreachable via the public EventBusContract.replay(), and this is undisclosed
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** Sprint 11 record § Known Limitations (completeness expected); RFC-0005 § Explainability
+- **Evidence:** `src/kernel/common/event-bus-contract.ts:27` — `replay(missionId: string)` still requires a `string`; `src/kernel/events/event-bus.ts:9,19` — events are stored under `eventsByMissionId.get(immutableEvent.missionId)`, where the key is `undefined` for Mission-independent Evidence, making them unretrievable through any type-safe call to the documented `replay()` contract.
+- **Impact:** No current consumer needs this (no consumers are added this slice), but the limitation is real and is not listed alongside the sprint's other disclosed limitations (e.g., "EvidenceCaptured events ... omit missionId").
+- **Recommended Disposition:** Documentation Task — add this to the Sprint 11 record's Known Limitations.
+- **Builder Action:** Documentation Task.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 0 (no open findings carried into this sprint) |
+| New findings | 3 |
+| Critical / Major / Minor | 0 / 1 / 2 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `esbuild` build, Vitest 28 files / 162 tests, matching the figures certified in IMPLEMENTATION_REPORT.md |
+
+### Deferred Concept Validation
+
+All Sprint 11 declared deferred concepts remain correctly unimplemented and unapproximated: Execution Strategy event publication (`ExecutionStrategyService` unmodified and not wired to the EventBus in `create-kernel-services.ts`); `EvidenceAccepted`/`EvidenceRejected`; `FindingAccepted`/`FindingResolved`/`FindingDismissed`; Mission Plan Events and Task Events; Knowledge/Shared Reality/Context Package/Policy Events; event subscription/consumption by other services (no `.subscribe(` call was added anywhere in `src`); durable/persistent Event Streams. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+Aggregate ownership, event-as-fact-not-command semantics, and the Governance Constraint (publication strictly after commit/persistence, no new subscribers, no cross-domain behavioral coupling) are all preserved. Terminology and event names match `kernel-event-catalog.md` exactly for the producer roles implemented this slice. The one Major finding (F-001) is a ratification-scope boundary issue in shared infrastructure, not an aggregate-ownership, lifecycle, or undocumented-event violation — no Domain Event was invented, renamed, or misattributed, and no domain outside Evidence exercises the new optionality. **No architectural violations detected** in the sense of Constitution § Architectural Violations (undocumented behavior, aggregate ownership redefinition, capability bypass, undocumented state/event, renamed concepts); the finding is a governance/documentation-scope defect that SHOULD be corrected but does not itself constitute an architectural violation.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0011-domain-event-publication.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed below.
+- IMPLEMENTATION_PLAN.md — Sprint 11 status set to **Approved with Findings** (NEXUS-REV-2026-07-13-003). No Sprint 12 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+
+### Builder Task Recommendation
+
+Three Documentation Tasks are recommended for generation through the `nexus-sprint` workflow, tracing to F-001, F-002, and F-003 above. F-001's Documentation Task additionally requires a Sprint Owner decision between remediation directions (a) or (b) before a follow-up Builder Task can be scoped; F-002 and F-003 are documentation-only and require no Sprint Owner decision.
+
+---
+
+## NEXUS-REV-2026-07-13-002 — Sprint 10 — Execution Strategy (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 10 — Execution Strategy
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-13-001-F-001 per builder-task.md TASK-001
+- **RFC Coverage:** RFC-0004 — Execution Model (Partial); documentation layer only
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 is correctly executed within its authorized documentation-only scope. Both `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_PLAN.md` now describe the dependency-ordering capability as an "Advisory/evaluative dependency-ordering readiness query for RoleAssignment via `ExecutionStrategyService.evaluateAssignmentReadiness`; not an enforced precondition on `RoleService.assignRole`" — consistent with the Sprint 10 record's Known Limitations and the Implementation Report's Architectural Assumptions. `git diff --stat -- src test` shows the same four files as the original Sprint 10 implementation reviewed in NEXUS-REV-2026-07-13-001 (`create-kernel-services.ts`, `execution-strategy.contract.ts`, `review.contract.ts`, `review.service.ts`) — no new source or test changes are attributable to this remediation. Independent re-validation confirms no regression: TypeScript compiles cleanly, ESLint is clean, and Vitest passes 28 files / 156 tests, matching the figures certified in the prior review. **No architectural violations detected.** The Sprint 10 review cycle is complete with no open findings.
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-13-001-F-001, Minor) — RESOLVED.** The advisory/evaluative caveat is recorded in the Sprint 10 Implemented Concepts of `IMPLEMENTATION_MANIFEST.md` and the Sprint 10 Authorized Concepts of `IMPLEMENTATION_PLAN.md`; no code changes introduced.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (TASK-001 of NEXUS-REV-2026-07-13-001) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 28 files / 156 tests |
+
+### Deferred Concept Validation
+
+Unchanged; the remediation was documentation-only. All Sprint 10 deferred concepts remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 10 baseline (NEXUS-REV-2026-07-13-001) is otherwise unchanged. The previously undisclosed advisory-only nature of the dependency-ordering query is now consistently documented across the Manifest and Plan, closing the sole open finding from the Sprint 10 review.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0010-execution-strategy.md`) — Status → **Approved**; Reviewer Notes and Final Disposition updated to reflect remediation closure.
+- IMPLEMENTATION_PLAN.md — Sprint 10 status set to **Approved** (NEXUS-REV-2026-07-13-002). No Sprint 11 exists in the Implementation Plan to advance to Current (Sprint Owner action required).
+- builder-task.md — TASK-001 marked RESOLVED; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 10 review cycle is complete. Next steps are Sprint Owner actions: plan Sprint 11 under the specification-first workflow.
+
+---
+
+## NEXUS-REV-2026-07-13-001 — Sprint 10 — Execution Strategy
+
+- **Reviewed Sprint:** Sprint 10 — Execution Strategy
+- **Reviewed Vertical Slice:** `ExecutionStrategy` aggregate, `ExecutionStrategyId`, dependency-ordering/concurrency-rule value types, `IExecutionStrategyRepository` (contract + in-memory), `ExecutionStrategyService` orchestration, Kernel wiring, and the underlying `NEXUS-RAT-2026-07-12-007` domain-schema.md correction
+- **RFC Coverage:** RFC-0004 — Execution Model (Partial)
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 10 implements the RFC-0004 Execution Strategy vertical slice in conformance with the RFC for every implemented concept. **No architectural violations detected.** `ExecutionStrategy` is an immutable, frozen aggregate holding one Mission's deterministic dependency-ordering and concurrency rules; `evaluateAssignmentReadiness` correctly computes transitive Task Graph dependencies (`collectTransitiveDependencyTaskIds`/`visitDependencies`) and rejects readiness when any direct or transitive dependency Task is not `Completed` — verified by both direct-line and transitive test cases. Aggregate boundaries are respected throughout: `ExecutionStrategyService` reads `MissionPlan` and `RoleAssignment` only through their existing published repository contracts (`IMissionPlanRepository.getMissionPlanById`, `RoleAssignmentRepository.getByTaskId`) and never mutates them; Sprint 8's approved `RoleAssignment`/`ExecutionRole`/`RoleService` files are untouched (`git status` confirms no modifications to any Sprint 8 source file — only the pre-existing placeholder `execution-strategy.contract.ts` was filled in, and Kernel composition wiring was extended to share the existing `RoleAssignmentRepository` instance between `RoleService` and `ExecutionStrategyService`). This directly satisfies NEXUS-RAT-2026-07-12-007: Assignment remains independently owned; Execution Strategy coordinates and references it. The concurrency rule is honestly scoped as static deterministic policy data (a single fixed value), not a scheduler, matching the sprint's declared limitation. Independent verification reproduces the sprint record's claims exactly: TypeScript compiles cleanly, ESLint is clean, Vitest passes 28 files / 156 tests (targeted: 6 files / 22 tests), esbuild succeeds; `git diff --stat` confirms the change is scoped to the Execution domain, Kernel wiring, and the NEXUS-RAT-2026-07-12-007-authorized `domain-schema.md` correction. One finding is reported below, concerning documentation accuracy rather than architecture.
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-001-F-001 — "Assignment dependency-ordering preservation" is advisory, not enforced, but documentation does not consistently disclose this
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** RFC-0004 § Assignment ("Assignment SHALL preserve dependency ordering"); IMPLEMENTATION_CONSTITUTION.md — Documentation Before Code (documentation is authoritative)
+- **Summary:** `ExecutionStrategyService.evaluateAssignmentReadiness` is a query: nothing requires it to be called, and `RoleService.assignRole` (Sprint 8, unchanged) still creates a `RoleAssignment` for a Task regardless of whether that Task's dependencies are satisfied. RFC-0004's Assignment section states the dependency-ordering guarantee as a SHALL on Assignment itself, not on a separate opt-in query. The Sprint 10 record's own Known Limitations section is honest about this ("Dependency-ordering readiness is advisory/evaluative in this slice and does not gate or trigger Task execution"), and Task execution ordering is separately and adequately enforced elsewhere (Sprint 4's `MissionExecutionService`/`MissionPlan` already reject starting a Task with unsatisfied dependencies) — so no engineering work is actually at risk of running out of order. However, `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_PLAN.md` list "Assignment dependency-ordering preservation for RoleAssignment readiness" under Sprint 10's *Implemented Concepts*/*Authorized Concepts* without the advisory caveat present in the Sprint 10 record and Known Limitations, which could read as claiming the RFC-0004 Assignment SHALL requirement is fully satisfied when it is only satisfiable on request.
+- **Evidence:** `src/kernel/execution/role.service.ts` (`assignRole` unchanged, no dependency check); `src/kernel/execution/execution-strategy.service.ts:58-89` (`evaluateAssignmentReadiness` is a separate, uninvoked-by-default query); `knowledge/implementation/sprints/sprint-0010-execution-strategy.md` § Known Limitations (discloses advisory nature); `IMPLEMENTATION_MANIFEST.md` § Sprint 10 Authorized/Implemented Concepts (no caveat).
+- **Impact:** A reader of the Manifest/Plan summary alone (without the Sprint 10 record's Known Limitations) could believe RFC-0004's Assignment dependency-ordering SHALL is fully enforced, when it is evaluative only.
+- **Recommended Disposition:** Documentation Task — clarify the "Assignment dependency-ordering preservation" line in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_PLAN.md` to state it is evaluative/advisory (readiness query), consistent with the Sprint 10 record and Implementation Report, and not an enforced precondition on `RoleService.assignRole`.
+- **Builder Action:** Update documentation only. No code change is implied or authorized by this finding.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major | 0 / 0 |
+| Minor | 1 (F-001 — documentation) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 28 files / 156 tests (targeted: 6 files / 22 tests), build |
+
+### Deferred Concept Validation
+
+All declared Sprint 10 deferred concepts remain unimplemented and unapproximated: Execution State, Execution Session, Review requirements enforcement, Adapter invocation/selection, AI Providers, actual parallel/concurrent execution runtime, Governance, Assignment Policy beyond dependency ordering, Human Authority operations, Event Bus integration, and full explainability records. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `ExecutionStrategy` conforms to RFC-0004 terminology and remains deterministic and adapter/provider-agnostic. Aggregate ownership is preserved: no Mission, MissionPlan, Task, or RoleAssignment aggregate internals are accessed or mutated — only existing published repository contracts are read. Sprint 8's approved `RoleAssignment` baseline is unmodified, satisfying both Approved Vertical Slice Immutability and the explicit restriction in NEXUS-RAT-2026-07-12-007. The `domain-schema.md` correction authorized by that ratification is applied and consistent with the implementation. Kernel composition wiring follows the established pattern from Sprints 4–9.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0010-execution-strategy.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition added.
+- IMPLEMENTATION_PLAN.md — Sprint 10 status set to **Approved with Findings** (NEXUS-REV-2026-07-13-001). No Sprint 11 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+- builder-task.md — will be regenerated via the `nexus-sprint` workflow to carry F-001 as a Documentation Task.
+
+### Builder Task Recommendation
+
+Via the `nexus-sprint` workflow: one Documentation Task for F-001 (clarify the advisory nature of Assignment dependency-ordering evaluation in the Manifest and Plan). No implementation Builder Tasks are generated.
+
+---
+
+## NEXUS-REV-2026-07-12-020 — Sprint 9 — Review Foundation (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 9 — Review Foundation
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-12-019-F-001 and -F-002 per builder-task.md TASK-001 and TASK-002
+- **RFC Coverage:** RFC-0006 — Engineering Assessment Model (Partial); documentation layer only
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Both remediation tasks are correctly executed within their authorized documentation-only scope. "Shared Reality Projection consumption as an Assessment input," "Produced Artifacts consumption as an Assessment input," and "Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability)" now appear verbatim in the Sprint 9 deferred concepts of all four required documents: `IMPLEMENTATION_MANIFEST.md`, `knowledge/implementation/sprints/sprint-0009-review-foundation.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md`. `git diff --stat -- src test` shows the same three files as the original Sprint 9 implementation reviewed in NEXUS-REV-2026-07-12-019 (`create-kernel-services.ts`, `review.contract.ts`, `review.service.ts`) — no new source or test changes are attributable to this remediation. Independent re-validation confirms no regression: TypeScript compiles cleanly, ESLint is clean, and Vitest passes 25 files / 147 tests, matching the figures certified in the prior review. **No architectural violations detected.** The Sprint 9 review cycle is complete with no open findings.
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-12-019-F-001, Minor) — RESOLVED.** "Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability)" is recorded in the Sprint 9 deferred concepts of the Manifest, the Sprint 9 record, the Plan, and the Report; no code changes introduced.
+- **TASK-002 (NEXUS-REV-2026-07-12-019-F-002, Minor) — RESOLVED.** "Shared Reality Projection consumption as an Assessment input" and "Produced Artifacts consumption as an Assessment input" are recorded in the same four documents; no code changes introduced.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 (TASK-001, TASK-002 of NEXUS-REV-2026-07-12-019) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 25 files / 147 tests |
+
+### Deferred Concept Validation
+
+Unchanged; the remediation was documentation-only. All Sprint 9 deferred concepts — including the three newly declared elements — remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 9 baseline (NEXUS-REV-2026-07-12-019) is otherwise unchanged. Both previously undeclared RFC-0006 gaps are now fully tracked across the implementation-layer documents, closing the two open findings from the Sprint 9 review.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0009-review-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition updated to reflect remediation closure.
+- IMPLEMENTATION_PLAN.md — Sprint 9 status set to **Approved** (NEXUS-REV-2026-07-12-020). No Sprint 10 exists in the Implementation Plan to advance to Current (Sprint Owner action required).
+- builder-task.md — TASK-001 and TASK-002 marked RESOLVED; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 9 review cycle is complete. Next steps are Sprint Owner actions: plan Sprint 10 under the specification-first workflow.
+
+---
+
+## NEXUS-REV-2026-07-12-019 — Sprint 9 — Review Foundation
+
+- **Reviewed Sprint:** Sprint 9 — Review Foundation
+- **Reviewed Vertical Slice:** `Review` aggregate, `Finding` entity, `ReviewStatus`/`ReviewOutcome`/`ReviewCriteria`/`Severity`/`FindingCategory`/`FindingStatus` value objects, `IReviewRepository` (contract + in-memory), `ReviewService` orchestration, Kernel wiring, and the underlying `NEXUS-RAT-2026-07-12-006` vocabulary/documentation reconciliation
+- **RFC Coverage:** RFC-0006 — Engineering Assessment Model (Partial)
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 9 implements the RFC-0006 Review Foundation vertical slice in conformance with the RFC for every implemented concept, using the "Review" vocabulary ratified by `NEXUS-RAT-2026-07-12-006`. **No architectural violations detected.** `Review` correctly models exactly one Assessment Session per RFC-0006: it owns `ReviewId`, Mission and MissionPlan-revision references (by identity only, no foreign aggregate access), explicit `ReviewCriteria`, consumed Evidence references, a `ReviewStatus` lifecycle (`Pending → In Progress → Completed`, matching `kernel-state-machine.md` exactly), and an owned Finding collection. `ReviewOutcome` is assignable only on completion and takes exactly the four RFC-0006 outcomes (Accepted / Accepted With Observations / Action Required / Rejected) — `assertCompletionStateConsistency` enforces the "exactly one outcome, only when Completed" invariant both on construction and on `fromSnapshot` reconstitution. `Finding` requires supporting Evidence references, affected-artifact references, and criteria references (all non-empty, matching RFC-0006's "every Finding SHALL: reference supporting Evidence, identify affected artifacts, identify violated or satisfied criteria"); a Finding is Actionable if and only if it carries a `FindingCategory`, and Observations correctly omit it — matching the ratified table and RFC-0006's Observation/Actionable Finding distinction. The `Review` aggregate itself enforces that publishable Findings reference only Evidence the Review consumes (`assertFindingIsSupportedByReviewEvidence`), a real invariant, not just an orchestration check. `ReviewService` is orchestration-only — command handling, repository coordination, snapshot mapping — with all business rules owned by `Review` and `Finding`. Kernel wiring correctly replaces the Sprint 1 bootstrap placeholder `ReviewService` with the injected `InMemoryReviewRepository`. Independent verification reproduces the sprint record's claims exactly: TypeScript compiles cleanly, ESLint is clean, Vitest passes 25 files / 147 tests (targeted: 4 files / 17 tests), esbuild succeeds; `git diff --stat` confirms the change is scoped to the Review domain, Kernel wiring, and the governance/reference documents authorized by `NEXUS-RAT-2026-07-12-006`. Two findings are reported: both are undeclared partial-implementation gaps against RFC-0006 elements that are legitimate to defer but were not named as deferred concepts anywhere in the Sprint 9 documentation.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-019-F-001 — RFC-0006 Explainability "reasoning chain" element not implemented or declared deferred
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** RFC-0006 § Explainability ("Every Assessment Outcome SHALL identify: supporting Evidence, Assessment Criteria, produced Findings, reasoning chain"); IMPLEMENTATION_CONSTITUTION.md — Vertical Slice Policy (deferred concepts SHALL be explicitly declared and tracked)
+- **Summary:** RFC-0006 requires every Assessment Outcome to identify a "reasoning chain" in addition to supporting Evidence, Assessment Criteria, and produced Findings. `ReviewResult` (`review.contract.ts`) and `Review.toSnapshot()` expose Evidence references, `reviewCriteria`, and `findings` — three of the four required elements — but there is no reasoning-chain field or concept anywhere in `Review`, `Finding`, or `ReviewResult`. This is a defensible vertical-slice omission (no policy/reasoning-capture mechanism exists yet in the Kernel), but it is not named: Sprint 9's deferred-concept lists mention "Governance decisions and policy evaluation" and "AI review execution," neither of which is the same concept as a recorded reasoning chain for a human- or Adapter-produced outcome.
+- **Evidence:** `src/kernel/review/review.contract.ts:39-42` (`ReviewResult` shape); `src/kernel/review/review.aggregate.ts:153-164` (`toSnapshot`); RFC-0006 § Explainability; `knowledge/implementation/sprints/sprint-0009-review-foundation.md` § Deferred Concepts (element not addressed).
+- **Impact:** A future slice adding Adapter- or AI-driven Review execution could overlook that RFC-0006 already requires reasoning-chain capture, since it isn't tracked as a distinct deferred concept.
+- **Recommended Disposition:** Documentation Task — add "Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability)" to the Sprint 9 deferred concepts in the Manifest, the Sprint 9 record, the Plan, and the Report.
+- **Builder Action:** Update documentation only. No code change is implied or authorized by this finding.
+
+#### NEXUS-REV-2026-07-12-019-F-002 — RFC-0006 Assessment inputs "Shared Reality Projection" and "Produced Artifacts" not consumed or declared deferred
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** RFC-0006 § Engineering Assessment ("Assessment SHALL consume: Mission, Mission Plan Revision, Shared Reality Projection, Applicable Evidence, Produced Artifacts"); IMPLEMENTATION_CONSTITUTION.md — Vertical Slice Policy
+- **Summary:** RFC-0006 requires Assessment to consume five inputs. `Review.create` accepts `missionId`, `missionPlanRevision`, and `evidenceReferences` — three of the five. `Shared Reality Projection` (available since Sprint 6's `ProjectionService`) and `Produced Artifacts` are not referenced anywhere in `Review`. The Sprint 9 deferred-concept list names "Produced artifacts becoming Knowledge" (a different RFC-0006 concept, about post-acceptance promotion) and "Execution Session consumption," but never names the omission of Shared Reality Projection or Produced Artifacts as Assessment *inputs*.
+- **Evidence:** `src/kernel/review/review.aggregate.ts:14-20` (`CreateReviewInput` — no projection or artifact reference field); RFC-0006 § Engineering Assessment; `knowledge/implementation/sprints/sprint-0009-review-foundation.md` § Deferred Concepts.
+- **Impact:** Same class of risk as F-001 — a future slice could assume Shared Reality/Produced Artifacts consumption was already considered and deliberately scoped out, when it was simply not named.
+- **Recommended Disposition:** Documentation Task — add "Shared Reality Projection consumption" and "Produced Artifacts consumption as Assessment input (RFC-0006 § Engineering Assessment)" to the Sprint 9 deferred concepts in the same four documents.
+- **Builder Action:** Update documentation only. No code change is implied or authorized by this finding.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major | 0 / 0 |
+| Minor | 2 (F-001, F-002 — documentation) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 25 files / 147 tests (targeted: 4 files / 17 tests), build |
+
+### Deferred Concept Validation
+
+All declared Sprint 9 deferred concepts remain unimplemented and unapproximated: AI review execution and Adapter invocation, Event Bus integration, governance/policy-driven Assessment Criteria selection, multi-Assessment-Session Reviews, Actionable Finding → Mission Plan revision wiring, Human Authority operations, Execution Session consumption, Produced Artifacts becoming Knowledge, and workflow automation. Two additional RFC-0006 elements are unimplemented but were not declared deferred (F-001 reasoning chain, F-002 Shared Reality Projection / Produced Artifacts as Assessment inputs) — both are legitimate omissions for this slice, only the declaration is missing.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `Review` and `Finding` conform to RFC-0006 terminology under the NEXUS-RAT-2026-07-12-006 vocabulary ratification, which does not modify RFC-0006 itself. Aggregate ownership is preserved: `Review` references Mission, MissionPlan revision, and Evidence by identity only; no Mission, MissionPlan, Task, or Evidence aggregate internals are accessed. `ReviewOutcome` and `ReviewStatus` remain correctly distinct (the latter an implementation-layer lifecycle concept per the ratification, not an RFC-0006-normative one). `ReviewService` performs orchestration only. Kernel composition wiring follows the established pattern from Sprints 4–8. The interface-contracts and kernel-data-model/kernel-state-machine reference documents corrected under NEXUS-RAT-2026-07-12-006 are internally consistent with the implementation.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0009-review-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition added.
+- IMPLEMENTATION_PLAN.md — Sprint 9 status set to **Approved with Findings** (NEXUS-REV-2026-07-12-019). No Sprint 10 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+- builder-task.md — will be regenerated via the `nexus-sprint` workflow to carry F-001 and F-002 as Documentation Tasks.
+
+### Builder Task Recommendation
+
+Via the `nexus-sprint` workflow: two Documentation Tasks — F-001 (declare the RFC-0006 reasoning-chain deferral) and F-002 (declare the Shared Reality Projection / Produced Artifacts consumption deferral). No implementation Builder Tasks are generated.
+
+---
+
 ## NEXUS-REV-2026-07-12-018 — Sprint 8 — Execution Roles (Documentation Remediation Review)
 
 - **Reviewed Sprint:** Sprint 8 — Execution Roles

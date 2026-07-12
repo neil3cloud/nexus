@@ -230,14 +230,14 @@ Completed
 
 A completed Review SHALL produce exactly one outcome.
 
-Possible outcomes:
+Possible outcomes (canonical naming ratified by NEXUS-RAT-2026-07-12-006; corrected to match RFC-0006's literal "Action Required" outcome):
 
 ```
 Accepted
 
 Accepted With Observations
 
-Actionable Findings
+Action Required
 
 Rejected
 ```

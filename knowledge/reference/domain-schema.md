@@ -246,7 +246,7 @@ Represents the assignment of:
 - Adapter
 - Task
 
-Assignments belong exclusively to an Execution Strategy.
+Assignment is independently owned (approved Sprint 8 `RoleAssignment` baseline; see NEXUS-RAT-2026-07-12-007). Execution Strategy coordinates and references Assignment records; it does not exclusively own them as nested entities.
 
 ---
 
@@ -254,7 +254,7 @@ Assignments belong exclusively to an Execution Strategy.
 
 **Owned By**
 
-RFC-0005 — Event Coordination Model
+RFC-0005 — Domain Event Model
 
 ---
 
@@ -276,7 +276,9 @@ Events coordinate Kernel behavior.
 
 **Owned By**
 
-RFC-0006 — Review Model
+RFC-0006 — Engineering Assessment Model
+
+Canonical implementation-layer vocabulary ratified by NEXUS-RAT-2026-07-12-006. RFC-0006 owns the underlying semantics under its literal terms (Engineering Assessment, Assessment Session, Assessment Outcome, Finding Intent); this document uses the ratified "Review"-prefixed naming.
 
 ---
 
@@ -315,7 +317,7 @@ Possible outcomes include:
 
 - Accepted
 - Accepted With Observations
-- Actionable Findings
+- Action Required
 - Rejected
 
 ---

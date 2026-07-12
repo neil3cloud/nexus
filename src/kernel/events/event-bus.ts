@@ -1,17 +1,20 @@
-import type { EventBusContract, EventSubscription } from '../common/event-bus-contract';
+import type {
+  EventBusContract,
+  EventBusEvent,
+  EventSubscription,
+} from '../common/event-bus-contract';
 import type { EventSubscriptionHandle } from '../common/event-bus-contract';
 import { KernelError } from '../common/kernel-error';
 import type { KernelLogger } from '../common/kernel-logger';
-import type { DomainEvent } from './domain-event';
 
 export class EventBus implements EventBusContract {
   private readonly subscriptions: SubscriptionEntry[] = [];
-  private readonly eventsByMissionId = new Map<string, DomainEvent[]>();
+  private readonly eventsByMissionId = new Map<string | undefined, EventBusEvent[]>();
   private disposed = false;
 
   public constructor(private readonly logger: KernelLogger) {}
 
-  public async publish(event: DomainEvent): Promise<void> {
+  public async publish(event: EventBusEvent): Promise<void> {
     this.assertActive();
     assertMissionAttribution(event);
 
@@ -55,7 +58,7 @@ export class EventBus implements EventBusContract {
     };
   }
 
-  public replay(missionId: string): readonly DomainEvent[] {
+  public replay(missionId: string): readonly EventBusEvent[] {
     this.assertActive();
 
     return [...(this.eventsByMissionId.get(missionId) ?? [])];
@@ -77,7 +80,7 @@ export class EventBus implements EventBusContract {
     }
   }
 
-  private async deliver(subscription: EventSubscription, event: DomainEvent): Promise<void> {
+  private async deliver(subscription: EventSubscription, event: EventBusEvent): Promise<void> {
     try {
       await subscription.handler(event);
     } catch (error) {
@@ -94,7 +97,11 @@ interface SubscriptionEntry {
   readonly subscription: EventSubscription;
 }
 
-function assertMissionAttribution(event: DomainEvent): void {
+function assertMissionAttribution(event: EventBusEvent): void {
+  if (event.missionId === undefined && event.attribution.missionId === undefined) {
+    return;
+  }
+
   if (event.missionId === event.attribution.missionId) {
     return;
   }

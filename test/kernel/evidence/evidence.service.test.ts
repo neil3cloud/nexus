@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { EventBus } from '../../../src/kernel/events/event-bus';
+import type { KernelLogger } from '../../../src/kernel/common/kernel-logger';
 import type { RegisterEvidenceRequest } from '../../../src/kernel/evidence/evidence.contract';
 import {
   DuplicateEvidenceException,
+  EvidenceEventPublisherUnavailableError,
   EvidenceNotFoundException,
   InvalidEvidenceException,
 } from '../../../src/kernel/evidence/evidence.errors';
@@ -10,9 +13,32 @@ import { EvidenceId } from '../../../src/kernel/evidence/evidence-id';
 import { InMemoryEvidenceRepository } from '../../../src/kernel/evidence/evidence.repository';
 import { EvidenceService } from '../../../src/kernel/evidence/evidence.service';
 
+class TestLogger implements KernelLogger {
+  public info(): void {}
+
+  public error(): void {}
+}
+
+function sequence(values: readonly string[]): () => string {
+  let index = 0;
+
+  return () => {
+    const value = values[index];
+
+    if (value === undefined) {
+      throw new Error('Sequence exhausted.');
+    }
+
+    index += 1;
+
+    return value;
+  };
+}
+
 function evidenceRequest(id = 'evidence-1'): RegisterEvidenceRequest {
   return {
     id,
+    missionId: 'mission-1',
     type: 'TestResult',
     version: 1,
     hash: `sha256:${id}`,
@@ -36,7 +62,12 @@ function evidenceRequest(id = 'evidence-1'): RegisterEvidenceRequest {
 describe('EvidenceService', () => {
   it('coordinates Evidence registration through an injected repository', async () => {
     const repository = new InMemoryEvidenceRepository();
-    const service = new EvidenceService(repository);
+    const service = new EvidenceService(
+      repository,
+      new EventBus(new TestLogger()),
+      sequence(['event-evidence-captured']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
 
     const evidence = await service.registerEvidence(evidenceRequest());
 
@@ -45,7 +76,12 @@ describe('EvidenceService', () => {
   });
 
   it('validates duplicate identifiers before registration', async () => {
-    const service = new EvidenceService(new InMemoryEvidenceRepository());
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      new EventBus(new TestLogger()),
+      sequence(['event-evidence-captured']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
 
     await service.registerEvidence(evidenceRequest());
 
@@ -55,7 +91,12 @@ describe('EvidenceService', () => {
   });
 
   it('retrieves registered Evidence and rejects missing Evidence', async () => {
-    const service = new EvidenceService(new InMemoryEvidenceRepository());
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      new EventBus(new TestLogger()),
+      sequence(['event-evidence-captured']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
 
     await service.registerEvidence(evidenceRequest());
 
@@ -68,7 +109,12 @@ describe('EvidenceService', () => {
   });
 
   it('enumerates Evidence deterministically in registration order', async () => {
-    const service = new EvidenceService(new InMemoryEvidenceRepository());
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      new EventBus(new TestLogger()),
+      sequence(['event-captured-1', 'event-captured-2']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
 
     await service.registerEvidence(evidenceRequest('evidence-1'));
     await service.registerEvidence(evidenceRequest('evidence-2'));
@@ -81,7 +127,12 @@ describe('EvidenceService', () => {
 
   it('surfaces aggregate validation errors without repository side effects', async () => {
     const repository = new InMemoryEvidenceRepository();
-    const service = new EvidenceService(repository);
+    const service = new EvidenceService(
+      repository,
+      new EventBus(new TestLogger()),
+      sequence(['event-evidence-captured']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
 
     await expect(
       service.registerEvidence({
@@ -89,6 +140,64 @@ describe('EvidenceService', () => {
         type: 'SearchIndex',
       }),
     ).rejects.toThrow(InvalidEvidenceException);
+    await expect(repository.enumerate()).resolves.toEqual([]);
+  });
+
+  it('publishes EvidenceCaptured after registration and supports Mission-independent Evidence', async () => {
+    const eventBus = new EventBus(new TestLogger());
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      eventBus,
+      sequence(['event-with-mission', 'event-without-mission']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.registerEvidence(evidenceRequest());
+    await service.registerEvidence({
+      id: 'evidence-2',
+      type: 'TestResult',
+      version: 1,
+      hash: 'sha256:evidence-2',
+      metadata: {
+        capturedAt: '2026-07-12T00:00:00.000Z',
+        attributes: {
+          suite: 'unit',
+        },
+      },
+      provenance: {
+        source: 'vitest',
+        acquisitionMethod: 'test-run',
+        acquiredAt: '2026-07-12T00:00:00.000Z',
+        actor: 'builder',
+        system: 'nexus',
+        verificationStatus: 'Verified',
+      },
+    });
+
+    expect(eventBus.replay('mission-1').map((event) => event.eventType)).toEqual([
+      'EvidenceCaptured',
+    ]);
+    expect(eventBus.replay('mission-1')[0]).toMatchObject({
+      eventId: 'event-with-mission',
+      missionId: 'mission-1',
+      eventType: 'EvidenceCaptured',
+      attribution: {
+        missionId: 'mission-1',
+      },
+      payload: {
+        evidenceId: 'evidence-1',
+      },
+    });
+    expect(eventBus.replay('missing-mission')).toEqual([]);
+  });
+
+  it('requires an EventBusContract before registering Evidence', async () => {
+    const repository = new InMemoryEvidenceRepository();
+    const service = new EvidenceService(repository);
+
+    await expect(service.registerEvidence(evidenceRequest())).rejects.toThrow(
+      EvidenceEventPublisherUnavailableError,
+    );
     await expect(repository.enumerate()).resolves.toEqual([]);
   });
 });

@@ -1,5 +1,322 @@
 # Nexus Implementation Report
 
+## Sprint 11 — Domain Event Publication (Evidence, Review)
+
+### Implemented Slice
+
+Implemented the RFC-0005 Domain Event Publication vertical slice for the Evidence and Review domains.
+
+Implemented scope:
+
+- Optional `missionId` contextual association on `RegisterEvidenceRequest`, `EvidenceSnapshot`, and the `Evidence` aggregate as authorized by NEXUS-RAT-2026-07-13-001.
+- `EvidenceCaptured` event factory and Evidence aggregate recorded-events collection with `pullDomainEvents()`.
+- EvidenceService EventBus publication after successful Evidence repository registration.
+- `ReviewStarted`, `FindingCreated`, `ReviewCompleted`, `ReviewAccepted`, and `ReviewRejected` event factories.
+- Review aggregate recorded-events collection with `pullDomainEvents()`.
+- ReviewService EventBus publication after successful Review repository persistence.
+- Outcome-conditional Review publication: Accepted and Accepted With Observations publish `ReviewAccepted`; Rejected publishes `ReviewRejected`; Action Required publishes only `ReviewCompleted`.
+- Kernel service composition updated so EvidenceService and ReviewService receive the Kernel-owned EventBus.
+- EventBus support for the ratified Mission-independent EvidenceCaptured partial-conformance case through an Evidence-specific event publication variant where `missionId` is omitted.
+- Shared `DomainEvent` and `DomainEventAttribution` contracts restored to required `missionId` per NEXUS-RAT-2026-07-13-002.
+
+Out of scope and not implemented:
+
+- Execution Strategy event publication.
+- `EvidenceAccepted` and `EvidenceRejected`.
+- `FindingAccepted`, `FindingResolved`, and `FindingDismissed`.
+- Mission Plan Events and Task Events.
+- Knowledge Events, Shared Reality Events, Context Package Events, and Policy Events.
+- Event subscription/consumption by other services.
+- Durable/persistent Event Streams.
+- Event-driven domain behavior, reactions, gates, commands, or workflow automation.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0005 — Domain Event Model (Partial).
+
+Referenced RFCs:
+
+- RFC-0002 — Evidence Model (Referenced; optional `missionId` extension authorized by NEXUS-RAT-2026-07-13-001).
+- RFC-0006 — Engineering Assessment Model (Referenced; event trigger only).
+
+Implemented Concepts:
+
+- EvidenceCaptured.
+- ReviewStarted.
+- ReviewCompleted.
+- ReviewAccepted.
+- ReviewRejected.
+- FindingCreated.
+- Aggregate recorded-events collections and `pullDomainEvents()` for Evidence and Review.
+- Service-level EventBus publication for EvidenceService and ReviewService.
+
+Deferred Concepts:
+
+- Execution Strategy event publication.
+- Evidence acceptance/rejection events.
+- Finding acceptance/resolution/dismissal events.
+- Mission Plan and Task events.
+- Knowledge, Shared Reality, Context Package, and Policy events.
+- Event consumers and durable Event Streams.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md`.
+- `knowledge/reference/kernel-event-catalog.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-13-001.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-13-002.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Events are notifications of completed facts only; no consumer, handler, command, gate, or workflow reaction is introduced.
+- Evidence remains Mission-independent; `missionId` is an optional contextual association only.
+- The shared Kernel `DomainEvent` contract remains Mission-scoped with required `missionId`; only the Evidence-specific publication variant permits Mission-independent omission.
+- Review events are Mission-scoped because Review already owns a Mission identity reference.
+- EvidenceService and ReviewService follow the existing MissionService save-then-publish pattern.
+
+### Limitations
+
+- EventBus persistence remains in-memory and process-local.
+- Save-then-publish is non-atomic for Evidence and Review, matching the disclosed Mission limitation.
+- EvidenceCaptured events for Evidence without Mission context omit `missionId`, as authorized by NEXUS-RAT-2026-07-13-001.
+- Mission-independent EvidenceCaptured events are not retrievable through `EventBusContract.replay()`, because replay remains scoped to a required Mission stream identifier.
+- Review event causality does not chain across repository round trips because Review snapshots do not own a latest-event identity field in this slice.
+
+### Test Summary
+
+- Targeted Evidence/Review/EventBus tests passed: 9 files, 52 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 28 files, 163 tests.
+
+### Deviations
+
+Initial Sprint 11 delivery exceeded NEXUS-RAT-2026-07-13-001's Authorized Builder Scope by making the shared Kernel `DomainEvent` / `DomainEventAttribution` contract's `missionId` optional Kernel-wide. That deviation was corrected within Sprint 11 per NEXUS-RAT-2026-07-13-002 by restoring required `missionId` on the shared contract and confining Mission-independent omission to the Evidence-specific event publication variant.
+
+---
+
+## Sprint 10 — Execution Strategy
+
+### Implemented Slice
+
+Implemented the RFC-0004 Execution Strategy vertical slice.
+
+Implemented scope:
+
+- `ExecutionStrategy` aggregate with immutable `ExecutionStrategyId`, Mission reference, dependency-ordering rule, concurrency rule, and deterministic readiness evaluation.
+- Dependency-ordering validation for existing Sprint 8 `RoleAssignment` readiness against MissionPlan Task Graph dependencies, including direct and transitive dependencies.
+- `IExecutionStrategyRepository` and `InMemoryExecutionStrategyRepository` process-local persistence for ExecutionStrategies.
+- `ExecutionStrategyService` orchestration for creating ExecutionStrategies, retrieving and enumerating strategies, and evaluating assigned Task readiness through constructor-injected repository contracts.
+- Kernel service composition updated so `ExecutionStrategyService` shares the existing in-memory `RoleAssignmentRepository` used by `RoleService`.
+- Deterministic Execution Strategy diagnostics for invalid definitions, duplicate strategies, duplicate Mission strategy ownership, missing strategy references, missing RoleAssignments, missing MissionPlans, missing Tasks, and unsatisfied dependency ordering.
+
+Out of scope and not implemented:
+
+- Execution State enum or state machine.
+- Execution Session.
+- Review gating of execution progression.
+- Adapter invocation or Adapter selection.
+- AI Providers and provider coordination.
+- Runtime scheduling or actual parallel/concurrent execution.
+- Governance.
+- Assignment Policy elements beyond dependency ordering.
+- Human Authority operations.
+- Event Bus integration.
+- Full explainability records beyond deterministic validation diagnostics.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model (Partial).
+
+Implemented Concepts:
+
+- ExecutionStrategy.
+- ExecutionStrategyId.
+- Assignment dependency-ordering preservation for RoleAssignment readiness.
+- ExecutionStrategyService.
+- IExecutionStrategyRepository.
+- InMemoryExecutionStrategyRepository.
+
+Deferred Concepts:
+
+- Execution State.
+- Execution Session.
+- Review requirements enforcement / RFC-0006 Review gating.
+- Adapter invocation and Adapter selection.
+- AI Providers and provider coordination.
+- Actual parallel/concurrent execution runtime.
+- Governance.
+- Assignment Policy elements beyond dependency ordering.
+- Human Authority operations.
+- Event Bus integration.
+- Full explainability records.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/implementation/sprints/sprint-0010-execution-strategy.md`.
+- `knowledge/reference/domain-schema.md`.
+- `knowledge/reference/kernel-state-machine.md`.
+- `knowledge/reference/kernel-data-model.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-12-007.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- ExecutionStrategy references Mission, MissionPlan Tasks, and RoleAssignments by identity and published repository contracts; it does not own or mutate those aggregates.
+- Dependency-ordering readiness is advisory/evaluative in this slice and does not gate or trigger Task execution.
+- The concurrency rule is deterministic policy data only; no scheduler, executor, or runtime concurrency behavior is introduced.
+- ExecutionStrategyService remains orchestration-only and delegates dependency-ordering behavior to the ExecutionStrategy aggregate.
+
+### Limitations
+
+- ExecutionStrategy persistence is in-memory and process-local.
+- Readiness evaluation depends on existing MissionPlan Task statuses and RoleAssignment records.
+- ExecutionStrategy evaluations do not publish domain events.
+
+### Test Summary
+
+- Targeted Sprint 10 execution tests passed: 6 files, 22 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 28 files, 156 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 9 — Review Foundation
+
+### Implemented Slice
+
+Implemented the RFC-0006 Review Foundation vertical slice using the ratified Review implementation vocabulary from NEXUS-RAT-2026-07-12-006.
+
+Implemented scope:
+
+- `Review` aggregate with immutable `ReviewId`, Mission reference, MissionPlan revision reference, explicit `ReviewCriteria`, consumed Evidence references, `ReviewStatus`, completion-only `ReviewOutcome`, and owned Finding collection.
+- `Finding` entity with immutable `FindingId`, owning `ReviewId`, `Severity`, optional `FindingCategory` for actionable Findings, summary, description, supporting Evidence references, affected artifact references, criteria references, and `FindingStatus`.
+- `ReviewStatus` lifecycle validation for Pending → In Progress → Completed.
+- `FindingStatus` lifecycle validation for Created → Accepted / Resolved / Dismissed.
+- `ReviewOutcome` value object supporting Accepted, Accepted With Observations, Action Required, and Rejected.
+- `ReviewCriteria`, `Severity`, `FindingCategory`, `ReviewId`, and `FindingId` value objects with deterministic validation.
+- `IReviewRepository` and `InMemoryReviewRepository` process-local snapshot persistence for Reviews and Findings.
+- `ReviewService` orchestration for start Review, publish Finding, finalize Review outcome, retrieve Review, enumerate Reviews, and enumerate Findings through constructor-injected repository contracts.
+- Kernel service composition updated to inject a shared in-memory Review repository into `ReviewService`.
+- Deterministic Review diagnostics for invalid definitions, invalid lifecycle transitions, duplicate Reviews, duplicate Findings, missing Evidence references, missing Reviews, rejected completion, and invalid Finding transitions.
+
+Out of scope and not implemented:
+
+- AI review execution.
+- Claude Reviewer and Copilot Reviewer.
+- Adapter invocation from Review.
+- Event Bus integration and Review/Finding event publication.
+- Governance decisions and policy evaluation.
+- Multi-Assessment-Session Reviews.
+- Actionable Finding to Mission Plan revision / Mission Evolution wiring.
+- Human Authority approve, reject, override, or Override-as-Evidence operations.
+- Execution Session consumption.
+- Produced artifacts becoming Knowledge.
+- Workflow automation and repository state transitions outside Review/Finding lifecycle state.
+- Sensitive Finding access control.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0006 — Engineering Assessment Model (Partial).
+
+Implemented Concepts:
+
+- Review / Engineering Assessment Session.
+- ReviewCriteria / Assessment Criteria.
+- Finding / Assessment Finding.
+- Severity / Finding Severity.
+- FindingCategory / Finding Intent for actionable Findings.
+- Observation as a Finding without FindingCategory.
+- ReviewOutcome / Assessment Outcome.
+- ReviewStatus and FindingStatus as implementation-layer operational lifecycle concepts ratified by NEXUS-RAT-2026-07-12-006.
+- ReviewService.
+- InMemoryReviewRepository.
+
+Deferred Concepts:
+
+- AI/provider execution and Adapter invocation.
+- Event Bus integration.
+- Governance and policy-driven Assessment Criteria selection.
+- Multi-session Reviews.
+- Mission Plan revision or Mission Evolution caused by Actionable Findings.
+- Human Authority operations and overrides as Evidence.
+- Execution Session consumption.
+- Shared Reality Projection consumption as an Assessment input.
+- Produced Artifacts consumption as an Assessment input.
+- Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability).
+- Knowledge capture from accepted assessment artifacts.
+- Workflow automation and repository state transitions.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/implementation/sprints/sprint-0009-review-foundation.md`.
+- `knowledge/reference/domain-schema.md`.
+- `knowledge/reference/kernel-state-machine.md`.
+- `knowledge/reference/kernel-data-model.md`.
+- `knowledge/reference/interface-contracts/review-service-contract.md`.
+- `knowledge/reference/service-catalog/review-service.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-12-006.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `.github/copilot-instructions.md`.
+- `knowledge/.github/copilot-instructions.md`.
+
+### Architectural Assumptions
+
+- Mission identity, MissionPlan revision identity, Evidence references, affected artifact references, and criteria references are stored as immutable references; Review does not access or own foreign aggregate internals.
+- `ReviewOutcome` is supplied through `finalizeReviewOutcome` and validated/assigned by the Review aggregate during completion; no undocumented policy heuristic determines outcomes in this slice.
+- A Finding with `FindingCategory` is actionable; a Finding without `FindingCategory` is an Observation.
+- ReviewService remains orchestration-only and does not validate business rules outside aggregate/repository coordination.
+
+### Limitations
+
+- Review persistence is in-memory and process-local.
+- Review and Finding lifecycle transitions do not publish domain events.
+- Reviews are recorded through direct ReviewService calls only; no provider, adapter, scheduler, workflow, or policy engine is invoked.
+- Review stores consumed Evidence references but does not validate Evidence existence through the Evidence repository in this slice.
+- Review models exactly one Assessment Session.
+
+### Test Summary
+
+- Targeted Sprint 9 Review tests passed: 4 files, 17 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 25 files, 147 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 8 — Execution Roles
 
 ### Implemented Slice

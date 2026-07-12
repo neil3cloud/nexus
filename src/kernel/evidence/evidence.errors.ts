@@ -27,3 +27,10 @@ export class EvidenceNotFoundException extends EvidenceDomainException {
     this.name = 'EvidenceNotFoundException';
   }
 }
+
+export class EvidenceEventPublisherUnavailableError extends EvidenceDomainException {
+  public constructor() {
+    super('EvidenceService requires an EventBusContract to publish Evidence domain events.');
+    this.name = 'EvidenceEventPublisherUnavailableError';
+  }
+}

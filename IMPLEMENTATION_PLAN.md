@@ -369,3 +369,159 @@ Definition of Done
 - RoleService coordinates registry and assignment dependencies only.
 - In-memory repositories support registered roles and role assignments.
 - Unit tests cover role invariants, default roles, registry behavior, assignment validation, service orchestration, and repository persistence.
+
+---
+
+## Sprint 9 — Review Foundation
+
+Status: ✅ Approved (NEXUS-REV-2026-07-12-019, NEXUS-REV-2026-07-12-020)
+
+Objective
+
+Implement the Review Foundation vertical slice by introducing the Review domain defined by RFC-0006 (Engineering Assessment Model), using the "Review" canonical vocabulary ratified by NEXUS-RAT-2026-07-12-006.
+
+RFC Coverage
+
+- RFC-0006 — Engineering Assessment Model (Partial)
+
+Ratification
+
+- NEXUS-RAT-2026-07-12-006 — canonical "Review" vocabulary for RFC-0006 (Review, ReviewStatus, ReviewOutcome, FindingCategory, FindingStatus) and an unrelated RFC-0005 citation correction. RFC-0006 and RFC-0005 are unmodified.
+
+Authorized Concepts
+
+- Review
+- ReviewId
+- ReviewStatus
+- ReviewOutcome
+- ReviewCriteria
+- Finding
+- Severity
+- FindingCategory
+- FindingStatus
+- ReviewService
+- InMemoryReviewRepository
+
+Deferred Concepts
+
+- AI review execution and Adapter invocation
+- Event Bus integration
+- Multi-Assessment-Session Reviews
+- Actionable Finding to Mission Plan revision wiring
+- Human Authority operations
+- Execution Session consumption
+- Shared Reality Projection consumption as an Assessment input
+- Produced Artifacts consumption as an Assessment input
+- Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability)
+- Produced Artifacts becoming Knowledge
+- Workflow automation
+
+Definition of Done
+
+- Review aggregate and Finding entity own their invariants; ReviewService coordinates only.
+- ReviewStatus and ReviewOutcome remain distinct; ReviewOutcome assignable only when ReviewStatus is Completed.
+- Findings reference supporting Evidence and declare FindingCategory when actionable.
+- No Adapter, AI provider, Event Bus, or Mission Plan mutation is introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover aggregate behavior, lifecycle transitions, value object validation, repository behavior, and service orchestration.
+
+See `knowledge/implementation/sprints/sprint-0009-review-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 10 — Execution Strategy
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-001, NEXUS-REV-2026-07-13-002)
+
+Objective
+
+Implement the Execution Strategy vertical slice defined by RFC-0004 (Execution Model): deterministic coordination of Task execution ordering and dependency handling, closing the Sprint 8 Manifest's declared deferred concept "Assignment dependency-ordering preservation (RFC-0004 § Assignment)."
+
+RFC Coverage
+
+- RFC-0004 — Execution Model (Partial)
+
+Ratification
+
+- NEXUS-RAT-2026-07-12-007 — corrects `domain-schema.md`'s Execution Domain description so Assignment (the approved Sprint 8 `RoleAssignment` model) remains independently owned; Execution Strategy coordinates and references it rather than exclusively owning it. RFC-0004 is unmodified; Sprint 8 is not reopened.
+
+Authorized Concepts
+
+- ExecutionStrategy
+- ExecutionStrategyId
+- Advisory/evaluative dependency-ordering readiness query for RoleAssignment via `ExecutionStrategyService.evaluateAssignmentReadiness`; not an enforced precondition on `RoleService.assignRole`.
+- ExecutionStrategyService
+- InMemoryExecutionStrategyRepository
+
+Deferred Concepts
+
+- Execution State (full RFC-0004 state set)
+- Execution Session
+- Review requirements enforcement
+- Adapter invocation and AI Providers
+- Actual parallel/concurrent execution runtime
+- Governance
+- Assignment Policy beyond dependency ordering
+- Human Authority operations
+- Event Bus integration
+
+Definition of Done
+
+- ExecutionStrategy remains deterministic, provider-agnostic, and adapter-agnostic.
+- ExecutionStrategy and ExecutionStrategyService do not mutate Mission, MissionPlan, Task, or RoleAssignment aggregates; all cross-domain interaction occurs through existing published repository contracts.
+- Sprint 8's approved RoleAssignment model is not modified or restructured.
+- Dependency-ordering evaluation correctly reads Task Graph dependencies from the MissionPlan, including transitive dependencies.
+- No Execution State enum, Execution Session, Adapter invocation, AI provider integration, or Event Bus publication is introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover aggregate behavior, dependency-ordering evaluation, service orchestration, and repository behavior.
+
+See `knowledge/implementation/sprints/sprint-0010-execution-strategy.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 11 — Domain Event Publication (Evidence, Review)
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-003; remediated per NEXUS-RAT-2026-07-13-002 and confirmed by NEXUS-REV-2026-07-13-004; documentation findings closed by NEXUS-REV-2026-07-13-005)
+
+Objective
+
+Extend Kernel-owned Domain Event publication (established for Mission in Sprint 2) to the Evidence and Review domains, using the RFC-0005 Standard Event Envelope and the event names already cataloged in `kernel-event-catalog.md`. Execution Strategy is not in scope: no cataloged event category assigns it a producible event this slice (see the Sprint 11 record's Scoping Note).
+
+RFC Coverage
+
+- RFC-0005 — Domain Event Model (Partial)
+
+Ratification
+
+- NEXUS-RAT-2026-07-13-001 — authorizes an optional `missionId` field on Evidence's `RegisterEvidenceRequest`/`EvidenceSnapshot` (additive extension to the approved Sprint 5 model), resolving the RFC-0005 `EvidenceCaptured` envelope attribution gap. RFC-0002 and RFC-0005 are unmodified.
+
+Authorized Concepts
+
+- EvidenceService/ReviewService optional EventBusContract injection (Mission pattern)
+- Evidence and Review aggregate recorded-events + pullDomainEvents()
+- Optional `missionId` on Evidence (NEXUS-RAT-2026-07-13-001)
+- EvidenceCaptured
+- ReviewStarted, ReviewCompleted, ReviewAccepted, ReviewRejected, FindingCreated
+
+Deferred Concepts
+
+- Execution Strategy event publication
+- EvidenceAccepted, EvidenceRejected (Producer: Review Service, no operation exists)
+- FindingAccepted, FindingDismissed (Producer: Developer, no command pathway exists)
+- FindingResolved (Producer: Execution Strategy, no trigger exists)
+- Mission Plan Events and Task Events (Task Lifecycle naming mismatch unresolved)
+- Knowledge, Shared Reality, Context Package, and Policy Events
+- Event consumers beyond producers
+- Durable Event Streams
+
+Definition of Done
+
+- EvidenceService and ReviewService accept an optional constructor-injected EventBusContract, matching MissionService's pattern.
+- Evidence and Review aggregates record Domain Events internally; services pull and publish.
+- Published events conform to the RFC-0005 Standard Event Envelope and use only the cataloged names for the producer roles actually implemented.
+- ExecutionStrategyService publishes no events and is not modified.
+- No Mission Plan or Task events are introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover event recording, pullDomainEvents(), and service-level publication including outcome-conditional Review event selection.
+
+See `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md` for the complete Sprint Implementation Record.

@@ -2,10 +2,21 @@ import { describe, expect, it } from 'vitest';
 
 import { Evidence } from '../../../src/kernel/evidence/evidence.aggregate';
 import { InvalidEvidenceException } from '../../../src/kernel/evidence/evidence.errors';
+import type { DomainEventMetadata } from '../../../src/kernel/mission/mission.types';
+
+const timestamp = '2026-07-12T00:00:00.000Z';
+
+function metadata(eventId: string): DomainEventMetadata {
+  return {
+    eventId,
+    timestamp,
+  };
+}
 
 function evidenceRequest() {
   return {
     id: ' evidence-1 ',
+    missionId: ' mission-1 ',
     type: 'TestResult',
     version: 1,
     hash: 'sha256:test-result',
@@ -33,6 +44,7 @@ describe('Evidence', () => {
     expect(Object.isFrozen(evidence)).toBe(true);
     expect(evidence.toSnapshot()).toEqual({
       id: 'evidence-1',
+      missionId: 'mission-1',
       type: 'TestResult',
       version: 1,
       source: 'vitest',
@@ -109,5 +121,74 @@ describe('Evidence', () => {
 
     expect(restored).not.toBe(evidence);
     expect(restored.toSnapshot()).toEqual(evidence.toSnapshot());
+  });
+
+  it('records EvidenceCaptured events and drains them deterministically', () => {
+    const evidence = Evidence.register(evidenceRequest());
+
+    evidence.recordCaptured(metadata('event-evidence-captured'));
+
+    expect(evidence.pullDomainEvents()).toEqual([
+      {
+        eventId: 'event-evidence-captured',
+        missionId: 'mission-1',
+        eventType: 'EvidenceCaptured',
+        timestamp,
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: {
+          evidenceId: 'evidence-1',
+          evidenceType: 'TestResult',
+          evidenceVersion: 1,
+          evidenceSource: 'vitest',
+          evidenceHash: 'sha256:test-result',
+        },
+      },
+    ]);
+    expect(evidence.pullDomainEvents()).toEqual([]);
+  });
+
+  it('uses the Evidence-specific event variant for Mission-independent EvidenceCaptured events', () => {
+    const evidence = Evidence.register({
+      id: ' evidence-1 ',
+      type: 'TestResult',
+      version: 1,
+      hash: 'sha256:test-result',
+      metadata: {
+        capturedAt: '2026-07-12T00:00:00.000Z',
+        attributes: {
+          suite: 'unit',
+        },
+      },
+      provenance: {
+        source: 'vitest',
+        acquisitionMethod: 'test-run',
+        acquiredAt: '2026-07-12T00:00:00.000Z',
+        actor: 'builder',
+        system: 'nexus',
+        verificationStatus: 'Verified',
+      },
+    });
+
+    evidence.recordCaptured(metadata('event-mission-independent-evidence-captured'));
+
+    expect(evidence.pullDomainEvents()).toEqual([
+      {
+        eventId: 'event-mission-independent-evidence-captured',
+        eventType: 'EvidenceCaptured',
+        timestamp,
+        causality: [],
+        attribution: {},
+        payload: {
+          evidenceId: 'evidence-1',
+          evidenceType: 'TestResult',
+          evidenceVersion: 1,
+          evidenceSource: 'vitest',
+          evidenceHash: 'sha256:test-result',
+        },
+      },
+    ]);
   });
 });
