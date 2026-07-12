@@ -1,5 +1,104 @@
 # Nexus Implementation Report
 
+## Sprint 8 — Execution Roles
+
+### Implemented Slice
+
+Implemented the RFC-0004 Execution Roles vertical slice.
+
+Implemented scope:
+
+- `ExecutionRole` immutable domain model with RoleId, name, description, category, metadata, deterministic equality, and snapshots.
+- `RoleMetadata` immutable value object with deterministic attribute normalization and validation.
+- Built-in provider-independent Kernel roles: Builder and Reviewer.
+- `RoleAssignment` immutable Task-to-ExecutionRole relationship with assignment metadata.
+- `RoleRegistry` contract and `InMemoryRoleRegistry` for deterministic role registration, retrieval, enumeration, and duplicate prevention.
+- `RoleAssignmentRepository` contract and `InMemoryRoleAssignmentRepository` for process-local assignment persistence and duplicate task-assignment prevention.
+- `RoleValidation` deterministic validation diagnostics for unknown roles and duplicate task assignments.
+- `RoleService` orchestration for default role registration, role lookup, role registration, assignment creation, and assignment lookup through constructor-injected contracts.
+- Kernel service composition updated to include `RoleService`.
+
+Out of scope and not implemented:
+
+- Execution Strategy.
+- Assignment dependency-ordering preservation (RFC-0004 § Assignment).
+- Provider Mapping.
+- Adapter Invocation.
+- Review Engine.
+- Governance.
+- Scheduling.
+- Parallel Execution.
+- Adapter selection.
+- Provider selection.
+- Builder workflow.
+- Reviewer workflow.
+- Event Bus integration.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model (Partial).
+
+Implemented Concepts:
+
+- ExecutionRole.
+- RoleAssignment.
+- RoleRegistry.
+- RoleMetadata.
+- RoleValidation.
+- RoleService.
+
+Deferred Concepts:
+
+- Execution Strategy.
+- Assignment dependency-ordering preservation (RFC-0004 § Assignment).
+- Provider Mapping.
+- Adapter Invocation.
+- Review Engine.
+- Governance.
+- Scheduling.
+- Parallel Execution.
+- Adapter selection and provider selection.
+- Builder and Reviewer workflows.
+- Event Bus integration.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `.github/copilot-instructions.md`.
+
+### Architectural Assumptions
+
+- Role category is modeled as deterministic text because RFC-0004 does not define a category enumeration.
+- RoleAssignment represents the RFC-0004 Task-to-ExecutionRole relationship by Task identity and Role identity without accessing Task aggregate internals.
+- RoleService default role registration is orchestration; role uniqueness remains owned by RoleRegistry.
+
+### Limitations
+
+- Registered roles and role assignments are process-local and in-memory.
+- RoleAssignment does not select adapters, select providers, invoke adapters, schedule work, or execute workflows.
+- RoleService does not publish events because Event Bus integration is deferred.
+
+### Test Summary
+
+- Targeted Sprint 8 execution-role tests passed: 3 files, 13 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 21 files, 130 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 7 — Adapter Framework
 
 ### Implemented Slice

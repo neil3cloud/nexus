@@ -5,6 +5,7 @@ import { ProtocolVersion } from '../adapter/protocol-version';
 import { InMemoryEvidenceRepository } from '../evidence/evidence.repository';
 import { EvidenceService } from '../evidence/evidence.service';
 import { ExecutionService } from '../execution/execution.service';
+import { RoleService } from '../execution/role.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
 import { MissionPlanningService } from '../mission/mission-planning.service';
@@ -26,6 +27,7 @@ export function createKernelServices(eventBus: EventBusContract): readonly IKern
     new MissionExecutionService(missionRepository, eventBus),
     new EvidenceService(evidenceRepository),
     new ProjectionService(missionRepository, evidenceRepository),
+    new RoleService(),
     new ExecutionService(),
     new ReviewService(),
     new KnowledgeService(),

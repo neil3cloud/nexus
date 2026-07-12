@@ -326,3 +326,46 @@ Definition of Done
 - AdapterService coordinates registry lookup and dispatch only.
 - Adapter value objects, metadata, request, response, lifecycle, registry, service, and diagnostics are unit tested.
 - Deferred provider and execution concepts remain unimplemented.
+
+---
+
+## Sprint 8 — Execution Roles
+
+Status: ✅ Approved (NEXUS-REV-2026-07-12-017, NEXUS-REV-2026-07-12-018)
+
+Objective
+
+Implement the Execution Roles domain.
+
+RFC Coverage
+
+- RFC-0004 — Execution Model (Partial)
+
+Implemented Concepts
+
+- ExecutionRole
+- RoleAssignment
+- RoleRegistry
+- RoleMetadata
+- RoleValidation
+- RoleService
+
+Deferred Concepts
+
+- Execution Strategy
+- Assignment dependency-ordering preservation (RFC-0004 § Assignment)
+- Provider Mapping
+- Adapter Invocation
+- Review Engine
+- Governance
+- Scheduling
+- Parallel Execution
+
+Definition of Done
+
+- ExecutionRole and RoleAssignment remain immutable and provider agnostic.
+- Builder and Reviewer are registered as default Kernel roles.
+- RoleRegistry enforces uniqueness and deterministic discovery.
+- RoleService coordinates registry and assignment dependencies only.
+- In-memory repositories support registered roles and role assignments.
+- Unit tests cover role invariants, default roles, registry behavior, assignment validation, service orchestration, and repository persistence.

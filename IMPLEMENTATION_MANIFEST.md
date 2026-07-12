@@ -351,6 +351,48 @@ Notes:
 
 ---
 
+## Sprint 8 — Execution Roles
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Partial)
+
+Implemented Concepts:
+
+- ExecutionRole immutable domain model with RoleId, name, description, category, and RoleMetadata.
+- Built-in provider-independent Kernel roles: Builder and Reviewer.
+- RoleRegistry contract and InMemoryRoleRegistry for registration, retrieval, enumeration, and duplicate prevention.
+- RoleAssignment immutable Task-to-ExecutionRole relationship with assignment metadata.
+- RoleValidation deterministic diagnostics for unknown roles and duplicate assignments.
+- RoleService orchestration for role registration, lookup, assignment, and assignment discovery through constructor-injected contracts.
+- InMemoryRoleAssignmentRepository for process-local assignment persistence.
+
+Deferred Concepts:
+
+- Execution Strategy.
+- Assignment dependency-ordering preservation (RFC-0004 § Assignment).
+- Provider Mapping.
+- Adapter Invocation.
+- Review Engine.
+- Governance.
+- Scheduling.
+- Parallel Execution.
+- Provider selection.
+- Adapter selection.
+- Builder workflow.
+- Reviewer workflow.
+- Event Bus integration.
+
+Notes:
+
+- Execution Roles remain independent of providers and adapters.
+- RoleAssignment references Task identity only and does not access Task aggregate internals.
+- Role category is deterministic metadata text; RFC-0004 does not define a category enumeration.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

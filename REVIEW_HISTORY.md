@@ -1,5 +1,115 @@
 ﻿# Nexus Review History
 
+## NEXUS-REV-2026-07-12-018 — Sprint 8 — Execution Roles (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 8 — Execution Roles
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-12-017-F-001 per builder-task.md TASK-001
+- **RFC Coverage:** RFC-0004 — Execution Model (Partial); documentation layer only
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 is correctly executed within its authorized documentation-only scope. "Assignment dependency-ordering preservation (RFC-0004 § Assignment)" now appears verbatim in the Sprint 8 deferred concepts of all four required documents: `IMPLEMENTATION_MANIFEST.md` (Deferred Concepts), `knowledge/implementation/sprints/sprint-0008-execution-roles.md` (Deferred Concepts, and additionally cross-referenced in Known Limitations), `IMPLEMENTATION_PLAN.md` (Sprint 8 Deferred Concepts), and `IMPLEMENTATION_REPORT.md` (both the Implemented Slice "Out of scope" list and the RFC Coverage Deferred Concepts list). `git diff --stat -- src test` shows no test or source changes attributable to this task; the sole tracked `src` change (`create-kernel-services.ts`, +2 lines) is the pre-existing Sprint 8 Kernel-wiring change already reviewed and approved by NEXUS-REV-2026-07-12-017, not new work. Independent re-validation confirms no regression: TypeScript compiles cleanly, ESLint is clean, Vitest passes 21 files / 130 tests, matching the figures certified in the prior review. **No architectural violations detected.** The Sprint 8 review cycle is complete with no open findings.
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-12-017-F-001, Minor) — RESOLVED.** All four acceptance criteria satisfied: the Manifest, the Sprint 8 record, the Plan, and the Report each explicitly declare the RFC-0004 Assignment dependency-ordering element as deferred; no normative or implementation changes were introduced.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (TASK-001 of NEXUS-REV-2026-07-12-017) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 21 files / 130 tests |
+
+### Deferred Concept Validation
+
+Unchanged; the remediation was documentation-only. All Sprint 8 deferred concepts — Execution Strategy, Assignment dependency-ordering preservation, Provider Mapping, Adapter Invocation, Review Engine, Governance, Scheduling, and Parallel Execution — remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 8 baseline (NEXUS-REV-2026-07-12-017) is otherwise unchanged. The previously undeclared RFC-0004 Assignment dependency-ordering gap is now fully tracked across the implementation-layer documents, closing the sole open finding from the Sprint 8 review.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0008-execution-roles.md`) — Status → **Approved**; Reviewer Notes and Final Disposition updated to reflect remediation closure.
+- IMPLEMENTATION_PLAN.md — Sprint 8 status set to **Approved** (NEXUS-REV-2026-07-12-018). No Sprint 9 exists in the Implementation Plan to advance to Current (Sprint Owner action required).
+- builder-task.md — TASK-001 marked RESOLVED; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 8 review cycle is complete. Next steps are Sprint Owner actions: plan Sprint 9 under the specification-first workflow.
+
+---
+
+## NEXUS-REV-2026-07-12-017 — Sprint 8 — Execution Roles
+
+- **Reviewed Sprint:** Sprint 8 — Execution Roles
+- **Reviewed Vertical Slice:** ExecutionRole domain model, RoleId, RoleMetadata, default Kernel roles (Builder, Reviewer), RoleRegistry (contract + in-memory), RoleAssignment, RoleValidation, RoleAssignmentRepository (contract + in-memory), RoleService orchestration, Kernel wiring
+- **RFC Coverage:** RFC-0004 — Execution Model (Partial)
+- **Review Date:** 2026-07-12
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 8 implements the RFC-0004 Execution Roles vertical slice in conformance with the RFC for every implemented concept. **No architectural violations detected.** `ExecutionRole` is an immutable, deeply frozen value object (`RoleId`, name, description, category, `RoleMetadata`) with deterministic equality and snapshot round-tripping; `createDefaultKernelRoles()` registers exactly the RFC-0004-mandated default roles — Builder and Reviewer — as provider-independent Kernel roles, satisfying Canon 7 ("Engineering responsibilities SHALL be expressed as Roles… The Kernel SHALL assign Roles. Adapters SHALL NOT define Roles"). `InMemoryRoleRegistry` provides serialized, deterministic registration, lookup, existence checks, and canonically ordered enumeration with duplicate rejection (`DuplicateRoleRegistrationError`). `RoleAssignment` is an immutable Task-identity-to-Role-identity relationship that references Task only by string identity — it does not access Task aggregate internals, correctly respecting RFC-0001 aggregate ownership and mirroring the established cross-domain reference pattern (Sprint 6 Evidence references, Sprint 7 AdapterRequest Task Identifier). `RoleValidation` enforces the RFC-0004 "every Task SHALL be assigned to exactly one execution role" invariant by rejecting unknown roles (`UnknownExecutionRoleError`) and duplicate task assignments (`DuplicateRoleAssignmentError`) before persistence. `RoleService` is orchestration-only: default-role bootstrapping on `initialize()`, registry/repository coordination, and lookup — no business rules leak into the service. Kernel composition (`create-kernel-services.ts`) registers `RoleService` alongside the other Kernel services using the established default-constructor pattern. Role `category` is undefined by RFC-0004 and is correctly treated as free-form deterministic metadata text rather than an invented enumeration — consistent with the Sprint 7 `AdapterCapability` precedent for RFC-silent fields. Independent verification confirms the sprint record's claims exactly: TypeScript compiles cleanly; ESLint is clean; Vitest passes 21 files / 130 tests (targeted Sprint 8 execution-role suite: 3 files / 13 tests — `execution-role.test.ts`, `role-registry.test.ts`, `role.service.test.ts`); esbuild succeeds. One documentation finding is reported below.
+
+### Findings
+
+#### NEXUS-REV-2026-07-12-017-F-001 — RFC-0004 Assignment dependency-ordering requirement not declared as deferred
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** RFC-0004 § Assignment ("Assignment SHALL preserve dependency ordering"); IMPLEMENTATION_CONSTITUTION.md — Vertical Slice Policy (deferred concepts SHALL be explicitly declared and tracked in the Implementation Manifest)
+- **Summary:** RFC-0004's Assignment section normatively requires that "Assignment SHALL preserve dependency ordering." `RoleService.assignRole` (`src/kernel/execution/role.service.ts`) validates only that the role is known and that the Task is not already assigned (`RoleValidation.ensureKnownRole`, `RoleValidation.ensureTaskUnassigned`); it does not check Task Graph dependency state before permitting a role assignment. This is a defensible vertical-slice boundary — the RFC's "Execution Strategy" section separately assigns "execution ordering" and "dependency handling" to Execution Strategy, which Sprint 8 correctly declares deferred — but the Assignment section states the dependency-ordering guarantee as belonging to Assignment itself, and neither the Sprint 8 record, the Implementation Manifest, the Implementation Plan, nor the Implementation Report declares this specific RFC-0004 element as deferred. This mirrors the precedent set by NEXUS-REV-2026-07-12-015-F-001 (an undeclared RFC element deferral for AdapterRequest applicable policies).
+- **Evidence:** `src/kernel/execution/role.service.ts:58-71` (`assignRole` performs no dependency check); `src/kernel/execution/role-validation.ts` (validation surface limited to known-role and unassigned-task checks); RFC-0004 § Assignment and § Execution Strategy; `knowledge/implementation/sprints/sprint-0008-execution-roles.md` § Deferred Concepts (no mention of Assignment dependency ordering).
+- **Impact:** A future scheduling or Execution Strategy slice could overlook that the RFC-0004 Assignment dependency-ordering guarantee remains unimplemented, since it is not currently tracked as a named deferred concept distinct from "Scheduling" and "Execution Strategy."
+- **Recommended Disposition:** Documentation Task — add "Assignment dependency-ordering preservation (RFC-0004 § Assignment)" to the Sprint 8 deferred concepts in IMPLEMENTATION_MANIFEST.md, the Sprint 8 record, IMPLEMENTATION_PLAN.md, and IMPLEMENTATION_REPORT.md.
+- **Builder Action:** Update documentation only. No code change is implied or authorized by this finding.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major | 0 / 0 |
+| Minor | 1 (F-001 — documentation) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 21 files / 130 tests (targeted: 3 files / 13 tests), build |
+
+### Deferred Concept Validation
+
+All declared Sprint 8 deferred concepts remain unimplemented and unapproximated: Execution Strategy, Provider Mapping, Adapter Invocation, Review Engine, Governance, Scheduling, and Parallel Execution. RFC-0004 concepts outside Sprint 8 scope — Execution State, Execution Session, Assignment Policy, Failure Handling — are correctly absent. One RFC-0004 element (Assignment dependency-ordering preservation) is unimplemented but undeclared as deferred (F-001).
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `ExecutionRole` and `RoleAssignment` conform to RFC-0004 terminology and remain provider-independent (Canon 7, Canon 8). Default Kernel roles match the RFC-0004-mandated minimum set exactly (Builder, Reviewer). Aggregate ownership is preserved: `RoleAssignment` references Task by identity only, and no Mission, MissionPlan, Task, Evidence, or Adapter aggregate internals are accessed. `RoleService` performs orchestration only; role and assignment invariants are owned by `RoleRegistry`, `RoleValidation`, and the aggregates themselves. No events, states, or enumerations belonging to another RFC were introduced. Kernel composition wiring follows the established pattern from Sprints 4–7.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0008-execution-roles.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition added.
+- IMPLEMENTATION_PLAN.md — Sprint 8 status set to **Approved with Findings** (NEXUS-REV-2026-07-12-017). No Sprint 9 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+- builder-task.md — not modified by this review; it remains the closed Sprint 7 remediation document. No new Builder Task document is generated because the sole finding is a documentation-only deferral note.
+
+### Builder Task Recommendation
+
+Via the `nexus-sprint` workflow: one Documentation Task for F-001 (declare the RFC-0004 Assignment dependency-ordering element as a Sprint 8 deferred concept across the Manifest, Plan, Report, and Sprint 8 record). No implementation Builder Tasks are generated.
+
+---
+
 ## NEXUS-REV-2026-07-12-016 — Sprint 7 — Adapter Framework (Governance Ledger Remediation Review)
 
 - **Reviewed Sprint:** Sprint 7 — Adapter Framework
