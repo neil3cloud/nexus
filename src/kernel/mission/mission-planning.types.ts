@@ -87,4 +87,3 @@ export interface ReviseMissionPlanRequest {
   readonly revisionReason?: string;
   readonly revisionMetadata?: PlanningMetadata;
 }
-

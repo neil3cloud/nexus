@@ -86,6 +86,20 @@ export class MissionPlanningTerminalMissionError extends MissionDomainError {
   }
 }
 
+export class MissionExecutionValidationError extends MissionDomainError {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'MissionExecutionValidationError';
+  }
+}
+
+export class MissionCompletionRejectedError extends MissionDomainError {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'MissionCompletionRejectedError';
+  }
+}
+
 export class TaskNotFoundError extends MissionDomainError {
   public constructor(taskId: string) {
     super(`Task '${taskId}' was not found.`);
@@ -95,7 +109,7 @@ export class TaskNotFoundError extends MissionDomainError {
 
 export class TaskLifecycleTransitionError extends MissionDomainError {
   public constructor(from: TaskStatus, to: TaskStatus) {
-    super(`Task status transition '${from}' -> '${to}' is not defined by Sprint 3.`);
+    super(`Task status transition '${from}' -> '${to}' is not valid.`);
     this.name = 'TaskLifecycleTransitionError';
   }
 }

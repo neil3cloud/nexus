@@ -1,22 +1,289 @@
-## RFC Coverage
+# Sprint {{NUMBER}} — {{NAME}}
 
-Primary RFCs
+**Status:** Planned | In Progress | Implemented | Pending Reviewer Validation | Approved | Approved with Findings | Rejected
 
-- RFC-0001 Mission Model
+---
 
-Implemented Concepts
+# Objective
 
-- Mission
-- Mission Identity
-- Mission Lifecycle
+Describe the single engineering objective of this vertical slice.
 
-Deferred Concepts
+The objective defines **what capability** this sprint introduces.
 
-- Mission Plan
-- Mission Revision
-- Task
-- Task Graph
+It SHALL NOT describe implementation details.
 
-Deferred concepts remain normative.
+---
 
-Implementation is tracked through IMPLEMENTATION_MANIFEST.md.
+# RFC Coverage
+
+## Primary RFC Coverage
+
+List the normative specifications partially implemented by this sprint.
+
+Example:
+
+- RFC-0001 — Mission Model (Partial Vertical Slice)
+
+## Referenced RFCs
+
+List RFCs referenced but not implemented.
+
+Example:
+
+- RFC-0002 — Evidence Model (Referenced Only)
+
+---
+
+# Ratification
+
+Record all governance decisions affecting this sprint.
+
+Examples:
+
+- Sprint Owner approved RFC coverage.
+- Sprint Owner approved scope adjustment.
+- Sprint Owner authorized implementation deviation.
+- Sprint Owner ratified retrospective documentation.
+
+If none:
+
+> None.
+
+---
+
+# Scope
+
+## In Scope
+
+List every capability this sprint is authorized to implement.
+
+Example:
+
+- Mission lifecycle
+- Mission validation
+- Mission repository
+
+## Explicitly Out of Scope
+
+List concepts intentionally excluded.
+
+These SHALL NOT be reported as implementation defects during review.
+
+Example:
+
+- Evidence
+- Shared Reality
+- Governance
+- Provider Adapters
+- Review Engine
+
+---
+
+# Implementation Summary
+
+Summarize what was implemented.
+
+Describe engineering capabilities.
+
+Avoid implementation details such as filenames unless necessary.
+
+Example:
+
+- Mission aggregate lifecycle
+- MissionExecutionService
+- Task execution validation
+- In-memory repository support
+
+---
+
+# Architectural Decisions
+
+Record architectural decisions made during implementation.
+
+Examples:
+
+- Mission owns lifecycle rules.
+- MissionPlan owns Task Graph validation.
+- Application Services orchestrate aggregates.
+- Infrastructure contains no business rules.
+
+This section documents implementation decisions.
+
+It SHALL NOT redefine RFC behavior.
+
+---
+
+# Limitations
+
+Record known implementation limitations.
+
+Examples:
+
+- In-memory persistence only.
+- No provider execution.
+- No durable event storage.
+- No distributed execution.
+
+Limitations are expected implementation boundaries.
+
+They are not implementation defects.
+
+---
+
+# Deferred Features
+
+Record capabilities intentionally deferred to future vertical slices.
+
+Examples:
+
+- Shared Reality
+- Review Engine
+- Governance
+- Scheduling
+- Parallel Execution
+
+---
+
+# Deferred RFC Ownership
+
+Record concepts intentionally owned by another RFC.
+
+Examples:
+
+- Execution Strategy (RFC-0004)
+- Execution Roles (RFC-0004)
+- Provider Coordination (RFC-0004)
+
+---
+
+# Deferred RFC Amendment Candidates
+
+Record architectural inconsistencies discovered during implementation that require future specification work.
+
+Examples:
+
+- Mission pause/resume lifecycle
+- Event naming inconsistencies
+- Terminology conflicts
+
+This section SHALL NOT redefine the RFC.
+
+---
+
+# Acceptance Criteria
+
+List objective completion criteria.
+
+Example:
+
+- Repository builds successfully.
+- Unit tests pass.
+- RFC coverage implemented.
+- Deferred concepts remain unimplemented.
+- Sprint objective satisfied.
+
+---
+
+# Validation Summary
+
+Record implementation validation.
+
+Example:
+
+| Validation         | Status |
+| ------------------ | ------ |
+| TypeScript Compile | ✅     |
+| ESLint             | ✅     |
+| Unit Tests         | ✅     |
+| Integration Tests  | ✅     |
+| Build              | ✅     |
+
+---
+
+# Implementation Deviations
+
+Record intentional implementation deviations.
+
+Examples:
+
+- Temporary implementation workaround.
+- Implementation simplified by Sprint Owner approval.
+
+If none:
+
+> None.
+
+---
+
+# Governance Deviations
+
+Record governance deviations.
+
+Examples:
+
+- Retroactive Sprint Specification.
+- Human ratification required.
+- Scope correction.
+- Documentation reconciliation.
+
+If none:
+
+> None.
+
+---
+
+# Traceability
+
+| Artifact                | Reference                  |
+| ----------------------- | -------------------------- |
+| Sprint                  | Sprint {{NUMBER}}          |
+| Primary RFC             | RFC-XXXX                   |
+| Implementation Report   | IMPLEMENTATION_REPORT.md   |
+| Implementation Manifest | IMPLEMENTATION_MANIFEST.md |
+| Review Report           | REVIEW_HISTORY.md          |
+
+---
+
+# Reviewer Notes
+
+**Status**
+
+Pending
+
+Reviewer completes this section.
+
+Possible values:
+
+- PASS
+- PASS WITH FINDINGS
+- FAIL
+
+## Review Summary
+
+Summary of reviewer observations.
+
+## Findings
+
+Reference Engineering Review findings.
+
+## Required Actions
+
+Reference Builder Tasks generated by `nexus-sprint`, if applicable.
+
+---
+
+# Final Disposition
+
+Completed by the Reviewer.
+
+One of:
+
+- Approved
+- Approved with Findings
+- Rejected
+
+Date:
+
+Reviewer:
+
+Review Reference:

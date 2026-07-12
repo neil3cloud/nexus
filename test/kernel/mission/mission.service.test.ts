@@ -4,12 +4,18 @@ import { EventBus } from '../../../src/kernel/events/event-bus';
 import type { KernelLogger } from '../../../src/kernel/common/kernel-logger';
 import {
   MissionAlreadyExistsError,
+  MissionCompletionRejectedError,
   MissionEventPublisherUnavailableError,
   MissionNotFoundError,
 } from '../../../src/kernel/mission/mission.errors';
 import { MissionId } from '../../../src/kernel/mission/mission-id';
+import { MissionPlan } from '../../../src/kernel/mission/mission-plan.aggregate';
+import { MissionPlanId } from '../../../src/kernel/mission/mission-plan-id';
+import type { RevisionMetadata } from '../../../src/kernel/mission/mission-planning.types';
 import { InMemoryMissionRepository } from '../../../src/kernel/mission/mission.repository';
 import { MissionService } from '../../../src/kernel/mission/mission.service';
+import { Task } from '../../../src/kernel/mission/task';
+import { TaskId } from '../../../src/kernel/mission/task-id';
 
 class TestLogger implements KernelLogger {
   public info(): void {}
@@ -31,6 +37,42 @@ function sequence(values: readonly string[]): () => string {
 
     return value;
   };
+}
+
+function revisionMetadata(reason: string): RevisionMetadata {
+  return {
+    createdAt: '2026-07-12T00:00:00.000Z',
+    reason,
+    attributes: {},
+  };
+}
+
+function createMissionPlanWithTask(input: {
+  readonly missionId: string;
+  readonly completed: boolean;
+}): MissionPlan {
+  const missionPlan = MissionPlan.create({
+    id: MissionPlanId.fromString('plan-1'),
+    missionId: MissionId.fromString(input.missionId),
+    revisionMetadata: revisionMetadata('Initial plan'),
+  });
+  const task = Task.create({
+    id: TaskId.fromString('task-1'),
+    title: 'Execute task',
+    description: 'Complete execution',
+    parentMissionPlanId: missionPlan.id,
+  });
+
+  task.markReady();
+
+  if (input.completed) {
+    task.start();
+    task.complete();
+  }
+
+  missionPlan.addTask(task, revisionMetadata('Add task'));
+
+  return missionPlan;
 }
 
 describe('MissionService', () => {
@@ -75,7 +117,7 @@ describe('MissionService', () => {
     ]);
   });
 
-  it('coordinates lifecycle operations through the aggregate and publishes canonical events', async () => {
+  it('coordinates non-execution lifecycle operations through the aggregate and publishes canonical events', async () => {
     const repository = new InMemoryMissionRepository();
     const eventBus = new EventBus(new TestLogger());
     const service = new MissionService(
@@ -88,7 +130,6 @@ describe('MissionService', () => {
         'event-ready',
         'event-started',
         'event-reviewed',
-        'event-completed',
       ]),
       () => '2026-07-12T00:00:00.000Z',
     );
@@ -97,19 +138,17 @@ describe('MissionService', () => {
     await service.planMission('mission-1');
     await service.markMissionReady('mission-1');
     await service.startMission('mission-1');
-    await service.reviewMission('mission-1');
-    const completedMission = await service.completeMission('mission-1');
+    const reviewingMission = await service.reviewMission('mission-1');
 
-    expect(completedMission.status).toBe('Completed');
+    expect(reviewingMission.status).toBe('Reviewing');
     expect(eventBus.replay('mission-1').map((event) => event.eventType)).toEqual([
       'MissionCreated',
       'MissionPlanned',
       'MissionReady',
       'MissionStarted',
       'MissionReviewed',
-      'MissionCompleted',
     ]);
-    expect((await repository.getById(completedMission.id))?.status).toBe('Completed');
+    expect((await repository.getById(reviewingMission.id))?.status).toBe('Reviewing');
   });
 
   it('publishes lifecycle events with causality across repository round trips', async () => {
@@ -125,7 +164,6 @@ describe('MissionService', () => {
         'event-ready',
         'event-started',
         'event-reviewed',
-        'event-completed',
       ]),
       () => '2026-07-12T00:00:00.000Z',
     );
@@ -135,8 +173,72 @@ describe('MissionService', () => {
     await service.markMissionReady('mission-1');
     await service.startMission('mission-1');
     await service.reviewMission('mission-1');
-    await service.completeMission('mission-1');
 
+    expect(
+      eventBus.replay('mission-1').map((event) => ({
+        eventId: event.eventId,
+        eventType: event.eventType,
+        causality: event.causality,
+      })),
+    ).toEqual([
+      {
+        eventId: 'event-created',
+        eventType: 'MissionCreated',
+        causality: [],
+      },
+      {
+        eventId: 'event-planned',
+        eventType: 'MissionPlanned',
+        causality: ['event-created'],
+      },
+      {
+        eventId: 'event-ready',
+        eventType: 'MissionReady',
+        causality: ['event-planned'],
+      },
+      {
+        eventId: 'event-started',
+        eventType: 'MissionStarted',
+        causality: ['event-ready'],
+      },
+      {
+        eventId: 'event-reviewed',
+        eventType: 'MissionReviewed',
+        causality: ['event-started'],
+      },
+    ]);
+  });
+
+  it('completes a Reviewing Mission with completed Tasks and publishes MissionCompleted', async () => {
+    const repository = new InMemoryMissionRepository();
+    const eventBus = new EventBus(new TestLogger());
+    const service = new MissionService(
+      repository,
+      eventBus,
+      sequence([
+        'mission-1',
+        'event-created',
+        'event-planned',
+        'event-ready',
+        'event-started',
+        'event-reviewed',
+        'event-completed',
+      ]),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.createMission({ objective: 'Implement Mission Foundation' });
+    await repository.saveMissionPlan(
+      createMissionPlanWithTask({ missionId: 'mission-1', completed: true }),
+    );
+    await service.planMission('mission-1');
+    await service.markMissionReady('mission-1');
+    await service.startMission('mission-1');
+    await service.reviewMission('mission-1');
+    const completedMission = await service.completeMission('mission-1');
+
+    expect(completedMission.status).toBe('Completed');
+    expect((await repository.getById(completedMission.id))?.status).toBe('Completed');
     expect(
       eventBus.replay('mission-1').map((event) => ({
         eventId: event.eventId,
@@ -175,6 +277,41 @@ describe('MissionService', () => {
         causality: ['event-reviewed'],
       },
     ]);
+  });
+
+  it('rejects Mission completion when any Task is not Completed', async () => {
+    const repository = new InMemoryMissionRepository();
+    const eventBus = new EventBus(new TestLogger());
+    const service = new MissionService(
+      repository,
+      eventBus,
+      sequence([
+        'mission-1',
+        'event-created',
+        'event-planned',
+        'event-ready',
+        'event-started',
+        'event-reviewed',
+        'event-completed',
+      ]),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.createMission({ objective: 'Implement Mission Foundation' });
+    await repository.saveMissionPlan(
+      createMissionPlanWithTask({ missionId: 'mission-1', completed: false }),
+    );
+    await service.planMission('mission-1');
+    await service.markMissionReady('mission-1');
+    await service.startMission('mission-1');
+    await service.reviewMission('mission-1');
+
+    await expect(service.completeMission('mission-1')).rejects.toThrow(
+      MissionCompletionRejectedError,
+    );
+    expect(eventBus.replay('mission-1').map((event) => event.eventType)).not.toContain(
+      'MissionCompleted',
+    );
   });
 
   it('propagates optional lifecycle correlation and omits correlation when absent', async () => {

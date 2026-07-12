@@ -61,6 +61,16 @@ describe('Task', () => {
     expect(task.status).toBe('Planned');
   });
 
+  it('cancels Ready Tasks and rejects restart', () => {
+    const task = createTask();
+
+    task.markReady();
+    task.cancel();
+
+    expect(task.status).toBe('Cancelled');
+    expect(() => task.start()).toThrow(TaskLifecycleTransitionError);
+  });
+
   it('prevents duplicate dependencies and dependencies targeting another Task', () => {
     const task = createTask();
     const dependency = TaskDependency.fromTaskIds(

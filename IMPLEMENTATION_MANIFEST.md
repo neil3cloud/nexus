@@ -130,6 +130,64 @@ Notes:
 
 ---
 
+## Sprint 4 — Mission Execution
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0001 — Mission Model (Partial)
+
+Ratification:
+
+- Sprint Owner ratified Sprint 4 RFC-0001 (Partial) coverage on 2026-07-12; Sprint 4 does not implement RFC-0004.
+
+Implemented Concepts:
+
+- Mission aggregate execution validation for start, complete, fail, and cancel lifecycle operations.
+- Mission completion evaluation requiring lifecycle permission and all MissionPlan Tasks to be `Completed`.
+- Task execution lifecycle operations: start, complete, and cancel.
+- Task terminal-state immutability for `Completed` and `Cancelled`.
+- MissionPlan execution validation for executable plans and satisfied Task dependencies before Task start.
+- MissionExecutionService application orchestration for Mission and Task execution using constructor-injected repository contracts.
+- InMemoryMissionRepository snapshot persistence for Mission lifecycle status and Task execution status updates.
+- Deterministic diagnostics for invalid lifecycle transitions, dependency violations, non-executable Missions, and rejected completion.
+- Unit tests for Mission, MissionPlan, Task, MissionExecutionService, and repository execution behavior.
+
+Deferred Concepts:
+
+- Execution Strategy
+- Builder
+- Reviewer
+- Governance
+- Provider Adapters
+- AI Providers
+- Claude CLI
+- GitHub Copilot
+- Gemini
+- Codex
+- Event Bus expansion
+- Domain Event expansion
+- Shared Reality
+- Evidence
+- Knowledge
+- Scheduling
+- Parallel Execution
+- Critical Path Analysis
+- Automatic Planning
+- Mission Planning changes
+- Mission pause and resume pending RFC amendment candidate review
+- Task execution failure states deferred to RFC-0004
+- Execution Strategy, Execution Roles, Execution Policies, and Provider Coordination owned by RFC-0004
+
+Notes:
+
+- Execution remains provider-agnostic and does not invoke AI providers, adapters, schedulers, event-bus expansion, Evidence, Shared Reality, Knowledge, Builder, or Reviewer concepts.
+- MissionExecutionService is intentionally thin; domain validation remains inside Mission, MissionPlan, and Task.
+- Mission completion continues to respect the RFC-0001 lifecycle permission requirement; this slice does not reinterpret the known MissionPaused lifecycle inconsistency.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

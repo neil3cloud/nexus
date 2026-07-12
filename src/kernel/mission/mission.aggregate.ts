@@ -1,8 +1,13 @@
 import type { MissionDomainEvent } from './mission.events';
 import { createMissionCreatedEvent, createMissionLifecycleEvent } from './mission.events';
-import { MissionLifecycleTransitionError } from './mission.errors';
+import {
+  MissionCompletionRejectedError,
+  MissionExecutionValidationError,
+  MissionLifecycleTransitionError,
+} from './mission.errors';
 import { MissionId } from './mission-id';
 import { MissionObjective } from './mission-objective';
+import type { TaskSnapshot } from './mission-planning.types';
 import type { DomainEventMetadata, MissionSnapshot, MissionStatus } from './mission.types';
 
 const lifecycleEventsByTarget = {
@@ -80,7 +85,8 @@ export class Mission {
     this.transitionTo('Executing', metadata);
   }
 
-  public complete(metadata: DomainEventMetadata): void {
+  public complete(metadata: DomainEventMetadata, tasks: readonly TaskSnapshot[]): void {
+    this.assertCompletionPermitted(tasks);
     this.transitionTo('Completed', metadata);
   }
 
@@ -90,6 +96,36 @@ export class Mission {
 
   public fail(metadata: DomainEventMetadata): void {
     this.transitionTo('Failed', metadata);
+  }
+
+  public assertTaskExecutionPermitted(): void {
+    if (this.statusValue !== 'Executing') {
+      throw new MissionExecutionValidationError(
+        `Mission '${this.missionId.toString()}' must be Executing before executing Tasks; current status is '${this.statusValue}'.`,
+      );
+    }
+  }
+
+  public assertCompletionPermitted(tasks: readonly TaskSnapshot[]): void {
+    if (this.statusValue !== 'Reviewing') {
+      throw new MissionCompletionRejectedError(
+        `Mission '${this.missionId.toString()}' cannot complete from status '${this.statusValue}'.`,
+      );
+    }
+
+    if (tasks.length === 0) {
+      throw new MissionCompletionRejectedError(
+        `Mission '${this.missionId.toString()}' cannot complete without Tasks.`,
+      );
+    }
+
+    const incompleteTask = tasks.find((task) => task.status !== 'Completed');
+
+    if (incompleteTask !== undefined) {
+      throw new MissionCompletionRejectedError(
+        `Mission '${this.missionId.toString()}' cannot complete because Task '${incompleteTask.id}' is '${incompleteTask.status}'.`,
+      );
+    }
   }
 
   public pullDomainEvents(): readonly MissionDomainEvent[] {

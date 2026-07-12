@@ -104,13 +104,49 @@ Review Remediation
 
 ## Sprint 4 — Mission Execution
 
-Status: Planned
+Status: Implemented — Pending Reviewer Validation
 
 RFC Coverage
 
-RFC-0004
+- RFC-0001 Mission Model (Partial)
+
+Ratification
+
+- Sprint Owner ratified Sprint 4 RFC-0001 (Partial) coverage on 2026-07-12; Sprint 4 does not implement RFC-0004.
 
 Implemented Concepts
 
+- Mission execution use cases
+- Mission execution lifecycle validation
+- Task execution lifecycle
+- Task dependency execution validation
+- Mission completion evaluation
+- MissionExecutionService
+- In-memory repository persistence for Mission and Task execution state
+
+Deferred Concepts
+
 - Execution Strategy
-- Execution Roles
+- Builder
+- Reviewer
+- Governance
+- Provider Adapters
+- AI Providers
+- Event Bus expansion
+- Shared Reality
+- Evidence
+- Knowledge
+- Scheduling
+- Parallel Execution
+- Critical Path Analysis
+- Automatic Planning
+- Mission pause and resume pending RFC amendment candidate review
+- Task execution failure states, deferred to RFC-0004
+- Execution Strategy, Execution Roles, Execution Policies, and Provider Coordination, owned by RFC-0004
+
+Definition of Done
+
+- Mission, MissionPlan, and Task aggregates own execution validation for this slice.
+- MissionExecutionService coordinates repository loading, aggregate calls, and persistence only.
+- Execution remains deterministic and provider-agnostic.
+- Unit tests cover aggregate execution, invalid transitions, dependency violations, completion rejection, service orchestration, and repository persistence.

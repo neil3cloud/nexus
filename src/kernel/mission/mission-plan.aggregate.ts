@@ -1,5 +1,9 @@
 import { MissionId } from './mission-id';
-import { MissionPlanningValidationError, TaskNotFoundError } from './mission.errors';
+import {
+  MissionExecutionValidationError,
+  MissionPlanningValidationError,
+  TaskNotFoundError,
+} from './mission.errors';
 import { MissionPlanId } from './mission-plan-id';
 import type {
   MissionPlanSnapshot,
@@ -174,6 +178,29 @@ export class MissionPlan {
     return this.requireTask(taskId).prerequisites();
   }
 
+  public assertExecutable(): void {
+    if (this.tasksById.size === 0) {
+      throw new MissionExecutionValidationError(
+        `MissionPlan '${this.missionPlanId.toString()}' has no Tasks to execute.`,
+      );
+    }
+  }
+
+  public startTask(taskId: TaskId): void {
+    const task = this.requireTask(taskId);
+
+    this.assertPrerequisitesCompleted(task);
+    task.start();
+  }
+
+  public completeTask(taskId: TaskId): void {
+    this.requireTask(taskId).complete();
+  }
+
+  public cancelTask(taskId: TaskId): void {
+    this.requireTask(taskId).cancel();
+  }
+
   public revise(input: { readonly metadata?: PlanningMetadata }, revisionMetadata: RevisionMetadata): void {
     if (input.metadata !== undefined) {
       this.metadataValue = Object.freeze({ ...input.metadata });
@@ -282,6 +309,18 @@ export class MissionPlan {
     }
 
     return task;
+  }
+
+  private assertPrerequisitesCompleted(task: Task): void {
+    for (const prerequisiteTaskId of task.prerequisites()) {
+      const prerequisiteTask = this.requireTask(prerequisiteTaskId);
+
+      if (prerequisiteTask.status !== 'Completed') {
+        throw new MissionExecutionValidationError(
+          `Task '${task.id.toString()}' cannot start because prerequisite Task '${prerequisiteTask.id.toString()}' is '${prerequisiteTask.status}'.`,
+        );
+      }
+    }
   }
 
   private recordNextRevision(metadata: RevisionMetadata): void {

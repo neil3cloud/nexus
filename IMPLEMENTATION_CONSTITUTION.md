@@ -196,6 +196,10 @@ Reviewer AI SHALL report only:
 - event contract violations
 - terminology inconsistencies
 
+Reviewer AI SHALL classify every finding in accordance with:
+
+- knowledge/implementation/review-classification.md
+
 Reviewer AI SHALL NOT redesign architecture.
 
 Reviewer AI SHALL NOT introduce new architectural requirements.
@@ -343,6 +347,7 @@ Implementation SHALL stop immediately when any of the following occurs:
 - undefined state transition
 - undefined aggregate ownership
 - contradictory documentation
+- implementation requires extending concepts owned by another RFC
 
 Implementers SHALL report the conflict rather than making assumptions.
 
@@ -352,13 +357,18 @@ Implementers SHALL report the conflict rather than making assumptions.
 
 Nexus SHALL be implemented through incremental vertical slices.
 
-Each vertical slice SHALL deliver a complete, testable increment of functionality.
+Each vertical slice SHALL deliver one complete, testable increment of functionality.
 
 A vertical slice MAY implement only a subset of one or more RFCs.
 
 Partial RFC implementation is an expected implementation state.
 
-Every implemented concept SHALL fully conform to its governing RFC.
+Every implemented concept SHALL:
+
+- fully conform to its governing RFC;
+- remain within the declared RFC Coverage of the Sprint Specification.
+
+Concepts intentionally omitted from a vertical slice SHALL be explicitly declared as deferred.
 
 Deferred concepts SHALL:
 
@@ -366,33 +376,21 @@ Deferred concepts SHALL:
 - be explicitly identified;
 - be tracked within the Implementation Manifest.
 
-Vertical slices SHALL optimize for continuous integration, continuous validation, and deterministic progress.
+Implementation sequencing SHALL NOT:
 
-Implementation sequencing SHALL NEVER redefine architectural behavior.
+- redefine architectural intent;
+- modify normative behavior;
+- redefine specification ownership.
 
----
+Vertical slices SHALL optimize for:
 
-# Vertical Slice Policy
+- continuous integration;
+- continuous validation;
+- deterministic implementation progress.
 
-Nexus SHALL be implemented through incremental vertical slices.
+Completion of a vertical slice SHALL NOT imply completion of the referenced RFC.
 
-Each vertical slice SHALL deliver a complete, testable increment of functionality.
-
-A vertical slice MAY implement only a subset of one or more RFCs.
-
-Partial RFC implementation is an expected implementation state.
-
-Every implemented concept SHALL fully conform to its governing RFC.
-
-Deferred concepts SHALL:
-
-- remain normative;
-- be explicitly identified;
-- be tracked within the Implementation Manifest.
-
-Vertical slices SHALL optimize for continuous integration, continuous validation, and deterministic progress.
-
-Implementation sequencing SHALL NEVER redefine architectural behavior.
+Completion of an RFC SHALL be determined by the cumulative implementation of all required concepts across one or more approved vertical slices.
 
 ---
 
@@ -401,14 +399,27 @@ Implementation sequencing SHALL NEVER redefine architectural behavior.
 Every implementation request SHALL explicitly declare:
 
 - Primary RFCs
+- Referenced RFCs
 - Implemented Concepts
 - Deferred Concepts
 
-Implemented concepts SHALL conform completely to the governing specification.
+Each implemented concept SHALL have exactly one normative specification owner.
 
-Deferred concepts SHALL NOT be approximated, substituted, or silently implemented.
+The owning RFC exclusively defines:
 
-RFC coverage SHALL be maintained in IMPLEMENTATION_MANIFEST.md.
+- terminology;
+- semantics;
+- invariants;
+- lifecycle;
+- normative behavior.
+
+Vertical slices SHALL implement only concepts owned by the RFCs declared in the Sprint Specification.
+
+If implementation requires extending or modifying a concept owned by an RFC outside the declared RFC Coverage, implementation SHALL stop and request human ratification.
+
+Builders SHALL NOT introduce undocumented states, events, lifecycles, enumerations, or terminology belonging to another RFC.
+
+RFC Coverage SHALL be maintained in IMPLEMENTATION_MANIFEST.md.
 
 ---
 
@@ -457,6 +468,9 @@ The following constitute architectural violations.
 - introducing undocumented events
 - renaming architectural concepts
 - violating implementation authority
+- extending terminology owned by another RFC
+- extending enumerations owned by another RFC
+- modifying another RFC's lifecycle semantics
 
 Architectural violations SHALL be corrected before implementation proceeds.
 
@@ -487,22 +501,6 @@ Amendments SHALL occur only when implementation experience demonstrates that the
 Personal preference SHALL NOT justify constitutional amendments.
 
 The burden of proof for modifying this Constitution SHALL be intentionally high.
-
----
-
-# Vertical Slice Policy
-
-Nexus SHALL be implemented through incremental vertical slices.
-
-A sprint MAY implement only a subset of an RFC provided that:
-
-- implemented concepts remain conformant;
-- omitted concepts are explicitly declared;
-- deferred concepts remain tracked in the Implementation Manifest.
-
-Partial RFC implementation SHALL NOT be interpreted as architectural inconsistency.
-
-Implementation sequencing SHALL NOT modify normative behavior.
 
 ---
 

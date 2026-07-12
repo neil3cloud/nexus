@@ -6,17 +6,20 @@ import { Mission } from './mission.aggregate';
 import {
   MissionAlreadyExistsError,
   MissionEventPublisherUnavailableError,
+  MissionExecutionValidationError,
   MissionNotFoundError,
 } from './mission.errors';
 import { MissionId } from './mission-id';
 import { MissionObjective } from './mission-objective';
 import { InMemoryMissionRepository } from './mission.repository';
-import type { IMissionRepository } from './mission.repository';
+import type { IMissionPlanRepository, IMissionRepository } from './mission.repository';
 import type { CreateMissionRequest, DomainEventMetadata } from './mission.types';
+
+type MissionServiceRepository = IMissionRepository & IMissionPlanRepository;
 
 export class MissionService extends ServiceLifecycle {
   public constructor(
-    private readonly repository: IMissionRepository = new InMemoryMissionRepository(),
+    private readonly repository: MissionServiceRepository = new InMemoryMissionRepository(),
     private readonly eventBus?: EventBusContract,
     private readonly createIdentity: () => string = randomUUID,
     private readonly createTimestamp: () => string = () => new Date().toISOString(),
@@ -82,9 +85,29 @@ export class MissionService extends ServiceLifecycle {
     missionId: MissionId | string,
     correlationId?: string,
   ): Promise<Mission> {
-    return this.updateMission(missionId, (mission, metadata) => {
-      mission.complete(metadata);
-    }, correlationId);
+    const eventBus = this.requireEventBus();
+    const normalizedMissionId =
+      typeof missionId === 'string' ? MissionId.fromString(missionId) : missionId;
+    const mission = await this.repository.getById(normalizedMissionId);
+
+    if (mission === undefined) {
+      throw new MissionNotFoundError(normalizedMissionId.toString());
+    }
+
+    const missionPlan = (await this.repository.getMissionPlansByMissionId(normalizedMissionId))[0];
+
+    if (missionPlan === undefined) {
+      throw new MissionExecutionValidationError(
+        `Mission '${normalizedMissionId.toString()}' has no MissionPlan to complete.`,
+      );
+    }
+
+    mission.complete(this.createEventMetadata(correlationId), missionPlan.tasks);
+
+    await this.repository.save(mission);
+    await this.publishRecordedEvents(mission, eventBus);
+
+    return mission;
   }
 
   public async cancelMission(missionId: MissionId | string, correlationId?: string): Promise<Mission> {

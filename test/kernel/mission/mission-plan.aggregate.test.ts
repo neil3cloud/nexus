@@ -4,6 +4,7 @@ import { MissionId } from '../../../src/kernel/mission/mission-id';
 import { MissionPlan } from '../../../src/kernel/mission/mission-plan.aggregate';
 import { MissionPlanId } from '../../../src/kernel/mission/mission-plan-id';
 import {
+  MissionExecutionValidationError,
   MissionPlanningValidationError,
   TaskNotFoundError,
 } from '../../../src/kernel/mission/mission.errors';
@@ -251,5 +252,36 @@ describe('MissionPlan aggregate', () => {
       ),
     ).toThrow(MissionPlanningValidationError);
     expect(missionPlan.toSnapshot()).toEqual(before);
+  });
+
+  it('starts Tasks only after prerequisites are completed', () => {
+    const missionPlan = createMissionPlan();
+    const firstTask = createTask('task-1');
+    const secondTask = createTask('task-2');
+
+    firstTask.markReady();
+    secondTask.markReady();
+    secondTask.addDependency(TaskDependency.fromTaskIds(secondTask.id, firstTask.id));
+    missionPlan.addTask(firstTask, revisionMetadata('Add first task'));
+    missionPlan.addTask(secondTask, revisionMetadata('Add second task'));
+
+    expect(() => missionPlan.startTask(TaskId.fromString('task-2'))).toThrow(
+      MissionExecutionValidationError,
+    );
+
+    missionPlan.startTask(TaskId.fromString('task-1'));
+    missionPlan.completeTask(TaskId.fromString('task-1'));
+    missionPlan.startTask(TaskId.fromString('task-2'));
+
+    expect(missionPlan.tasks.map((task) => ({ id: task.id, status: task.status }))).toEqual([
+      { id: 'task-1', status: 'Completed' },
+      { id: 'task-2', status: 'InProgress' },
+    ]);
+  });
+
+  it('rejects empty MissionPlan execution', () => {
+    const missionPlan = createMissionPlan();
+
+    expect(() => missionPlan.assertExecutable()).toThrow(MissionExecutionValidationError);
   });
 });

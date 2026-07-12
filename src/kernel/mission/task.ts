@@ -127,6 +127,10 @@ export class Task {
 
   public transitionTo(status: TaskStatus): void {
     if (this.statusValue === status) {
+      if (isTerminalTaskStatus(this.statusValue)) {
+        throw new TaskLifecycleTransitionError(this.statusValue, status);
+      }
+
       return;
     }
 
@@ -135,6 +139,22 @@ export class Task {
     }
 
     this.statusValue = status;
+  }
+
+  public markReady(): void {
+    this.transitionTo('Ready');
+  }
+
+  public start(): void {
+    this.transitionTo('InProgress');
+  }
+
+  public complete(): void {
+    this.transitionTo('Completed');
+  }
+
+  public cancel(): void {
+    this.transitionTo('Cancelled');
   }
 
   public addDependency(dependency: TaskDependency): void {

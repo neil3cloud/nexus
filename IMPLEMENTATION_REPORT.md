@@ -1,5 +1,105 @@
 # Nexus Implementation Report
 
+## Sprint 4 — Mission Execution
+
+### Implemented Slice
+
+Implemented deterministic Mission Execution for the RFC-0001 Mission Model vertical slice.
+
+Implemented scope:
+
+- `MissionExecutionService` for thin application orchestration over the existing repository contracts.
+- Mission aggregate execution validation for start, complete, fail, and cancel.
+- Mission completion evaluation against Task snapshots.
+- Task execution operations for start, complete, and cancel.
+- MissionPlan execution validation for executable plans and Task dependency satisfaction.
+- In-memory repository persistence of Mission status and Task execution status through existing snapshot storage.
+- Deterministic domain diagnostics for invalid transitions, dependency violations, non-executable Missions, and rejected completion.
+- Kernel service registration of `MissionExecutionService` with the shared in-memory Mission repository.
+
+Out of scope and not implemented:
+
+- Execution Strategy.
+- Builder.
+- Reviewer.
+- Governance.
+- Provider Adapters.
+- AI Providers.
+- Event Bus expansion.
+- Domain Event expansion.
+- Shared Reality.
+- Evidence.
+- Knowledge.
+- Scheduling.
+- Parallel Execution.
+- Critical Path Analysis.
+- Automatic Planning.
+- Mission pause and resume.
+- Task execution failure states.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0001 — Mission Model.
+
+Implemented Concepts:
+
+- Mission execution use cases.
+- Task execution lifecycle.
+- Mission completion evaluation.
+- Execution validation.
+
+Deferred Concepts:
+
+- Execution Strategy and roles.
+- Execution Policies.
+- Provider Coordination.
+- Provider/adapter execution.
+- Task execution failure states deferred to RFC-0004.
+- Review Engine.
+- Shared Reality, Evidence, and Knowledge.
+- Scheduling, parallel execution, and critical path analysis.
+- Mission pause and resume pending RFC amendment candidate review.
+
+### Architectural Assumptions
+
+- MissionExecutionService coordinates aggregate loading, aggregate method calls, and persistence only; business rules remain inside Mission, MissionPlan, and Task.
+- Mission completion requires the RFC-0001 lifecycle to permit completion and requires every Task in the MissionPlan to be `Completed`.
+- Task dependency satisfaction is owned by MissionPlan because MissionPlan owns the Task Graph.
+- Task lifecycle validation is owned by Task, including terminal-state immutability.
+
+### Limitations
+
+- Repository persistence remains in-memory and process-local.
+- Task execution operations do not publish Task-level events or invoke providers.
+- Mission completion requires the Mission to be in the RFC-0001 completion-permitted lifecycle state; this sprint does not implement a Review Engine or reinterpret review semantics.
+- Mission pause/resume remains unimplemented because the current RFC lifecycle does not define a `Paused` state transition.
+- Task execution failure states are deferred to RFC-0004.
+
+### Test Summary
+
+- Full validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 10 files, 82 tests.
+
+### Deviations
+
+- The Task-level failure state introduced during Sprint 4 was withdrawn per Sprint Owner ratification on 2026-07-12.
+- Task execution states beyond start, completion, and cancellation remain deferred to RFC-0004.
+
+### Process Deviations
+
+- Sprint 4 was implemented without a sprint specification conforming to `knowledge/implementation/sprint-template.md`.
+- Sprint 4 implementation proceeded outside the executable scope of the governing Builder Task document.
+- Sprint 4 RFC coverage was re-scoped from RFC-0004 to RFC-0001 (Partial) concurrently with implementation; the Sprint Owner ratified this re-scope on 2026-07-12.
+- The Sprint Owner ratified the RFC-0001 (Partial) re-scope and authorized the retroactive Sprint 4 specification on 2026-07-12, resolving the pending TASK-006 reference.
+
+### Ratification
+
+- Sprint Owner ratification recorded 2026-07-12: Sprint 4 is an RFC-0001 Mission Model (Partial) slice and does not implement RFC-0004.
+
+---
+
 ## Sprint 3 — Mission Planning Review Remediation
 
 ### Implemented Slice

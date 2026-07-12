@@ -14,6 +14,7 @@ import { MissionObjective } from '../../../src/kernel/mission/mission-objective'
 import { MissionPlanId } from '../../../src/kernel/mission/mission-plan-id';
 import { MissionPlanningService } from '../../../src/kernel/mission/mission-planning.service';
 import { InMemoryMissionRepository } from '../../../src/kernel/mission/mission.repository';
+import type { TaskSnapshot } from '../../../src/kernel/mission/mission-planning.types';
 import type { DomainEventMetadata } from '../../../src/kernel/mission/mission.types';
 
 const timestamp = '2026-07-12T00:00:00.000Z';
@@ -39,7 +40,19 @@ function completeMission(mission: Mission): void {
   mission.markReady(metadata('event-ready'));
   mission.start(metadata('event-started'));
   mission.review(metadata('event-reviewed'));
-  mission.complete(metadata('event-completed'));
+  mission.complete(metadata('event-completed'), [taskSnapshot('task-1', 'Completed')]);
+}
+
+function taskSnapshot(id: string, status: TaskSnapshot['status']): TaskSnapshot {
+  return {
+    id,
+    title: `Task ${id}`,
+    description: `Description for ${id}`,
+    status,
+    parentMissionPlanId: 'plan-1',
+    dependencies: [],
+    metadata: {},
+  };
 }
 
 function sequence(values: readonly string[]): () => string {

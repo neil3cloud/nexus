@@ -11,9 +11,11 @@ export type {
   TaskStatus,
   UpdateTaskRequest,
 } from './mission-planning.types';
+export type { MissionExecutionRequest, TaskExecutionRequest } from './mission-execution.types';
 export type { CreateMissionRequest, MissionSnapshot, MissionStatus } from './mission.types';
 export { Mission } from './mission.aggregate';
 export { MissionId } from './mission-id';
+export { MissionExecutionService } from './mission-execution.service';
 export { MissionPlan } from './mission-plan.aggregate';
 export { MissionPlanId } from './mission-plan-id';
 export { MissionPlanningService } from './mission-planning.service';

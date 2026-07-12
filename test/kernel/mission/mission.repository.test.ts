@@ -150,4 +150,26 @@ describe('InMemoryMissionRepository', () => {
     expect(retrievedAgain?.tasks).toEqual([]);
     expect(retrievedAgain?.revisionNumber).toBe(1);
   });
+
+  it('persists Task execution state updates in MissionPlan snapshots', async () => {
+    const repository = new InMemoryMissionRepository();
+    const missionPlan = createMissionPlan('plan-1', 'mission-1');
+    const task = Task.create({
+      id: TaskId.fromString('task-1'),
+      title: 'Execute task',
+      description: 'Persist execution state',
+      parentMissionPlanId: missionPlan.id,
+    });
+
+    task.markReady();
+    missionPlan.addTask(task, revisionMetadata('Add executable task'));
+    missionPlan.startTask(task.id);
+    missionPlan.completeTask(task.id);
+
+    await repository.saveMissionPlan(missionPlan);
+
+    const retrieved = await repository.getMissionPlanById(missionPlan.id);
+
+    expect(retrieved?.tasks[0]?.status).toBe('Completed');
+  });
 });

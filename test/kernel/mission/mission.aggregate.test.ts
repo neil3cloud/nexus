@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { Mission } from '../../../src/kernel/mission/mission.aggregate';
-import { MissionLifecycleTransitionError } from '../../../src/kernel/mission/mission.errors';
+import {
+  MissionCompletionRejectedError,
+  MissionLifecycleTransitionError,
+} from '../../../src/kernel/mission/mission.errors';
 import { missionEventTypes } from '../../../src/kernel/mission/mission.events';
 import { MissionId } from '../../../src/kernel/mission/mission-id';
 import { MissionObjective } from '../../../src/kernel/mission/mission-objective';
 import type { DomainEventMetadata } from '../../../src/kernel/mission/mission.types';
+import type { TaskSnapshot } from '../../../src/kernel/mission/mission-planning.types';
 
 const timestamp = '2026-07-12T00:00:00.000Z';
 
@@ -22,6 +26,18 @@ function createMission(): Mission {
     MissionObjective.fromString('Implement Mission Foundation'),
     metadata('event-created'),
   );
+}
+
+function taskSnapshot(id: string, status: TaskSnapshot['status']): TaskSnapshot {
+  return {
+    id,
+    title: `Task ${id}`,
+    description: `Description for ${id}`,
+    status,
+    parentMissionPlanId: 'plan-1',
+    dependencies: [],
+    metadata: {},
+  };
 }
 
 describe('Mission aggregate', () => {
@@ -97,7 +113,7 @@ describe('Mission aggregate', () => {
     mission.markReady(metadata('event-ready'));
     mission.start(metadata('event-started'));
     mission.review(metadata('event-reviewed'));
-    mission.complete(metadata('event-completed'));
+    mission.complete(metadata('event-completed'), [taskSnapshot('task-1', 'Completed')]);
 
     expect(mission.status).toBe('Completed');
     expect(
@@ -133,6 +149,34 @@ describe('Mission aggregate', () => {
         causality: ['event-reviewed'],
       },
     ]);
+  });
+
+  it('rejects Mission completion while Tasks are active, cancelled, or absent', () => {
+    const activeTaskMission = createMission();
+    const cancelledTaskMission = createMission();
+    const emptyMission = createMission();
+
+    for (const mission of [activeTaskMission, cancelledTaskMission, emptyMission]) {
+      mission.pullDomainEvents();
+      mission.plan(metadata(`event-planned-${mission.status}`));
+      mission.markReady(metadata(`event-ready-${mission.status}`));
+      mission.start(metadata(`event-started-${mission.status}`));
+      mission.review(metadata(`event-reviewed-${mission.status}`));
+    }
+
+    expect(() =>
+      activeTaskMission.complete(metadata('event-completed'), [
+        taskSnapshot('task-1', 'InProgress'),
+      ]),
+    ).toThrow(MissionCompletionRejectedError);
+    expect(() =>
+      cancelledTaskMission.complete(metadata('event-completed'), [
+        taskSnapshot('task-1', 'Cancelled'),
+      ]),
+    ).toThrow(MissionCompletionRejectedError);
+    expect(() => emptyMission.complete(metadata('event-completed'), [])).toThrow(
+      MissionCompletionRejectedError,
+    );
   });
 
   it('preserves latest event causality after rehydrating from a snapshot', () => {
@@ -190,8 +234,8 @@ describe('Mission aggregate', () => {
   it('rejects lifecycle transitions not defined by RFC-0001', () => {
     const mission = createMission();
 
-    expect(() => mission.complete(metadata('event-completed'))).toThrow(
-      MissionLifecycleTransitionError,
+    expect(() => mission.complete(metadata('event-completed'), [])).toThrow(
+      MissionCompletionRejectedError,
     );
     expect(mission.status).toBe('Draft');
   });
