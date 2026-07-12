@@ -1,5 +1,124 @@
 # Nexus Implementation Report
 
+## Sprint 12 — Knowledge Foundation
+
+### Implemented Slice
+
+Implemented the RFC-0007 Knowledge Foundation vertical slice under the `Knowledge` implementation vocabulary ratified by NEXUS-RAT-2026-07-13-003.
+
+Implemented scope:
+
+- `Knowledge` aggregate with immutable `KnowledgeId`, Mission and Mission Plan Revision attribution, summary, `KnowledgeScope`, `KnowledgeStatus`, supporting Evidence references, supporting Review reference, contributing Domain Event references, approving authority, provenance, and append-only revision history.
+- `KnowledgeId`, `KnowledgeStatus`, `KnowledgeScope`, `KnowledgeAttribution`, and `KnowledgeProvenance` value objects.
+- `KnowledgeStatus` lifecycle: `Candidate → Approved → Active → Superseded → Archived`; `Archived` is terminal.
+- Aggregate-owned Knowledge capture precondition validation: supporting Review exists; supporting Review is `Completed`; supporting Review outcome is `Accepted` or `Accepted With Observations`; supporting Evidence exists; originating Mission is `Completed`; approval metadata is present.
+- Memory Evolution through `Knowledge.revise`, producing new immutable Knowledge instances with preserved identity, attribution, provenance, and prior revisions.
+- `IKnowledgeRepository` and `InMemoryKnowledgeRepository` process-local snapshot persistence.
+- `KnowledgeService` thin orchestration for capture, revision, retrieval, and enumeration using constructor-injected repository contracts.
+- Kernel service composition updated so `KnowledgeService` receives the Knowledge repository plus the shared Mission, Evidence, and Review repositories.
+- Reference-document corrections authorized by NEXUS-RAT-2026-07-13-003.
+
+Out of scope and not implemented:
+
+- Knowledge event publication.
+- Reconciliation of the three existing Knowledge/Memory event-name sets.
+- Event subscriptions, consumers, handlers, or event-driven Knowledge workflows.
+- Context Assembly consumption of Knowledge.
+- Policy-driven capture criteria beyond the five deterministic capture preconditions.
+- Human Authority approval workflow automation beyond recording `approvingAuthority`.
+- Adapter invocation or AI Provider integration.
+- Search, indexing, durable persistence, or multi-source Knowledge synthesis.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0007 — Knowledge Model (Partial).
+
+Referenced RFCs:
+
+- RFC-0002 — Evidence Model (Referenced; supporting Evidence lineage).
+- RFC-0006 — Engineering Assessment Model (Referenced; supporting accepted Review outcome).
+- RFC-0001 — Mission Model (Referenced; Mission and Mission Plan Revision attribution and completed Mission state).
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-003 — ratifies `Knowledge` as the canonical implementation-layer vocabulary for RFC-0007 Engineering Memory and authorizes the Sprint 12 reference-document corrections.
+
+Implemented Concepts:
+
+- Knowledge aggregate.
+- Knowledge identity.
+- Knowledge status lifecycle.
+- Knowledge scope.
+- Knowledge provenance.
+- Knowledge attribution.
+- Knowledge capture.
+- Knowledge revision/evolution.
+- Knowledge repository contract and in-memory repository.
+- Knowledge service orchestration.
+
+Deferred Concepts:
+
+- Knowledge event publication and event-name reconciliation.
+- Event subscriptions and consumers.
+- Context Assembly consumption.
+- Governance/policy-driven capture criteria.
+- Human approval workflow automation.
+- Adapter/AI Provider integration.
+- Search, indexing, durable persistence, and multi-source synthesis.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0007-knowledge-model.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/reference/domain-schema.md`.
+- `knowledge/reference/kernel-data-model.md`.
+- `knowledge/reference/interface-contracts/knowledge-service-contract.md`.
+- `knowledge/reference/service-catalog/knowledge-service.md`.
+- `knowledge/reference/kernel-event-catalog.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-13-003.
+- `knowledge/implementation/sprints/sprint-0012-knowledge-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `KnowledgeService` retrieves Mission, Evidence, and Review aggregate state from existing repositories and passes that context into `Knowledge.capture`; capture precondition decisions remain aggregate-owned.
+- Required Mission work completion is represented by the existing Sprint 4 Mission lifecycle state `Completed`; no new Mission or Task concept is introduced.
+- `contributingEventIds` are recorded as attribution data only; no Knowledge event publication or event consumption is introduced.
+- Revisions preserve the original Knowledge attribution and provenance for this foundation slice.
+
+### Limitations
+
+- Repository persistence remains in-memory and process-local.
+- Knowledge lifecycle transitions and revisions publish no events and are observable only through direct service calls or repository retrieval.
+- `KnowledgeService` does not subscribe to Review events or approval events.
+- Knowledge models one supporting Review per item.
+- Approval authority is recorded as data only; no approval command, workflow, role check, or UI is implemented.
+- Search, indexing, durable persistence, Context Assembly consumption, Adapter integration, and AI Provider integration remain deferred.
+
+### Test Summary
+
+- Targeted Knowledge tests passed: 4 files, 19 tests.
+- TypeScript compile passed.
+- ESLint passed.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 32 files, 182 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 11 — Domain Event Publication (Evidence, Review)
 
 ### Implemented Slice

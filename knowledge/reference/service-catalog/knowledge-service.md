@@ -6,9 +6,9 @@
 
 ## Interfaces
 
-- Memory capture interface
-- Memory revision interface
-- Memory retrieval interface
+- Knowledge capture interface
+- Knowledge revision interface
+- Knowledge retrieval interface
 
 ## Responsibilities
 

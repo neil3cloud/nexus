@@ -525,3 +525,55 @@ Definition of Done
 - Unit tests cover event recording, pullDomainEvents(), and service-level publication including outcome-conditional Review event selection.
 
 See `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 12 — Knowledge Foundation
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-006; documentation finding closed by NEXUS-REV-2026-07-13-007)
+
+Objective
+
+Establish the Knowledge domain foundation — RFC-0007's Engineering Memory, under the ratified `Knowledge` implementation vocabulary (NEXUS-RAT-2026-07-13-003) — as the Kernel's persistent, curated engineering understanding retained from accepted outcomes.
+
+RFC Coverage
+
+- RFC-0007 — Knowledge Model (Partial)
+- RFC-0002 — Evidence Model (Referenced)
+- RFC-0006 — Engineering Assessment Model (Referenced)
+- RFC-0001 — Mission Model (Referenced)
+
+Ratification
+
+- NEXUS-RAT-2026-07-13-003 — ratifies `Knowledge` as the canonical implementation-layer vocabulary for RFC-0007's Engineering Memory (`Knowledge`, `KnowledgeId`, `KnowledgeStatus`, `KnowledgeScope`, `KnowledgeProvenance`, `KnowledgeAttribution`), authorizes corrections to `kernel-data-model.md` and `knowledge-service-contract.md`, and defers Knowledge event publication and the three-way event-name reconciliation to a future sprint. RFC-0007, RFC-0006, and the Kernel Canon are unmodified.
+
+Authorized Concepts
+
+- `Knowledge` aggregate — immutable `KnowledgeId`, `missionId`, `missionPlanRevisionId`, `summary`, `KnowledgeScope`, `KnowledgeStatus` lifecycle, `supportingEvidenceIds`, `supportingReviewId`, `approvingAuthority`, revision history.
+- `KnowledgeStatus` lifecycle: `Candidate → Approved → Active → Superseded → Archived`.
+- `KnowledgeProvenance` and `KnowledgeAttribution` value objects.
+- Memory Capture (`KnowledgeService.captureKnowledge`) and Memory Evolution (`KnowledgeService.reviseKnowledge`), with capture preconditions and revisioning rules owned by the `Knowledge` aggregate and its value objects, not by `KnowledgeService`.
+- `IKnowledgeRepository` contract and `InMemoryKnowledgeRepository`.
+- `KnowledgeService` thin orchestration for capture, revision, retrieval, and enumeration through constructor injection.
+- Documentation corrections authorized by NEXUS-RAT-2026-07-13-003.
+
+Deferred Concepts
+
+- Knowledge event publication and the three-way Knowledge/Memory event-name reconciliation (deferred to a future Knowledge Event Publication sprint)
+- Event subscriptions/consumers
+- Context Assembly consumption of Knowledge
+- Governance / policy-driven capture criteria
+- Human Authority approval workflow automation beyond recording `approvingAuthority` as data
+- Adapter/AI Provider integration
+- Search, indexing, durable persistence
+
+Definition of Done
+
+- `Knowledge` remains immutable; revisions are append-only, preserving `KnowledgeId`, attribution, provenance, and revision history.
+- Knowledge capture is rejected unless: a supporting Review exists; that Review has reached a terminal accepted state; supporting Evidence exists; required Mission work has completed; required approval metadata is present.
+- `KnowledgeService` remains a thin application service; business rules remain within the `Knowledge` aggregate and its value objects.
+- `KnowledgeStatus` transitions match the ratified lifecycle.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover aggregate behavior, lifecycle transitions, value objects, repository behavior, and service orchestration.
+
+See `knowledge/implementation/sprints/sprint-0012-knowledge-foundation.md` for the complete Sprint Implementation Record.

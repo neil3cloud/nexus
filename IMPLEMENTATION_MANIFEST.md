@@ -532,6 +532,46 @@ Notes:
 
 ---
 
+## Sprint 12 — Knowledge Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0007 — Knowledge Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-003 — ratifies `Knowledge` as the canonical implementation-layer vocabulary for RFC-0007's Engineering Memory domain (`Knowledge` aggregate, `KnowledgeId`, `KnowledgeStatus` [`Candidate → Approved → Active → Superseded → Archived`], `KnowledgeScope`, `KnowledgeProvenance`, `KnowledgeAttribution`). RFC-0007 is unmodified and remains the sole normative owner of Engineering Memory semantics. Authorizes corrections to `kernel-data-model.md` (adding `status`, `missionPlanRevisionId`, `supportingReviewId`, `contributingEventIds`, `approvingAuthority` to the Knowledge model) and `knowledge-service-contract.md` (`supportingAssessment` → `supportingReview`). Defers Knowledge event publication and the three existing inconsistent Knowledge/Memory event-name sets to a future Knowledge Event Publication sprint.
+
+Implemented Concepts (Implemented — Pending Reviewer Validation):
+
+- `Knowledge` aggregate with immutable `KnowledgeId`, `missionId`, `missionPlanRevisionId`, `summary`, `KnowledgeScope`, `KnowledgeStatus` lifecycle, `supportingEvidenceIds`, `supportingReviewId`, `approvingAuthority`, and append-only revision history preserving identity, attribution, and provenance.
+- `KnowledgeStatus` lifecycle value object: `Candidate → Approved → Active → Superseded → Archived`.
+- `KnowledgeProvenance` and `KnowledgeAttribution` value objects (Evidence lineage, Review lineage, Mission lineage, approval lineage).
+- Memory Capture (`KnowledgeService.captureKnowledge`) rejecting capture unless a supporting Review exists, has reached a terminal accepted state, supporting Evidence exists, required Mission work has completed, and required approval metadata is present — validation owned by the `Knowledge` aggregate and its value objects.
+- Memory Evolution (`KnowledgeService.reviseKnowledge`) producing append-only revisions.
+- `IKnowledgeRepository` contract and `InMemoryKnowledgeRepository` process-local persistence.
+- `KnowledgeService` thin orchestration through constructor-injected repository contracts.
+
+Deferred Concepts:
+
+- Knowledge event publication and reconciliation of the three existing Knowledge/Memory event-name sets (`kernel-event-catalog.md`, `knowledge-service.md`, RFC-0007 Memory Lifecycle).
+- Event subscriptions/consumers.
+- Context Assembly consumption of Knowledge.
+- Governance / policy-driven capture criteria.
+- Human Authority approval workflow automation beyond recording `approvingAuthority` as data.
+- Adapter/AI Provider integration.
+- Search, indexing, durable persistence.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0012-knowledge-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0007, RFC-0006, RFC-0002, RFC-0001, or the Kernel Canon.
+- `KnowledgeService` SHALL remain a thin application service; business rules SHALL remain within the `Knowledge` aggregate and its value objects, per Sprint Owner direction.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

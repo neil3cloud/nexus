@@ -1,5 +1,114 @@
 ﻿# Nexus Review History
 
+## NEXUS-REV-2026-07-13-007 — Sprint 12 — Knowledge Foundation (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 12 — Knowledge Foundation
+- **Reviewed Vertical Slice:** Remediation of NEXUS-REV-2026-07-13-006-F-001 per `builder-task.md` TASK-001
+- **RFC Coverage:** RFC-0007 — Knowledge Model (Partial); documentation layer only
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 is correctly executed within its authorized documentation-only scope. `knowledge/governance/RATIFICATION_LEDGER.md`'s NEXUS-RAT-2026-07-13-003 entry now carries a "Factual Addendum — 2026-07-13" that records, without reinterpreting or modifying the original ratification text, that the Sprint 12 `knowledge-service-contract.md` correction's operation/identity-name renames were pure `Knowledge`-vocabulary harmonization and that its additional Command/Query Shape fields (`missionPlanRevisionId`, `contributingEventIds`, `approvingAuthority`) match fields the same ratification separately authorized for `kernel-data-model.md`. The addendum explicitly states it "does not reinterpret, supersede, withdraw, or otherwise modify NEXUS-RAT-2026-07-13-003," consistent with the Ratification Ledger's immutability rule. `git status`/`git diff --stat` confirm no source or test file was touched by this remediation — only the Ledger, and the governance-artifact status fields (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`) already reflecting Sprint 12. `knowledge-service-contract.md` itself was correctly left unmodified, matching TASK-001's Acceptance Criteria. Independent re-validation confirms no regression: TypeScript compiles cleanly, ESLint is clean, and Vitest passes 32 files / 182 tests, matching the figures certified in NEXUS-REV-2026-07-13-006. **No architectural violations detected.** The Sprint 12 review cycle is complete with no open findings.
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-13-006-F-001, Minor) — RESOLVED.** The Ratification Ledger's NEXUS-RAT-2026-07-13-003 entry now carries a factual addendum recording the implementation basis for the broader `knowledge-service-contract.md` correction; no ratification text was altered or reinterpreted; no code or reference-document content was further changed.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (TASK-001 of NEXUS-REV-2026-07-13-006) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 32 files / 182 tests |
+
+### Deferred Concept Validation
+
+Unchanged; the remediation was documentation-only. All Sprint 12 deferred concepts remain tracked and unimplemented.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 12 baseline (NEXUS-REV-2026-07-13-006) is otherwise unchanged. The documentation-precision gap identified in NEXUS-REV-2026-07-13-006-F-001 is now closed via a properly non-reinterpretive Ledger addendum, closing the sole open finding from the Sprint 12 review.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0012-knowledge-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition updated to reflect remediation closure.
+- IMPLEMENTATION_PLAN.md — Sprint 12 status set to **Approved** (NEXUS-REV-2026-07-13-007). No Sprint 13 exists in the Implementation Plan to advance to Current (Sprint Owner action required).
+- `builder-task.md` — TASK-001 marked Completed; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. The Sprint 12 review cycle is complete. Next steps are Sprint Owner actions: plan Sprint 13 under the specification-first workflow.
+
+---
+
+## NEXUS-REV-2026-07-13-006 — Sprint 12 — Knowledge Foundation
+
+- **Reviewed Sprint:** Sprint 12 — Knowledge Foundation
+- **Reviewed Vertical Slice:** `Knowledge` aggregate, `KnowledgeId`/`KnowledgeStatus`/`KnowledgeScope`/`KnowledgeAttribution`/`KnowledgeProvenance` value objects, aggregate-owned Memory Capture preconditions and Memory Evolution, `IKnowledgeRepository`/`InMemoryKnowledgeRepository`, thin `KnowledgeService` orchestration, and the NEXUS-RAT-2026-07-13-003-authorized reference-document corrections.
+- **RFC Coverage:** RFC-0007 — Knowledge Model (Partial); RFC-0002, RFC-0006, RFC-0001 (Referenced)
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 12 implements the Knowledge Foundation slice faithfully against the Sprint 12 Implementation Record and NEXUS-RAT-2026-07-13-003, including the three Sprint Owner refinements from the planning approval. `Knowledge` (`src/kernel/knowledge/knowledge.aggregate.ts`) is a genuinely immutable aggregate — every mutating operation (`revise`, `approve`, `activate`, `supersede`, `archive`) returns a new frozen `Knowledge` instance via a private `withState` helper rather than mutating in place, and revisions are strictly append-only (`revise` appends to `revisionValues`, never replaces prior entries, and rejects revision of an `Archived` item with `KnowledgeRevisionRejectedError`). `KnowledgeStatus.canTransitionTo` enforces the exact ratified lifecycle (`Candidate → Approved → Active → Superseded → Archived`, single-step-forward only, `Archived` terminal). All five Memory Capture preconditions the Sprint Owner specified are enforced inside `Knowledge.capture`'s private `assertCapturePreconditions` — supporting Review exists and matches attribution, the Review is `Completed` with an accepted-type `ReviewOutcome`, every `supportingEvidenceIds` entry resolves against the supplied Evidence context, the originating Mission is `Completed`, and `approvingAuthority` is non-empty — each independently tested in `test/kernel/knowledge/knowledge.aggregate.test.ts`. `KnowledgeService` (`src/kernel/knowledge/knowledge.service.ts`) is correctly thin: it only resolves Review/Evidence/Mission context from injected repositories and calls `Knowledge.capture`/`Knowledge.revise`/repository methods — no precondition or lifecycle logic lives in the service, satisfying the Sprint Owner's explicit "thin application service" requirement. `git diff --stat` confirms zero changes to `EvidenceService`, `ReviewService`, `MissionService`, `ExecutionStrategyService`, or any Sprint 1–11 domain event file — the slice is correctly confined to the Knowledge domain, Kernel wiring (`create-kernel-services.ts`), and the NEXUS-RAT-2026-07-13-003-authorized reference documents. `domain-schema.md`, RFC-0007, RFC-0006, RFC-0002, RFC-0001, and the Kernel Canon are all confirmed untouched. No event publication, subscription, or consumer was introduced, matching the ratification's explicit deferral. Independent re-validation confirms the record's claims: TypeScript compiles cleanly, ESLint is clean, `esbuild` builds successfully, and Vitest passes 32 files / 182 tests.
+
+One Minor finding is raised, non-blocking. **F-001**: the corrections applied to `knowledge/reference/interface-contracts/knowledge-service-contract.md` go beyond NEXUS-RAT-2026-07-13-003's Authorized Builder Scope bullet for that specific file (which names only the `supportingAssessment` → `supportingReview` rename) — the Builder also renamed the three interface operations and `memoryId`, and added `missionPlanRevisionId`/`contributingEventIds`/`approvingAuthority` to the Command/Query Shape list. Every addition matches fields the same ratification explicitly authorized elsewhere (the `kernel-data-model.md` Knowledge field additions), and the renames are pure `Knowledge` vocabulary harmonization that the ratification's third, more general Authorized Builder Scope bullet ("update implementation-layer reference documentation to consistently use the ratified Knowledge vocabulary") plausibly covers — so this reads as a reasonable, self-consistent interpretation rather than a scope overreach with any semantic or architectural consequence. It is recorded for precision, not because it caused any defect.
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-006-F-001 — knowledge-service-contract.md corrections exceed the literal per-file Authorized Builder Scope wording
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-003 (Authorized Builder Scope, bullets 1–3)
+- **Evidence:** `knowledge/reference/interface-contracts/knowledge-service-contract.md` diff — beyond `supportingAssessment` → `supportingReview` (the only change the ratification's per-file bullet names), also renames `captureMemory`/`reviseMemory`/`queryMemory` → `captureKnowledge`/`reviseKnowledge`/`queryKnowledge`, `memoryId` → `knowledgeId`, and adds `missionPlanRevisionId`, `contributingEventIds`, `approvingAuthority` to the Command/Query Shape list.
+- **Impact:** None functionally — every added field already appears in the ratification's `kernel-data-model.md` authorization, and the renames are exactly the "Knowledge" vocabulary the ratification's Governance Decision establishes. This is a documentation-precision note, not a defect.
+- **Recommended Disposition:** Documentation Task — add a brief addendum to the NEXUS-RAT-2026-07-13-003 ledger entry (or the Sprint 12 record) noting that the `knowledge-service-contract.md` correction was interpreted under the ratification's general vocabulary-consistency bullet rather than solely its narrower per-file bullet, for future audit clarity.
+- **Builder Action:** Documentation Task.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | N/A (first review of this sprint) |
+| New findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `esbuild` build, Vitest 32 files / 182 tests, matching IMPLEMENTATION_REPORT.md and the Sprint 12 record |
+
+### Deferred Concept Validation
+
+All Sprint 12 declared deferred concepts remain correctly unimplemented and unapproximated: Knowledge event publication and the three-way Knowledge/Memory event-name reconciliation; event subscriptions/consumers (no `.subscribe(` call added anywhere in `src`, and `knowledge-service.md`'s described "Subscribes to ReviewAccepted..." design is confirmed left untouched, not implemented); Context Assembly consumption; governance/policy-driven capture criteria beyond the five deterministic preconditions; Human Authority approval workflow automation beyond recording `approvingAuthority` as data; Adapter/AI Provider integration; search, indexing, and durable persistence.
+
+### Architectural Compliance Summary
+
+Aggregate ownership, immutability, and the Sprint Owner's thin-service directive are all preserved. `KnowledgeStatus` transitions match the ratified lifecycle exactly; no undocumented state or transition was introduced. Terminology matches NEXUS-RAT-2026-07-13-003 throughout the implementation and the (correctly scoped) documentation corrections. **No architectural violations detected.** The single Minor finding is a documentation-scope precision note with no semantic, behavioral, or architectural consequence.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0012-knowledge-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed below.
+- IMPLEMENTATION_PLAN.md — Sprint 12 status set to **Approved with Findings** (NEXUS-REV-2026-07-13-006). No Sprint 13 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+
+### Builder Task Recommendation
+
+One Documentation Task is recommended for generation through the `nexus-sprint` workflow, tracing to F-001 above. It requires no Sprint Owner decision.
+
+---
+
 ## NEXUS-REV-2026-07-13-005 — Sprint 11 — Domain Event Publication (Evidence, Review) (Documentation Remediation Review)
 
 - **Reviewed Sprint:** Sprint 11 — Domain Event Publication (Evidence, Review)

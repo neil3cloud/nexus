@@ -6,25 +6,28 @@
 
 ## Purpose
 
-Define capture and evolution of accepted engineering memory.
+Define capture and evolution of accepted Knowledge.
 
 ## Interface
 
-- captureMemory(command)
-- reviseMemory(command)
-- queryMemory(query)
+- captureKnowledge(command)
+- reviseKnowledge(command)
+- queryKnowledge(query)
 
 ## Command/Query Shape
 
-- memoryId
+- knowledgeId
 - originatingMissionId
+- missionPlanRevisionId
 - supportingEvidence
-- supportingAssessment
-- scope
+- supportingReview
+- contributingEventIds
+- approvingAuthority
+- knowledgeScope
 - revisionMetadata
 
 ## Guarantees
 
-- Memory originates only from accepted outcomes.
-- Memory evolution is revisioned and attributable.
+- Knowledge originates only from accepted outcomes.
+- Knowledge evolution is revisioned and attributable.
 - Provenance is preserved across revisions.

@@ -326,13 +326,18 @@ All Aggregate Roots and Entities derive from Base Entity.
 
 ## Knowledge
 
-| Field               | Type         |
-| ------------------- | ------------ |
-| id                  | Identifier   |
-| missionId           | Identifier   |
-| summary             | String       |
-| acceptedEvidenceIds | Identifier[] |
-| createdAt           | Timestamp    |
+| Field                | Type            |
+| -------------------- | --------------- |
+| id                   | Identifier      |
+| missionId            | Identifier      |
+| missionPlanRevisionId | Identifier     |
+| summary              | String          |
+| scope                | KnowledgeScope  |
+| status               | KnowledgeStatus |
+| supportingEvidenceIds | Identifier[]   |
+| supportingReviewId   | Identifier      |
+| contributingEventIds | Identifier[]    |
+| approvingAuthority   | String          |
 
 ---
 

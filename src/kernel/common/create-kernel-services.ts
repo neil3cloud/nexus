@@ -10,6 +10,7 @@ import { ExecutionService } from '../execution/execution.service';
 import { InMemoryRoleAssignmentRepository } from '../execution/role-assignment.repository';
 import { InMemoryRoleRegistry } from '../execution/role-registry';
 import { RoleService } from '../execution/role.service';
+import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
 import { MissionPlanningService } from '../mission/mission-planning.service';
@@ -25,6 +26,7 @@ export function createKernelServices(eventBus: EventBusContract): readonly IKern
   const missionRepository = new InMemoryMissionRepository();
   const evidenceRepository = new InMemoryEvidenceRepository();
   const reviewRepository = new InMemoryReviewRepository();
+  const knowledgeRepository = new InMemoryKnowledgeRepository();
   const roleRegistry = new InMemoryRoleRegistry();
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
@@ -44,6 +46,6 @@ export function createKernelServices(eventBus: EventBusContract): readonly IKern
     ),
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),
-    new KnowledgeService(),
+    new KnowledgeService(knowledgeRepository, reviewRepository, evidenceRepository, missionRepository),
   ];
 }
