@@ -1,4 +1,5 @@
 import type { EventBusContract } from './event-bus-contract';
+import { InMemoryEvidenceRepository } from '../evidence/evidence.repository';
 import { EvidenceService } from '../evidence/evidence.service';
 import { ExecutionService } from '../execution/execution.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
@@ -12,12 +13,13 @@ import type { IKernelService } from './kernel-service';
 
 export function createKernelServices(eventBus: EventBusContract): readonly IKernelService[] {
   const missionRepository = new InMemoryMissionRepository();
+  const evidenceRepository = new InMemoryEvidenceRepository();
 
   return [
     new MissionService(missionRepository, eventBus),
     new MissionPlanningService(missionRepository),
     new MissionExecutionService(missionRepository, eventBus),
-    new EvidenceService(),
+    new EvidenceService(evidenceRepository),
     new SharedRealityService(),
     new ExecutionService(),
     new ReviewService(),

@@ -104,18 +104,17 @@ Before implementing any request, read the governing documents in the following o
 2. IMPLEMENTATION_PLAN.md
 3. IMPLEMENTATION_MANIFEST.md
 4. IMPLEMENTATION_GATE.md
-5. Relevant Sprint Specification
-6. Relevant Kernel Canon
-7. Relevant RFC(s)
-8. knowledge/implementation/sprint-template.md (reference structure)
-9. knowledge/implementation/implementation-technology-standard.md
-10. knowledge/implementation/implementation-conventions.md
+5. Relevant Kernel Canon
+6. Relevant RFC(s)
+7. knowledge/implementation/sprint-template.md (Sprint Implementation Record template)
+8. knowledge/implementation/implementation-technology-standard.md
+9. knowledge/implementation/implementation-conventions.md
 
-Read the Sprint Specification.
+IMPLEMENTATION_PLAN.md and IMPLEMENTATION_MANIFEST.md define the implementation scope.
 
-If no sprint specification exists, use
-knowledge/implementation/sprint-template.md
-as the canonical format.
+The Sprint Implementation Record is produced by the Builder after implementation.
+
+The Builder SHALL NOT infer implementation scope from the Sprint Implementation Record.
 
 Higher-authority documents always prevail.
 
@@ -211,16 +210,34 @@ Every implementation SHALL include tests for:
 
 ## Step 6 — Update Repository Progress
 
-Update only:
+Update:
 
 - IMPLEMENTATION_PLAN.md
+- IMPLEMENTATION_MANIFEST.md
 - IMPLEMENTATION_REPORT.md
+- knowledge/implementation/sprints/sprint-{{NUMBER}}-{{NAME}}.md
 
-Do NOT update:
+The Builder SHALL update the current sprint status in IMPLEMENTATION_PLAN.md to:
+
+**Implemented — Pending Reviewer Validation**
+
+The Sprint Implementation Record SHALL accurately describe the completed vertical slice.
+
+The Builder SHALL NOT modify:
 
 - REVIEW_HISTORY.md
+- Sprint Reviewer Notes
+- Sprint Final Disposition
+- Sprint approval status
+- Work Order status
+- Builder Task status
+- Review Finding status
+- RFCs
+- Kernel Canon
 
-Review artifacts belong exclusively to the Reviewer workflow.
+unless explicitly instructed.
+
+Review-controlled repository state belongs exclusively to the Reviewer.
 
 ---
 
@@ -350,7 +367,9 @@ knowledge/implementation/implementation-conventions.md
 Builder updates only:
 
 - IMPLEMENTATION_PLAN.md
+- IMPLEMENTATION_MANIFEST.md
 - IMPLEMENTATION_REPORT.md
+- knowledge/implementation/sprints/sprint-{{NUMBER}}-{{NAME}}.md
 
 Builder SHALL NOT update:
 
@@ -359,6 +378,39 @@ Builder SHALL NOT update:
 - Kernel Canon
 
 unless explicitly instructed.
+
+---
+
+# Review-Controlled Repository State
+
+The Builder implements software.
+
+The Reviewer certifies software.
+
+The Builder SHALL report implementation progress only.
+
+The Builder SHALL NOT certify implementation completion.
+
+Builder-owned artifacts include:
+
+- Source Code
+- Tests
+- IMPLEMENTATION_PLAN.md (implementation progress only)
+- IMPLEMENTATION_MANIFEST.md
+- IMPLEMENTATION_REPORT.md
+- Sprint Implementation Record (Builder sections only)
+
+Reviewer-owned artifacts include:
+
+- REVIEW_HISTORY.md
+- Sprint Reviewer Notes
+- Sprint Final Disposition
+- Sprint approval status
+- Work Order status
+- Builder Task status
+- Review Finding status
+
+The Builder SHALL NOT modify Reviewer-owned repository state.
 
 ---
 
@@ -379,6 +431,31 @@ Report the contradiction.
 
 ---
 
+# Builder Task Selection
+
+Before implementing any work, the Builder SHALL inspect the status of all assigned Builder Tasks.
+
+The Builder SHALL implement only tasks whose status is:
+
+- Pending
+- In Progress
+
+The Builder SHALL NOT implement tasks whose status is:
+
+- Completed
+- Blocked
+- Failed
+
+Completed tasks are considered closed by Reviewer authority.
+
+Blocked tasks require governance or Sprint Owner action.
+
+Failed tasks require a new Builder Task generated through the review workflow.
+
+The Builder SHALL NOT reopen completed tasks unless explicitly instructed by the Sprint Owner.
+
+---
+
 # Definition of Done
 
 Implementation is complete only when:
@@ -387,9 +464,50 @@ Implementation is complete only when:
 - all implemented concepts conform to RFCs
 - tests pass
 - IMPLEMENTATION_PLAN.md is updated
+- current sprint status is set to:
+  **Implemented — Pending Reviewer Validation**
+- IMPLEMENTATION_MANIFEST.md is updated
 - IMPLEMENTATION_REPORT.md is updated
+- Sprint Implementation Record is created or updated
 - IMPLEMENTATION_GATE.md passes
 
+Implementation completion does not constitute sprint approval.
+
+Sprint approval, Work Order completion, Builder Task completion, and Review Finding resolution remain exclusive Reviewer responsibilities.
+
 Do not require deferred RFC concepts to satisfy Definition of Done.
+
+---
+
+# Review-Controlled Repository State
+
+The Builder implements software.
+
+The Reviewer certifies software.
+
+The Builder SHALL report implementation progress only.
+
+The Builder SHALL NOT certify implementation completion.
+
+Builder-owned artifacts include:
+
+- Source Code
+- Tests
+- IMPLEMENTATION_PLAN.md (implementation progress only)
+- IMPLEMENTATION_MANIFEST.md
+- IMPLEMENTATION_REPORT.md
+- Sprint Implementation Record (Builder sections only)
+
+Reviewer-owned artifacts include:
+
+- REVIEW_HISTORY.md
+- Sprint Reviewer Notes
+- Sprint Final Disposition
+- Sprint approval status
+- Work Order status
+- Builder Task status
+- Review Finding status
+
+The Builder SHALL NOT modify Reviewer-owned repository state.
 
 <!-- Nexus managed block: end -->

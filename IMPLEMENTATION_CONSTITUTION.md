@@ -394,6 +394,28 @@ Completion of an RFC SHALL be determined by the cumulative implementation of all
 
 ---
 
+## Approved Vertical Slice Immutability
+
+An Approved Vertical Slice establishes the implementation baseline for its covered RFC scope.
+
+After a sprint receives an **Approved** or **Approved with Findings** disposition, its implemented capabilities SHALL be considered frozen.
+
+Subsequent sprints MAY:
+
+- consume approved capabilities;
+- extend approved capabilities only when explicitly authorized by the governing RFC and implementation plan;
+- correct implementation defects identified through review.
+
+Subsequent sprints SHALL NOT:
+
+- redefine previously approved behavior;
+- expand previously approved scope without authorization;
+- modify approved implementation solely for architectural preference.
+
+Any intentional modification to an approved vertical slice SHALL be documented in the implementing sprint and reference the affected sprint(s).
+
+---
+
 # RFC Coverage
 
 Every implementation request SHALL explicitly declare:

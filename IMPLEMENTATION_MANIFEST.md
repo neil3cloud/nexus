@@ -188,6 +188,61 @@ Notes:
 
 ---
 
+## Sprint 5 — Evidence Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0002 — Evidence Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-12-001 — Sprint Owner ratified the Sprint 5 retroactive Sprint Specification as a recoverable governance deviation with no architecture or implementation impact.
+
+Implemented Concepts:
+
+- Evidence aggregate with immutable identity, type, version, hash, metadata, and provenance.
+- EvidenceId, EvidenceType, EvidenceSource, EvidenceVersion, and EvidenceHash value objects with validation and equality semantics.
+- EvidenceMetadata and Provenance immutable domain objects.
+- IEvidenceRepository contract for registration, retrieval, existence checks, and enumeration.
+- InMemoryEvidenceRepository process-local snapshot persistence.
+- EvidenceService application orchestration for registration, duplicate validation, retrieval, and enumeration through constructor injection.
+- DuplicateEvidenceException, InvalidEvidenceException, and EvidenceNotFoundException deterministic diagnostics.
+- Unit tests for Evidence aggregate behavior, value objects, repository behavior, service behavior, and diagnostics.
+
+Deferred Concepts:
+
+- Shared Reality
+- Context Assembly
+- Projection
+- Knowledge
+- Review
+- Review Findings
+- Event Bus expansion
+- Domain Events
+- Execution Strategy
+- Execution Roles
+- Provider Adapters
+- AI Providers
+- Indexing
+- Search
+- Durable persistence engines
+- Evidence relationships
+- Evidence conflict resolution
+- Evidence authority set resolution
+- Evidence Confidence classification
+- Evidence confidence policy enforcement
+- Evidence Lifecycle progression
+
+Notes:
+
+- Evidence remains a domain concept and not a storage engine, search engine, index, projection, or knowledge graph.
+- Evidence registration is append-only for this slice; corrections are represented by additional Evidence instances and versions, not mutation.
+- EvidenceService is intentionally thin; domain validation remains in the Evidence aggregate and value objects, while repository coordination and duplicate detection are service responsibilities.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

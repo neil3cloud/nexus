@@ -1,9 +1,9 @@
-import type { EvidenceRecord } from "../evidence/evidence.contract";
+import type { EvidenceSnapshot } from '../evidence/evidence.contract';
 
 export interface ProjectionRequest {
   readonly missionId: string;
   readonly objective: string;
-  readonly evidence: readonly EvidenceRecord[];
+  readonly evidence: readonly EvidenceSnapshot[];
 }
 
 export interface ProjectionView {

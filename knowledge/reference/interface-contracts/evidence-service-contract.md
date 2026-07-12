@@ -6,20 +6,35 @@
 
 ## Purpose
 
-Define evidence acquisition, authority resolution, and lineage semantics.
+Define Evidence registration, validation, retrieval, and future authority and lineage semantics.
 
-## Interface
+## Implemented Interface — Sprint 5 Evidence Foundation
 
-- ingestEvidence(command)
-- verifyEvidence(command)
+- registerEvidence(request)
+- validateEvidence(evidence)
+- retrieveEvidence(evidenceId)
+- enumerateEvidence()
+
+## Implemented Command/Query Shape
+
+- id
+- type
+- version
+- hash
+- metadata
+- provenance
+
+## Deferred Interface
+
+The following operations remain future Evidence capabilities and are not implemented by the Sprint 5 Evidence Foundation slice:
+
 - relateEvidence(command)
 - resolveAuthoritativeSet(query)
 
-## Command/Query Shape
+The earlier reference names `ingestEvidence` and `verifyEvidence` have been reconciled to the implemented Sprint 5 operation names `registerEvidence` and `validateEvidence`.
 
-- evidenceId
-- source
-- provenance
+## Deferred Command/Query Shape
+
 - confidence
 - relationships
 - authorityPolicy

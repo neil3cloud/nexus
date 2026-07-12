@@ -150,3 +150,66 @@ Definition of Done
 - MissionExecutionService coordinates repository loading, aggregate calls, and persistence only.
 - Execution remains deterministic and provider-agnostic.
 - Unit tests cover aggregate execution, invalid transitions, dependency violations, completion rejection, service orchestration, and repository persistence.
+
+---
+
+## Sprint 5 — Evidence Foundation
+
+Status: ✅ Approved (NEXUS-REV-2026-07-12-009, NEXUS-REV-2026-07-12-010)
+
+Objective
+
+Establish the immutable Evidence domain foundation as the authoritative source of engineering facts within the Nexus Kernel.
+
+RFC Coverage
+
+- RFC-0002 Evidence Model (Partial)
+
+Ratification
+
+- NEXUS-RAT-2026-07-12-001 — Sprint Owner ratified the Sprint 5 retroactive Sprint Specification as a recoverable governance deviation with no architecture or implementation impact.
+
+Implemented Concepts
+
+- Evidence aggregate
+- Evidence identity
+- Evidence type
+- Evidence source
+- Evidence version
+- Evidence hash
+- Evidence metadata
+- Evidence provenance
+- Evidence registration
+- Evidence validation
+- Evidence repository contract
+- In-memory Evidence repository
+- EvidenceService orchestration
+- Evidence domain exceptions
+
+Deferred Concepts
+
+- Shared Reality
+- Context Assembly
+- Projection
+- Knowledge
+- Review
+- Event Bus expansion
+- Domain Events
+- Execution Strategy
+- Execution Roles
+- Provider Adapters
+- AI Providers
+- Indexing
+- Search
+- Durable persistence engines
+- Evidence relationships
+- Evidence conflict resolution
+- Evidence authority set resolution
+- Evidence confidence policy enforcement
+
+Definition of Done
+
+- Evidence aggregate and value objects preserve immutability and deterministic snapshots.
+- EvidenceService coordinates registration, validation, retrieval, and enumeration through the repository contract.
+- InMemoryEvidenceRepository provides process-local persistence only and does not implement business rules beyond duplicate storage protection.
+- Unit tests cover aggregate construction, value object validation, equality, repository behavior, service orchestration, diagnostics, and immutability.
