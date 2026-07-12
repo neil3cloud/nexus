@@ -1,5 +1,98 @@
 # Nexus Implementation Report
 
+## Sprint 13 — Knowledge Event Publication
+
+### Implemented Slice
+
+Implemented the RFC-0005 Knowledge Event Publication vertical slice authorized by NEXUS-RAT-2026-07-13-004.
+
+Implemented scope:
+
+- `KnowledgeCandidateCreated` event publication for completed `captureKnowledge` transitions.
+- `KnowledgeRevisionCreated` event publication for completed `reviseKnowledge` transitions.
+- `knowledge.events.ts` with Knowledge event type definitions and RFC-0005 envelope-compliant event factories.
+- `Knowledge` aggregate recorded-event support through drain-once `pullDomainEvents()`.
+- `KnowledgeService` optional constructor-injected `EventBusContract` with deterministic unavailable-publisher diagnostics.
+- Save-then-publish service orchestration for Knowledge events; persistence failure prevents publication.
+- Kernel service composition updated so `KnowledgeService` receives the shared Kernel-owned EventBus.
+- Reference-document corrections authorized by NEXUS-RAT-2026-07-13-004.
+
+Out of scope and not implemented:
+
+- `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, and `archiveKnowledge` service operations.
+- `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, and `KnowledgeArchived` publication.
+- Event subscriptions, consumers, handlers, or event-driven Knowledge workflows.
+- Durable Event Streams.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0005 — Domain Event Model (Partial).
+
+Referenced RFC:
+
+- RFC-0007 — Knowledge Model (Referenced; event trigger only).
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-004 — ratifies `KnowledgeCandidateCreated` and `KnowledgeRevisionCreated` for Sprint 13, defers lifecycle-advancement operations and events, and establishes that Domain Events represent completed domain facts rather than implementation actions.
+
+Implemented Concepts:
+
+- Knowledge Domain Event factories.
+- Knowledge aggregate recorded-events collection and drain-once access.
+- KnowledgeService EventBus publication after successful persistence.
+- Kernel composition EventBus injection for KnowledgeService.
+
+Deferred Concepts:
+
+- Knowledge lifecycle-advancement service operations and their events.
+- Event subscriptions and consumers.
+- Mission Plan Events, Task Events, Execution Strategy Events, Shared Reality Events, Context Package Events, and Policy Events.
+- Durable/persistent Event Streams.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0007-knowledge-model.md`.
+- `knowledge/reference/kernel-event-catalog.md`.
+- `knowledge/reference/service-catalog/knowledge-service.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-13-004.
+- `knowledge/implementation/sprints/sprint-0013-knowledge-event-publication.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Knowledge events are notifications of already-completed, successfully persisted state transitions.
+- Knowledge always carries Mission identity, so Knowledge events use the standard Mission-scoped `DomainEvent` envelope.
+- Save-then-publish follows the existing Mission/Evidence/Review event publication pattern.
+
+### Limitations
+
+- EventBus persistence remains in-memory and process-local.
+- Save-then-publish remains non-atomic; a publication failure after successful persistence can leave persisted Knowledge state ahead of the process-local event stream.
+- No event consumers are added; published Knowledge events do not trigger domain behavior.
+- Knowledge lifecycle states beyond `Candidate` remain reachable only through existing aggregate methods, not through KnowledgeService operations.
+
+### Test Summary
+
+- Targeted Sprint 13 Knowledge event tests passed: 2 files, 18 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 32 files, 187 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 12 — Knowledge Foundation
 
 ### Implemented Slice

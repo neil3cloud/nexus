@@ -572,6 +572,44 @@ Notes:
 
 ---
 
+## Sprint 13 — Knowledge Event Publication
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-004 — ratifies `KnowledgeCandidateCreated` (reused from `kernel-event-catalog.md`) for `captureKnowledge` and `KnowledgeRevisionCreated` (new) for `reviseKnowledge`; scopes Sprint 13 to exactly these two operations/events; defers `approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` and their events (`KnowledgeAccepted`/`KnowledgePublished`/`KnowledgeSuperseded`/`KnowledgeArchived`) entirely to a future sprint; establishes the permanent Governance Rule that Domain Events represent completed domain facts, not implementation actions. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are unmodified.
+
+Implemented Concepts:
+
+- `KnowledgeService` optional constructor-injected `EventBusContract`, matching the established `EvidenceService`/`ReviewService` pattern (`requireEventBus()` guard).
+- `Knowledge` aggregate exposing recorded Domain Events through the Kernel's established aggregate event-recording contract (drain-once `pullDomainEvents()`-shaped access), mirroring `Mission`/`Evidence`/`Review`.
+- `knowledge.events.ts`: `KnowledgeEventType` union (`KnowledgeCandidateCreated`, `KnowledgeRevisionCreated`), `KnowledgeDomainEvent` type, and factory functions.
+- `captureKnowledge` publishes `KnowledgeCandidateCreated`; `reviseKnowledge` publishes `KnowledgeRevisionCreated` — both only after the associated state transition has been successfully persisted; no event is published if persistence fails.
+- Kernel service composition updated so `KnowledgeService` receives the shared `EventBusContract` instance.
+- Reference-document corrections authorized by NEXUS-RAT-2026-07-13-004 (`kernel-event-catalog.md` additions, `knowledge-service.md` Events-section correction).
+
+Deferred Concepts:
+
+- `approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` operations and their events — entirely out of scope, not merely event-silent.
+- Event subscriptions/consumers.
+- Mission Plan Events, Task Events, Execution Strategy Events (unresolved Task Lifecycle naming mismatch).
+- Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0013-knowledge-event-publication.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0007, RFC-0005, RFC-0006, or the Kernel Canon.
+- Knowledge Domain Events SHALL remain notifications of completed state transitions; they SHALL NOT initiate, coordinate, or trigger subsequent domain behavior, per Sprint Owner direction and NEXUS-RAT-2026-07-13-004.
+- Equivalent aggregate state transitions SHALL produce equivalent Domain Events (deterministic publication), per Sprint Owner direction.
+
+---
+
 ## Sprint 2 — Review Remediation
 
 Status: Implemented — TASK-004 Blocked Pending Human Ratification

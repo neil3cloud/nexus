@@ -24,8 +24,10 @@
 
 ## Events
 
-- Publishes KnowledgeCaptured, KnowledgeUpdated, KnowledgeSuperseded
-- Subscribes to ReviewAccepted and approval events
+- Publishes KnowledgeCandidateCreated for completed `captureKnowledge` transitions
+- Publishes KnowledgeRevisionCreated for completed `reviseKnowledge` transitions
+- Does not subscribe to domain events
+- Deferred: KnowledgeAccepted, KnowledgePublished, KnowledgeSuperseded, and KnowledgeArchived remain unimplemented until their corresponding lifecycle-advancement service operations are authorized
 
 ## Persistence
 

@@ -15,6 +15,7 @@ import {
   createIncompleteMission,
   createPendingReview,
   createRejectedReview,
+  metadata,
 } from './knowledge.test-support';
 
 function captureKnowledge(): Knowledge {
@@ -201,6 +202,45 @@ describe('Knowledge', () => {
       attribution: captured.toSnapshot().attribution,
       provenance: captured.toSnapshot().provenance,
     });
+  });
+
+  it('records Knowledge domain events with drain-once semantics', () => {
+    const captured = Knowledge.capture(
+      captureKnowledgeInput(),
+      {
+        mission: createCompletedMission(),
+        supportingEvidence: [createEvidence()],
+        supportingReview: createAcceptedReview(),
+      },
+      metadata('event-knowledge-candidate-created'),
+    );
+    const capturedEvents = captured.pullDomainEvents();
+    const revised = captured.revise(
+      {
+        summary: 'Knowledge revisions preserve attribution and provenance.',
+      },
+      metadata('event-knowledge-revision-created'),
+    );
+
+    expect(capturedEvents).toHaveLength(1);
+    expect(capturedEvents[0]).toMatchObject({
+      eventId: 'event-knowledge-candidate-created',
+      missionId: 'mission-1',
+      eventType: 'KnowledgeCandidateCreated',
+      attribution: {
+        missionId: 'mission-1',
+        missionPlanRevisionId: 'revision-1',
+      },
+      payload: {
+        knowledgeId: 'knowledge-1',
+        status: 'Candidate',
+        scope: 'Repository',
+        revisionNumber: 1,
+      },
+    });
+    expect(captured.pullDomainEvents()).toEqual([]);
+    expect(revised.pullDomainEvents()).toHaveLength(1);
+    expect(revised.pullDomainEvents()).toEqual([]);
   });
 
   it('enforces KnowledgeStatus lifecycle transitions on immutable aggregate instances', () => {

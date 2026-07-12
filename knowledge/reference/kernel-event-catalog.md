@@ -778,6 +778,22 @@ Knowledge Service
 
 ---
 
+## KnowledgeRevisionCreated
+
+Producer
+
+Knowledge Service
+
+---
+
+## KnowledgeArchived
+
+Producer
+
+Knowledge Service
+
+---
+
 # Event Ordering
 
 Within a single Aggregate Root:

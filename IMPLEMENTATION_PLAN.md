@@ -577,3 +577,51 @@ Definition of Done
 - Unit tests cover aggregate behavior, lifecycle transitions, value objects, repository behavior, and service orchestration.
 
 See `knowledge/implementation/sprints/sprint-0012-knowledge-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 13 — Knowledge Event Publication
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-008)
+
+Objective
+
+Extend Kernel-owned Domain Event publication (established for Mission in Sprint 2, extended to Evidence/Review in Sprint 11) to the Knowledge domain, publishing `KnowledgeCandidateCreated` and `KnowledgeRevisionCreated` per NEXUS-RAT-2026-07-13-004, following the established Foundation → Event Publication pattern.
+
+RFC Coverage
+
+- RFC-0005 — Domain Event Model (Partial, extending the existing Sprint 11 pattern)
+- RFC-0007 — Knowledge Model (Referenced — event trigger only)
+
+Ratification
+
+- NEXUS-RAT-2026-07-13-004 — ratifies the Knowledge event-name reconciliation (`KnowledgeCandidateCreated` for `captureKnowledge`, `KnowledgeRevisionCreated` for `reviseKnowledge`), scopes Sprint 13 to exactly these two operations/events, defers the four lifecycle-advancement operations and events entirely, and establishes the permanent Governance Rule that Domain Events represent completed domain facts, not implementation actions. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are unmodified.
+
+Authorized Concepts
+
+- `KnowledgeService` optional `EventBusContract` injection (Mission/Evidence/Review pattern)
+- `Knowledge` aggregate exposing recorded Domain Events through the Kernel's established aggregate event-recording contract
+- `KnowledgeCandidateCreated` (on `captureKnowledge`)
+- `KnowledgeRevisionCreated` (on `reviseKnowledge`)
+
+Deferred Concepts
+
+- `approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` operations and their events (entirely out of scope, not merely event-silent)
+- Event subscriptions/consumers
+- Mission Plan Events, Task Events, Execution Strategy Events (unresolved Task Lifecycle naming mismatch)
+- Shared Reality, Context Package, and Policy Events
+- Durable Event Streams
+
+Definition of Done
+
+- `KnowledgeService` accepts an optional constructor-injected `EventBusContract`, matching the established pattern.
+- `Knowledge` exposes recorded Domain Events through the Kernel's established aggregate event-recording contract; the service pulls and publishes rather than fabricating event objects directly.
+- A Domain Event SHALL be published only after the associated state transition has been successfully persisted; if persistence fails, no Domain Event SHALL be published.
+- Only `KnowledgeCandidateCreated` and `KnowledgeRevisionCreated` are published this slice.
+- No lifecycle-advancement operation is introduced, even as an unpublished stub.
+- No event subscription or consumer is introduced. Knowledge Domain Events SHALL remain notifications of completed state transitions; they SHALL NOT initiate, coordinate, or trigger subsequent domain behavior.
+- Equivalent aggregate state transitions SHALL produce equivalent Domain Events.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover event recording, the event-recording contract, and service-level publication for both operations.
+
+See `knowledge/implementation/sprints/sprint-0013-knowledge-event-publication.md` for the complete Sprint Implementation Record.

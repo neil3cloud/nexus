@@ -1,4 +1,5 @@
 import type { Evidence } from '../evidence/evidence.aggregate';
+import type { DomainEventMetadata } from '../mission/mission.types';
 import type { Mission } from '../mission/mission.aggregate';
 import type { Review } from '../review/review.aggregate';
 import { KnowledgeAttribution } from './knowledge-attribution';
@@ -6,6 +7,11 @@ import { KnowledgeId } from './knowledge-id';
 import { KnowledgeProvenance } from './knowledge-provenance';
 import { KnowledgeScope } from './knowledge-scope';
 import { KnowledgeStatus } from './knowledge-status';
+import type { KnowledgeDomainEvent } from './knowledge.events';
+import {
+  createKnowledgeCandidateCreatedEvent,
+  createKnowledgeRevisionCreatedEvent,
+} from './knowledge.events';
 import {
   InvalidKnowledgeDefinitionError,
   KnowledgeCapturePreconditionError,
@@ -96,6 +102,8 @@ export class KnowledgeRevision {
 }
 
 export class Knowledge {
+  private readonly recordedEvents: KnowledgeDomainEvent[] = [];
+
   private constructor(
     private readonly knowledgeId: KnowledgeId,
     private readonly summaryValue: string,
@@ -108,7 +116,11 @@ export class Knowledge {
     Object.freeze(this);
   }
 
-  public static capture(input: CaptureKnowledgeInput, context: KnowledgeCaptureContext): Knowledge {
+  public static capture(
+    input: CaptureKnowledgeInput,
+    context: KnowledgeCaptureContext,
+    metadata?: DomainEventMetadata,
+  ): Knowledge {
     if (input.approvingAuthority.trim().length === 0) {
       throw new KnowledgeCapturePreconditionError(
         'Knowledge capture requires approval metadata.',
@@ -127,7 +139,7 @@ export class Knowledge {
 
     Knowledge.assertCapturePreconditions(attribution, context);
 
-    return Knowledge.create({
+    const knowledge = Knowledge.create({
       id: normalizeKnowledgeId(input.id),
       summary: normalizeNonEmptyString(input.summary, 'Knowledge summary'),
       scope: normalizeKnowledgeScope(input.scope),
@@ -143,6 +155,12 @@ export class Knowledge {
         }),
       ],
     });
+
+    if (metadata !== undefined) {
+      knowledge.recordedEvents.push(createKnowledgeCandidateCreatedEvent(knowledge, metadata));
+    }
+
+    return knowledge;
   }
 
   public static fromSnapshot(snapshot: KnowledgeSnapshot): Knowledge {
@@ -236,7 +254,7 @@ export class Knowledge {
     return this.transitionTo('Archived');
   }
 
-  public revise(input: { readonly summary: string }): Knowledge {
+  public revise(input: { readonly summary: string }, metadata?: DomainEventMetadata): Knowledge {
     if (this.statusValue.state === 'Archived') {
       throw new KnowledgeRevisionRejectedError(
         `Archived Knowledge '${this.knowledgeId.toString()}' cannot be revised.`,
@@ -246,7 +264,7 @@ export class Knowledge {
     const nextRevisionNumber = this.revisionValues.length + 1;
     const nextSummary = normalizeNonEmptyString(input.summary, 'Knowledge revision summary');
 
-    return this.withState({
+    const revisedKnowledge = this.withState({
       summary: nextSummary,
       revisions: [
         ...this.revisionValues,
@@ -259,6 +277,22 @@ export class Knowledge {
         }),
       ],
     });
+
+    if (metadata !== undefined) {
+      revisedKnowledge.recordedEvents.push(
+        createKnowledgeRevisionCreatedEvent(revisedKnowledge, metadata),
+      );
+    }
+
+    return revisedKnowledge;
+  }
+
+  public pullDomainEvents(): readonly KnowledgeDomainEvent[] {
+    const events = [...this.recordedEvents];
+
+    this.recordedEvents.length = 0;
+
+    return events;
   }
 
   public toSnapshot(): KnowledgeSnapshot {

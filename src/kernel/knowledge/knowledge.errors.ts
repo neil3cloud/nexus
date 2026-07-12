@@ -48,3 +48,10 @@ export class KnowledgeNotFoundError extends KnowledgeDomainError {
     this.name = 'KnowledgeNotFoundError';
   }
 }
+
+export class KnowledgeEventPublisherUnavailableError extends KnowledgeDomainError {
+  public constructor() {
+    super('KnowledgeService requires an EventBusContract to publish Knowledge domain events.');
+    this.name = 'KnowledgeEventPublisherUnavailableError';
+  }
+}

@@ -1,5 +1,56 @@
 ﻿# Nexus Review History
 
+## NEXUS-REV-2026-07-13-008 — Sprint 13 — Knowledge Event Publication
+
+- **Reviewed Sprint:** Sprint 13 — Knowledge Event Publication
+- **Reviewed Vertical Slice:** `KnowledgeCandidateCreated` publication on `captureKnowledge`; `KnowledgeRevisionCreated` publication on `reviseKnowledge`; `KnowledgeService` optional `EventBusContract` injection; `Knowledge` aggregate drain-once recorded-event access; authorized reference-document corrections.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Partial, extending the Sprint 11 pattern); RFC-0007 — Knowledge Model (Referenced — event trigger only)
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 13 correctly extends the Kernel-owned Domain Event publication pattern established in Sprint 2 and extended in Sprint 11 to the Knowledge domain, exactly within the scope authorized by NEXUS-RAT-2026-07-13-004. `KnowledgeService` gains an optional constructor-injected `EventBusContract` with a `requireEventBus()` guard, mirroring `EvidenceService`/`ReviewService` (`src/kernel/knowledge/knowledge.service.ts`) precisely, including the same `createEventMetadata()`/`publishRecordedEvents()` shape. The `Knowledge` aggregate (`src/kernel/knowledge/knowledge.aggregate.ts`) gains a private `recordedEvents` collection and a drain-once `pullDomainEvents()` accessor, mirroring `Mission`/`Evidence`/`Review`; `capture()` and `revise()` each accept an optional `DomainEventMetadata` and record their respective event only when metadata is supplied, after the aggregate state transition has already been constructed — publication itself (`eventBus.publish`) occurs only after `repository.create`/`repository.save` succeeds, satisfying the Governance Constraint's persist-then-publish ordering. `knowledge.events.ts` defines `KnowledgeCandidateCreated`/`KnowledgeRevisionCreated` via the shared RFC-0005 `DomainEvent` envelope (`eventId`, `missionId`, `eventType`, `timestamp`, `causality`, `correlationId`, `attribution`, `payload`), consistent with `evidence.events.ts`/`review.events.ts`. `create-kernel-services.ts` wires the same Kernel-owned `EventBus` instance into `KnowledgeService` without introducing any subscription. No lifecycle-advancement operation (`approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge`) was introduced, even as a stub — the aggregate's existing `approve()`/`activate()`/`supersede()`/`archive()` methods remain unreachable through `KnowledgeService` and produce no events. The two reference-document corrections (`kernel-event-catalog.md` § Knowledge Events, `knowledge-service.md` § Events) match the Ratification's Authorized Builder Scope verbatim, including the correction of the previously-inaccurate "Subscribes to ReviewAccepted and approval events" line. Independent re-validation confirms: `tsc --noEmit` compiles cleanly, `eslint "src/**/*.ts" "test/**/*.ts"` is clean, `esbuild` builds successfully, and Vitest passes 32 files / 187 tests, with the targeted Sprint 13 files (`knowledge.aggregate.test.ts`, `knowledge.service.test.ts`) independently confirmed at 2 files / 18 tests, exactly matching the Sprint 13 record's Test Summary. Tests cover drain-once recording, service-level publication for both operations, publication strictly after successful persistence (including a dedicated persistence-failure case for both create and save), and the `KnowledgeEventPublisherUnavailableError` diagnostic. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, esbuild, Vitest 32 files / 187 tests (targeted: 2 files / 18 tests) |
+
+### Deferred Concept Validation
+
+All Sprint 13 declared deferred concepts are confirmed correctly absent from the implementation:
+
+- `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, `archiveKnowledge` — no such operations exist on `KnowledgeService`; the aggregate's corresponding lifecycle methods (Sprint 12) remain unreachable through any service operation.
+- `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, `KnowledgeArchived` — not published; `knowledgeEventTypes` in `knowledge.events.ts` contains only `KnowledgeCandidateCreated` and `KnowledgeRevisionCreated`.
+- Event subscriptions/consumers — `create-kernel-services.ts` introduces no `subscribe` call; the only `EventBus.subscribe` usage is inside test scaffolding (`knowledge.service.test.ts`), matching the Sprint 11 precedent for verifying publish-after-persist ordering.
+- Mission Plan Events, Task Events, Execution Strategy Events, Shared Reality/Context Package/Policy Events, and Durable Event Streams — untouched by this slice.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The implementation conforms to RFC-0005's Standard Event Envelope, preserves the Governance Rule established by NEXUS-RAT-2026-07-13-004 (events are notifications of already-persisted facts, not triggers), and exactly follows the Authorized Builder Scope and Scope Restrictions of NEXUS-RAT-2026-07-13-004. No RFC-0007, RFC-0005, RFC-0006, or Kernel Canon text was modified. `MissionService`, `EvidenceService`, `ReviewService`, and `ExecutionStrategyService` are unmodified.
+
+### Repository State Update
+
+- REVIEW_HISTORY.md — this entry added.
+- Sprint Implementation Record (`sprint-0013-knowledge-event-publication.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- IMPLEMENTATION_PLAN.md — Sprint 13 status set to **Approved**. No Sprint 14 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+
+### Builder Task Recommendation
+
+None. No Category 1 Implementation Defects, Category 2 Architectural Violations, Category 3 Specification Conflicts, or Category 5 Governance Decisions were identified. Next steps are Sprint Owner actions: plan Sprint 14 under the specification-first workflow.
+
+---
+
 ## NEXUS-REV-2026-07-13-007 — Sprint 12 — Knowledge Foundation (Documentation Remediation Review)
 
 - **Reviewed Sprint:** Sprint 12 — Knowledge Foundation

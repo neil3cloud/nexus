@@ -697,3 +697,80 @@ During Sprint 12 review NEXUS-REV-2026-07-13-006, the Reviewer noted that the Sp
 For audit traceability, the additional Sprint 12 corrections to that file were applied under this ratification's general Authorized Builder Scope bullet permitting implementation-layer reference documentation to consistently use the ratified `Knowledge` vocabulary. The operation-name and identity-name changes (`captureMemory`/`reviseMemory`/`queryMemory` -> `captureKnowledge`/`reviseKnowledge`/`queryKnowledge`, and `memoryId` -> `knowledgeId`) are vocabulary harmonization only. The additional Command/Query Shape fields (`missionPlanRevisionId`, `contributingEventIds`, and `approvingAuthority`) match fields this same ratification separately authorized for the `knowledge/reference/kernel-data-model.md` Knowledge model correction.
 
 This addendum records the implementation-basis clarification for NEXUS-REV-2026-07-13-006-F-001. It does not reinterpret, supersede, withdraw, or otherwise modify NEXUS-RAT-2026-07-13-003.
+
+---
+
+# NEXUS-RAT-2026-07-13-004
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-004
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Knowledge domain event-name reconciliation, scoping the first Knowledge Event Publication vertical slice. Identified during `/nexus-plan` Sprint 13 governance scan.
+
+## Originating Review Finding(s)
+
+- None. Identified during `/nexus-plan` State 2 (Governance Scan) prior to Sprint 13 planning.
+
+## Governance Decision
+
+Three previously inconsistent Knowledge/Memory event-name sources existed: `kernel-event-catalog.md` (`KnowledgeCandidateCreated`, `KnowledgeAccepted`, `KnowledgePublished`), `knowledge-service.md` (`KnowledgeCaptured`, `KnowledgeUpdated`, `KnowledgeSuperseded`), and RFC-0007's own 5-state Memory Lifecycle (`Candidate → Approved → Active → Superseded → Archived`), which none of the event-name sets fully covered. Additionally, no source had ever named an event for Memory Evolution (the `reviseKnowledge` operation), and no `KnowledgeService` operation exists today for the `Approved`, `Active`, `Superseded`, or `Archived` transitions — only the `Knowledge` aggregate's `approve()`/`activate()`/`supersede()`/`archive()` methods exist, unreachable through any service operation.
+
+The Sprint Owner ratifies the following reconciliation:
+
+| Operation | Event | Status |
+| --- | --- | --- |
+| `captureKnowledge` | `KnowledgeCandidateCreated` (reused from `kernel-event-catalog.md`) | Authorized for Sprint 13 |
+| `reviseKnowledge` | `KnowledgeRevisionCreated` (new) | Authorized for Sprint 13 |
+| *(future)* `approveKnowledge` | `KnowledgeAccepted` (reused) | Deferred |
+| *(future)* `activateKnowledge` | `KnowledgePublished` (reused) | Deferred |
+| *(future)* `supersedeKnowledge` | `KnowledgeSuperseded` (reused from `knowledge-service.md`) | Deferred |
+| *(future)* `archiveKnowledge` | `KnowledgeArchived` (new) | Deferred |
+
+`KnowledgeRevisionCreated` (not `KnowledgeRevised`, per Sprint Owner direction) is the ratified name for the Memory Evolution event — chosen because it names the resulting fact (a new revision now exists) rather than the action that produced it, consistent with the Governance Rule established below.
+
+**Sprint 13 scope clarification:** Sprint 13 ("Knowledge Event Publication") is authorized to implement event publication **only** for the two `KnowledgeService` operations that exist today — `captureKnowledge` and `reviseKnowledge` — publishing exactly `KnowledgeCandidateCreated` and `KnowledgeRevisionCreated` respectively. No other Knowledge event is authorized or required by this ratification.
+
+**Deferred lifecycle operations clarification:** The four lifecycle-advancement `KnowledgeService` operations (`approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, `archiveKnowledge`) and their corresponding events (`KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, `KnowledgeArchived`) are explicitly outside Sprint 13 scope and remain deferred to a future sprint. RFC-0007's Memory Lifecycle states beyond `Candidate` remain reachable only via the `Knowledge` aggregate's existing transition methods, not through `KnowledgeService`, until that future sprint. Sprint 13 SHALL NOT introduce these operations even as unpublished/event-silent additions — they remain entirely out of scope, not merely event-silent.
+
+## Governance Rule Established
+
+**Domain events represent completed domain facts, not implementation actions.** An event name SHALL describe the fact that is now true (e.g., "a revision now exists," "an item is now a Candidate") rather than the operation or action that produced it (e.g., not "revision executed" or "capture performed"). This restates and generalizes RFC-0005's own text ("Events SHALL describe completed facts... SHALL NOT describe: commands, requests, intentions, planned work, executable behavior") as a permanent, reusable implementation-governance naming rule for all future Domain Event naming decisions across every domain, not only Knowledge. This rule does not modify RFC-0005; it operationalizes RFC-0005's existing requirement for implementation-layer naming choices.
+
+## Authorized Builder Scope
+
+- Correct `knowledge/reference/kernel-event-catalog.md` § Knowledge Events to add `KnowledgeRevisionCreated` and `KnowledgeArchived` (Producer: Knowledge Service), retaining `KnowledgeCandidateCreated`, `KnowledgeAccepted`, and `KnowledgePublished` unchanged.
+- Correct `knowledge/reference/service-catalog/knowledge-service.md`'s Events section to match the table above (published events limited to what Sprint 13 actually implements; deferred events and operations clearly marked as not yet implemented; the "Subscribes to ReviewAccepted and approval events" line remains unauthorized and SHALL be corrected to reflect that no event subscription exists).
+- Implement `KnowledgeCandidateCreated` publication on `captureKnowledge` and `KnowledgeRevisionCreated` publication on `reviseKnowledge`, following the established `EvidenceService`/`ReviewService` optional-`EventBusContract` save-then-publish pattern (Sprint 11).
+- Reference this ratification from the Sprint 13 Sprint Implementation Record.
+
+## Scope Restrictions
+
+- No `KnowledgeService` operation beyond `captureKnowledge` and `reviseKnowledge` is authorized by this ratification.
+- No event beyond `KnowledgeCandidateCreated` and `KnowledgeRevisionCreated` is authorized for publication in Sprint 13.
+- No event subscription, consumer, or handler is authorized — Knowledge event publication follows the same no-consumers discipline established in Sprint 11's Governance Constraint.
+- RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon SHALL NOT be modified.
+- This ratification does not authorize implementing the deferred lifecycle-advancement operations or events; a separate future ratification and Sprint Implementation Record are required for that work.
+
+## Related Sprint(s)
+
+- Sprint 12 — Knowledge Foundation (approved baseline being extended).
+- Sprint 13 — Knowledge Event Publication (planned).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 13 implementation and the corresponding Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies the Knowledge event-name reconciliation table above, naming `KnowledgeCandidateCreated` (reused) for `captureKnowledge` and `KnowledgeRevisionCreated` (new) for `reviseKnowledge`. Sprint 13 ("Knowledge Event Publication") is authorized to implement publication only for these two operations/events; the four lifecycle-advancement operations and their events (`KnowledgeAccepted`/`KnowledgePublished`/`KnowledgeSuperseded`/`KnowledgeArchived`) remain entirely outside Sprint 13 scope, deferred to a future sprint. This ratification establishes a permanent, reusable Governance Rule: Domain events SHALL represent completed domain facts, not implementation actions — an operationalization of RFC-0005's existing "completed facts" requirement for all future event-naming decisions across every domain. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are not modified.
+
+## Current Status
+
+Active

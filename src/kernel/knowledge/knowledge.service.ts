@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { ServiceLifecycle } from '../common/service-lifecycle';
+import type { EventBusContract } from '../common/event-bus-contract';
 import type { Evidence } from '../evidence/evidence.aggregate';
 import { EvidenceId } from '../evidence/evidence-id';
 import type { IEvidenceRepository } from '../evidence/evidence.repository';
@@ -14,7 +15,10 @@ import type {
   QueryKnowledgeRequest,
   ReviseKnowledgeRequest,
 } from './knowledge.contract';
-import { KnowledgeNotFoundError } from './knowledge.errors';
+import {
+  KnowledgeEventPublisherUnavailableError,
+  KnowledgeNotFoundError,
+} from './knowledge.errors';
 import { KnowledgeId } from './knowledge-id';
 import {
   InMemoryKnowledgeRepository,
@@ -28,12 +32,15 @@ export class KnowledgeService extends ServiceLifecycle implements KnowledgeServi
     private readonly reviewRepository?: IReviewRepository,
     private readonly evidenceRepository?: IEvidenceRepository,
     private readonly missionRepository?: IMissionRepository,
+    private readonly eventBus?: EventBusContract,
     private readonly createIdentity: () => string = randomUUID,
+    private readonly createTimestamp: () => string = () => new Date().toISOString(),
   ) {
     super('KnowledgeService');
   }
 
   public async captureKnowledge(request: KnowledgeCaptureRequest): Promise<KnowledgeSnapshot> {
+    const eventBus = this.requireEventBus();
     const supportingReview = await this.reviewRepository?.getById(request.supportingReviewId);
     const supportingEvidence = await Promise.all(
       request.supportingEvidenceIds.map(async (evidenceId) =>
@@ -58,18 +65,25 @@ export class KnowledgeService extends ServiceLifecycle implements KnowledgeServi
         supportingEvidence: supportingEvidence.filter(isEvidence),
         ...(supportingReview === undefined ? {} : { supportingReview }),
       },
+      this.createEventMetadata(),
     );
 
     await this.repository.create(knowledge);
+    await this.publishRecordedEvents(knowledge, eventBus);
 
     return knowledge.toSnapshot();
   }
 
   public async reviseKnowledge(request: ReviseKnowledgeRequest): Promise<KnowledgeSnapshot> {
+    const eventBus = this.requireEventBus();
     const knowledge = await this.requireKnowledge(request.knowledgeId);
-    const revisedKnowledge = knowledge.revise({ summary: request.summary });
+    const revisedKnowledge = knowledge.revise(
+      { summary: request.summary },
+      this.createEventMetadata(),
+    );
 
     await this.repository.save(revisedKnowledge);
+    await this.publishRecordedEvents(revisedKnowledge, eventBus);
 
     return revisedKnowledge.toSnapshot();
   }
@@ -92,6 +106,33 @@ export class KnowledgeService extends ServiceLifecycle implements KnowledgeServi
     }
 
     return knowledge;
+  }
+
+  private createEventMetadata(): {
+    readonly eventId: string;
+    readonly timestamp: string;
+  } {
+    return {
+      eventId: this.createIdentity(),
+      timestamp: this.createTimestamp(),
+    };
+  }
+
+  private async publishRecordedEvents(
+    knowledge: Knowledge,
+    eventBus: EventBusContract,
+  ): Promise<void> {
+    for (const event of knowledge.pullDomainEvents()) {
+      await eventBus.publish(event);
+    }
+  }
+
+  private requireEventBus(): EventBusContract {
+    if (this.eventBus === undefined) {
+      throw new KnowledgeEventPublisherUnavailableError();
+    }
+
+    return this.eventBus;
   }
 }
 

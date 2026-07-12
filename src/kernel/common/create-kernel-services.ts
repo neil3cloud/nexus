@@ -46,6 +46,12 @@ export function createKernelServices(eventBus: EventBusContract): readonly IKern
     ),
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),
-    new KnowledgeService(knowledgeRepository, reviewRepository, evidenceRepository, missionRepository),
+    new KnowledgeService(
+      knowledgeRepository,
+      reviewRepository,
+      evidenceRepository,
+      missionRepository,
+      eventBus,
+    ),
   ];
 }
