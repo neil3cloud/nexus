@@ -1122,7 +1122,7 @@ Notes:
 
 ## Sprint 27 — Developer Workflow Completion
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved (NEXUS-REV-2026-07-13-028)
 
 RFC Coverage:
 
@@ -1155,6 +1155,129 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md` for the complete Sprint Implementation Record.
 - This sprint introduces no new bounded context and does not modify RFC-0002, RFC-0006, RFC-0007, RFC-0009, RFC-0010, or the Kernel Canon.
 - Completes the provider-independent Developer Workflow; upon approval, the repository is ready to begin Milestone 5 — Production Adapter Integration.
+
+---
+
+# Milestone 5 — Production Adapter Integration
+
+Status: In Progress (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Current)
+
+## Sprint 28 — VS Code Extension Installability
+
+Status: Approved with Findings (NEXUS-REV-2026-07-14-001)
+
+RFC Coverage:
+
+- No Primary RFC — packaging/tooling and validation-only slice.
+- Referenced: RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-001` — governs this sprint's entire scope: retitling/confirmation, refined Authorized Vertical Slice, the binding Extension Host Validation Boundary, the binding Packaging Scope, authorized Builder scope, and scope restrictions. Resequences Milestone 5 to begin with productization/host-validation rather than a production Adapter; provider selection, authentication model, and `COPILOT_INSTRUCTIONS.md` activation remain explicitly unresolved and deferred.
+- `NEXUS-RAT-2026-07-13-013` / `NEXUS-RAT-2026-07-13-014` — govern the certified Developer Workflow this sprint validates inside a real host; unaffected and unmodified.
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred.
+
+Implemented Concepts:
+
+- Completion of `package.json` packaging metadata (`activationEvents`, `icon`, `repository`, `license`, `engines`).
+- `.vscodeignore`, `@vscode/vsce` dev dependency, and a local `package` script producing a `.vsix`.
+- `.vscode/launch.json` for manual Extension Development Host verification.
+- `@vscode/test-electron` dev dependency and a new automated extension-host integration test verifying activation, all six command registrations, and an end-to-end `nexus.runDeveloperMissionWorkflow` execution against the certified `MockAdapter`.
+- Local VSIX installation validation through the VS Code CLI before automated Extension Host execution.
+
+Deferred Concepts:
+
+- GitHub Copilot CLI / Claude CLI / Gemini CLI / Codex CLI Adapters; production Adapter integration; Adapter Selection; provider routing; authentication/credential management; OAuth; `SecretStorage` integration; streaming responses; multi-provider coordination; Visual Studio Marketplace publishing; release automation; `COPILOT_INSTRUCTIONS.md`.
+
+Critical Boundary:
+
+- Host remains responsible only for extension lifecycle, activation, command registration, dependency injection, workflow orchestration, presentation, and user interaction; it SHALL NOT implement business rules, bypass Kernel services, or access aggregates/repositories/adapters directly. Extension-host tests SHALL exercise only existing public Host entry points and SHALL NOT replace or duplicate Kernel integration test ownership, which remains with the existing Vitest suite.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0028-vs-code-extension-installability.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0009, RFC-0010, or the Kernel Canon.
+- Validates, but does not extend, the architecture certified through Sprint 27.
+
+---
+
+## Sprint 29 — Gemini CLI Adapter Runtime Integration
+
+Status: Approved (NEXUS-REV-2026-07-14-002)
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Primary, Partial — first production implementation)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-003` — governs this sprint's entire scope: refined objective, Architectural Intent (`MockAdapter` → `MockAdapter` + `GeminiCliAdapter`), Authorized Vertical Slice, the binding two-tier Acceptance Criteria (Automated Repository Validation + Manual Production Verification), authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-002` — governs provider selection (Gemini CLI), authentication model (pre-authenticated local CLI session; Nexus never handles credentials), and `ADAPTER_RUNTIME_INSTRUCTIONS.md` canonical naming (superseding `NEXUS-RAT-2026-07-13-010`'s illustrative `COPILOT_INSTRUCTIONS.md` name).
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+
+Implemented Concepts:
+
+- `GeminiCliAdapter implements Adapter` under `src/adapters/gemini/`, constructor-injected with `LocalProcessRuntimeContract`, mirroring `MockAdapter`'s placement outside `src/kernel`.
+- Deterministic diagnostics for executable-not-found, non-zero exit, malformed output, timeout, runtime error.
+- Composition-time registration through the existing `createKernelServices` `adapters` option; exercised only via direct `AdapterService.dispatch` in tests, never wired into `HostMissionWorkflow`.
+- `ADAPTER_RUNTIME_INSTRUCTIONS.md` — provider-neutral runtime execution guidance, not governance.
+- A deterministic local test-double executable suite (Automated Repository Validation) and a documented, non-automated Manual Production Verification procedure against a real, locally authenticated Gemini CLI.
+
+Deferred Concepts:
+
+- Developer Workflow integration; replacing `MockAdapter` in `HostMissionWorkflow`; GitHub Copilot CLI / Claude CLI / Codex CLI Adapters; Adapter Selection / provider routing; authentication/credential management, OAuth, `SecretStorage`; streaming responses; multi-provider coordination.
+
+Critical Boundary:
+
+- This sprint introduces exactly one architectural variable — `GeminiCliAdapter` registered alongside `MockAdapter` — while every other component remains unchanged. No `src/kernel`, Host orchestration, or Developer Workflow file may be modified. Manual Production Verification is documentation only and SHALL NOT be added to `npm run validate` or any CI-gating script.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0029-gemini-cli-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0010, or the Kernel Canon.
+- Only after this sprint's independent certification SHALL a future Sprint authorize Developer Workflow integration of `GeminiCliAdapter`.
+
+---
+
+## Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
+
+Status: Current
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-004` — governs this sprint's entire scope: the binding decision to introduce a second Developer Workflow command (rather than a persisted Adapter-configuration surface), Architectural Responsibilities, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-003` — established that Developer Workflow integration of `GeminiCliAdapter` is authorized only after Sprint 29's independent certification; satisfied by `NEXUS-REV-2026-07-14-002`.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; the new command dispatches via explicit `adapterId` only.
+
+Planned Concepts:
+
+- A new Host command sequencing the identical, already-certified Sprint 25/26/27 workflow steps (Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge), with the Adapter dispatch step's explicit `adapterId` set to `GEMINI_CLI_ADAPTER_ID` instead of `MOCK_ADAPTER_ID`.
+- `GeminiCliAdapter` registration at the `extension.ts` composition root alongside the existing, unmodified `MockAdapter` registration.
+- New command contribution point (`package.json` `contributes.commands` / `activationEvents`) mirroring the existing command's registration pattern.
+- Unit/integration test coverage for the new command using the existing deterministic Gemini CLI test-double (Sprint 29) exclusively.
+
+Deferred Concepts:
+
+- Persisted adapter preferences, Workspace/User adapter settings, or any Adapter-selection configuration subsystem.
+- Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination.
+- Authentication management, credential storage, OAuth, `SecretStorage` integration.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, Codex CLI Adapter, or any second production Adapter.
+- Streaming responses, multi-provider coordination, background execution.
+
+Critical Boundary:
+
+- The existing `nexus.runDeveloperMissionWorkflow` command, its `HostMissionWorkflow` construction, and every Sprint 25–28 test asserting its behavior SHALL NOT be modified. The new command SHALL dispatch via explicit `adapterId` only — no Adapter Selection, routing, or persisted configuration. No `src/kernel` file may be modified.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-integration.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
 
 ---
 

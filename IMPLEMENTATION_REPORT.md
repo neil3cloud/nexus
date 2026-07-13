@@ -1,5 +1,195 @@
 # Nexus Implementation Report
 
+## Sprint 29 — Gemini CLI Adapter Runtime Integration
+
+### Implemented Slice
+
+Implemented the Milestone 5 Sprint 29 Gemini CLI Adapter Runtime Integration vertical slice. This sprint introduces the first production Adapter implementation in isolation, alongside the certified `MockAdapter`, without wiring it into Developer Workflow execution.
+
+Implemented scope:
+
+- Added `GeminiCliAdapter` under `src/adapters/gemini/`.
+- Implemented RFC-0008 `Adapter` metadata and `execute(request): Promise<AdapterResponse>`.
+- Translated `AdapterRequest` into a local `ProcessRequest` and invoked it only through constructor-injected `LocalProcessRuntimeContract`.
+- Parsed successful Gemini CLI JSON output into the existing `AdapterResponse` shape.
+- Preserved process diagnostics from `LocalProcessRuntimeContract` for executable-not-found, non-zero exit, timeout, and startup/runtime failure paths.
+- Added malformed-output, invalid-timeout, unsupported-role, and runtime-exception Adapter diagnostics.
+- Added deterministic local test-double coverage and direct `AdapterService.dispatch` composition coverage with `MockAdapter` and `GeminiCliAdapter` registered together.
+- Created `ADAPTER_RUNTIME_INSTRUCTIONS.md` as provider-neutral runtime execution guidance with a Manual Production Verification procedure.
+
+Out of scope and not implemented:
+
+- Developer Workflow integration or replacement of `MockAdapter`.
+- Host orchestration changes, `HostMissionWorkflow` changes, or `extension.ts` dispatch-target changes.
+- Any `src/kernel` changes.
+- Adapter Selection, provider routing, provider preference, fallback, or multi-adapter execution policy.
+- Authentication management, credential storage, OAuth, `SecretStorage`, streaming responses, retries beyond existing runtime timeout behavior, or multi-provider coordination.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0008 — Kernel Adapter Contract (Partial — first production implementation).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Production `Adapter` implementation for Gemini CLI.
+- Adapter metadata, declared capabilities, and supported roles using the existing Adapter Framework vocabulary.
+- Adapter request translation to a local process invocation.
+- Adapter response parsing and attribution-preserving execution metadata.
+- Deterministic Adapter diagnostics for runtime and parsing failure modes.
+- Composition-time registration through the existing `createKernelServices` `adapters` option, exercised only through explicit `adapterId` dispatch.
+
+Deferred Concepts:
+
+- Developer Workflow integration and replacement of `MockAdapter` in Host workflow execution.
+- GitHub Copilot CLI, Claude CLI, Codex CLI, or any second production Adapter.
+- Adapter Selection Policy, provider routing, provider preference, fallback, and multi-adapter execution.
+- Authentication management, credential storage, OAuth, `SecretStorage`, and Nexus-managed credentials.
+- Streaming responses, multi-provider coordination, and background provider execution.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-003`, `NEXUS-RAT-2026-07-14-002`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0029-gemini-cli-adapter-runtime-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `ADAPTER_RUNTIME_INSTRUCTIONS.md`.
+
+### Architectural Assumptions
+
+- Gemini CLI request execution can be represented as a single local process invocation through the existing `LocalProcessRuntimeContract`.
+- The Adapter can require JSON-only provider output because RFC-0008 defines Adapter Response shape, while provider-specific protocol details remain inside the Adapter boundary.
+- The executable path and base arguments are runtime composition details, enabling deterministic local test-double execution without adding Adapter Selection or provider routing.
+
+### Known Limitations
+
+- `GeminiCliAdapter` is not reachable from any VS Code command or Developer Workflow path in this sprint.
+- Automated validation exercises only a deterministic local test-double executable, never the live Gemini CLI.
+- Manual Production Verification depends on a local Gemini CLI installation and a usable pre-authenticated Gemini account/session.
+- In this environment, Gemini CLI executable discovery succeeded (`C:\Users\NeilBusa\AppData\Roaming\npm\gemini.ps1`, version `0.50.0`), but live request execution failed before provider response parsing because Gemini CLI returned `IneligibleTierError` / `UNSUPPORTED_CLIENT` for the local Gemini Code Assist account tier. A rerun with `--skip-trust` removed the workspace-trust blocker and confirmed the remaining blocker is provider-side eligibility, not Nexus automation.
+- No retry, streaming, or multi-turn session support is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 29 Vitest suite passed: 2 files, 7 tests.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 50 files, 262 tests.
+- Sprint 18 Kernel boundary certification passed unmodified.
+- Manual Production Verification procedure is documented in `ADAPTER_RUNTIME_INSTRUCTIONS.md`; live execution evidence is recorded above.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 28 — VS Code Extension Installability
+
+### Implemented Slice
+
+Implemented the Milestone 5 Sprint 28 VS Code Extension Installability vertical slice. This sprint productizes the already-certified provider-independent Developer Workflow as an installable local VS Code extension and validates it inside a real Extension Host without extending Nexus architecture.
+
+Implemented scope:
+
+- Completed extension packaging metadata in `package.json`: command-scoped `activationEvents`, `icon`, `repository`, `license`, and `engines.vscode`.
+- Added local VSIX packaging through `@vscode/vsce` and `npm run package`, producing `nexus-0.0.1.vsix`.
+- Added `.vscodeignore` to exclude source, tests, generated Extension Host output, generated VSIX files, and development tooling from the packaged extension.
+- Added `.vscode/launch.json` for manual Extension Development Host verification.
+- Added `@vscode/test-electron` and a distinct `test:extension-host` target.
+- Added Extension Host validation that installs the packaged VSIX through the VS Code CLI, activates the extension, verifies all six contributed commands, executes `nexus.runDeveloperMissionWorkflow` through the certified `MockAdapter`, and verifies Mission workflow history.
+- Added a local extension icon at `assets/nexus-icon.png`.
+
+Out of scope and not implemented:
+
+- Production provider Adapters, live AI execution, Adapter Selection, provider routing, authentication, credential management, OAuth, `SecretStorage`, streaming responses, multi-provider coordination, Marketplace publication, release automation, or `COPILOT_INSTRUCTIONS.md` activation.
+- Kernel, Adapter, or Host business-logic changes.
+- New commands, capabilities, workflow steps, business rules, execution semantics, lifecycle transitions, or architectural ownership changes.
+
+### RFC Coverage
+
+Primary RFC:
+
+- No Primary RFC — packaging/tooling and validation-only slice.
+
+Referenced RFCs:
+
+- RFC-0009 — Host Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Local VSIX generation and installation validation.
+- Extension activation validation inside a real VS Code Extension Host.
+- Public command registration validation for the six existing Host entry points.
+- Provider-independent Developer Workflow command execution validation through the certified `MockAdapter`.
+
+Deferred Concepts:
+
+- GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, or any production provider Adapter.
+- Adapter Selection, provider routing, provider preference, fallback, and multi-provider execution.
+- Authentication, credential management, OAuth, and `SecretStorage`.
+- Streaming responses, background execution, workflow automation, release automation, Marketplace publication, and `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-001`, `NEXUS-RAT-2026-07-13-013`, `NEXUS-RAT-2026-07-13-014`, `NEXUS-RAT-2026-07-13-010`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md`.
+- `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md`.
+- `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md`.
+- `knowledge/implementation/sprints/sprint-0028-vs-code-extension-installability.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Extension Host validation may use command-scoped activation rather than eager activation because the existing public command surface is the authorized activation and execution boundary.
+- The Extension Host test validates package installation before launching the development Extension Host test harness; this satisfies local installation validation without introducing Marketplace publication or release automation.
+- The test runner may use `VSCODE_EXECUTABLE_PATH` when a local VS Code executable is available, preserving the same Extension Host validation semantics while avoiding external download fragility.
+
+### Known Limitations
+
+- Local VSIX generation and local installation are validated; Visual Studio Marketplace packaging, marketplace metadata validation, release automation, and publication remain deferred.
+- Only the certified `MockAdapter` participates in Extension Host workflow execution.
+- Cross-version VS Code compatibility testing is not introduced; validation uses the VS Code executable supplied by `@vscode/test-electron` or `VSCODE_EXECUTABLE_PATH`.
+
+### Validation Summary
+
+- TypeScript compile passed.
+- ESLint passed.
+- Existing Vitest suite passed: 48 files, 255 tests, with the Extension Host suite excluded from Vitest and run through its distinct target.
+- esbuild passed.
+- Repository validation passed after rerunning a transient local-process runtime timeout.
+- Local VSIX packaging passed and produced `nexus-0.0.1.vsix`.
+- Extension Host validation passed using `@vscode/test-electron` with a local VS Code executable: VSIX installation succeeded, activation completed, all six commands were registered, `nexus.runDeveloperMissionWorkflow` completed through `MockAdapter`, and workflow history was returned.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 27 — Developer Workflow Completion
 
 ### Implemented Slice

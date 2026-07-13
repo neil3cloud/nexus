@@ -5,13 +5,27 @@
   "version": "0.0.1",
   "private": true,
   "publisher": "nexus",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neil3cloud/nexus.git"
+  },
   "engines": {
     "vscode": "^1.92.0"
   },
   "categories": [
     "Other"
   ],
+  "icon": "assets/nexus-icon.png",
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:nexus.initializeWorkspace",
+    "onCommand:nexus.discoverAdapters",
+    "onCommand:nexus.dispatchAdapterRequest",
+    "onCommand:nexus.showHostCapabilities",
+    "onCommand:nexus.runDeveloperMissionWorkflow",
+    "onCommand:nexus.showMissionWorkflowHistory"
+  ],
   "contributes": {
     "commands": [
       {
@@ -44,7 +58,10 @@
     "build": "node esbuild.js",
     "compile": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
-    "test": "vitest run",
+    "package": "npm run build && vsce package --out nexus-0.0.1.vsix",
+    "test": "vitest run --exclude \"test/extension-host/**\"",
+    "test:extension-host:build": "node esbuild.extension-host-test.js",
+    "test:extension-host": "npm run package && npm run test:extension-host:build && node out/extension-host/run-tests.js",
     "validate": "npm run compile && npm run lint && npm run test && npm run build"
   },
   "devDependencies": {
@@ -52,6 +69,8 @@
     "@types/vscode": "^1.92.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.1",
     "eslint": "^8.57.0",
     "typescript": "^5.5.4",

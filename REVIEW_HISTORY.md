@@ -2,6 +2,156 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-002 — Sprint 29 — Gemini CLI Adapter Runtime Integration
+
+- **Reviewed Sprint:** Sprint 29 — Gemini CLI Adapter Runtime Integration
+- **Reviewed Vertical Slice:** `GeminiCliAdapter` (`src/adapters/gemini/gemini-cli-adapter.ts`), constructor-injected with `LocalProcessRuntimeContract`; deterministic local test-double suite (`test/adapters/gemini/gemini-cli-adapter.test.ts`, `test/adapters/gemini/gemini-cli-test-double.cjs`); composition-time registration proof (`test/integration/gemini-cli-adapter-runtime.integration.test.ts`); `ADAPTER_RUNTIME_INSTRUCTIONS.md`.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Primary, Partial — first production implementation). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 29 implements Nexus's first production Adapter, `GeminiCliAdapter`, exactly as scoped by `NEXUS-RAT-2026-07-14-003` and `NEXUS-RAT-2026-07-14-002`, introducing exactly one architectural variable (`GeminiCliAdapter` registered alongside, not replacing, `MockAdapter`) while preserving every previously certified boundary.
+
+Independent re-verification: `git status`/`git diff --stat` confirmed zero `src/kernel` file changes — `adapter-capability.ts`'s `CLI` value and `adapter-request.ts`/`adapter-metadata.ts` all predate this sprint (Sprint 22/7) and are untouched. A repository-wide grep confirmed `GeminiCliAdapter` is referenced nowhere in `src/extension.ts` or `src/hosts/**`; `MockAdapter` remains the sole Developer Workflow dispatch target, unmodified. `GeminiCliAdapter` mirrors `MockAdapter`'s placement and contract shape (`Adapter.metadata`, `execute(request): Promise<AdapterResponse>`), consuming `LocalProcessRuntimeContract` by constructor injection only — no direct process API usage, consistent with RFC-0008 statelessness and RFC-0010's Adapter-layer boundary (Sprint 21 precedent).
+
+I independently ran the targeted Sprint 29 suite directly (`npx vitest run test/adapters/gemini test/integration/gemini-cli-adapter-runtime.integration.test.ts`): 2 files / 7 tests passed, matching the Builder's claim exactly. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**50 files / 262 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test (`test/integration/kernel-boundary-certification.integration.test.ts`) included and passing unmodified within that run.
+
+Reviewed the deterministic test-double executable (`gemini-cli-test-double.cjs`) line-by-line: it is fully deterministic, driven only by an `executionConstraints` flag, with no network, filesystem, or authentication dependency — correctly satisfying the Automated Repository Validation tier's CI-safety requirement. Reviewed `package.json`'s diff: the `validate` script chain (`compile && lint && test && build`) is unchanged and correctly includes the Gemini test-double suite (not excluded, unlike `test/extension-host/**`), while the Manual Production Verification procedure is absent from any script, correctly excluded from automation per the binding Two-Tier Acceptance Criteria. `ADAPTER_RUNTIME_INSTRUCTIONS.md` was read in full: it is scoped strictly to runtime execution guidance (lifecycle, request construction, command invocation, response contract, diagnostics, manual verification steps) and makes no governance, Sprint-planning, or authority claims, correctly following `NEXUS-RAT-2026-07-14-002`'s naming and scope ratification.
+
+Cross-checked the Builder's reported Manual Production Verification result (real `gemini` CLI discovered at version `0.50.0`; live execution blocked by a provider-side `IneligibleTierError`/`UNSUPPORTED_CLIENT`, not a Nexus defect) against `IMPLEMENTATION_REPORT.md` and `ADAPTER_RUNTIME_INSTRUCTIONS.md` — both consistently document this as documented, non-automated evidence, correctly excluded from the CI-safe gate per the ratification.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 50 files / 262 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Developer Workflow integration / replacement of `MockAdapter`; any `HostMissionWorkflow`/Host-orchestration/`extension.ts` change; GitHub Copilot CLI / Claude CLI / Codex CLI or any second production Adapter; Adapter Selection Policy, provider routing, provider preference, fallback, multi-adapter execution; authentication management, credential storage, OAuth, `SecretStorage`; streaming responses, multi-provider coordination, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (isolated production Adapter implementation); no Developer Workflow coupling introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/RFC-0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-003`'s binding Critical Boundary, Authentication Model, and Two-Tier Acceptance Criteria followed exactly.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `Adapter`/`AdapterRequest`/`AdapterResponse`/`AdapterMetadata` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; Adapter remains stateless per RFC-0008.
+- Gate 5 (Data Model): PASS — `AdapterResponse`'s existing shape (`status`, `diagnostics`, `producedArtifacts`, `findings`, `executionMetadata`) preserved unchanged.
+- Gate 6 (State Machine): PASS — no state machine touched; `AdapterLifecycle` untouched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel` independently re-confirmed empty; Sprint 18's boundary test unaffected (verified via the passing full Vitest run); `GeminiCliAdapter` independently confirmed absent from `src/hosts/**` and `src/extension.ts` via grep.
+- Gate 9 (Technology Compliance): PASS — `GeminiCliAdapter` correctly placed under `src/adapters/gemini/`, mirroring `MockAdapter`/`LocalProcessRuntime` precedent.
+- Gate 10 (Code Quality): PASS — deterministic diagnostics, immutable request/response translation, no hidden behavior.
+- Gate 11 (Testing): PASS — Automated Repository Validation tier is fully deterministic and CI-safe; Manual Production Verification correctly documented and excluded from automation.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `ADAPTER_RUNTIME_INSTRUCTIONS.md`, and the Sprint 29 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 29 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0029-gemini-cli-adapter-runtime-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 29 status set to **Approved** (`NEXUS-REV-2026-07-14-002`); Milestone 5 status line updated accordingly. No Sprint 30 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+None. Zero findings; nothing blocks or requires remediation. Per `NEXUS-RAT-2026-07-14-003`, only after this Sprint's independent certification (now recorded here) SHALL a future Sprint authorize Developer Workflow integration of `GeminiCliAdapter` — that scoping decision remains the next Sprint Owner action via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-14-001 — Sprint 28 — VS Code Extension Installability
+
+- **Reviewed Sprint:** Sprint 28 — VS Code Extension Installability
+- **Reviewed Vertical Slice:** `package.json` packaging metadata (`activationEvents`, `icon`, `repository`, `license`); `.vscodeignore`; `.vscode/launch.json`; `esbuild.extension-host-test.js`; `test/extension-host/run-tests.ts` and `test/extension-host/suite/extension-host.test.ts`; `assets/nexus-icon.png`.
+- **RFC Coverage:** No Primary RFC — packaging/tooling and validation-only slice. Referenced: RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 28 productizes Nexus as a packageable, installable VS Code extension exactly as scoped by `NEXUS-RAT-2026-07-14-001`, without touching Kernel or Adapter architecture. `git diff --stat -- src/kernel src/adapters` is confirmed **empty**; the only `src/hosts`-adjacent files touched are packaging/tooling artifacts, not business logic.
+
+Independent re-validation reproduced every environment-independent claim exactly: `tsc --noEmit`, ESLint, and `npm run build` (esbuild) all passed cleanly; the existing Vitest suite (excluding the new extension-host target) passed **48 files / 255 tests**; `npm run package` produced a structurally correct `nexus-0.0.1.vsix` whose manifest listing matched the Builder's reported contents precisely (bundled `dist/extension.js`, correct `package.json`, icon, no `src/`/`test/` leakage). `package.json`'s `activationEvents` are correctly scoped to the six contributed commands, `.vscodeignore` correctly excludes dev-only tooling (`typescript`, `eslint`, `vitest`, `@typescript-eslint`, `@types`), and `.vscode/launch.json` correctly targets `extensionDevelopmentPath` without modifying `.vscode/settings.json`/`.vscode/extensions.json`. `test/extension-host/suite/extension-host.test.ts` was read line-by-line and stays precisely within the ratified Extension Host Validation Boundary: it asserts activation, all six command registrations, one full `nexus.runDeveloperMissionWorkflow` execution result, and history — it does not assert anything about internal Kernel state, aggregates, or event buses, correctly leaving Kernel integration ownership with the existing Vitest suite.
+
+I attempted to independently execute the automated Extension Host suite (`npm run test:extension-host`) against a locally installed VS Code (version 1.127.0, confirmed via `bin/code.cmd --version`) in this review environment. Both the Builder's actual `run-tests.ts` and a minimal, code-identical reproduction using the canonical, officially-documented `@vscode/test-electron` pattern (`extensionDevelopmentPath` only, no Nexus-specific code, with `--no-sandbox`/`--disable-gpu` added) failed identically with `Error: Cannot find module 'vscode'` thrown while requiring `dist/extension.js` inside the spawned host process. Diagnosing further: invoking `Code.exe --version` directly (as opposed to the `bin/code.cmd` CLI wrapper) anomalously returns a bare Node.js version string (`v24.15.0`) rather than a VS Code product version, on this AzureAD-joined, presumably endpoint-managed machine — strong evidence that raw `Code.exe` process launches are being intercepted, redirected, or otherwise altered by machine-level security tooling in this session, independent of anything in the Nexus repository. Because the identical failure reproduces with a zero-Nexus-code canonical minimal test, I attribute this to review-environment interference rather than an implementation defect, but I could not obtain an independent, conclusive PASS on this specific claim and am recording that honestly as a finding rather than certifying it silently.
+
+### Findings
+
+**Finding NEXUS-REV-2026-07-14-001-F-001**
+- **Category:** Observation (Category 6)
+- **Severity:** Informational
+- **Authority:** N/A — non-blocking recommendation.
+- **Summary:** The automated Extension Host validation (`npm run test:extension-host`) could not be independently reproduced as passing in this review environment; both the Builder's implementation and a minimal, code-free canonical `@vscode/test-electron` repro failed identically with `Cannot find module 'vscode'`, correlated with anomalous `Code.exe --version` behavior suggesting machine-level interception unrelated to Nexus.
+- **Evidence:** Direct reproduction attempts (see Executive Summary); `Code.exe --version` → `v24.15.0` vs. `bin/code.cmd --version` → `1.127.0`.
+- **Impact:** None on architectural compliance; this is a verification-confidence gap, not a code defect indicator, given the failure reproduces identically with zero Nexus code involved.
+- **Recommended Disposition:** No Builder action required. Recommend the Sprint Owner obtain one additional independent confirmation of `npm run test:extension-host` passing (e.g., via CI on a clean runner, or a different local machine) as due diligence before treating Sprint 28's Extension Host claim as fully cross-validated. Does not block approval.
+- **Builder Action:** None.
+
+**Finding NEXUS-REV-2026-07-14-001-F-002**
+- **Category:** Observation (Category 6)
+- **Severity:** Minor
+- **Authority:** N/A — quality/efficiency recommendation.
+- **Summary:** `npm run package` includes ~580 KB of raw `pino` (and transitive) `node_modules` source files in the VSIX even though `dist/extension.js` already bundles `pino` (only `vscode` is declared `external` in `esbuild.js`), making the runtime `node_modules` inclusion fully redundant. `vsce`'s own packaging output warns about this exact condition.
+- **Evidence:** `npm run package` output listing `node_modules/pino/` (195 files), `node_modules/@pinojs/`, etc. inside `nexus-0.0.1.vsix`; `esbuild.js:8` (`external: ['vscode']` only).
+- **Impact:** No functional defect — the extension still installs and activates correctly since `dist/extension.js` is self-contained — but the VSIX is unnecessarily larger than needed.
+- **Recommended Disposition:** Non-blocking. Suggest adding `node_modules/**` to `.vscodeignore` in a future documentation/cleanup pass, since bundling already makes it redundant.
+- **Builder Action:** None required now; optional future cleanup.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 1 (Informational: 1) |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 255 tests, esbuild build, `npm run package` (VSIX structurally verified) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: GitHub Copilot CLI / Claude CLI / Gemini CLI / Codex CLI or any production Adapter; Adapter Selection, provider routing; authentication, credential management, OAuth, `SecretStorage`; streaming responses, multi-provider coordination; Visual Studio Marketplace publication, release automation; `COPILOT_INSTRUCTIONS.md`; any new Kernel/Adapter/Host business rule, command, or capability.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (packaging/tooling and real-host validation); no unrelated functionality introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0009/0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-001`'s binding Extension Host Validation Boundary and Packaging Scope followed exactly.
+- Gate 3 (Terminology): PASS — no renamed concept; existing command IDs and Host contract vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; the new tests interact only through registered VS Code commands, which themselves call only existing public Host/Kernel entry points.
+- Gate 5 (Data Model): PASS — no request/response/snapshot shape changed.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; extension-host tests do not touch the event bus at all, correctly leaving that to the existing Vitest suite.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected (verified via the passing full Vitest run).
+- Gate 9 (Technology Compliance): PASS — new tooling correctly scoped to packaging/testing infrastructure (`@vscode/vsce`, `@vscode/test-electron`, `esbuild.extension-host-test.js`, `.vscodeignore`, `.vscode/launch.json`).
+- Gate 10 (Code Quality): PASS with Observation — deterministic, minimal-scope test assertions; see F-002 for a non-blocking packaging-bloat observation.
+- Gate 11 (Testing): PASS with Observation — the new extension-host suite is correctly scoped per the binding validation boundary; see F-001 regarding independent reproduction in this review environment.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 28 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 28 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0028-vs-code-extension-installability.md`) — Status → **Approved with Findings**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 28 status set to **Approved with Findings** (`NEXUS-REV-2026-07-14-001`); Milestone 5 status line updated accordingly.
+
+### Builder Task Recommendation
+
+None blocking. Both findings are Observations (Category 6): F-001 recommends the Sprint Owner obtain one additional independent confirmation of the Extension Host test passing in an uncorrelated environment as due diligence, and F-002 suggests an optional future `.vscodeignore` cleanup. Neither requires Builder action now. Per `NEXUS-RAT-2026-07-14-001`, only after independent certification of this Sprint SHALL the repository proceed to the first production Adapter implementation — that remains the next Sprint Owner decision via `/nexus-plan`, with provider choice, authentication model, and `COPILOT_INSTRUCTIONS.md` activation still unresolved and reserved for that cycle.
+
+---
+
 ## NEXUS-REV-2026-07-13-028 — Sprint 27 — Developer Workflow Completion
 
 - **Reviewed Sprint:** Sprint 27 — Developer Workflow Completion

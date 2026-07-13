@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Nexus Extension Development Host",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-workspace-trust"
+      ],
+      "outFiles": [
+        "${workspaceFolder}\\dist\\**\\*.js"
+      ],
+      "preLaunchTask": "npm: build"
+    }
+  ]
+}
