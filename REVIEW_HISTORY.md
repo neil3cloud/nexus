@@ -2,6 +2,83 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-012 — Sprint 36 — Reviewer Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 36 — Reviewer Workflow Foundation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0036-reviewer-workflow-foundation.md`'s Authorized Vertical Slice — extraction of the Role-scoped Configured Mission Workflow construction (duplicated in `vscode-host.ts` for the Developer and Builder Workflows) into a single reusable Host-layer factory parameterized by `roleId`/`presentationOptions`; a behavior-preserving refactor of the existing Builder Workflow (Sprint 35) to use that factory; and an additive `nexus.runReviewerMissionWorkflow` Host command constructed via the same factory with explicit `roleId: 'reviewer'`, reusing Sprint 33's Host Adapter Configuration resolution and the certified Execution Pipeline verbatim.
+- **RFC Coverage:** No Primary RFC — Host-layer additive command and internal refactor reusing existing certified contracts. Referenced: RFC-0004 — Execution Model (`reviewer` Execution Role, already registered by Sprint 8, unmodified), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 36 was authorized by `NEXUS-RAT-2026-07-14-012` to (1) extract the Role-scoped Configured Mission Workflow construction duplicated in `vscode-host.ts` into a single reusable factory, (2) refactor the existing Sprint 35 Builder Workflow to use it as a behavior-preserving change only, and (3) add a second Role-scoped Workflow, `nexus.runReviewerMissionWorkflow`, using the already-registered `reviewer` Execution Role (Sprint 8).
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `git status --short -- src/kernel src/adapters` is empty — no Kernel or Adapter source was touched, satisfying the ratification's Scope Restriction.
+- `src/hosts/vscode/vscode-host.ts`'s diff shows the prior duplicated `Map`-of-`HostMissionWorkflow` + `HostConfiguredMissionWorkflow` construction (once for the Developer/configured-adapter workflow, once for the Builder Workflow) collapsed into one `createConfiguredMissionWorkflow` factory, called three times (Developer/configured-adapter, Builder, Reviewer) with the same `configurationSurface`, `registeredAdapterIds`, and `fallbackAdapterId`. The Builder Workflow's call site passes the identical `roleId: 'builder'` and `presentationOptions` it used before the refactor, and the Reviewer Workflow's call site passes `roleId: 'reviewer'` with `presentationOptions: { workflowLabel: 'Reviewer Workflow', completionMessageLabel: 'Reviewer workflow', includeAssignedRole: true }`, matching `NEXUS-RAT-2026-07-14-012`'s Architectural Responsibilities verbatim.
+- `src/hosts/vscode/host-mission-workflow.ts` and `src/hosts/vscode/host-adapter-configuration.ts` (`HostMissionWorkflow`, `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`) are untouched — confirmed via `git diff --stat`, both empty. The factory extraction is additive/internal to `vscode-host.ts` only; it does not alter either certified contract.
+- `src/kernel/execution/default-kernel-roles.ts` confirms `reviewer`/`'Reviewer'` is the pre-existing Sprint 8 registered Role id/name pair; no new Role or Kernel data is introduced.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` adds `HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND` and its additive registration block, mirroring the existing `builderWorkflow` pattern exactly; no existing command's registration or dispatch logic changed.
+- `package.json` additively registers `nexus.runReviewerMissionWorkflow`'s `activationEvents` and `contributes.commands` entry ("Run Reviewer Workflow"); the existing Builder/Developer command entries are unchanged.
+- `knowledge/governance/RATIFICATION_LEDGER.md`'s diff is purely additive (`NEXUS-RAT-2026-07-14-011` and `NEXUS-RAT-2026-07-14-012` appended at end of file); no prior ratification entry's text was rewritten.
+- `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` diffs close Milestone 6 at Sprint 34, open Milestone 7 with Sprint 35 relocated under it unmodified in content, and add the Sprint 36 section plus the Milestone 8 stub — consistent with both ratifications; no historical sprint section content was altered.
+- Test coverage matches the ratification's requirement: `host-mission-workflow.test.ts` adds a Reviewer Workflow role-labeling test (result, history, and presentation-line assertions) and generalizes `createRecordingPipeline`'s role parameter without changing its default (`builder`), so Sprint 35's existing Builder Workflow test continues to exercise the identical default path unmodified; `host-mission-workflow-configured-command-registration.test.ts` adds a Reviewer command registration/dispatch-through-configured-resolution success test and an input-cancellation failure test, mirroring the existing Builder tests; `package-command-metadata.test.ts` and `extension-host.test.ts` assert the new command's package metadata, activation event, and discoverability.
+- Reran the pre-existing Sprint 35 Builder Workflow tests (unmodified) alongside the new Sprint 36 tests: all pass, confirming the factory-extraction refactor is behavior-preserving for the Builder Workflow as `NEXUS-RAT-2026-07-14-012` requires.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 291 tests** — matching the Builder's claimed count, up from Sprint 35's 59/287 by exactly four new tests), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed. The Sprint 18 Kernel Boundary Certification test (`test/integration/kernel-boundary-certification.integration.test.ts`) is included in the full Vitest run above and passed unmodified, since `src/kernel` and `src/adapters` are untouched.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 291 tests, esbuild build, extension-host bundle build, Sprint 18 Kernel Boundary Certification (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Planner Workflow, Documentation Workflow, or any other role-scoped workflow beyond Builder/Reviewer: confirmed not introduced.
+- Role-based adapter assignment, automatic routing, workflow chaining, multi-agent coordination: confirmed not introduced — the Reviewer Workflow reuses the identical `nexus.developerWorkflow.defaultAdapterId` configuration surface and explicit-`adapterId` resolution.
+- Execution Model expansion, Execution Session, Assignment Policy, a fourth production Adapter, Adapter Selection Policy, Marketplace publication: confirmed not introduced.
+- `src/kernel` / `src/adapters`: confirmed untouched (`git status`/`git diff --stat` both empty).
+- `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`/existing command dispatch logic: confirmed unmodified — the factory extraction only reorganizes `vscode-host.ts`'s own composition code, which is not one of the certified contracts.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice and Authorized Builder Scope in `NEXUS-RAT-2026-07-14-012`; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — no `src/kernel`/`src/adapters` change; Sprint 18's boundary certification passed unmodified as part of the full repository-wide validation run.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing Developer or Builder Workflow command's identifier, dispatch behavior, or test coverage changed; the factory-extraction refactor is verified behavior-preserving by Sprint 35's own unmodified tests continuing to pass.
+- Gate 4 (Host/Kernel Boundary): PASS — the Kernel receives only the already-understood `reviewer` Role id and explicit `adapterId`; "Reviewer Workflow" exists solely as Host-layer naming and presentation metadata, matching the ratification's binding Architectural Invariant.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 36 sections are mutually consistent and consistent with the actual diff; README accurately describes the new command and its adapter-configuration reuse; `RATIFICATION_LEDGER.md` additively records `NEXUS-RAT-2026-07-14-011`/`-012` without disturbing prior entries.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0036-reviewer-workflow-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 36 marked **Approved**; no Sprint 37 exists yet to advance to Current (Sprint 37 requires its own Sprint Owner scope ratification per `NEXUS-RAT-2026-07-14-011`/`-012`).
+
+### Work Item State Reconciliation
+
+- Sprint 36: Approved.
+- Work Order: Completed (all Authorized Builder Scope items — factory extraction, Builder Workflow refactor, additive Reviewer command, package registration, and success/failure-path test coverage — implemented and verified).
+- Builder Tasks: None were open for this Sprint; no follow-up Builder Task generated.
+
+### Builder Task Recommendation
+
+None. No findings were recorded.
+
+---
+
 ## NEXUS-REV-2026-07-14-011 — Sprint 35 — Builder Workflow Foundation
 
 - **Reviewed Sprint:** Sprint 35 — Builder Workflow Foundation

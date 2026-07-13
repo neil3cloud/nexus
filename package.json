@@ -28,6 +28,7 @@
     "onCommand:nexus.runDeveloperMissionWorkflowWithCodexCli",
     "onCommand:nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
     "onCommand:nexus.runBuilderMissionWorkflow",
+    "onCommand:nexus.runReviewerMissionWorkflow",
     "onCommand:nexus.showMissionWorkflowHistory"
   ],
   "contributes": {
@@ -59,6 +60,12 @@
         "title": "Run Builder Workflow",
         "category": "Nexus",
         "shortTitle": "Run Builder Workflow"
+      },
+      {
+        "command": "nexus.runReviewerMissionWorkflow",
+        "title": "Run Reviewer Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Reviewer Workflow"
       },
       {
         "command": "nexus.runDeveloperMissionWorkflow",

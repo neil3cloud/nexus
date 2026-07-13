@@ -13,6 +13,7 @@ const COMMANDS = [
   'nexus.runDeveloperMissionWorkflowWithCodexCli',
   'nexus.runDeveloperMissionWorkflowWithConfiguredAdapter',
   'nexus.runBuilderMissionWorkflow',
+  'nexus.runReviewerMissionWorkflow',
   'nexus.showMissionWorkflowHistory',
 ] as const;
 

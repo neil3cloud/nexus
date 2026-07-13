@@ -8,6 +8,7 @@ const MOCK_COMMAND = 'nexus.runDeveloperMissionWorkflow';
 const GEMINI_COMMAND = 'nexus.runDeveloperMissionWorkflowWithGeminiCli';
 const CODEX_COMMAND = 'nexus.runDeveloperMissionWorkflowWithCodexCli';
 const BUILDER_COMMAND = 'nexus.runBuilderMissionWorkflow';
+const REVIEWER_COMMAND = 'nexus.runReviewerMissionWorkflow';
 const HISTORY_COMMAND = 'nexus.showMissionWorkflowHistory';
 
 describe('package command metadata', () => {
@@ -21,6 +22,7 @@ describe('package command metadata', () => {
       'nexus.showHostCapabilities',
       CONFIGURED_COMMAND,
       BUILDER_COMMAND,
+      REVIEWER_COMMAND,
       MOCK_COMMAND,
       GEMINI_COMMAND,
       CODEX_COMMAND,
@@ -38,6 +40,12 @@ describe('package command metadata', () => {
       title: 'Run Builder Workflow',
       category: 'Nexus',
       shortTitle: 'Run Builder Workflow',
+    });
+    expect(command(commands, REVIEWER_COMMAND)).toEqual({
+      command: REVIEWER_COMMAND,
+      title: 'Run Reviewer Workflow',
+      category: 'Nexus',
+      shortTitle: 'Run Reviewer Workflow',
     });
   });
 
@@ -60,9 +68,18 @@ describe('package command metadata', () => {
       shortTitle: 'Run with Codex CLI',
     });
   });
+
+  it('declares activation events for role-scoped workflow commands', () => {
+    const activationEvents = readActivationEvents();
+
+    expect(activationEvents).toContain(`onCommand:${CONFIGURED_COMMAND}`);
+    expect(activationEvents).toContain(`onCommand:${BUILDER_COMMAND}`);
+    expect(activationEvents).toContain(`onCommand:${REVIEWER_COMMAND}`);
+  });
 });
 
 interface PackageManifest {
+  readonly activationEvents: readonly string[];
   readonly contributes: {
     readonly commands: readonly CommandContribution[];
   };
@@ -82,6 +99,13 @@ function readCommandContributions(): readonly CommandContribution[] {
   return manifest.contributes.commands;
 }
 
+function readActivationEvents(): readonly string[] {
+  const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8');
+  const manifest = parsePackageManifest(packageJson);
+
+  return manifest.activationEvents;
+}
+
 function parsePackageManifest(source: string): PackageManifest {
   const value: unknown = JSON.parse(source);
 
@@ -93,11 +117,19 @@ function parsePackageManifest(source: string): PackageManifest {
 }
 
 function isPackageManifest(value: unknown): value is PackageManifest {
-  if (!isRecord(value) || !isRecord(value.contributes) || !Array.isArray(value.contributes.commands)) {
+  if (
+    !isRecord(value) ||
+    !Array.isArray(value.activationEvents) ||
+    !isRecord(value.contributes) ||
+    !Array.isArray(value.contributes.commands)
+  ) {
     return false;
   }
 
-  return value.contributes.commands.every(isCommandContribution);
+  return (
+    value.activationEvents.every((entry) => typeof entry === 'string') &&
+    value.contributes.commands.every(isCommandContribution)
+  );
 }
 
 function isCommandContribution(value: unknown): value is CommandContribution {

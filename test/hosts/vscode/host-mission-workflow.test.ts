@@ -196,6 +196,74 @@ describe('HostMissionWorkflow', () => {
     );
   });
 
+  it('labels Reviewer Workflow results with the assigned Execution Role', async () => {
+    const recorder = new ServiceCallRecorder();
+    const presentation = new RecordingPresentationSurface();
+    const workflow = new HostMissionWorkflow(
+      new RecordingMissionService(recorder),
+      new RecordingPlanningService(recorder),
+      new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder, 'Completed', {
+        id: 'reviewer',
+        name: 'Reviewer',
+        description: 'Responsible for validating engineering work against governing evidence.',
+      }),
+      createRecordingCompletion(recorder),
+      presentation,
+      new StaticWorkspaceTrustSurface(true),
+      createDeterministicIdentity([
+        'reviewer-mission',
+        'reviewer-plan',
+        'reviewer-task',
+        'reviewer-strategy',
+        'reviewer-evidence',
+        'reviewer-review',
+        'reviewer-finding',
+        'reviewer-knowledge',
+      ]),
+      {
+        workflowLabel: 'Reviewer Workflow',
+        completionMessageLabel: 'Reviewer workflow',
+        includeAssignedRole: true,
+      },
+    );
+
+    const result = await workflow.runDeveloperMissionWorkflow({
+      objective: 'Run a Sprint 36 Reviewer Workflow.',
+      taskTitle: 'Execute reviewer task',
+      taskDescription: 'Complete the single Reviewer Workflow task.',
+    });
+
+    expect(result).toMatchObject({
+      missionId: 'mission-reviewer-mission',
+      assignedRoleId: 'reviewer',
+      assignedRoleName: 'Reviewer',
+      finalStatus: 'Completed',
+      adapterId: MOCK_ADAPTER_ID,
+    });
+    expect(presentation.lines).toContain('Reviewer Workflow Progress: started mission-reviewer-mission');
+    expect(presentation.lines).toContain('Nexus Reviewer Workflow: mission-reviewer-mission');
+    expect(presentation.lines).toContain('Assigned Role: Reviewer (reviewer)');
+    expect(presentation.lines).toContain('Reviewer Workflow Progress: completed mission-reviewer-mission');
+    expect(workflow.showMissionWorkflowHistory()).toEqual([
+      {
+        missionId: 'mission-reviewer-mission',
+        objective: 'Run a Sprint 36 Reviewer Workflow.',
+        finalStatus: 'Completed',
+        assignedRoleId: 'reviewer',
+        assignedRoleName: 'Reviewer',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Completed',
+        reviewOutcome: 'Accepted',
+        knowledgeCaptureStatus: 'Candidate',
+      },
+    ]);
+    expect(presentation.lines).toContain('Nexus Reviewer Workflow History');
+    expect(presentation.lines).toContain(
+      'Mission History Entry: mission-reviewer-mission | Completed | Reviewer (reviewer) | mock-adapter | Completed | Accepted | Candidate | Run a Sprint 36 Reviewer Workflow.',
+    );
+  });
+
   it('refuses before any Kernel service call when workspace trust is not granted', async () => {
     const recorder = new ServiceCallRecorder();
     const presentation = new RecordingPresentationSurface();
@@ -565,6 +633,15 @@ class RecordingPlanningService implements MissionWorkflowPlanningService {
 function createRecordingPipeline(
   recorder: ServiceCallRecorder,
   adapterStatus: 'Completed' | 'Failed' = 'Completed',
+  role: {
+    readonly id: string;
+    readonly name: string;
+    readonly description: string;
+  } = {
+    id: 'builder',
+    name: 'Builder',
+    description: 'Responsible for implementing authorized engineering changes.',
+  },
 ): MissionWorkflowPipelineServices {
   return {
     roleService: {
@@ -577,9 +654,9 @@ function createRecordingPipeline(
         recorder.calls.push('RoleService.retrieveRole');
 
         return ExecutionRole.create({
-          id: 'builder',
-          name: 'Builder',
-          description: 'Responsible for implementing authorized engineering changes.',
+          id: role.id,
+          name: role.name,
+          description: role.description,
           category: 'Engineering Responsibility',
         });
       },
@@ -603,7 +680,7 @@ function createRecordingPipeline(
           missionId: 'mission-sprint-26-mission',
           missionPlanId: input.missionPlanId,
           taskId: input.taskId,
-          roleId: 'builder',
+          roleId: role.id,
           ready: true,
           satisfiedDependencyTaskIds: [],
           concurrencyRule: 'IndependentTasksMayBeReadyConcurrently',

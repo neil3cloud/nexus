@@ -48,6 +48,30 @@ type RegisteredMissionWorkflow = Pick<
   'runDeveloperMissionWorkflow' | 'showMissionWorkflowHistory'
 >;
 
+interface MissionWorkflowCompositionInput {
+  readonly adapterId: string;
+  readonly roleId?: string;
+  readonly missionService: MissionService;
+  readonly planningService: MissionPlanningService;
+  readonly executionService: MissionExecutionService;
+  readonly roleService: RoleService;
+  readonly executionStrategyService: ExecutionStrategyService;
+  readonly adapterService: AdapterService;
+  readonly evidenceService: EvidenceService;
+  readonly reviewService: ReviewService;
+  readonly knowledgeService: KnowledgeService;
+  readonly presentation: HostPresentationSurface;
+  readonly workspaceTrust: HostWorkspaceTrustSurface;
+  readonly presentationOptions?: HostMissionWorkflowPresentationOptions;
+}
+
+interface ConfiguredMissionWorkflowCompositionInput extends Omit<MissionWorkflowCompositionInput, 'adapterId'> {
+  readonly adapterIds: ReadonlySet<string>;
+  readonly registeredAdapterIds: readonly string[];
+  readonly fallbackAdapterId: string;
+  readonly configurationSurface: HostAdapterConfigurationSurface;
+}
+
 export interface VscodeHostOptions {
   readonly adapters?: readonly Adapter[];
   readonly missionWorkflowAdapterId?: string;
@@ -156,6 +180,7 @@ export class VscodeHost implements vscode.Disposable {
   private readonly codexCliMissionWorkflow: HostMissionWorkflow | undefined;
   private readonly configuredAdapterMissionWorkflow: HostConfiguredMissionWorkflow;
   private readonly builderMissionWorkflow: HostConfiguredMissionWorkflow;
+  private readonly reviewerMissionWorkflow: HostConfiguredMissionWorkflow;
   private commandRegistrations: HostDisposable[] = [];
 
   public constructor(
@@ -166,6 +191,7 @@ export class VscodeHost implements vscode.Disposable {
     missionWorkflow: HostMissionWorkflow,
     configuredAdapterMissionWorkflow: HostConfiguredMissionWorkflow,
     builderMissionWorkflow: HostConfiguredMissionWorkflow,
+    reviewerMissionWorkflow: HostConfiguredMissionWorkflow,
     geminiCliMissionWorkflow?: HostMissionWorkflow,
     codexCliMissionWorkflow?: HostMissionWorkflow,
   ) {
@@ -176,6 +202,7 @@ export class VscodeHost implements vscode.Disposable {
     this.missionWorkflow = missionWorkflow;
     this.configuredAdapterMissionWorkflow = configuredAdapterMissionWorkflow;
     this.builderMissionWorkflow = builderMissionWorkflow;
+    this.reviewerMissionWorkflow = reviewerMissionWorkflow;
     this.geminiCliMissionWorkflow = geminiCliMissionWorkflow;
     this.codexCliMissionWorkflow = codexCliMissionWorkflow;
   }
@@ -199,6 +226,7 @@ export class VscodeHost implements vscode.Disposable {
           this.codexCliMissionWorkflow,
           this.configuredAdapterMissionWorkflow,
           this.builderMissionWorkflow,
+          this.reviewerMissionWorkflow,
         ),
       ),
     ];
@@ -314,68 +342,70 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     fallbackMissionWorkflowAdapterId,
     ...registeredAdapterIds,
   ]);
-  const workflowsByAdapterId = new Map(
-    [...configuredWorkflowAdapterIds].map((adapterId) => [
-      adapterId,
-      createMissionWorkflow({
-        adapterId,
-        missionService,
-        planningService,
-        executionService,
-        roleService,
-        executionStrategyService,
-        adapterService,
-        evidenceService,
-        reviewService,
-        knowledgeService,
-        presentation,
-        workspaceTrust,
-      }),
-    ]),
-  );
-  const configuredAdapterMissionWorkflow = new HostConfiguredMissionWorkflow(
-    new HostAdapterConfigurationResolver(
-      new VscodeAdapterConfigurationSurface(),
-      registeredAdapterIds,
-      fallbackMissionWorkflowAdapterId,
-      presentation,
-    ),
-    workflowsByAdapterId,
-  );
-  const builderWorkflowsByAdapterId = new Map(
-    [...configuredWorkflowAdapterIds].map((adapterId) => [
-      adapterId,
-      createMissionWorkflow({
-        adapterId,
-        roleId: 'builder',
-        missionService,
-        planningService,
-        executionService,
-        roleService,
-        executionStrategyService,
-        adapterService,
-        evidenceService,
-        reviewService,
-        knowledgeService,
-        presentation,
-        workspaceTrust,
-        presentationOptions: {
-          workflowLabel: 'Builder Workflow',
-          completionMessageLabel: 'Builder workflow',
-          includeAssignedRole: true,
-        },
-      }),
-    ]),
-  );
-  const builderMissionWorkflow = new HostConfiguredMissionWorkflow(
-    new HostAdapterConfigurationResolver(
-      new VscodeAdapterConfigurationSurface(),
-      registeredAdapterIds,
-      fallbackMissionWorkflowAdapterId,
-      presentation,
-    ),
-    builderWorkflowsByAdapterId,
-  );
+  const configurationSurface = new VscodeAdapterConfigurationSurface();
+  const configuredAdapterMissionWorkflow = createConfiguredMissionWorkflow({
+    adapterIds: configuredWorkflowAdapterIds,
+    registeredAdapterIds,
+    fallbackAdapterId: fallbackMissionWorkflowAdapterId,
+    configurationSurface,
+    missionService,
+    planningService,
+    executionService,
+    roleService,
+    executionStrategyService,
+    adapterService,
+    evidenceService,
+    reviewService,
+    knowledgeService,
+    presentation,
+    workspaceTrust,
+  });
+  const builderMissionWorkflow = createConfiguredMissionWorkflow({
+    adapterIds: configuredWorkflowAdapterIds,
+    registeredAdapterIds,
+    fallbackAdapterId: fallbackMissionWorkflowAdapterId,
+    configurationSurface,
+    roleId: 'builder',
+    missionService,
+    planningService,
+    executionService,
+    roleService,
+    executionStrategyService,
+    adapterService,
+    evidenceService,
+    reviewService,
+    knowledgeService,
+    presentation,
+    workspaceTrust,
+    presentationOptions: {
+      workflowLabel: 'Builder Workflow',
+      completionMessageLabel: 'Builder workflow',
+      includeAssignedRole: true,
+    },
+  });
+  const reviewerMissionWorkflow = createConfiguredMissionWorkflow({
+    adapterIds: configuredWorkflowAdapterIds,
+    registeredAdapterIds,
+    fallbackAdapterId: fallbackMissionWorkflowAdapterId,
+    configurationSurface,
+    roleId: 'reviewer',
+    missionService,
+    planningService,
+    executionService,
+    roleService,
+    executionStrategyService,
+    adapterService,
+    evidenceService,
+    reviewService,
+    knowledgeService,
+    presentation,
+    workspaceTrust,
+    presentationOptions: {
+      workflowLabel: 'Reviewer Workflow',
+      completionMessageLabel: 'Reviewer workflow',
+      includeAssignedRole: true,
+    },
+  });
   const geminiCliMissionWorkflow =
     options.geminiCliMissionWorkflowAdapterId === undefined
       ? undefined
@@ -419,6 +449,7 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     missionWorkflow,
     configuredAdapterMissionWorkflow,
     builderMissionWorkflow,
+    reviewerMissionWorkflow,
     geminiCliMissionWorkflow,
     codexCliMissionWorkflow,
   );
@@ -429,36 +460,48 @@ function createMissionWorkflowCommandOptions(
   codexCliWorkflow: RegisteredMissionWorkflow | undefined,
   configuredAdapterWorkflow: RegisteredMissionWorkflow,
   builderWorkflow: RegisteredMissionWorkflow,
+  reviewerWorkflow: RegisteredMissionWorkflow,
 ): {
   readonly geminiCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly codexCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly configuredAdapterWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly builderWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+  readonly reviewerWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
 } {
   return {
     ...(geminiCliWorkflow === undefined ? {} : { geminiCliWorkflow }),
     ...(codexCliWorkflow === undefined ? {} : { codexCliWorkflow }),
     configuredAdapterWorkflow,
     builderWorkflow,
+    reviewerWorkflow,
   };
 }
 
-function createMissionWorkflow(input: {
-  readonly adapterId: string;
-  readonly roleId?: string;
-  readonly missionService: MissionService;
-  readonly planningService: MissionPlanningService;
-  readonly executionService: MissionExecutionService;
-  readonly roleService: RoleService;
-  readonly executionStrategyService: ExecutionStrategyService;
-  readonly adapterService: AdapterService;
-  readonly evidenceService: EvidenceService;
-  readonly reviewService: ReviewService;
-  readonly knowledgeService: KnowledgeService;
-  readonly presentation: HostPresentationSurface;
-  readonly workspaceTrust: HostWorkspaceTrustSurface;
-  readonly presentationOptions?: HostMissionWorkflowPresentationOptions;
-}): HostMissionWorkflow {
+function createConfiguredMissionWorkflow(
+  input: ConfiguredMissionWorkflowCompositionInput,
+): HostConfiguredMissionWorkflow {
+  const workflowsByAdapterId = new Map(
+    [...input.adapterIds].map((adapterId) => [
+      adapterId,
+      createMissionWorkflow({
+        ...input,
+        adapterId,
+      }),
+    ]),
+  );
+
+  return new HostConfiguredMissionWorkflow(
+    new HostAdapterConfigurationResolver(
+      input.configurationSurface,
+      input.registeredAdapterIds,
+      input.fallbackAdapterId,
+      input.presentation,
+    ),
+    workflowsByAdapterId,
+  );
+}
+
+function createMissionWorkflow(input: MissionWorkflowCompositionInput): HostMissionWorkflow {
   return new HostMissionWorkflow(
     input.missionService,
     input.planningService,

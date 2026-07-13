@@ -19,6 +19,7 @@ import {
   HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND,
   HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND,
   HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_CONFIGURED_ADAPTER_COMMAND,
+  HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND,
   HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND,
   HostMissionWorkflowCommandRegistration,
 } from '../../../src/hosts/vscode/host-mission-workflow-command-registration';
@@ -138,6 +139,69 @@ describe('HostMissionWorkflowCommandRegistration configured adapter command', ()
       code: 'host-mission-workflow.input-cancelled',
     } satisfies Partial<HostMissionWorkflowError>);
     expect(builderWorkflow.inputs).toEqual([]);
+    expect(presentation.lines).toContain(
+      'Host Diagnostic host-mission-workflow.input-cancelled: Mission workflow input cancelled while reading Mission Objective.',
+    );
+  });
+
+  it('registers the additive Reviewer Workflow command through configured adapter resolution', async () => {
+    const registry = new RecordingCommandRegistry();
+    const reviewerWorkflow = new RecordingWorkflow(GEMINI_CLI_ADAPTER_ID, {
+      assignedRoleId: 'reviewer',
+      assignedRoleName: 'Reviewer',
+    });
+
+    new HostMissionWorkflowCommandRegistration(
+      registry,
+      new RecordingWorkflow(MOCK_ADAPTER_ID),
+      new EmptyInputSurface(),
+      new SilentPresentationSurface(),
+      { reviewerWorkflow },
+    );
+
+    expect(registry.commands).toEqual([
+      HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND,
+      HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND,
+      HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND,
+    ]);
+
+    await expect(
+      registry.invoke(HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND, {
+        objective: 'Run the Reviewer Workflow.',
+        taskTitle: 'Reviewer task',
+        taskDescription: 'Exercise the additive Reviewer Workflow path.',
+      }),
+    ).resolves.toMatchObject({
+      adapterId: GEMINI_CLI_ADAPTER_ID,
+      assignedRoleId: 'reviewer',
+      assignedRoleName: 'Reviewer',
+    });
+    expect(reviewerWorkflow.inputs).toEqual([
+      {
+        objective: 'Run the Reviewer Workflow.',
+        taskTitle: 'Reviewer task',
+        taskDescription: 'Exercise the additive Reviewer Workflow path.',
+      },
+    ]);
+  });
+
+  it('aborts the Reviewer Workflow command deterministically on input cancellation', async () => {
+    const registry = new RecordingCommandRegistry();
+    const reviewerWorkflow = new RecordingWorkflow(GEMINI_CLI_ADAPTER_ID);
+    const presentation = new RecordingPresentationSurface();
+
+    new HostMissionWorkflowCommandRegistration(
+      registry,
+      new RecordingWorkflow(MOCK_ADAPTER_ID),
+      new EmptyInputSurface(),
+      presentation,
+      { reviewerWorkflow },
+    );
+
+    await expect(registry.invoke(HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND)).rejects.toMatchObject({
+      code: 'host-mission-workflow.input-cancelled',
+    } satisfies Partial<HostMissionWorkflowError>);
+    expect(reviewerWorkflow.inputs).toEqual([]);
     expect(presentation.lines).toContain(
       'Host Diagnostic host-mission-workflow.input-cancelled: Mission workflow input cancelled while reading Mission Objective.',
     );

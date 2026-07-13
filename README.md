@@ -48,6 +48,8 @@ Set `nexus.developerWorkflow.defaultAdapterId` to the adapter you want for routi
 
 Use **Nexus: Run Builder Workflow** (`nexus.runBuilderMissionWorkflow`) when the same configured adapter should execute the dedicated Builder Workflow entry point. The Host resolves `nexus.developerWorkflow.defaultAdapterId` to one explicit `adapterId`, invokes the same certified execution pipeline with explicit `roleId: 'builder'`, and labels the result with the assigned Builder role.
 
+Use **Nexus: Run Reviewer Workflow** (`nexus.runReviewerMissionWorkflow`) when the same configured adapter should execute the dedicated Reviewer Workflow entry point. The Host resolves `nexus.developerWorkflow.defaultAdapterId` to one explicit `adapterId`, invokes the same certified execution pipeline with explicit `roleId: 'reviewer'`, and labels the result with the assigned Reviewer role.
+
 The explicit commands remain available as compatibility entry points when a developer wants to bypass configuration for one run:
 
 - `nexus.runDeveloperMissionWorkflow` — run with the Mock Adapter compatibility path.

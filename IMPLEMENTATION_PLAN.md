@@ -1625,7 +1625,7 @@ See `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-
 
 # Milestone 6 — Multi-Provider Adapter Integration
 
-Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Approved — NEXUS-REV-2026-07-14-010; Sprint 35 Approved — NEXUS-REV-2026-07-14-011)
+Status: ✅ COMPLETE (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Approved — NEXUS-REV-2026-07-14-010; Milestone closed at Sprint 34 by NEXUS-RAT-2026-07-14-011)
 
 Objective
 
@@ -1635,14 +1635,16 @@ Governance Note
 
 Per `NEXUS-RAT-2026-07-14-005`, following Milestone 5's completion (Sprint 30, `NEXUS-REV-2026-07-14-003`), the Sprint Owner opened Milestone 6 with a second production Adapter rather than a persisted Adapter-selection configuration surface, Marketplace publication, or Execution Model deepening — each remaining a valid future candidate. The second production Adapter targets **Codex CLI**, assuming the identical **pre-authenticated local CLI session** authentication model already ratified for Gemini CLI (`NEXUS-RAT-2026-07-14-002`).
 
+Per `NEXUS-RAT-2026-07-14-011`, Milestone 6 is declared Complete as of Sprint 34: both Expected Outcomes below were fully satisfied (Sprint 31/33 and Sprint 32, respectively), with Sprint 34 as its closing presentation slice. Sprint 35 — Builder Workflow Foundation introduces a fundamentally different engineering concern (Role-scoped Host workflows, not Adapter/provider scaling) and is retroactively classified as the opening Sprint of Milestone 7 — AI Engineering Workflows, below.
+
 Planning Principle
 
-Sprint sequencing within this milestone is intentionally provisional. Following each approved Sprint, `nexus-plan` SHALL assess the repository state and determine the next implementation slice based on implementation experience, repository readiness, governance decisions, and approved ratifications. Approved vertical slices remain immutable.
+Sprint sequencing within this milestone was intentionally provisional. Following each approved Sprint, `nexus-plan` assessed the repository state and determined the next implementation slice based on implementation experience, repository readiness, governance decisions, and approved ratifications. Approved vertical slices remain immutable.
 
 Expected Outcomes
 
-- A certified, isolated `CodexCliAdapter` production Adapter implementation, proving the RFC-0008 Adapter Contract generalizes across providers without Developer Workflow coupling (Sprint 31).
-- Developer Workflow integration of `CodexCliAdapter` and/or a persisted Adapter-selection configuration surface (future slice, scope to be determined by a future Sprint Owner decision).
+- A certified, isolated `CodexCliAdapter` production Adapter implementation, proving the RFC-0008 Adapter Contract generalizes across providers without Developer Workflow coupling (Sprint 31). — Satisfied.
+- Developer Workflow integration of `CodexCliAdapter` and/or a persisted Adapter-selection configuration surface (future slice, scope to be determined by a future Sprint Owner decision). — Satisfied (Sprint 32: Developer Workflow integration; Sprint 33: persisted Adapter-selection configuration surface).
 
 ---
 
@@ -1834,6 +1836,29 @@ See `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolid
 
 ---
 
+# Milestone 7 — AI Engineering Workflows
+
+Status: ACTIVE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 requires its own Sprint Owner scope ratification before implementation)
+
+Objective
+
+Establish a family of dedicated, Role-scoped AI Engineering Workflow entry points at the Host layer. Each workflow SHALL reuse the already-certified Host, Kernel, Execution Pipeline, Adapter Runtime, and Adapter Configuration without modification, differing only by Execution Role, Host presentation, and workflow-specific result presentation.
+
+Governance Note
+
+Opened by `NEXUS-RAT-2026-07-14-011`, which closed Milestone 6 at Sprint 34 and retroactively classified Sprint 35 — Builder Workflow Foundation as this milestone's opening Sprint. Sprint 35's own implementation, review, and ratification records are unmodified by this reclassification; only milestone-level bookkeeping changed. No Milestone 7 Sprint SHALL introduce Kernel ownership changes, Adapter Contract changes, Adapter Selection, Role-to-Adapter routing, Execution Session, Assignment Policy, Workflow Chaining, or multi-agent orchestration, unless separately authorized through a future RFC or Sprint Owner ratification.
+
+`NEXUS-RAT-2026-07-14-012` establishes a binding Architectural Invariant for this milestone: every Role-scoped Workflow entry point SHALL differ from every other only by the Execution Role requested and by workflow presentation metadata, reusing Host Adapter Configuration, explicit-`adapterId` dispatch, the certified Execution Pipeline, Adapter Runtime, and Kernel contracts unmodified in every case. Sprint 36 is directed to extract the Role-scoped Configured Mission Workflow construction (duplicated in `vscode-host.ts` for the Developer and Builder Workflows) into a single reusable factory, refactoring the Builder Workflow to use it, so the pattern is genuinely canonical rather than repeatedly copy-pasted.
+
+Provisional Roadmap
+
+- Sprint 35 — Builder Workflow Foundation (Approved).
+- Sprint 36 — Reviewer Workflow Foundation (Implemented — Pending Reviewer Validation; establishes the canonical Role-scoped Workflow construction factory and adds the Reviewer Workflow over the already-registered `reviewer` Execution Role).
+- Sprint 37 — Documentation Workflow Foundation (named direction; registers `Documentation Reviewer`, an RFC-0004-named Additional Role, as a default Kernel Role, then exposes the corresponding Host workflow via the Sprint 36 factory; requires its own Sprint Owner scope ratification before implementation).
+- A **Planner Workflow** is explicitly not scheduled: "Planner" is not an RFC-0004 Execution Role and requires an RFC-0004 amendment or new RFC before it may be authorized.
+
+---
+
 ## Sprint 35 — Builder Workflow Foundation
 
 Status: Approved — NEXUS-REV-2026-07-14-011
@@ -1874,3 +1899,56 @@ Definition of Done
 - Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
 
 See `knowledge/implementation/sprints/sprint-0035-builder-workflow-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 36 — Reviewer Workflow Foundation
+
+Status: Approved — NEXUS-REV-2026-07-14-012
+
+Objective
+
+Add a second Role-scoped AI Engineering Workflow, `nexus.runReviewerMissionWorkflow`, constructed with explicit `roleId: 'reviewer'` (Sprint 8's registered Execution Role), reusing Host Adapter Configuration resolution and the certified Execution Pipeline verbatim. Establish the canonical Role-scoped Workflow construction pattern by extracting the Developer/Builder Workflow construction currently duplicated in `vscode-host.ts` into a single reusable factory, and refactoring the Builder Workflow to use it.
+
+RFC Coverage
+
+- No Primary RFC — Host-layer additive command, reusing existing certified contracts.
+- Referenced: RFC-0004 — Execution Model (`reviewer` Execution Role, already registered by Sprint 8), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-012` — governs this Sprint's entire scope: title, the binding Architectural Invariant for all Milestone 7 Sprints, the authorized canonical-pattern-extraction refactor, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-011` — the milestone-boundary ratification opening Milestone 7 under which this Sprint is planned.
+
+Authorized Vertical Slice
+
+- Extract the Role-scoped Configured Mission Workflow construction (the `Map`-of-`HostMissionWorkflow` + `HostConfiguredMissionWorkflow` block, currently duplicated for the Developer and Builder Workflows in `vscode-host.ts`) into a single reusable Host-layer factory function parameterized by `roleId` and `presentationOptions`.
+- Refactor the existing Builder Workflow wiring (Sprint 35) to call this factory instead of its current inline duplicate — a behavior-preserving refactor only; `nexus.runBuilderMissionWorkflow`'s identifier, dispatch target, presentation strings, and test coverage SHALL be unaffected.
+- Add `nexus.runReviewerMissionWorkflow` using the same factory, with `roleId: 'reviewer'` and `presentationOptions: { workflowLabel: 'Reviewer Workflow', completionMessageLabel: 'Reviewer workflow', includeAssignedRole: true }`.
+- `package.json` command contribution registration mirroring the existing pattern.
+- Unit/integration test coverage for the new command's success and failure paths, plus a regression assertion that the refactored Builder Workflow's existing tests still pass unchanged.
+
+Deferred Concepts
+
+- Planner Workflow, Documentation Workflow, or any other role-scoped workflow beyond Builder/Reviewer.
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing.
+- Execution Model expansion, Execution Session, Assignment Policy, a fourth production Adapter, Adapter Selection Policy, Marketplace publication.
+- Any `src/kernel` or `src/adapters` change.
+
+Definition of Done
+
+- All existing Developer Workflow and Builder Workflow commands retain their identifiers, dispatch behavior, and test coverage, unmodified (Sprint 35's tests pass without modification).
+- The Role-scoped Configured Mission Workflow construction exists as a single reusable factory, used by both the Builder Workflow and the new Reviewer Workflow.
+- The new Reviewer Workflow command dispatches through the identical certified Execution Pipeline with explicit `roleId: 'reviewer'`.
+- No `src/kernel`/`src/adapters` file changes; Sprint 18's boundary test passes unmodified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0036-reviewer-workflow-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+# Milestone 8 — Engineering Orchestration
+
+Status: NOT YET STARTED
+
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and are intentionally excluded from Milestone 7. No Sprint under Milestone 8 is authorized at this time; scheduling any of this candidate scope requires a future RFC extension and a dedicated Sprint Owner ratification.

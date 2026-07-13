@@ -1,5 +1,98 @@
 # Nexus Implementation Report
 
+## Sprint 36 — Reviewer Workflow Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 7 Sprint 36 Reviewer Workflow Foundation vertical slice. This sprint adds a dedicated Reviewer Workflow Host command and extracts the Role-scoped Configured Mission Workflow construction into a single Host-layer factory reused by Developer, Builder, and Reviewer workflows without changing Kernel, Adapter, Host Adapter Configuration, or Execution Pipeline contracts.
+
+Implemented scope:
+
+- Extracted the configured Role-scoped workflow construction in `vscode-host.ts` into `createConfiguredMissionWorkflow`.
+- Refactored the existing Builder Workflow wiring to use the shared factory while preserving its command identifier, dispatch target, presentation strings, and existing tests.
+- Added `nexus.runReviewerMissionWorkflow` as an additive VS Code Host command.
+- Registered the new command in `package.json` `activationEvents` and `contributes.commands` as **Nexus: Run Reviewer Workflow**.
+- Constructed Reviewer Workflow `HostMissionWorkflow` instances with explicit `roleId: 'reviewer'`.
+- Added Reviewer-specific Host result/history presentation metadata that labels successful Reviewer results/history with the assigned `Reviewer (reviewer)` Execution Role.
+- Added deterministic tests for Reviewer command registration/success, input-cancellation failure, Reviewer result/history role labeling, package command metadata/activation events, and extension-host command discoverability.
+- Updated README user guidance to describe the Reviewer Workflow command alongside existing Developer and Builder Workflow commands.
+
+Out of scope and not implemented:
+
+- Planner Workflow, Documentation Workflow, or any role-scoped workflow beyond Builder/Reviewer.
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing, Adapter Selection Policy, or fallback routing.
+- New Execution Model concepts, Execution Session behavior, Assignment Policy, Kernel state changes, Kernel data, Domain Events, or Adapter contracts.
+- Fourth production Adapter, Marketplace publication, or changes under `src/kernel` or `src/adapters`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- No Primary RFC — Host-layer additive command, reusing existing certified contracts.
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model (`reviewer` Execution Role consumed unmodified).
+- RFC-0009 — Host Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- A reusable Host-layer factory for configured Role-scoped Mission Workflow construction.
+- VS Code Host command contribution and activation for `nexus.runReviewerMissionWorkflow`.
+- Host-local command registration delegating to existing configured-adapter Mission Workflow machinery.
+- Explicit Host composition of Reviewer Workflow execution with `roleId: 'reviewer'`.
+- Host presentation/result metadata for the assigned Reviewer Execution Role.
+
+Deferred Concepts:
+
+- Planner Workflow, Documentation Workflow, and other role-scoped AI Engineering Workflows beyond Builder/Reviewer.
+- Role-based adapter assignment, automatic routing, workflow chaining, and multi-agent coordination.
+- Execution Model expansion, Execution Session behavior, Assignment Policy, review-gated progression, or new Kernel lifecycle semantics.
+- Fourth production Adapter, Adapter Selection Policy, Marketplace publication, and Adapter capability scoring.
+- Any `src/kernel` or `src/adapters` change.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-012`, `NEXUS-RAT-2026-07-14-011`, `NEXUS-RAT-2026-07-14-010`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0036-reviewer-workflow-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- A dedicated Reviewer Workflow command is Host-layer user interaction under RFC-0009 and does not create a new Kernel concept.
+- Reusing `HostAdapterConfigurationResolver.resolveDeveloperWorkflowAdapterId()` for the Reviewer Workflow remains configuration resolution to one explicit `adapterId`, not Adapter Selection Policy.
+- Surfacing the assigned Reviewer role in Host result/history presentation is Host-local metadata derived from the existing RFC-0004 Execution Role and does not introduce Kernel data or a Domain Event.
+
+### Known Limitations
+
+- Only Builder and Reviewer Workflows exist after this Sprint; Documentation, Planner, and coordinated multi-role workflows remain deferred.
+- The Reviewer Workflow uses the same configured adapter setting as the configured Developer and Builder Workflows, preserving Sprint 33 configuration scope and avoiding role-based adapter assignment.
+- Workflow history remains session-only and non-durable.
+
+### Validation Summary
+
+- Targeted Sprint 36 validation passed: `npm test -- --run test/hosts/vscode/host-mission-workflow-configured-command-registration.test.ts test/hosts/vscode/host-mission-workflow.test.ts test/hosts/vscode/package-command-metadata.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 59 files, 291 tests.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Sprint 18 Kernel boundary certification remained unmodified and was included in repository-wide validation.
+- No `src/kernel` or `src/adapters` file was modified for Sprint 36.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 35 — Builder Workflow Foundation
 
 ### Implemented Slice
