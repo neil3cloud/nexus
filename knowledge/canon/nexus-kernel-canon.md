@@ -25,7 +25,7 @@ The Nexus Kernel exists to coordinate AI-assisted software engineering through d
 
 The Kernel SHALL maintain a shared engineering understanding of a software project while remaining:
 
-- Adapter agnostic
+- adapter agnostic
 - host independent
 - deterministic
 - explainable
@@ -99,9 +99,11 @@ Unsupported opinions SHALL NOT influence engineering outcomes.
 
 Engineering responsibilities SHALL be expressed as Roles.
 
-Providers implement Roles.
+Adapters MAY implement one or more Roles.
 
-Providers SHALL NOT define Roles.
+The Kernel SHALL assign Roles.
+
+Adapters SHALL NOT define Roles.
 
 ---
 
@@ -137,7 +139,7 @@ Hidden reasoning SHALL NOT influence engineering outcomes.
 
 ---
 
-## Canon 11 — Engineering Memory Through Acceptance
+## Canon 11 — Knowledge Through Acceptance
 
 Knowledge SHALL evolve only from accepted engineering outcomes.
 
@@ -173,6 +175,20 @@ Capabilities SHALL cooperate through contracts rather than shared ownership.
 
 ---
 
+## Canon 14 — Architecture and Implementation Independence
+
+Architecture SHALL define the behavior of the Kernel.
+
+Implementation SHALL realize the architectural specifications.
+
+Implementation sequencing SHALL NOT redefine architectural intent.
+
+Normative specifications SHALL remain independent of implementation planning.
+
+Implementation artifacts SHALL remain subordinate to the architectural specifications.
+
+---
+
 # Architectural Boundaries
 
 The Kernel coordinates engineering.
@@ -187,7 +203,7 @@ The Kernel SHALL NOT implement:
 - memory operating systems
 - self-directed engineering
 
-Those concerns exist outside the constitutional boundary of the Nexus Kernel.
+Those concerns exist outside the constitutional scope of the Nexus Kernel.
 
 ---
 
@@ -296,7 +312,11 @@ Extensions SHALL preserve:
 
 # Normative Specifications
 
-The constitutional domains of the Nexus Kernel are:
+Each RFC listed below is the exclusive constitutional owner of its published domain vocabulary.
+
+No other specification may redefine concepts owned by another RFC.
+
+Implementations SHALL consume these concepts through their published contracts.
 
 ### RFC-0001 — Mission Model
 

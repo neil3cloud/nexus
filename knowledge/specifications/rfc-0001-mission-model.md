@@ -397,6 +397,18 @@ Failure to satisfy any mandatory requirement constitutes non-conformance.
 
 ---
 
+# Implementation Guidance
+
+This specification is implementation independent.
+
+Implementations MAY realize this specification across multiple development iterations.
+
+Partial implementations SHALL preserve all guarantees for the implemented concepts.
+
+Implementation sequencing is governed by the Implementation Plan.
+
+---
+
 # 18. References
 
 - RFC 2119

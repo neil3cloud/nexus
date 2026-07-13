@@ -59,15 +59,15 @@ Kernel implementations SHALL NOT silently recover from illegal state changes.
 ## States
 
 ```
-Created
-
-↓
-
-Planning
+Draft
 
 ↓
 
 Planned
+
+↓
+
+Ready
 
 ↓
 
@@ -85,8 +85,6 @@ Completed
 Alternative states
 
 ```
-Paused
-
 Cancelled
 
 Failed
@@ -96,18 +94,16 @@ Failed
 
 ## Transition Table
 
-| Current    | Event                   | Next      | Notes                |
-| ---------- | ----------------------- | --------- | -------------------- |
-| Created    | MissionPlanningStarted  | Planning  | Initial planning     |
-| Planning   | MissionPlanned          | Planned   | Plan finalized       |
-| Planned    | MissionExecutionStarted | Executing | First task begins    |
-| Executing  | ReviewStarted           | Reviewing | Awaiting review      |
-| Reviewing  | ReviewAccepted          | Completed | Mission finished     |
-| Reviewing  | ActionableFindings      | Executing | Mission Plan evolves |
-| Any Active | MissionPaused           | Paused    | Manual pause         |
-| Paused     | MissionResumed          | Executing | Resume execution     |
-| Any Active | MissionCancelled        | Cancelled | Terminal             |
-| Any Active | MissionFailed           | Failed    | Terminal             |
+| Current                         | Event            | Next      | Notes                                  |
+| ------------------------------- | ---------------- | --------- | -------------------------------------- |
+| Draft                           | MissionPlanned   | Planned   | Mission plan established               |
+| Planned                         | MissionReady     | Ready     | Mission is ready for execution         |
+| Ready                           | MissionStarted   | Executing | Mission execution started              |
+| Executing                       | MissionReviewed  | Reviewing | Mission entered review                 |
+| Reviewing                       | MissionCompleted | Completed | Mission finished successfully          |
+| Executing                       | MissionFailed    | Failed    | Mission failed                         |
+| Reviewing                       | MissionResumed   | Executing | Mission returned to execution          |
+| Draft, Planned, Ready, Executing, Reviewing | MissionCancelled | Cancelled | Cancellation is terminal; terminal states do not transition |
 
 ---
 
@@ -159,7 +155,7 @@ Only one Plan may be Active.
 ## States
 
 ```
-Pending
+Planned
 
 ↓
 
@@ -167,11 +163,7 @@ Ready
 
 ↓
 
-Assigned
-
-↓
-
-Executing
+InProgress
 
 ↓
 
@@ -181,8 +173,6 @@ Completed
 Alternative
 
 ```
-Blocked
-
 Cancelled
 ```
 
@@ -190,15 +180,16 @@ Cancelled
 
 ## Transition Table
 
-| Current   | Event                 | Next      |
-| --------- | --------------------- | --------- |
-| Pending   | DependenciesSatisfied | Ready     |
-| Ready     | AssignmentCreated     | Assigned  |
-| Assigned  | TaskStarted           | Executing |
-| Executing | TaskCompleted         | Completed |
-| Any       | DependencyBlocked     | Blocked   |
-| Blocked   | DependencyResolved    | Ready     |
-| Pending   | TaskCancelled         | Cancelled |
+| Current    | Transition                              | Next       |
+| ---------- | --------------------------------------- | ---------- |
+| Planned    | Task marked ready                       | Ready      |
+| Ready      | TaskStarted                             | InProgress |
+| InProgress | TaskCompleted                           | Completed  |
+| Planned    | TaskCancelled                           | Cancelled  |
+| Ready      | TaskCancelled                           | Cancelled  |
+| InProgress | TaskCancelled                           | Cancelled  |
+
+`TaskReady` publication remains deferred until an implemented Task Coordinator producer exists.
 
 ---
 
@@ -206,7 +197,7 @@ Cancelled
 
 Tasks SHALL belong to one Mission Plan.
 
-Completed Tasks SHALL NOT return to Executing.
+Completed Tasks SHALL NOT return to InProgress.
 
 Cancelled Tasks SHALL remain terminal.
 
@@ -234,14 +225,14 @@ Completed
 
 A completed Review SHALL produce exactly one outcome.
 
-Possible outcomes:
+Possible outcomes (canonical naming ratified by NEXUS-RAT-2026-07-12-006; corrected to match RFC-0006's literal "Action Required" outcome):
 
 ```
 Accepted
 
 Accepted With Observations
 
-Actionable Findings
+Action Required
 
 Rejected
 ```

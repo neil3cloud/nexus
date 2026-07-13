@@ -1,18 +1,65 @@
+import type { EventBusContract } from './event-bus-contract';
+import type { Adapter } from '../adapter/adapter.contract';
+import { AdapterService } from '../adapter/adapter.service';
+import { InMemoryAdapterRegistry } from '../adapter/adapter-registry';
+import { ProtocolVersion } from '../adapter/protocol-version';
+import { InMemoryEvidenceRepository } from '../evidence/evidence.repository';
 import { EvidenceService } from '../evidence/evidence.service';
+import { InMemoryExecutionStrategyRepository } from '../execution/execution-strategy.repository';
+import { ExecutionStrategyService } from '../execution/execution-strategy.service';
 import { ExecutionService } from '../execution/execution.service';
+import { InMemoryRoleAssignmentRepository } from '../execution/role-assignment.repository';
+import { InMemoryRoleRegistry } from '../execution/role-registry';
+import { RoleService } from '../execution/role.service';
+import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
+import { MissionExecutionService } from '../mission/mission-execution.service';
+import { MissionPlanningService } from '../mission/mission-planning.service';
+import { InMemoryMissionRepository } from '../mission/mission.repository';
 import { MissionService } from '../mission/mission.service';
+import { InMemoryReviewRepository } from '../review/review.repository';
 import { ReviewService } from '../review/review.service';
-import { SharedRealityService } from '../shared-reality/shared-reality.service';
+import { ProjectionService } from '../shared-reality/projection.service';
 import type { IKernelService } from './kernel-service';
 
-export function createKernelServices(): readonly IKernelService[] {
+export interface KernelServiceCompositionOptions {
+  readonly adapters?: readonly Adapter[];
+}
+
+export function createKernelServices(
+  eventBus: EventBusContract,
+  options: KernelServiceCompositionOptions = {},
+): readonly IKernelService[] {
+  const adapterRegistry = new InMemoryAdapterRegistry(options.adapters ?? []);
+  const missionRepository = new InMemoryMissionRepository();
+  const evidenceRepository = new InMemoryEvidenceRepository();
+  const reviewRepository = new InMemoryReviewRepository();
+  const knowledgeRepository = new InMemoryKnowledgeRepository();
+  const roleRegistry = new InMemoryRoleRegistry();
+  const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
+  const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
+
   return [
-    new MissionService(),
-    new EvidenceService(),
-    new SharedRealityService(),
+    new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0')),
+    new MissionService(missionRepository, eventBus),
+    new MissionPlanningService(missionRepository, eventBus),
+    new MissionExecutionService(missionRepository, eventBus),
+    new EvidenceService(evidenceRepository, eventBus),
+    new ProjectionService(missionRepository, evidenceRepository),
+    new RoleService(roleRegistry, roleAssignmentRepository),
+    new ExecutionStrategyService(
+      executionStrategyRepository,
+      roleAssignmentRepository,
+      missionRepository,
+    ),
     new ExecutionService(),
-    new ReviewService(),
-    new KnowledgeService(),
+    new ReviewService(reviewRepository, eventBus),
+    new KnowledgeService(
+      knowledgeRepository,
+      reviewRepository,
+      evidenceRepository,
+      missionRepository,
+      eventBus,
+    ),
   ];
 }

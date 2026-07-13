@@ -1,22 +1,49 @@
-import type { Mission } from "../mission/mission.contract";
-import type { SharedRealityView } from "../shared-reality/shared-reality.contract";
+import type {
+  FindingCategoryValue,
+  FindingSnapshot,
+  ReviewCriteriaSnapshot,
+  ReviewOutcomeValue,
+  ReviewSnapshot,
+  SeverityValue,
+} from './review.types';
 
-export interface ReviewFinding {
-  readonly severity: "info" | "warning" | "error";
-  readonly summary: string;
+export interface StartReviewCommand {
+  readonly id?: string;
+  readonly missionId: string;
+  readonly missionPlanRevision: string;
+  readonly reviewCriteria: readonly ReviewCriteriaSnapshot[];
   readonly evidenceReferences: readonly string[];
 }
 
-export interface ReviewRequest {
-  readonly mission: Mission;
-  readonly sharedReality: SharedRealityView;
-  readonly implementationSummary: string;
+export interface PublishFindingCommand {
+  readonly reviewId: string;
+  readonly findingId?: string;
+  readonly severity: SeverityValue | string;
+  readonly category?: FindingCategoryValue | string;
+  readonly summary: string;
+  readonly description: string;
+  readonly supportingEvidenceReferences: readonly string[];
+  readonly affectedArtifactReferences: readonly string[];
+  readonly criteriaReferences: readonly string[];
+}
+
+export interface FinalizeReviewOutcomeCommand {
+  readonly reviewId: string;
+  readonly outcome: ReviewOutcomeValue | string;
+}
+
+export interface QueryReviewResult {
+  readonly reviewId: string;
 }
 
 export interface ReviewResult {
-  readonly findings: readonly ReviewFinding[];
+  readonly review: ReviewSnapshot;
+  readonly findings: readonly FindingSnapshot[];
 }
 
-export interface ReviewService {
-  evaluate(request: ReviewRequest): Promise<ReviewResult>;
+export interface ReviewServiceContract {
+  startReview(command: StartReviewCommand): Promise<ReviewSnapshot>;
+  publishFinding(command: PublishFindingCommand): Promise<FindingSnapshot>;
+  finalizeReviewOutcome(command: FinalizeReviewOutcomeCommand): Promise<ReviewResult>;
+  queryReviewResult(query: QueryReviewResult): Promise<ReviewResult>;
 }

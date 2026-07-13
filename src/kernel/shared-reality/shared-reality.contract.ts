@@ -1,24 +1,27 @@
-export interface SharedRealityRequest {
-  readonly missionId: string;
-  readonly objective: string;
-  readonly evidenceScopes: readonly string[];
-}
-
-export interface SharedRealityEvidence {
-  readonly id: string;
-  readonly source: string;
-  readonly summary: string;
-}
-
-export interface SharedRealityView {
-  readonly missionId: string;
-  readonly objective: string;
-  readonly evidence: readonly SharedRealityEvidence[];
-  readonly acceptedImplementationHistory: readonly string[];
-}
-
-export interface SharedRealityAssembler {
-  assemble(request: SharedRealityRequest): Promise<SharedRealityView>;
-}
-
-// TODO: Refine evidence quality, freshness, and traceability contracts.
+export { ProjectionResult } from './projection-result';
+export type { ProjectionResultSnapshot } from './projection-result';
+export { ProjectionService } from './projection.service';
+export { ProjectionVersion } from './projection-version';
+export { SharedReality } from './shared-reality.aggregate';
+export {
+  DuplicateProjectionEvidenceReferenceError,
+  ProjectionConsistencyError,
+  ProjectionEvidenceRequiredError,
+  ProjectionEvidenceNotFoundError,
+  ProjectionEvidenceVersionMismatchError,
+  ProjectionInactiveMissionError,
+  ProjectionMissionNotFoundError,
+  ProjectionMissionPlanNotFoundError,
+  ProjectionValidationError,
+  SharedRealityDomainException,
+  UnsupportedProjectionEvidenceTypeError,
+} from './shared-reality.errors';
+export type {
+  EvidenceProjectionReference,
+  EvidenceProjectionRequest,
+  MissionExecutionStateProjection,
+  ProjectionContextAggregation,
+  ProjectionMetadata,
+  ProjectionRequest,
+  SharedRealitySnapshot,
+} from './shared-reality.types';

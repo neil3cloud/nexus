@@ -310,15 +310,15 @@ All Aggregate Roots and Entities derive from Base Entity.
 
 ## Finding
 
-| Field          | Type          |
-| -------------- | ------------- |
-| id             | Identifier    |
-| reviewId       | Identifier    |
-| severity       | Severity      |
-| intent         | FindingIntent |
-| recommendation | String        |
-| evidenceIds    | Identifier[]  |
-| status         | FindingStatus |
+| Field          | Type            |
+| -------------- | --------------- |
+| id             | Identifier      |
+| reviewId       | Identifier      |
+| severity       | Severity        |
+| intent         | FindingCategory |
+| recommendation | String          |
+| evidenceIds    | Identifier[]    |
+| status         | FindingStatus   |
 
 ---
 
@@ -326,13 +326,18 @@ All Aggregate Roots and Entities derive from Base Entity.
 
 ## Knowledge
 
-| Field               | Type         |
-| ------------------- | ------------ |
-| id                  | Identifier   |
-| missionId           | Identifier   |
-| summary             | String       |
-| acceptedEvidenceIds | Identifier[] |
-| createdAt           | Timestamp    |
+| Field                | Type            |
+| -------------------- | --------------- |
+| id                   | Identifier      |
+| missionId            | Identifier      |
+| missionPlanRevisionId | Identifier     |
+| summary              | String          |
+| scope                | KnowledgeScope  |
+| status               | KnowledgeStatus |
+| supportingEvidenceIds | Identifier[]   |
+| supportingReviewId   | Identifier      |
+| contributingEventIds | Identifier[]    |
+| approvingAuthority   | String          |
 
 ---
 
@@ -421,7 +426,7 @@ The Kernel SHALL define canonical enumerations for the following:
 
 - ReviewOutcome
 - Severity
-- FindingIntent
+- FindingCategory
 - FindingStatus
 
 ## Adapter

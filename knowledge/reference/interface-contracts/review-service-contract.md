@@ -6,20 +6,20 @@
 
 ## Purpose
 
-Define engineering assessment and finding lifecycle.
+Define Review (RFC-0006 Engineering Assessment) and Finding lifecycle. Canonical naming ratified by NEXUS-RAT-2026-07-12-006; RFC-0006 owns the underlying semantics.
 
 ## Interface
 
-- startAssessment(command)
+- startReview(command)
 - publishFinding(command)
-- finalizeAssessmentOutcome(command)
-- queryAssessmentResult(query)
+- finalizeReviewOutcome(command)
+- queryReviewResult(query)
 
 ## Command/Query Shape
 
 - missionId
 - missionPlanRevision
-- assessmentCriteria
+- reviewCriteria
 - evidenceRefs
 - findings
 - outcome

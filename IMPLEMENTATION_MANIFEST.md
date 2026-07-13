@@ -1,0 +1,1069 @@
+# Nexus Implementation Manifest
+
+## Purpose
+
+This manifest records implementation progress for Nexus vertical slices. Normative behavior remains governed by the Kernel Canon and RFC specification suite.
+
+---
+
+# Milestone 1 — Core Mission Kernel
+
+Status: ✅ COMPLETE (Sprint 1 through Sprint 4)
+
+## Sprint 1 — VS Code Extension Foundation
+
+Status: Completed
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Partial)
+- RFC-0005 — Domain Event Model (Partial)
+
+Implemented Concepts:
+
+- VS Code extension activation
+- Host bootstrap
+- Kernel service lifecycle
+- Kernel-owned in-memory EventBus infrastructure
+- DomainEvent envelope contract
+
+Deferred Concepts:
+
+- Durable persistence
+- Mission aggregate
+- Mission repository
+- Mission execution
+- Adapter implementations
+- UI beyond bootstrap command
+
+---
+
+## Sprint 2 — Mission Foundation
+
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). No Reviewer certification for this sprint was ever persisted in `REVIEW_HISTORY.md`; none is fabricated retroactively. See `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-008 for the full investigation and governance decision.
+
+Primary RFC:
+
+- RFC-0001 — Mission Model
+
+Implemented Concepts:
+
+- Mission
+- Mission Identity
+- Mission Objective
+- Mission Lifecycle
+- Mission Repository
+- Mission Service
+- Mission Domain Events
+- Mission Domain Exceptions
+
+Deferred Concepts:
+
+- Mission Plan
+- Mission Revision
+- Task
+- Task Graph
+
+---
+
+## Sprint 3 — Mission Planning Review Remediation
+
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). The Source Review entries below (`NEXUS-REV-2026-07-12-003`/`-004`) were never persisted in `REVIEW_HISTORY.md`; no fabricated retroactive certification is recorded. See `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-008.
+
+Source Review:
+
+- NEXUS-REV-2026-07-12-003
+- NEXUS-REV-2026-07-12-004
+
+RFC Coverage:
+
+- RFC-0001 — Mission Model
+
+Implemented Concepts:
+
+- MissionPlan aggregate with immutable `MissionPlanId`, owning `MissionId`, planning metadata, Task collection, current revision number, and revision history.
+- PlanRevision immutable snapshot preserving revision metadata and Task state for each planning change.
+- Task domain model with immutable `TaskId`, title, description, `TaskStatus`, parent MissionPlan, dependency collection, and metadata.
+- TaskDependency value object with self-dependency detection and duplicate prevention through Task validation.
+- MissionPlanningService for create MissionPlan, add Task, update Task, remove Task, and revise MissionPlan operations.
+- Repository additions through `IMissionPlanRepository` and `InMemoryMissionRepository` snapshot persistence for MissionPlans, Tasks, and Revisions.
+- Kernel registration of MissionService with the Kernel-owned EventBus and a shared `InMemoryMissionRepository`.
+- Kernel registration of MissionPlanningService with the same shared `InMemoryMissionRepository`.
+
+Completed Remediation Tasks:
+
+- TASK-001 — Enforced RFC-0001 Invariant 4 by rejecting a second MissionPlan for the same Mission with `MissionAlreadyPlannedError`.
+- TASK-002 — Made `MissionPlan.updateTask` validate title, status transition, dependency existence, self-dependency, and duplicate dependencies before mutating Task state or recording a revision.
+- TASK-003 — Rejected MissionPlanningService create and mutation operations for terminal Missions with `MissionPlanningTerminalMissionError`.
+- NEXUS-REV-2026-07-12-004 TASK-001 — Restored factory-based Kernel service registration so MissionService receives the Kernel-owned EventBus and MissionPlanningService is reachable from the running Kernel.
+- NEXUS-REV-2026-07-12-004 TASK-002 — Rejected same-status update validation on terminal Tasks as part of the authorized acyclicity remediation.
+- NEXUS-REV-2026-07-12-004 TASK-003 — Implemented Option A cycle validation inside MissionPlan for direct and transitive dependency cycles.
+
+Blocked Tasks:
+
+- None for NEXUS-REV-2026-07-12-004; the human operator selected Option A for Task Graph acyclicity in `builder-task.md`.
+
+Deferred Concepts:
+
+- Execution Strategy
+- Planning Domain Events
+- Task Scheduling
+- Parallel Execution
+- Critical Path Analysis
+- Automatic Planning
+- AI-generated Plans
+
+Notes:
+
+- Planning operations remain event-silent for this slice.
+- No active/inactive plan, plan archival, or plan replacement concept was introduced.
+- Cycle detection is validation only; no scheduling, execution ordering, topological sorting, or critical path analysis was introduced.
+
+
+Implementation Dependencies:
+
+- Existing RFC-0005-aligned `DomainEvent` envelope.
+- Existing Kernel `EventBusContract` for publishing Mission domain events.
+
+Notes:
+
+- The Mission Foundation slice defines the RFC-0001 Mission event catalog but implements behavior only for Mission lifecycle concepts in scope.
+- Mission Plan, Mission Revision, Task, and Task Graph remain deferred and are not approximated by placeholder implementation.
+
+---
+
+## Sprint 4 — Mission Execution
+
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). No Reviewer certification for this sprint was ever persisted in `REVIEW_HISTORY.md`; none is fabricated retroactively. See `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-008.
+
+RFC Coverage:
+
+- RFC-0001 — Mission Model (Partial)
+
+Ratification:
+
+- Sprint Owner ratified Sprint 4 RFC-0001 (Partial) coverage on 2026-07-12; Sprint 4 does not implement RFC-0004.
+
+Implemented Concepts:
+
+- Mission aggregate execution validation for start, complete, fail, and cancel lifecycle operations.
+- Mission completion evaluation requiring lifecycle permission and all MissionPlan Tasks to be `Completed`.
+- Task execution lifecycle operations: start, complete, and cancel.
+- Task terminal-state immutability for `Completed` and `Cancelled`.
+- MissionPlan execution validation for executable plans and satisfied Task dependencies before Task start.
+- MissionExecutionService application orchestration for Mission and Task execution using constructor-injected repository contracts.
+- InMemoryMissionRepository snapshot persistence for Mission lifecycle status and Task execution status updates.
+- Deterministic diagnostics for invalid lifecycle transitions, dependency violations, non-executable Missions, and rejected completion.
+- Unit tests for Mission, MissionPlan, Task, MissionExecutionService, and repository execution behavior.
+
+Deferred Concepts:
+
+- Execution Strategy
+- Builder
+- Reviewer
+- Governance
+- Provider Adapters
+- AI Providers
+- Claude CLI
+- GitHub Copilot
+- Gemini
+- Codex
+- Event Bus expansion
+- Domain Event expansion
+- Shared Reality
+- Evidence
+- Knowledge
+- Scheduling
+- Parallel Execution
+- Critical Path Analysis
+- Automatic Planning
+- Mission Planning changes
+- Mission pause and resume pending RFC amendment candidate review
+- Task execution failure states deferred to RFC-0004
+- Execution Strategy, Execution Roles, Execution Policies, and Provider Coordination owned by RFC-0004
+
+Notes:
+
+- Execution remains provider-agnostic and does not invoke AI providers, adapters, schedulers, event-bus expansion, Evidence, Shared Reality, Knowledge, Builder, or Reviewer concepts.
+- MissionExecutionService is intentionally thin; domain validation remains inside Mission, MissionPlan, and Task.
+- Mission completion continues to respect the RFC-0001 lifecycle permission requirement; this slice does not reinterpret the known MissionPaused lifecycle inconsistency.
+
+---
+
+# Milestone 2 — AI Collaboration Kernel
+
+Status: ✅ COMPLETE (Sprint 5 through Sprint 15)
+
+## Sprint 5 — Evidence Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0002 — Evidence Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-12-001 — Sprint Owner ratified the Sprint 5 retroactive Sprint Specification as a recoverable governance deviation with no architecture or implementation impact.
+
+Implemented Concepts:
+
+- Evidence aggregate with immutable identity, type, version, hash, metadata, and provenance.
+- EvidenceId, EvidenceType, EvidenceSource, EvidenceVersion, and EvidenceHash value objects with validation and equality semantics.
+- EvidenceMetadata and Provenance immutable domain objects.
+- IEvidenceRepository contract for registration, retrieval, existence checks, and enumeration.
+- InMemoryEvidenceRepository process-local snapshot persistence.
+- EvidenceService application orchestration for registration, duplicate validation, retrieval, and enumeration through constructor injection.
+- DuplicateEvidenceException, InvalidEvidenceException, and EvidenceNotFoundException deterministic diagnostics.
+- Unit tests for Evidence aggregate behavior, value objects, repository behavior, service behavior, and diagnostics.
+
+Deferred Concepts:
+
+- Shared Reality
+- Context Assembly
+- Projection
+- Knowledge
+- Review
+- Review Findings
+- Event Bus expansion
+- Domain Events
+- Execution Strategy
+- Execution Roles
+- Provider Adapters
+- AI Providers
+- Indexing
+- Search
+- Durable persistence engines
+- Evidence relationships
+- Evidence conflict resolution
+- Evidence authority set resolution
+- Evidence Confidence classification
+- Evidence confidence policy enforcement
+- Evidence Lifecycle progression
+
+Notes:
+
+- Evidence remains a domain concept and not a storage engine, search engine, index, projection, or knowledge graph.
+- Evidence registration is append-only for this slice; corrections are represented by additional Evidence instances and versions, not mutation.
+- EvidenceService is intentionally thin; domain validation remains in the Evidence aggregate and value objects, while repository coordination and duplicate detection are service responsibilities.
+
+---
+
+## Sprint 6 — Shared Reality Foundation
+
+Status: Approved with Findings — NEXUS-REV-2026-07-12-011; remediation verified by NEXUS-REV-2026-07-12-012
+
+RFC Coverage:
+
+- RFC-0003 — Shared Reality Projection Model (Partial)
+- RFC-0002 — Evidence Model (Referenced)
+- RFC-0001 — Mission Model (Referenced)
+
+Implemented Concepts:
+
+- SharedReality immutable read model for the computed engineering understanding of an active Mission.
+- ProjectionService for projection orchestration through constructor-injected Mission and Evidence repository contracts.
+- ProjectionResult immutable output exposing Projection Version, Active Mission, Mission Plan, Mission Execution State, Evidence References, and Projection Metadata.
+- ProjectionVersion immutable value object with deterministic SHA-256 generation from stable projection inputs.
+- Context aggregation by Evidence type and Evidence source.
+- Projection validation for missing Mission, inactive Mission, missing MissionPlan, missing Evidence, empty Evidence sets, duplicate Evidence references, inconsistent Evidence versions, unsupported Evidence types, and internal context consistency.
+- Kernel service composition updated so ProjectionService receives the shared in-memory Mission repository and Evidence repository.
+- Unit tests for Shared Reality projection behavior, immutability, deterministic versioning, validation diagnostics, and repository retrieval.
+
+Deferred Concepts:
+
+- Context Assembly
+- AI Context Packaging
+- Provider Context
+- Adapter Framework
+- Execution Roles
+- Review Engine
+- Knowledge
+- Governance
+- Event Bus integration
+- Incremental projections
+- Projection caching
+- Projection Scope (full scope declaration)
+- Projection Freshness / stale projection invalidation
+- Projection persistence
+- Projection persistence optimization
+- Search
+- Indexing
+
+Notes:
+
+- Shared Reality is a disposable read model and does not own engineering truth or mutate Evidence.
+- Evidence remains the authoritative source for projected engineering facts.
+- ProjectionService owns orchestration only; Mission and Evidence state ownership remains with their respective domains.
+- The active Evidence set for this foundation slice is the explicitly requested Evidence references, or all Evidence returned by the injected Evidence repository when no references are supplied. Evidence authority resolution remains deferred.
+
+Review Remediation:
+
+- TASK-001 — Recorded Projection Scope and Projection Freshness as deferred Sprint 6 concepts in the Implementation Manifest, Sprint 6 record, Implementation Plan, and Implementation Report.
+- TASK-002 — Reconciled the ratified RFC-0003 contract surface by removing the duplicate `projection.contract.ts` request/service placeholders, removing the obsolete `SharedRealityService` alias, removing legacy Shared Reality placeholder interfaces, and updating placeholder consumers to use the canonical `SharedRealitySnapshot` type.
+
+---
+
+## Sprint 7 — Adapter Framework
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Partial)
+
+Implemented Concepts:
+
+- Adapter contract defining the minimum implementation-independent adapter interface.
+- Adapter domain model with immutable AdapterId, AdapterName, AdapterVersion, ProtocolVersion, AdapterMetadata, and AdapterLifecycle value objects.
+- AdapterCapability technical capability declaration and validation for CodeGeneration, CodeModification, StaticAnalysis, DocumentationGeneration, and TestGeneration.
+- AdapterRequest immutable execution request containing Engineering Role name, Task Identifier, Context Package Reference, Execution Constraints, and Request Metadata.
+- AdapterResponse immutable execution outcome containing status, diagnostics, produced artifacts, findings, and execution metadata.
+- AdapterRegistry contract and InMemoryAdapterRegistry for deterministic registration, unregistration, lookup, discovery, and duplicate validation.
+- AdapterService orchestration for registry lookup, protocol compatibility validation, capability validation, and request dispatch.
+- Deterministic adapter diagnostics for duplicate registration, adapter not found, unsupported capability, invalid lifecycle transition, invalid definitions, invalid requests, invalid responses, and incompatible protocol version.
+- Kernel service composition updated to register AdapterService with an empty in-memory AdapterRegistry.
+- Unit tests for Adapter value objects, lifecycle, request, response, registry, service dispatch, and diagnostics.
+
+Deferred Concepts:
+
+- AI Providers
+- Copilot Adapter
+- Claude Adapter
+- Gemini Adapter
+- Codex Adapter
+- Human Adapter
+- Execution Roles
+- Execution Strategy
+- Builder
+- Reviewer
+- Review Engine
+- Shared Reality enhancements
+- Context Assembly
+- Knowledge
+- Governance
+- AdapterRequest applicable-policies element (pending Kernel policy concepts)
+- Event Bus integration
+- Provider configuration
+- Retry policies
+- Adapter security policies
+
+Notes:
+
+- Engineering Roles are represented only as Kernel-assigned role-name strings and are not enumerated or owned by the Adapter Framework.
+- AdapterRequest applicable policies remain deferred because Kernel policy concepts are not implemented in this slice.
+- Context Package handling is reference-only; no Context Assembly or Shared Reality expansion was introduced.
+- Adapter lifecycle transitions are deterministic and local to Adapter metadata; Event Bus integration remains deferred.
+
+---
+
+## Sprint 8 — Execution Roles
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Partial)
+
+Implemented Concepts:
+
+- ExecutionRole immutable domain model with RoleId, name, description, category, and RoleMetadata.
+- Built-in provider-independent Kernel roles: Builder and Reviewer.
+- RoleRegistry contract and InMemoryRoleRegistry for registration, retrieval, enumeration, and duplicate prevention.
+- RoleAssignment immutable Task-to-ExecutionRole relationship with assignment metadata.
+- RoleValidation deterministic diagnostics for unknown roles and duplicate assignments.
+- RoleService orchestration for role registration, lookup, assignment, and assignment discovery through constructor-injected contracts.
+- InMemoryRoleAssignmentRepository for process-local assignment persistence.
+
+Deferred Concepts:
+
+- Execution Strategy.
+- Assignment dependency-ordering preservation (RFC-0004 § Assignment).
+- Provider Mapping.
+- Adapter Invocation.
+- Review Engine.
+- Governance.
+- Scheduling.
+- Parallel Execution.
+- Provider selection.
+- Adapter selection.
+- Builder workflow.
+- Reviewer workflow.
+- Event Bus integration.
+
+Notes:
+
+- Execution Roles remain independent of providers and adapters.
+- RoleAssignment references Task identity only and does not access Task aggregate internals.
+- Role category is deterministic metadata text; RFC-0004 does not define a category enumeration.
+
+---
+
+## Sprint 9 — Review Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0006 — Engineering Assessment Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-12-006 — canonical "Review" implementation-layer vocabulary for RFC-0006: `Review`, `ReviewStatus` (`Pending → In Progress → Completed`), `ReviewOutcome` (Accepted / Accepted With Observations / Action Required / Rejected), `ReviewCriteria`, `Finding`, `Severity`, `FindingCategory`, `FindingStatus` (`Created → Accepted / Resolved / Dismissed`). Also corrects an unrelated RFC-0005 title citation in `domain-schema.md`. RFC-0006 and RFC-0005 are unmodified.
+
+Implemented Concepts:
+
+- Review aggregate with immutable ReviewId, Mission reference, MissionPlan revision reference, explicit ReviewCriteria, consumed Evidence references, ReviewStatus lifecycle, ReviewOutcome assignment, and owned Finding collection.
+- ReviewId and FindingId immutable identity value objects.
+- ReviewStatus lifecycle: Pending → In Progress → Completed.
+- ReviewOutcome value object supporting Accepted, Accepted With Observations, Action Required, and Rejected.
+- ReviewCriteria value object for explicit assessment criteria.
+- Finding entity with FindingId, owning ReviewId, Severity, optional FindingCategory for actionable Findings, summary, description, supporting Evidence references, affected artifact references, criteria references, and FindingStatus lifecycle.
+- Severity, FindingCategory, and FindingStatus value objects using the ratified vocabulary.
+- IReviewRepository contract and InMemoryReviewRepository process-local snapshot persistence for Reviews and Findings.
+- ReviewService orchestration for start Review, publish Finding, finalize Review outcome, retrieve Review, enumerate Reviews, and enumerate Findings through constructor injection.
+- Kernel service composition updated so ReviewService receives an injected in-memory Review repository.
+- Deterministic diagnostics for invalid Review definitions, invalid lifecycle transitions, duplicate Reviews, duplicate Findings, missing Evidence references, missing Reviews, rejected completion, and invalid Finding transitions.
+- Unit tests for Review aggregate behavior, Finding behavior, value objects, repository behavior, service orchestration, lifecycle validation, duplicate validation, evidence-backed Findings, and completion rules.
+
+Deferred Concepts:
+
+- AI review execution (Claude, Copilot, or any Adapter-driven Review execution).
+- Adapter invocation from the Review domain.
+- Governance decisions / policy-driven Assessment Criteria selection.
+- Event Bus integration (`ReviewStarted`, `ReviewCompleted`, `ReviewAccepted`, `ReviewRejected`, `FindingCreated`, `FindingAccepted`, `FindingResolved`, `FindingDismissed`).
+- Multi-Assessment-Session Reviews.
+- Actionable Finding to Mission Plan revision / Mission Evolution wiring.
+- Human Authority operations (approve/reject/override Assessment Outcomes) and Override-as-Evidence.
+- Execution Session consumption (RFC-0004 Execution Session remains unimplemented).
+- Shared Reality Projection consumption as an Assessment input.
+- Produced Artifacts consumption as an Assessment input.
+- Assessment Outcome reasoning-chain capture (RFC-0006 § Explainability).
+- Produced Artifacts becoming Knowledge.
+- Workflow automation and repository state transitions outside Review and Finding lifecycles.
+- Sensitive Finding access control.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0009-review-foundation.md` for the complete Sprint Implementation Record, including the full canonical vocabulary table.
+- RFC-0006 is not modified by this sprint or by its ratification; RFC-0006 remains the sole normative owner of Engineering Assessment semantics.
+- `ReviewStatus` and `FindingStatus` are implementation-layer operational lifecycle concepts, not RFC-0006-normative concepts, and SHALL NOT be conflated with `ReviewOutcome` (the RFC-0006-owned Assessment Outcome).
+- Review remains deterministic and provider-agnostic.
+- ReviewService coordinates repository access and aggregate operations only; Review and Finding own lifecycle and validation rules.
+- Evidence, Shared Reality, Execution Roles, Governance, Mission Plan mutation, Adapter invocation, Event Bus integration, and Knowledge capture remain outside this slice.
+
+---
+
+## Sprint 10 — Execution Strategy
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-12-007 — corrects `knowledge/reference/domain-schema.md`'s Execution Domain description: `Assignment` (the approved Sprint 8 `RoleAssignment` model) remains independently owned; Execution Strategy coordinates and references `RoleAssignment` records rather than exclusively owning them. RFC-0004 is unmodified. Sprint 8's approved implementation is not reopened.
+
+Implemented Concepts:
+
+- `ExecutionStrategy` aggregate representing one Mission's deterministic execution-coordination rules (dependency-ordering rule, concurrency rule as deterministic policy data).
+- `ExecutionStrategyId`.
+- Advisory/evaluative dependency-ordering readiness query for `RoleAssignment` via `ExecutionStrategyService.evaluateAssignmentReadiness` against MissionPlan Task Graph dependencies (direct and transitive); not an enforced precondition on `RoleService.assignRole`.
+- `ExecutionStrategyService` orchestration through constructor-injected repository contracts, reading `RoleAssignmentRepository` and `IMissionPlanRepository` without mutating them.
+- `IExecutionStrategyRepository` contract and `InMemoryExecutionStrategyRepository`.
+- Deterministic diagnostics for unsatisfied dependency ordering, unknown references, and duplicate ExecutionStrategy per Mission.
+
+Deferred Concepts:
+
+- Execution State (full RFC-0004 minimum state set: Pending, Ready, Assigned, Executing, Awaiting Review, Completed, Failed, Blocked).
+- Execution Session.
+- Review requirements enforcement / RFC-0006 Review gating of execution progression.
+- Adapter invocation and Adapter selection.
+- AI Providers and provider coordination.
+- Actual parallel/concurrent execution runtime; only deterministic concurrency policy data is in scope.
+- Governance.
+- Assignment Policy elements beyond dependency ordering (Adapter capability matching, repository configuration, execution constraints, human preferences).
+- Human Authority operations.
+- Event Bus integration.
+- Explainability reporting beyond deterministic validation diagnostics.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0010-execution-strategy.md` for the complete Sprint Implementation Record.
+- RFC-0004 is not modified by this sprint or by its ratification.
+- `ExecutionStrategy` does not mutate Mission, MissionPlan, Task, or RoleAssignment aggregates; all cross-domain interaction occurs through existing published repository contracts.
+- `ExecutionStrategy` is advisory/evaluative this slice; it does not gate or trigger Task execution. `MissionExecutionService` (Sprint 4) remains the sole Task execution entry point and already performs its own independent Task-dependency validation before Task start.
+
+---
+
+## Sprint 11 — Domain Event Publication (Evidence, Review)
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-001 — authorizes an optional `missionId` field on `RegisterEvidenceRequest`/`EvidenceSnapshot` (additive extension to the approved Sprint 5 Evidence model), resolving the RFC-0005 `EvidenceCaptured` envelope attribution gap identified by the Builder before implementation began. RFC-0002 and RFC-0005 are unmodified; Evidence remains Mission-independent by design.
+- NEXUS-RAT-2026-07-13-002 — restores required `missionId` on the shared Kernel `DomainEvent` / `DomainEventAttribution` contract and authorizes an Evidence-specific publication variant for Mission-independent `EvidenceCaptured` events.
+
+Implemented Concepts:
+
+- Optional `missionId?: string` on `RegisterEvidenceRequest`/`EvidenceSnapshot` and the `Evidence` aggregate (NEXUS-RAT-2026-07-13-001).
+- `EvidenceService` and `ReviewService` optional constructor-injected `EventBusContract`, matching `MissionService`'s established pattern.
+- `Evidence` and `Review` aggregate internal recorded-events collections and `pullDomainEvents()`, mirroring `Mission`.
+- `EvidenceCaptured` event (Evidence Service producer); Mission-associated Evidence uses the shared `DomainEvent` envelope with `missionId`, while Mission-independent Evidence uses the Evidence-specific publication variant authorized by NEXUS-RAT-2026-07-13-002 and omits `missionId` as authorized by NEXUS-RAT-2026-07-13-001.
+- `ReviewStarted`, `ReviewCompleted`, `ReviewAccepted`, `ReviewRejected`, `FindingCreated` events (Review Service producer).
+
+Deferred Concepts:
+
+- Execution Strategy event publication — no cataloged event category currently assigns `ExecutionStrategyService` a producible event.
+- `EvidenceAccepted`, `EvidenceRejected` (catalog Producer: Review Service; no corresponding operation exists).
+- `FindingAccepted`, `FindingDismissed` (catalog Producer: Developer; no human-action command pathway exists).
+- `FindingResolved` (catalog Producer: Execution Strategy; no trigger exists).
+- Mission Plan Events and Task Events — deferred pending resolution of the Task Lifecycle three-way naming mismatch between RFC-0004's Execution State, `kernel-state-machine.md`'s Task Lifecycle, and the approved Sprint 3 `TaskStatus` enum.
+- Knowledge Events, Shared Reality Events, Context Package Events, Policy Events.
+- Event subscription/consumption by other services.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0011-domain-event-publication.md` for the complete Sprint Implementation Record, including the full Producer-mismatch scoping table.
+- This sprint does not modify RFC-0005, the Kernel Canon, or `ExecutionStrategyService`.
+- Save-then-publish non-atomicity for Evidence and Review mirrors the disclosed Mission (Sprint 2) limitation; it is not resolved by this sprint.
+
+---
+
+## Sprint 12 — Knowledge Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0007 — Knowledge Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-003 — ratifies `Knowledge` as the canonical implementation-layer vocabulary for RFC-0007's Engineering Memory domain (`Knowledge` aggregate, `KnowledgeId`, `KnowledgeStatus` [`Candidate → Approved → Active → Superseded → Archived`], `KnowledgeScope`, `KnowledgeProvenance`, `KnowledgeAttribution`). RFC-0007 is unmodified and remains the sole normative owner of Engineering Memory semantics. Authorizes corrections to `kernel-data-model.md` (adding `status`, `missionPlanRevisionId`, `supportingReviewId`, `contributingEventIds`, `approvingAuthority` to the Knowledge model) and `knowledge-service-contract.md` (`supportingAssessment` → `supportingReview`). Defers Knowledge event publication and the three existing inconsistent Knowledge/Memory event-name sets to a future Knowledge Event Publication sprint.
+
+Implemented Concepts (Implemented — Pending Reviewer Validation):
+
+- `Knowledge` aggregate with immutable `KnowledgeId`, `missionId`, `missionPlanRevisionId`, `summary`, `KnowledgeScope`, `KnowledgeStatus` lifecycle, `supportingEvidenceIds`, `supportingReviewId`, `approvingAuthority`, and append-only revision history preserving identity, attribution, and provenance.
+- `KnowledgeStatus` lifecycle value object: `Candidate → Approved → Active → Superseded → Archived`.
+- `KnowledgeProvenance` and `KnowledgeAttribution` value objects (Evidence lineage, Review lineage, Mission lineage, approval lineage).
+- Memory Capture (`KnowledgeService.captureKnowledge`) rejecting capture unless a supporting Review exists, has reached a terminal accepted state, supporting Evidence exists, required Mission work has completed, and required approval metadata is present — validation owned by the `Knowledge` aggregate and its value objects.
+- Memory Evolution (`KnowledgeService.reviseKnowledge`) producing append-only revisions.
+- `IKnowledgeRepository` contract and `InMemoryKnowledgeRepository` process-local persistence.
+- `KnowledgeService` thin orchestration through constructor-injected repository contracts.
+
+Deferred Concepts:
+
+- Knowledge event publication and reconciliation of the three existing Knowledge/Memory event-name sets (`kernel-event-catalog.md`, `knowledge-service.md`, RFC-0007 Memory Lifecycle).
+- Event subscriptions/consumers.
+- Context Assembly consumption of Knowledge.
+- Governance / policy-driven capture criteria.
+- Human Authority approval workflow automation beyond recording `approvingAuthority` as data.
+- Adapter/AI Provider integration.
+- Search, indexing, durable persistence.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0012-knowledge-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0007, RFC-0006, RFC-0002, RFC-0001, or the Kernel Canon.
+- `KnowledgeService` SHALL remain a thin application service; business rules SHALL remain within the `Knowledge` aggregate and its value objects, per Sprint Owner direction.
+
+---
+
+## Sprint 13 — Knowledge Event Publication
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-004 — ratifies `KnowledgeCandidateCreated` (reused from `kernel-event-catalog.md`) for `captureKnowledge` and `KnowledgeRevisionCreated` (new) for `reviseKnowledge`; scopes Sprint 13 to exactly these two operations/events; defers `approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` and their events (`KnowledgeAccepted`/`KnowledgePublished`/`KnowledgeSuperseded`/`KnowledgeArchived`) entirely to a future sprint; establishes the permanent Governance Rule that Domain Events represent completed domain facts, not implementation actions. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are unmodified.
+
+Implemented Concepts:
+
+- `KnowledgeService` optional constructor-injected `EventBusContract`, matching the established `EvidenceService`/`ReviewService` pattern (`requireEventBus()` guard).
+- `Knowledge` aggregate exposing recorded Domain Events through the Kernel's established aggregate event-recording contract (drain-once `pullDomainEvents()`-shaped access), mirroring `Mission`/`Evidence`/`Review`.
+- `knowledge.events.ts`: `KnowledgeEventType` union (`KnowledgeCandidateCreated`, `KnowledgeRevisionCreated`), `KnowledgeDomainEvent` type, and factory functions.
+- `captureKnowledge` publishes `KnowledgeCandidateCreated`; `reviseKnowledge` publishes `KnowledgeRevisionCreated` — both only after the associated state transition has been successfully persisted; no event is published if persistence fails.
+- Kernel service composition updated so `KnowledgeService` receives the shared `EventBusContract` instance.
+- Reference-document corrections authorized by NEXUS-RAT-2026-07-13-004 (`kernel-event-catalog.md` additions, `knowledge-service.md` Events-section correction).
+
+Deferred Concepts:
+
+- `approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` operations and their events — entirely out of scope, not merely event-silent.
+- Event subscriptions/consumers.
+- Mission Plan Events, Task Events, Execution Strategy Events (unresolved Task Lifecycle naming mismatch).
+- Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0013-knowledge-event-publication.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0007, RFC-0005, RFC-0006, or the Kernel Canon.
+- Knowledge Domain Events SHALL remain notifications of completed state transitions; they SHALL NOT initiate, coordinate, or trigger subsequent domain behavior, per Sprint Owner direction and NEXUS-RAT-2026-07-13-004.
+- Equivalent aggregate state transitions SHALL produce equivalent Domain Events (deterministic publication), per Sprint Owner direction.
+
+---
+
+## Sprint 14 — Knowledge Lifecycle Advancement
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+- RFC-0007 — Knowledge Model (Referenced)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-005 — ratifies `KnowledgeService.approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge`, publishing `KnowledgeAccepted`/`KnowledgePublished`/`KnowledgeSuperseded`/`KnowledgeArchived` respectively (event names previously reused/named by NEXUS-RAT-2026-07-13-003/-004), each a thin orchestration invoking the corresponding existing frozen `Knowledge` aggregate method and publishing only after successful persistence. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are unmodified. No successor-reference modeling, authorization/policy enforcement, or event subscription is authorized.
+
+Implemented Concepts:
+
+- `KnowledgeService.approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` — minimal `{ knowledgeId }` request shape, matching `ReviseKnowledgeRequest`.
+- `knowledge.events.ts` factories for `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, `KnowledgeArchived`.
+- `Knowledge.approve()`/`activate()`/`supersede()`/`archive()` gain the same optional `DomainEventMetadata` parameter already added to `capture()`/`revise()` in Sprint 13.
+- Reference-document corrections to `knowledge-service.md` and `knowledge-service-contract.md` authorized by NEXUS-RAT-2026-07-13-005.
+
+Deferred Concepts:
+
+- Successor-reference modeling (a "supersedes"/"supersededBy" link between Knowledge items) — not defined by RFC-0007.
+- Authorization, policy evaluation, or governance-workflow enforcement for who may call the lifecycle-advancement operations.
+- Event subscriptions/consumers.
+- Context Assembly consumption of Knowledge.
+- Mission Plan Events, Task Events, Execution Strategy Events (unresolved Task Lifecycle naming mismatch).
+- Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0014-knowledge-lifecycle-advancement.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0007, RFC-0005, RFC-0006, or the Kernel Canon.
+- `KnowledgeStatus`'s existing linear transition legality (Sprint 12, frozen) and the aggregate's existing parameterless lifecycle methods are consumed unmodified, per NEXUS-RAT-2026-07-13-005 and the Approved Vertical Slice Immutability rule.
+
+---
+
+## Sprint 15 — Mission Plan & Task Event Publication
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+- RFC-0001 — Mission Model (Referenced)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-006 — ratifies `TaskStatus` as implementation-layer vocabulary distinct from RFC-0004's Execution State; corrects `kernel-state-machine.md`'s Task Lifecycle; reattributes Mission Plan/Task event producers to `MissionPlanningService` and `MissionExecutionService`; resolves a pre-existing `kernel-event-catalog.md` duplication (legacy `MissionPlanRevised`/`TaskAdded` entries, redundant `MissionPlanSuperseded` entry); defers `MissionPlanActivated`.
+
+Planned Concepts:
+
+- `MissionPlanningService` optional `EventBusContract` injection publishing `MissionPlanCreated`, `MissionPlanRevised`, `TaskCreated`.
+- `MissionExecutionService`'s existing required `EventBusContract` extended to publish `TaskStarted`, `TaskCompleted`, `TaskCancelled` from its existing Task execution operations.
+- `MissionPlan`/`Task` aggregate recorded-events collections and `pullDomainEvents()`, new to these aggregates.
+- Reference-document corrections to `kernel-state-machine.md` and `kernel-event-catalog.md` per NEXUS-RAT-2026-07-13-006.
+
+Deferred Concepts:
+
+- `MissionPlanActivated` — no implemented operation exists.
+- `TaskReady`, `TaskAssigned`, `TaskBlocked` — Execution Strategy/Task Coordinator producer roles unimplemented.
+- Event subscriptions/consumers.
+- Knowledge, Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0015-mission-plan-task-event-publication.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0001, RFC-0004, RFC-0005, or the Kernel Canon.
+- `Mission`'s existing, frozen `MissionEventType` union (`mission.events.ts`) already contains unused `MissionPlanRevised`/`TaskAdded`/`TaskCompleted`/`TaskRemoved` entries dating from before Sprint 3 introduced `MissionPlan`/`Task` as independent aggregates; these are never constructed anywhere and are out of scope for this sprint. New Mission Plan/Task events are defined on new `MissionPlanDomainEvent`/`TaskDomainEvent` type unions, not by modifying `mission.events.ts`.
+
+---
+
+# Milestone 3 — Kernel Integration & Composition
+
+Status: ✅ COMPLETE (Sprint 16 Approved; Sprint 17 Approved; Sprint 18 Approved)
+
+## Sprint 16 — End-to-End Mission Workflow Integration Validation
+
+Status: Approved (NEXUS-REV-2026-07-13-014)
+
+RFC Coverage:
+
+- RFC-0001 — Mission Model (Referenced)
+- RFC-0002 — Evidence Model (Referenced)
+- RFC-0003 — Shared Reality Projection Model (Referenced)
+- RFC-0004 — Execution Model (Referenced)
+- RFC-0005 — Domain Event Model (Referenced)
+- RFC-0006 — Engineering Assessment Model (Referenced)
+- RFC-0007 — Knowledge Model (Referenced)
+
+Implemented Concepts:
+
+- End-to-end integration test suite exercising the composed Kernel (`createKernelServices`) through: Create Mission → Create Mission Plan → Create Tasks → Execute Tasks → Complete Mission → Perform Review → Capture Knowledge.
+- Composed-service, dependency-injection, repository-interaction, aggregate-interaction, Domain Event ordering, and cross-domain invariant validation.
+- Review outcome-specific Domain Event identity correction discovered during integration validation; `ReviewCompleted` and `ReviewAccepted`/`ReviewRejected` now use distinct event identities.
+
+Deferred Concepts:
+
+- AI provider integrations (Claude CLI, GitHub Copilot, Gemini, Codex), Adapter runtime implementations, VS Code host integration, workflow/governance automation, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production/distributed infrastructure.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new normative concepts; it validates existing approved behavior only.
+
+---
+
+## Sprint 17 — Cross-Domain Failure-Path Integration Validation
+
+Status: Approved (NEXUS-REV-2026-07-13-017)
+
+RFC Coverage:
+
+- None primary — this sprint introduces no new normative concepts.
+- Referenced: RFC-0001, RFC-0002, RFC-0004, RFC-0005, RFC-0006, RFC-0007.
+
+Implemented Concepts:
+
+- Failure-path integration tests under `test/integration/` exercising eight rejection scenarios through the composed Kernel (`createKernelServices`) and public service contracts only: Task dependency violation, premature Mission completion, duplicate MissionPlan registration, duplicate Review registration, invalid Knowledge capture, missing Evidence, invalid Review completion, and terminal Mission planning.
+- Side-effect verification for every scenario: no partial persistence, no unintended Domain Event publication, deterministic rejection, and continued success of subsequent valid operations.
+- Remediation of `NEXUS-REV-2026-07-13-015-F-001` per `NEXUS-RAT-2026-07-13-009`: restored the Sprint 9 `ReviewService` orchestration-only baseline and replaced Scenario 4 with duplicate Review registration, an already-approved Review-domain rejection path.
+
+Deferred Concepts:
+
+- AI provider integrations, Adapter runtime implementations, VS Code host integration, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production infrastructure, observability/telemetry, retry policies, distributed execution.
+- Exhaustive combinatorial failure-path coverage beyond the eight authorized scenarios.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new normative concepts; it validates rejection behavior already authorized by implemented RFCs and approved vertical slices.
+
+---
+
+## Sprint 18 — RFC-0010 Kernel Boundary Certification
+
+Status: Approved (NEXUS-REV-2026-07-13-018)
+
+RFC Coverage:
+
+- RFC-0010 — Kernel Boundaries (Primary)
+- Referenced: RFC-0001, RFC-0002, RFC-0003, RFC-0004, RFC-0005, RFC-0006, RFC-0007, RFC-0008 (contract validation only), RFC-0009 (boundary validation only)
+
+Ratification:
+
+- None. Sprint 18's scope was approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13); no governance ambiguity required a Sprint Owner Ratification.
+
+Implemented Concepts:
+
+- Integration Validation Scenarios certifying successful composed-Kernel behavior (Mission, Mission Planning, Task execution, Review, Knowledge, Domain Event publication, repository coordination, dependency injection, Role assignment, Execution Strategy readiness, and composed service construction) through `createKernelServices` and public service contracts only.
+- Boundary Violation Scenarios proving deterministic rejection of invalid cross-Mission Execution Strategy evaluation, missing Adapter dispatch targets, and mismatched Domain Event Mission attribution — with no aggregate/repository corruption, no partial persistence, and no unintended Domain Event publication.
+- Static Kernel dependency validation proving Kernel source files do not import outside `src/kernel`, preserving Host/UI/infrastructure/adapter-implementation independence.
+- Documentation reconciliation in Builder-owned implementation artifacts only.
+
+Deferred Concepts:
+
+- Event subscribers/consumers/handlers/orchestration
+- Adapter implementations, Mock Adapter, AI provider integration
+- VS Code host integration, workflow automation
+- Context Package, Policy Engine, Durable Event Streams, persistent infrastructure
+- Any new aggregate, repository, business rule, lifecycle transition, or Domain Event
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0018-rfc-0010-kernel-boundary-certification.md` for the complete Sprint Implementation Record.
+- This is a validation-only vertical slice; it introduces no new normative concepts and validates only architecture already implemented by Sprint 1–17.
+- Sprint 18 concludes the Internal Kernel Certification phase of Milestone 3. Subsequent implementation MAY transition to introducing new runtime capabilities (event consumers, adapter implementations, external integrations) while preserving the certified Kernel baseline.
+
+---
+
+# Milestone 4 — External Integration
+
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Implemented — Pending Reviewer Validation)
+
+## Sprint 19 — Mock Adapter Runtime Integration
+
+Status: Approved (NEXUS-REV-2026-07-13-019)
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Primary)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — establishes `COPILOT_INSTRUCTIONS.md` as a planned, optional, future Provider Integration artifact, deferred until the repository's first production AI provider integration sprint.
+- Sprint 19's scope, including the Milestone 3 → Milestone 4 transition, was otherwise approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13); no other governance ambiguity required a Sprint Owner Ratification.
+
+Implemented Concepts:
+
+- `MockAdapter` implementing the existing (Sprint 7) Adapter Contract; stateless; deterministic.
+- Registration with the existing `AdapterRegistry`; discovery through the existing `AdapterService`.
+- Static capability declaration using RFC-0008's existing capability vocabulary.
+- Deterministic `AdapterRequest` validation/handling and immutable `AdapterResponse` generation using the existing contracts.
+- Runtime dispatch through `AdapterService.dispatch` and `createKernelServices`.
+- Deterministic diagnostics, reusing existing Sprint 7 diagnostics where applicable.
+
+Deferred Concepts:
+
+- Provider integrations (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI APIs), process execution, authentication, retry/timeout policies, streaming responses, telemetry/metrics/observability.
+- Adapter lifecycle management beyond the existing value object, dynamic capability negotiation, multi-adapter routing, prioritization, load balancing, fallback adapters.
+- Event subscribers/consumers, Context Package production/consumption beyond the existing reference-only field, VS Code host integration.
+- Any new aggregate, repository, business rule, lifecycle transition, or Domain Event outside the Adapter domain.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
+- The Sprint Owner's scope draft named `COPILOT_INSTRUCTIONS.md` as required Builder reading; per `NEXUS-RAT-2026-07-13-010`, that file is a planned, optional, future Provider Integration artifact deferred until the first production AI provider integration sprint, and is correctly omitted from Sprint 19's required reading.
+- This sprint introduces the Kernel's first concrete Adapter implementation. It does not introduce any new bounded context — Adapter has been an approved bounded context since Sprint 7.
+- `createKernelServices` accepts Adapter contract implementations at composition time so Kernel source remains independent of concrete Adapter implementations.
+
+---
+
+## Sprint 20 — Execution Pipeline Integration
+
+Status: Approved (NEXUS-REV-2026-07-13-020)
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Primary)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-011` — ratifies as binding that Sprint 20 authorizes Adapter dispatch only, never Adapter selection; no routing, prioritization, capability-scoring, or provider-preference policy is authorized.
+- Sprint 20's remaining scope was otherwise approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13); no other governance ambiguity required a Sprint Owner Ratification.
+
+Implemented Concepts:
+
+- Integration test coverage exercising the full pipeline (Task → Execution Strategy readiness evaluation → Role Assignment → Adapter Registry lookup → explicit Mock Adapter dispatch → Adapter Response → Execution Result) through existing public service contracts composed via `createKernelServices`.
+- Role resolution through the existing, unmodified `RoleService` and Sprint 8 Role Assignment model.
+- Adapter dispatch through explicit `adapterId` only, preserving `NEXUS-RAT-2026-07-13-011`; no Adapter selection or routing policy was introduced.
+- Deterministic diagnostics reusing existing error types for: no Adapter available, unsupported capability, missing Role Assignment, and deterministic Mock Adapter execution failure.
+- No additive `ExecutionStrategyService` coordination method was required because public-service composition already expresses the authorized pipeline.
+
+Critical Guardrail (Ratified: NEXUS-RAT-2026-07-13-011):
+
+- Adapter Selection Policy (deferred since Sprint 7/8/10) SHALL NOT be resolved or approximated by a general routing/priority algorithm this sprint — dispatch SHALL use an explicit `adapterId` or a fails-closed single-match lookup only. This guardrail was elevated from planning guidance to binding repository law specifically because Sprint 17 previously introduced an unauthorized business rule under similar ambiguity (`NEXUS-REV-2026-07-13-015-F-001`).
+
+Deferred Concepts:
+
+- Production provider integrations, process execution, authentication, network communication, streaming, retry/timeout policies, telemetry/metrics/observability, VS Code Host integration, `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`).
+- Adapter Selection Policy / routing / prioritization; full RFC-0004 Execution State set; Execution Session; Review-gated execution progression.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context; it composes Sprint 8, Sprint 10, and Sprint 19's already-approved capabilities.
+- `ExecutionStrategy` remains advisory/evaluative; `MissionExecutionService` remains the sole Task execution entry point, ungated by this sprint's work — mirroring the Sprint 10 Note this sprint does not reopen.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 38 files / 220 tests, esbuild.
+
+---
+
+## Sprint 21 — Local Process Runtime Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Partial)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is not the production-provider-integration sprint that ratification names as the activation trigger.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected by this sprint.
+
+Implemented Concepts:
+
+- `LocalProcessRuntime`, `ProcessRequest`, `ProcessResult`, `ProcessExecutionOptions`, `ProcessExitStatus`, and `ProcessDiagnostics` — provider-agnostic process launch, output capture, exit status, timeout, cancellation, and deterministic diagnostics, placed under `src/adapters/runtime/` outside `src/kernel` (Adapter-layer infrastructure, per RFC-0010 § Execution Responsibilities).
+- `LocalProcessRuntimeContract` — Adapter-facing runtime abstraction; operating-system process management remains encapsulated inside the concrete runtime implementation.
+- Deterministic diagnostics for executable-not-found, startup failure, timeout, cancellation, abnormal termination, non-zero exit code, and successful completion.
+- Integration proof beneath the Adapter layer via a separate test-only Adapter in `test/integration/local-process-runtime.integration.test.ts`; `MockAdapter`'s Sprint 19-approved behavior remains unchanged.
+
+Critical Boundary:
+
+- `LocalProcessRuntime` is Adapter-layer infrastructure, not a Kernel capability. `src/kernel` SHALL NOT import it; Sprint 18's `src/kernel` import-graph boundary test SHALL continue to pass unmodified.
+
+Critical Guardrail:
+
+- `MockAdapter`'s Sprint 19-approved baseline ("never invoke external processes") is an Approved Vertical Slice and remains frozen; it SHALL NOT be modified by this sprint.
+
+Deferred Concepts:
+
+- All production provider integrations (GitHub Copilot CLI, Claude CLI, Codex CLI, Gemini CLI, OpenAI, Azure OpenAI), authentication, credential storage, provider discovery/negotiation.
+- Process orchestration: parallel execution, process pools, retries, fallback execution, scheduling, prioritization.
+- Adapter Selection Policy (unaffected, per `NEXUS-RAT-2026-07-13-011`).
+- CLI/response interpretation; `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md` for the complete Sprint Implementation Record.
+- This sprint splits "production provider Adapter integration" into two bounded steps: generic process execution now, a specific provider Adapter in a future sprint.
+- This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 41 files / 232 tests, esbuild.
+
+---
+
+## Sprint 22 — Adapter Runtime Operational Metadata
+
+Status: Approved (NEXUS-REV-2026-07-13-022)
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Primary, Partial)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md`'s activation point is pushed to when the first live provider executes inside the completed Nexus host; not created or consumed this sprint.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+
+Governance History:
+
+- An earlier draft proposed a parallel "Provider" vocabulary (`ProviderMetadata`, `ProviderCapability`, `ProviderRegistry`), mis-cited "RFC-0008 — Provider Contract," and conflated `ProviderCapability` with Engineering Roles (`Builder`, `Reviewer`) in direct contradiction of RFC-0008. Flagged and rejected during `/nexus-plan`; the Sprint Owner reframed the sprint entirely in terms of the existing, RFC-0008-owned Adapter vocabulary. No RFC Amendment or ADR was required.
+
+Implemented Concepts:
+
+- `AdapterInstallationStatus`, `AdapterHealthStatus`, `AdapterRuntimeDiagnostics`, `AdapterConfiguration` (or equivalent), and executable/version discovery helpers — placed outside `src/kernel` (Adapter-layer implementation tooling, not RFC-0008 Contract vocabulary).
+- One narrow, additive `AdapterCapability` value-list extension in `src/kernel/adapter/adapter-capability.ts` — the sole authorized Kernel change this sprint.
+
+Critical Boundary:
+
+- `AdapterCapability`'s value-list extension is the only authorized Kernel change; `Builder`/`Reviewer` SHALL NOT appear as capability values. Everything else lives outside `src/kernel`. No second runtime registry; `AdapterRegistry` remains sole registry. `AdapterLifecycle` and `AdapterMetadata`'s existing fields remain frozen.
+
+Deferred Concepts:
+
+- Any `Provider`-prefixed type or second runtime registry; live provider integration (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI, Azure OpenAI); authentication; provider protocol translation; Adapter Selection Policy; Host/VS Code integration; `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0022-adapter-runtime-operational-metadata.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon beyond the single authorized additive `AdapterCapability` extension.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 42 files / 236 tests, esbuild.
+
+---
+
+## Sprint 23 — Host Ingress Foundation
+
+Status: Approved with Findings (NEXUS-REV-2026-07-13-023; remediated NEXUS-REV-2026-07-13-024)
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred until the first live provider is integrated and exercised from within the completed Host runtime; not this sprint.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; Host dispatch SHALL use explicit `adapterId` or a fails-closed single-match lookup only.
+
+Implemented Concepts:
+
+- Host command registration, Host ingress routing, Host capability declaration (RFC-0009 § Host Capabilities).
+- Adapter discovery through `AdapterService.enumerateAdapters` and deterministic dispatch through `AdapterService.dispatch`, exercised against the certified `MockAdapter` only.
+- Presentation of Sprint 22's Adapter operational metadata via VS Code Output Channel / notifications.
+- Host diagnostics for ingress-layer failures.
+- VS Code command contributions for Adapter discovery, Adapter dispatch, and Host capability display.
+- Unit and integration coverage for command registration, Host ingress routing, provider-independent presentation, fails-closed dispatch, and the Host → Kernel → AdapterService → MockAdapter path.
+
+Critical Boundary:
+
+- The Host SHALL invoke only public Kernel service contracts — no direct aggregate, repository, `AdapterRegistry`, `LocalProcessRuntime`, or Adapter access. Adapter dispatch SHALL use explicit `adapterId` or a fails-closed single-match lookup only; no Adapter Selection Policy is authorized.
+
+Deferred Concepts:
+
+- Live AI provider integration (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI, Azure OpenAI), authentication, provider protocol translation.
+- Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing.
+- Mission UI, Review UI, Knowledge UI, workflow visualization.
+- The broader Host Ingress Contract (`submitMission`, `publishHostObservation`, `submitApproval`, `queryWorkflowStatus`).
+- `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 242 tests, esbuild.
+
+---
+
+## Sprint 24 — Host Runtime Completion
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is provider-independent.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; interactive input MAY collect an explicit `adapterId`/`requiredCapability` but introduces no automatic selection logic.
+
+Implemented Concepts:
+
+- Interactive request input (`HostInputSurface`) for `nexus.dispatchAdapterRequest` when invoked without a pre-built argument; the existing Sprint 23 programmatic path is unchanged.
+- Structured response presentation surfacing `producedArtifacts`, `findings`, and `executionMetadata` alongside existing `status`/`diagnostics`, plus a deterministic dispatch progress indicator.
+- Workspace Trust enforcement (`HostWorkspaceTrustSurface`) gating dispatch only; discovery/capability commands remain ungated.
+- Exercised against the certified `MockAdapter` only.
+- Deterministic cancellation diagnostics for interactive input cancellation before dispatch.
+- Unit and integration coverage for interactive input, cancellation, programmatic dispatch preservation, full response presentation, progress, trust gating, and the Host → Kernel → AdapterService → MockAdapter path.
+
+Critical Boundary:
+
+- These three capabilities are a single architectural concern (Host runtime completion), not independent features. They SHALL NOT introduce provider protocol logic, Adapter behavior changes, authentication, provider selection, or live provider execution. No `src/kernel`, `src/adapters/mock/`, or `src/adapters/runtime/` file may change.
+
+Deferred Concepts:
+
+- Live AI provider integration, authentication, provider protocol translation.
+- Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing.
+- Persisted VS Code Configuration surface for Adapter settings.
+- Mission UI, Review UI, Knowledge UI, workflow visualization; the broader Host Ingress Contract; `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon.
+- Identified by repository-state assessment during `/nexus-plan`: all three gaps were found in the already-approved Sprint 23 code via direct grep evidence, not speculative future-proofing.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 246 tests, esbuild.
+
+---
+
+## Sprint 2 — Review Remediation
+
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). Source Review `NEXUS-REV-2026-07-12-002` was never persisted in `REVIEW_HISTORY.md`; no fabricated retroactive certification is recorded. TASK-004 is closed by NEXUS-RAT-2026-07-13-008 — its underlying concern has been repeatedly addressed by eight subsequent reference-document reconciliation ratifications and requires no further work.
+
+Source Review:
+
+- NEXUS-REV-2026-07-12-002 (never persisted; see NEXUS-RAT-2026-07-13-008)
+
+RFC Coverage:
+
+- RFC-0001 — Mission Model
+- RFC-0005 — Domain Event Model (causality and correlation semantics)
+
+Completed Tasks:
+
+- TASK-001 — Removed duplicate `MissionService.create(objective)` method; `createMission(request)` remains the Mission Service creation operation.
+- TASK-002 — Added Mission lifecycle event causality chaining from the immediately preceding Mission event ID, persisted through `MissionSnapshot`, and optional lifecycle operation correlation IDs.
+- TASK-003 — Documented the non-atomic MissionService save/publish limitation in `IMPLEMENTATION_REPORT.md`.
+- TASK-004 — CLOSED by NEXUS-RAT-2026-07-13-008. No further implementation work required; no recovery sprint authorized.
+
+Deferred Concepts:
+
+- Mission Plan
+- Mission Revision
+- Task
+- Task Graph

@@ -6,9 +6,10 @@
 
 ## Interfaces
 
-- Memory capture interface
-- Memory revision interface
-- Memory retrieval interface
+- Knowledge capture interface
+- Knowledge revision interface
+- Knowledge lifecycle advancement interface
+- Knowledge retrieval interface
 
 ## Responsibilities
 
@@ -24,8 +25,13 @@
 
 ## Events
 
-- Publishes KnowledgeCaptured, KnowledgeUpdated, KnowledgeSuperseded
-- Subscribes to ReviewAccepted and approval events
+- Publishes KnowledgeCandidateCreated for completed `captureKnowledge` transitions
+- Publishes KnowledgeRevisionCreated for completed `reviseKnowledge` transitions
+- Publishes KnowledgeAccepted for completed `approveKnowledge` transitions
+- Publishes KnowledgePublished for completed `activateKnowledge` transitions
+- Publishes KnowledgeSuperseded for completed `supersedeKnowledge` transitions
+- Publishes KnowledgeArchived for completed `archiveKnowledge` transitions
+- Does not subscribe to domain events
 
 ## Persistence
 

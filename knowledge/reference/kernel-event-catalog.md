@@ -132,7 +132,11 @@ Payload
 
 ---
 
-## MissionPlanningStarted
+## MissionPlanned
+
+Aggregate
+
+Mission
 
 Producer
 
@@ -140,59 +144,61 @@ Mission Service
 
 Consumers
 
-Execution Strategy
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
-## MissionPlanned
+## MissionReady
+
+Aggregate
+
+Mission
 
 Producer
 
-Planning Service
+Mission Service
 
 Consumers
 
-Execution Service
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
-## MissionExecutionStarted
+## MissionStarted
+
+Aggregate
+
+Mission
 
 Producer
 
-Execution Service
+Mission Service
 
 Consumers
 
-Task Coordination
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
 ## MissionPaused
 
-Producer
+Aggregate
 
-Mission Service
-
----
-
-## MissionResumed
-
-Producer
-
-Mission Service
-
----
-
-## MissionCancelled
-
-Producer
-
-Mission Service
-
----
-
-## MissionCompleted
+Mission
 
 Producer
 
@@ -200,15 +206,113 @@ Mission Service
 
 Consumers
 
-Knowledge Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionResumed
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Execution Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionReviewed
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionCompleted
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Knowledge Service
+- Event Store
+
+Payload
+
+- Mission Identifier
+
+---
+
+## MissionCancelled
+
+Aggregate
+
+Mission
+
+Producer
+
+Mission Service
+
+Consumers
+
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
 ## MissionFailed
 
+Aggregate
+
+Mission
+
 Producer
 
 Mission Service
+
+Consumers
+
+- Event Store
+
+Payload
+
+- Mission Identifier
 
 ---
 
@@ -218,15 +322,15 @@ Mission Service
 
 Producer
 
-Planning Service
+MissionPlanningService
 
 ---
 
 ## MissionPlanActivated
 
-Producer
+Deferred
 
-Planning Service
+No implemented operation exists.
 
 ---
 
@@ -234,19 +338,11 @@ Planning Service
 
 Producer
 
-Execution Strategy
+MissionPlanningService
 
 Consumers
 
 Task Coordination
-
----
-
-## MissionPlanSuperseded
-
-Producer
-
-Planning Service
 
 ---
 
@@ -256,13 +352,21 @@ Planning Service
 
 Producer
 
-Planning Service
+MissionPlanningService
+
+---
+
+## TaskRemoved
+
+Deferred
+
+Unpublished; producer attribution pending future ratification.
 
 ---
 
 ## TaskReady
 
-Producer
+Deferred Producer
 
 Task Coordinator
 
@@ -270,7 +374,7 @@ Task Coordinator
 
 ## TaskAssigned
 
-Producer
+Deferred Producer
 
 Execution Strategy
 
@@ -284,7 +388,7 @@ Adapter
 
 Producer
 
-Adapter
+MissionExecutionService
 
 ---
 
@@ -292,7 +396,7 @@ Adapter
 
 Producer
 
-Adapter
+MissionExecutionService
 
 Consumers
 
@@ -302,7 +406,7 @@ Review Service
 
 ## TaskBlocked
 
-Producer
+Deferred Producer
 
 Execution Strategy
 
@@ -312,7 +416,7 @@ Execution Strategy
 
 Producer
 
-Mission Service
+MissionExecutionService
 
 ---
 
@@ -579,6 +683,30 @@ Knowledge Service
 ---
 
 ## KnowledgePublished
+
+Producer
+
+Knowledge Service
+
+---
+
+## KnowledgeSuperseded
+
+Producer
+
+Knowledge Service
+
+---
+
+## KnowledgeRevisionCreated
+
+Producer
+
+Knowledge Service
+
+---
+
+## KnowledgeArchived
 
 Producer
 

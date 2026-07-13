@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Kernel } from '../../src/kernel/kernel';
+import type { EventBusContract } from '../../src/kernel/common/event-bus-contract';
 import { KernelError } from '../../src/kernel/common/kernel-error';
 import type { KernelLogger } from '../../src/kernel/common/kernel-logger';
 import type { IKernelService, ServiceHealth } from '../../src/kernel/common/kernel-service';
@@ -53,6 +54,30 @@ class TestService implements IKernelService {
 }
 
 describe('Kernel', () => {
+  it('accepts a service factory and passes the Kernel-owned EventBus to it', async () => {
+    const logger = new TestLogger();
+    const service = new TestService('FactoryService');
+    let providedEventBus: EventBusContract | undefined;
+    const kernel = new Kernel((eventBus) => {
+      providedEventBus = eventBus;
+
+      return [service];
+    }, logger);
+
+    await kernel.initialize();
+
+    expect(providedEventBus).toBe(kernel.getEventBus());
+    expect(kernel.health()).toEqual({
+      initialized: true,
+      services: [
+        {
+          serviceName: 'FactoryService',
+          status: 'ready',
+        },
+      ],
+    });
+  });
+
   it('initializes registered services and reports health', async () => {
     const logger = new TestLogger();
     const kernel = new Kernel([new TestService('TestService')], logger);
