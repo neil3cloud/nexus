@@ -2,7 +2,7 @@
 
 ## Sprint Status
 
-Current — Ready for Builder Implementation
+Approved (NEXUS-REV-2026-07-14-003)
 
 ## Sprint Objective
 
@@ -134,24 +134,38 @@ This demonstrates that the RFC-0008 Adapter Contract and the RFC-0009 Host Contr
 
 ## Builder Results
 
-_Reserved for Builder completion._
+Implemented the Sprint 30 Developer Workflow Integration of `GeminiCliAdapter` vertical slice.
+
+- Added a second Host command, `nexus.runDeveloperMissionWorkflowWithGeminiCli`, while preserving the existing `nexus.runDeveloperMissionWorkflow` command and its `MockAdapter` dispatch path.
+- Registered the new command in `package.json` command contributions and activation events.
+- Extended command input normalization to preserve deterministic Adapter execution constraints supplied to workflow commands.
+- Composed a second `HostMissionWorkflow` instance in the VS Code Host with explicit `adapterId: GEMINI_CLI_ADAPTER_ID`; the existing workflow instance continues to use explicit `adapterId: MOCK_ADAPTER_ID`.
+- Registered `GeminiCliAdapter` at the extension composition root alongside `MockAdapter`, using `LocalProcessRuntime`.
+- Added deterministic success and failure coverage for the new command/workflow path using the Sprint 29 Gemini CLI test-double only.
+- Preserved all deferred concepts: no Adapter Selection Policy, routing, persisted preferences, configuration subsystem, credential handling, OAuth, `SecretStorage`, streaming responses, multi-provider coordination, or `src/kernel` change was introduced.
+
+No architectural deviations.
 
 ## Test Summary
 
-_Reserved for Builder completion._
+- Targeted Sprint 30 Vitest suite passed: `test\hosts\vscode\host-mission-workflow-gemini-command-registration.test.ts` and `test\integration\host-mission-workflow-gemini-cli.integration.test.ts` — 2 files, 3 tests.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 52 files, 265 tests.
+- Sprint 18 Kernel boundary certification passed unmodified as part of the Vitest suite.
+- `git diff --stat -- src\kernel src\adapters` is empty.
 
 ## Reviewer Notes
 
-_Reserved for Reviewer completion._
+Independently re-verified every claim in Builder Results and Test Summary: diffed `vscode-host.ts`, `host-mission-workflow-command-registration.ts`, `extension.ts`, and `package.json` line-by-line and confirmed all changes are additive; confirmed via `git diff --stat` that `host-mission-workflow.ts`, every pre-existing Sprint 25–27 test file, `src/kernel`, and `src/adapters` are all untouched. Re-ran the targeted Sprint 30 suite directly (2 files / 3 tests passed) and the full `npm run validate` pipeline independently (TypeScript compile, ESLint, Vitest 52 files / 265 tests, esbuild — all passed, matching the Builder's reported counts exactly), with the Sprint 18 kernel boundary certification test included and passing unmodified. Confirmed both new tests exercise `GeminiCliAdapter` exclusively via the deterministic Sprint 29 test-double executable, never a live Gemini CLI. See `REVIEW_HISTORY.md` § `NEXUS-REV-2026-07-14-003` for the complete review record.
 
 ## Findings
 
-_Reserved for Reviewer completion._
+None.
 
 ## Required Actions
 
-_Reserved for Reviewer completion._
+None. Zero findings; nothing blocks or requires remediation.
 
 ## Final Disposition
 
-_Reserved for Reviewer completion._
+**Approved** (`NEXUS-REV-2026-07-14-003`). No architectural violations detected. Milestone 5's remaining Expected Outcome (Developer Workflow integration of `GeminiCliAdapter`) is now complete.

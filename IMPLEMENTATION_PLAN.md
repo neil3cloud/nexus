@@ -1448,7 +1448,7 @@ Sprint 27's review cycle is complete with no open findings, completing the provi
 
 # Milestone 5 — Production Adapter Integration
 
-Status: In Progress (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Current)
+Status: ✅ COMPLETE (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Approved — NEXUS-REV-2026-07-14-003)
 
 Objective
 
@@ -1466,7 +1466,7 @@ Expected Outcomes
 
 - An installable, activatable, and operational Nexus VS Code extension, validated inside a real Extension Host (Sprint 28 — complete).
 - A certified, isolated `GeminiCliAdapter` production Adapter implementation, proving the RFC-0008 Adapter Contract works with a real provider without Developer Workflow coupling (Sprint 29 — complete).
-- Developer Workflow integration of `GeminiCliAdapter` via a second, dedicated command, preserving the existing `MockAdapter`-based command as the frozen deterministic baseline (Sprint 30 — current).
+- Developer Workflow integration of `GeminiCliAdapter` via a second, dedicated command, preserving the existing `MockAdapter`-based command as the frozen deterministic baseline (Sprint 30 — complete).
 
 ---
 
@@ -1578,7 +1578,7 @@ See `knowledge/implementation/sprints/sprint-0029-gemini-cli-adapter-runtime-int
 
 ## Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
 
-Status: Current
+Status: ✅ Approved (NEXUS-REV-2026-07-14-003)
 
 Objective
 

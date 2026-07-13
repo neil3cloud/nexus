@@ -2,6 +2,72 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-003 — Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
+
+- **Reviewed Sprint:** Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
+- **Reviewed Vertical Slice:** New `nexus.runDeveloperMissionWorkflowWithGeminiCli` command (`src/hosts/vscode/host-mission-workflow-command-registration.ts`); second `HostMissionWorkflow` instance and `GeminiCliAdapter` composition (`src/hosts/vscode/vscode-host.ts`, `src/extension.ts`); `package.json` command contribution/activation event; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 30 connects the certified, isolated `GeminiCliAdapter` (Sprint 29) to the Developer Workflow exactly as scoped by `NEXUS-RAT-2026-07-14-004`, introducing a second, dedicated Host command rather than a persisted Adapter-configuration surface, and leaving the existing `nexus.runDeveloperMissionWorkflow` command entirely frozen.
+
+Independent re-verification: `git diff --stat -- src/kernel src/adapters` confirmed **empty**, and a diff against every pre-existing Sprint 25–27 test file confirmed **empty** — the frozen `MockAdapter`-based baseline is genuinely untouched, not merely claimed. `host-mission-workflow.ts` itself has zero changes this sprint; the `adapterExecutionConstraints` field the command registration now threads through already existed from a prior commit, so the registration change is purely additive plumbing. `host-mission-workflow-command-registration.ts`'s diff shows the two existing command registrations pushed first, unchanged, with the new registration appended only when a `geminiCliWorkflow` option is supplied — existing behavior and command ordering preserved. `vscode-host.ts`'s new `HostMissionWorkflow` instance reuses the identical constructor signature and shared Kernel services as the existing instance, differing only in the explicit `adapterId` (`GEMINI_CLI_ADAPTER_ID` vs `MOCK_ADAPTER_ID`) — no duplicate orchestration pipeline was introduced.
+
+I independently ran the targeted Sprint 30 suite (`test/hosts/vscode/host-mission-workflow-gemini-command-registration.test.ts`, `test/integration/host-mission-workflow-gemini-cli.integration.test.ts`): 2 files / 3 tests passed, matching the Builder's claim exactly. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**52 files / 265 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test included and passing unmodified within that run.
+
+Reviewed both new test files in full: the integration test drives the real composed Kernel via `createKernelServices`, wiring `GeminiCliAdapter` to the deterministic Sprint 29 test-double executable (`process.execPath` + the `.cjs` test-double path) — never a live Gemini CLI — confirming both the success path (full Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge sequence, correct Domain Event ordering) and the deterministic failure-stop path (Adapter failure halts before `completeTask`, with correct diagnostics presentation and no fabricated state). The command-registration test independently proves the existing command's registration order and input handling are unaffected by the new command's addition.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 52 files / 265 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: persisted adapter preferences, Workspace/User adapter settings, or any Adapter-selection configuration subsystem; Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination; authentication management, credential storage, OAuth, `SecretStorage`; any second production Adapter beyond `GeminiCliAdapter`; streaming responses, multi-provider coordination, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (one new Host command); no Adapter-selection subsystem introduced, matching the ratified refinement.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/0008/0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-004`'s binding Critical Boundary and Architectural Responsibilities followed exactly.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `HostMissionWorkflow`/`AdapterService`/`adapterId` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; both workflow instances interact only through existing public Kernel service contracts.
+- Gate 5 (Data Model): PASS — no request/response/snapshot shape changed; `adapterExecutionConstraints` was already part of `HostMissionWorkflowInput` prior to this sprint.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; the integration test confirms the identical, already-certified event ordering.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected (verified via the passing full Vitest run); the Kernel remains unaware of which command initiated execution, confirmed by both `HostMissionWorkflow` instances sharing identical Kernel service injection.
+- Gate 9 (Technology Compliance): PASS — new command mirrors the existing command's registration and composition pattern exactly.
+- Gate 10 (Code Quality): PASS — additive-only diffs; no duplicate orchestration; deterministic dispatch via explicit `adapterId`.
+- Gate 11 (Testing): PASS — new automated coverage is fully deterministic and CI-safe (test-double executable only); existing frozen tests independently confirmed untouched.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 30 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 30 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0030-developer-workflow-gemini-cli-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 30 status set to **Approved** (`NEXUS-REV-2026-07-14-003`); Milestone 5 status line updated accordingly. No Sprint 31 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+None. Zero findings; nothing blocks or requires remediation. Milestone 5's remaining Expected Outcome (Developer Workflow integration of `GeminiCliAdapter`) is now complete; scoping the next sprint remains the next Sprint Owner action via `/nexus-plan`.
+
+---
+
 ## NEXUS-REV-2026-07-14-002 — Sprint 29 — Gemini CLI Adapter Runtime Integration
 
 - **Reviewed Sprint:** Sprint 29 — Gemini CLI Adapter Runtime Integration

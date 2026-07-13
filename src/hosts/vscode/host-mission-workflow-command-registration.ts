@@ -8,26 +8,54 @@ import type {
 import { HostMissionWorkflowError } from './host-mission-workflow.errors';
 import type { HostMissionWorkflow, HostMissionWorkflowInput } from './host-mission-workflow';
 
+type RegisteredMissionWorkflow = Pick<
+  HostMissionWorkflow,
+  'runDeveloperMissionWorkflow' | 'showMissionWorkflowHistory'
+>;
+
 export const HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND = 'nexus.runDeveloperMissionWorkflow';
+export const HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_GEMINI_CLI_COMMAND =
+  'nexus.runDeveloperMissionWorkflowWithGeminiCli';
 export const HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND = 'nexus.showMissionWorkflowHistory';
+
+export interface HostMissionWorkflowCommandRegistrationOptions {
+  readonly geminiCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+}
 
 export class HostMissionWorkflowCommandRegistration implements HostDisposable {
   private readonly registrations: readonly HostDisposable[];
 
   public constructor(
     commandRegistry: HostCommandRegistry,
-    private readonly workflow: HostMissionWorkflow,
+    private readonly workflow: RegisteredMissionWorkflow,
     private readonly inputSurface: HostInputSurface,
     private readonly presentation: HostPresentationSurface,
+    options: HostMissionWorkflowCommandRegistrationOptions = {},
   ) {
-    this.registrations = Object.freeze([
+    const registrations = [
       commandRegistry.registerCommand(HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND, async (input) =>
         this.workflow.runDeveloperMissionWorkflow(await this.normalizeWorkflowInput(input)),
       ),
       commandRegistry.registerCommand(HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND, () =>
         this.workflow.showMissionWorkflowHistory(),
       ),
-    ]);
+    ];
+
+    const geminiCliWorkflow = options.geminiCliWorkflow;
+
+    if (geminiCliWorkflow !== undefined) {
+      registrations.push(
+        commandRegistry.registerCommand(
+          HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_GEMINI_CLI_COMMAND,
+          async (input) =>
+            geminiCliWorkflow.runDeveloperMissionWorkflow(
+              await this.normalizeWorkflowInput(input),
+            ),
+        ),
+      );
+    }
+
+    this.registrations = Object.freeze(registrations);
   }
 
   public dispose(): void {
@@ -42,6 +70,9 @@ export class HostMissionWorkflowCommandRegistration implements HostDisposable {
         objective: typeof input.objective === 'string' ? input.objective : '',
         taskTitle: typeof input.taskTitle === 'string' ? input.taskTitle : '',
         taskDescription: typeof input.taskDescription === 'string' ? input.taskDescription : '',
+        ...(isStringRecord(input.adapterExecutionConstraints)
+          ? { adapterExecutionConstraints: input.adapterExecutionConstraints }
+          : {}),
       };
     }
 
@@ -74,4 +105,8 @@ export class HostMissionWorkflowCommandRegistration implements HostDisposable {
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isStringRecord(value: unknown): value is Readonly<Record<string, string>> {
+  return isRecord(value) && Object.values(value).every((entry) => typeof entry === 'string');
 }

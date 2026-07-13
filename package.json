@@ -24,6 +24,7 @@
     "onCommand:nexus.dispatchAdapterRequest",
     "onCommand:nexus.showHostCapabilities",
     "onCommand:nexus.runDeveloperMissionWorkflow",
+    "onCommand:nexus.runDeveloperMissionWorkflowWithGeminiCli",
     "onCommand:nexus.showMissionWorkflowHistory"
   ],
   "contributes": {
@@ -47,6 +48,10 @@
       {
         "command": "nexus.runDeveloperMissionWorkflow",
         "title": "Nexus: Run Developer Mission Workflow"
+      },
+      {
+        "command": "nexus.runDeveloperMissionWorkflowWithGeminiCli",
+        "title": "Nexus: Run Developer Mission Workflow (Gemini CLI)"
       },
       {
         "command": "nexus.showMissionWorkflowHistory",

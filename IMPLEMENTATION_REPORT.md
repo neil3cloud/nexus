@@ -1,5 +1,103 @@
 # Nexus Implementation Report
 
+## Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
+
+### Implemented Slice
+
+Implemented the Milestone 5 Sprint 30 Developer Workflow Integration of `GeminiCliAdapter` vertical slice. This sprint connects the certified Sprint 29 `GeminiCliAdapter` to the Developer Workflow through a second, dedicated Host command while preserving the existing `MockAdapter` workflow command as the deterministic baseline.
+
+Implemented scope:
+
+- Added `nexus.runDeveloperMissionWorkflowWithGeminiCli` as a second Host command.
+- Preserved `nexus.runDeveloperMissionWorkflow` and its explicit `MOCK_ADAPTER_ID` dispatch path.
+- Added the new command contribution and activation event in `package.json`.
+- Registered `GeminiCliAdapter` at the extension composition root alongside `MockAdapter`.
+- Composed a separate `HostMissionWorkflow` instance with explicit `adapterId: GEMINI_CLI_ADAPTER_ID`.
+- Preserved the already-certified Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge workflow sequence unchanged.
+- Added deterministic command-registration and end-to-end workflow coverage for success and failure paths using the Sprint 29 Gemini CLI test-double only.
+
+Out of scope and not implemented:
+
+- Adapter Selection Policy, provider routing, capability scoring, fallback, or multi-adapter coordination.
+- Persisted adapter preferences, Workspace/User settings, or any Adapter-selection configuration subsystem.
+- Authentication management, credential storage, OAuth, or `SecretStorage`.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, Codex CLI Adapter, or any second production Adapter.
+- Streaming responses, multi-provider coordination, background execution, or retry behavior beyond existing runtime timeout behavior.
+- Any `src/kernel` changes.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Multiple Host Developer Workflow command entry points.
+- Explicit `adapterId` dispatch from a Host workflow call site.
+- Extension composition of `MockAdapter` and `GeminiCliAdapter`.
+- Deterministic CI-safe Gemini CLI workflow validation through the existing local test-double.
+
+Deferred Concepts:
+
+- Adapter Selection Policy, provider routing, provider preference, fallback, capability scoring, and multi-adapter execution.
+- Persisted adapter preferences, Workspace/User settings, default adapter preferences, and configuration subsystem support.
+- Authentication management, credential storage, OAuth, `SecretStorage`, and Nexus-managed provider credentials.
+- Additional production provider Adapters.
+- Streaming responses, background execution, and multi-provider coordination.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-004`, `NEXUS-RAT-2026-07-14-003`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md`.
+- `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md`.
+- `knowledge/implementation/sprints/sprint-0029-gemini-cli-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- A second Host command is a Host entry point and does not constitute Adapter Selection Policy when the command constructs a workflow with an explicit `adapterId`.
+- The Kernel remains unaware of which Host command initiated the workflow because the same `HostMissionWorkflow` contract and public Kernel services are reused.
+- Automated Sprint 30 validation must use the existing deterministic Gemini CLI test-double, never a live Gemini CLI.
+
+### Known Limitations
+
+- The Gemini CLI Developer Workflow command depends on a locally authenticated Gemini CLI session in practical production use.
+- Automated validation proves the command path with the deterministic test-double only.
+- No persisted preference exists for choosing an Adapter; developers must explicitly invoke the Gemini CLI command.
+- No retry, streaming, multi-turn conversation, or background workflow behavior is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 30 Vitest suite passed: 2 files, 3 tests.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 52 files, 265 tests.
+- Sprint 18 Kernel boundary certification passed unmodified.
+- `git diff --stat -- src\kernel src\adapters` is empty.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 29 — Gemini CLI Adapter Runtime Integration
 
 ### Implemented Slice

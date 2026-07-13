@@ -36,6 +36,7 @@ import { StaticHostAdapterOperationalMetadataProvider } from './host-operational
 export interface VscodeHostOptions {
   readonly adapters?: readonly Adapter[];
   readonly missionWorkflowAdapterId?: string;
+  readonly geminiCliMissionWorkflowAdapterId?: string;
   readonly operationalMetadataProvider?: HostAdapterOperationalMetadataProvider;
 }
 
@@ -125,6 +126,7 @@ export class VscodeHost implements vscode.Disposable {
   private readonly logger: KernelLogger;
   private readonly ingress: HostIngressLayer;
   private readonly missionWorkflow: HostMissionWorkflow;
+  private readonly geminiCliMissionWorkflow: HostMissionWorkflow | undefined;
   private commandRegistrations: HostDisposable[] = [];
 
   public constructor(
@@ -133,12 +135,14 @@ export class VscodeHost implements vscode.Disposable {
     logger: KernelLogger,
     ingress: HostIngressLayer,
     missionWorkflow: HostMissionWorkflow,
+    geminiCliMissionWorkflow?: HostMissionWorkflow,
   ) {
     this.outputChannel = outputChannel;
     this.kernel = kernel;
     this.logger = logger;
     this.ingress = ingress;
     this.missionWorkflow = missionWorkflow;
+    this.geminiCliMissionWorkflow = geminiCliMissionWorkflow;
   }
 
   public async initialize(): Promise<void> {
@@ -155,6 +159,9 @@ export class VscodeHost implements vscode.Disposable {
         this.missionWorkflow,
         inputSurface,
         presentation,
+        this.geminiCliMissionWorkflow === undefined
+          ? {}
+          : { geminiCliWorkflow: this.geminiCliMissionWorkflow },
       ),
     ];
 
@@ -268,8 +275,30 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     presentation,
     workspaceTrust,
   );
+  const geminiCliMissionWorkflow =
+    options.geminiCliMissionWorkflowAdapterId === undefined
+      ? undefined
+      : new HostMissionWorkflow(
+          missionService,
+          planningService,
+          executionService,
+          {
+            roleService,
+            executionStrategyService,
+            adapterService,
+            adapterId: options.geminiCliMissionWorkflowAdapterId,
+            requiredCapability: 'CodeModification',
+          },
+          {
+            evidenceService,
+            reviewService,
+            knowledgeService,
+          },
+          presentation,
+          workspaceTrust,
+        );
 
-  return new VscodeHost(outputChannel, kernel, logger, ingress, missionWorkflow);
+  return new VscodeHost(outputChannel, kernel, logger, ingress, missionWorkflow, geminiCliMissionWorkflow);
 }
 
 function resolveAdapterService(services: readonly IKernelService[]): AdapterService {

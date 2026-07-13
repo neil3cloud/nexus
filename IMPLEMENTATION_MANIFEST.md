@@ -1160,7 +1160,7 @@ Notes:
 
 # Milestone 5 — Production Adapter Integration
 
-Status: In Progress (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Current)
+Status: In Progress (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Implemented — Pending Reviewer Validation)
 
 ## Sprint 28 — VS Code Extension Installability
 
@@ -1242,7 +1242,7 @@ Notes:
 
 ## Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
 
-Status: Current
+Status: Implemented — Pending Reviewer Validation
 
 RFC Coverage:
 
@@ -1255,7 +1255,7 @@ Ratification:
 - `NEXUS-RAT-2026-07-14-003` — established that Developer Workflow integration of `GeminiCliAdapter` is authorized only after Sprint 29's independent certification; satisfied by `NEXUS-REV-2026-07-14-002`.
 - `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; the new command dispatches via explicit `adapterId` only.
 
-Planned Concepts:
+Implemented Concepts:
 
 - A new Host command sequencing the identical, already-certified Sprint 25/26/27 workflow steps (Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge), with the Adapter dispatch step's explicit `adapterId` set to `GEMINI_CLI_ADAPTER_ID` instead of `MOCK_ADAPTER_ID`.
 - `GeminiCliAdapter` registration at the `extension.ts` composition root alongside the existing, unmodified `MockAdapter` registration.
