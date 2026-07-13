@@ -924,7 +924,7 @@ Sprint 18's review cycle is complete with no open findings, and with it, Milesto
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved; Sprint 23 Approved with Findings; Sprint 24 Approved; Sprint 25 Approved)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved; Sprint 23 Approved with Findings; Sprint 24 Approved; Sprint 25 Approved; Sprint 26 Approved; Sprint 27 Approved)
 
 Objective
 
@@ -1324,8 +1324,122 @@ See `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.
 
 ---
 
+## Sprint 26 — Developer Workflow Adapter Integration
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-027)
+
+Objective
+
+Connect the Developer Workflow established in Sprint 25 to the already-certified Adapter execution pipeline established in Sprint 20, so developer-initiated Task execution is fulfilled through the existing Adapter Contract while preserving complete provider independence. This is not a new execution pipeline — Sprint 26 integrates with the pipeline Sprint 20 already normatively established. Introduces exactly one architectural variable: Developer Workflow → Certified Adapter Pipeline Integration.
+
+RFC Coverage
+
+- RFC-0004 — Execution Model (Primary)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+- `NEXUS-RAT-2026-07-13-013` — governs this sprint's entire scope: title, authorized execution sequence, Host/Kernel/Adapter Runtime responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; dispatch SHALL use explicit `adapterId` or a fails-closed single-match lookup only.
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is provider-independent.
+
+Authorized Execution Path (binding)
+
+```text
+Developer Workflow → MissionExecutionService.startTask() → RoleService.assignRole() →
+ExecutionStrategyService.evaluateAssignmentReadiness() → AdapterService.dispatch() →
+MockAdapter → AdapterResponse → MissionExecutionService.completeTask()
+```
+
+This is the only execution path this sprint may exercise, reusing Sprint 20's certified pipeline verbatim. On a non-`Completed` Adapter response, the workflow stops deterministically, presents diagnostics, and does not call `completeTask` — no Task-failure state is fabricated (none exists in the Kernel).
+
+Authorized Vertical Slice
+
+- Extend `HostMissionWorkflow` (Sprint 25) to insert Role Assignment → Execution Strategy readiness → Adapter dispatch between `startTask` and `completeTask`.
+- Register `MockAdapter` at the Host composition root shared with Sprint 23/24.
+- Extend session-only history with the Adapter dispatch outcome, preserving Sprint 25's non-durable, minimal-field constraint.
+
+Deferred Concepts
+
+- Live AI provider integration; Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing / multi-adapter execution; background execution, workflow automation, retry policies, streaming, cancellation, progress callbacks beyond existing markers; persistent execution history, Knowledge, Shared Reality visualization, Mission browser, dashboards; `COPILOT_INSTRUCTIONS.md`.
+
+Definition of Done
+
+- The Developer Workflow exercises the exact Authorized Execution Path, in order, with no duplicate orchestration.
+- Host assigns no role, selects no adapter, and determines no execution outcome itself.
+- Success and non-success Adapter outcomes are both handled deterministically without fabricating Task state.
+- Existing Sprint 20 execution-pipeline tests and Sprint 25 tests for unchanged behavior pass unmodified.
+- No `src/kernel`/`src/adapters` file changes; Sprint 18's boundary test passes unmodified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Extended `HostMissionWorkflow` to create an Execution Strategy and then invoke `RoleService.assignRole`, `ExecutionStrategyService.evaluateAssignmentReadiness`, `RoleService.retrieveRole`, and `AdapterService.dispatch` between `startTask` and `completeTask`.
+- Wired the VS Code Host composition root to supply `RoleService`, `ExecutionStrategyService`, `AdapterService`, explicit `mock-adapter` dispatch, and `CodeModification` capability to the Developer Workflow.
+- Registered `MockAdapter` for the Developer Workflow through the existing extension composition root; no Kernel or Adapter source changes were introduced.
+- Extended session-only Mission workflow history and result presentation with Adapter ID and dispatch status while preserving in-memory-only history.
+- Added deterministic non-`Completed` Adapter response handling that presents diagnostics, records the actual last-known Mission status, and does not call `completeTask`.
+- Added and updated unit/integration coverage for the Sprint 26 pipeline sequence, failure stop behavior, command registration, real Kernel composition with `MockAdapter`, and unchanged Sprint 20 pipeline behavior.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 48 files / 254 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 27 — Developer Workflow Completion
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-028)
+
+Objective
+
+Complete the provider-independent Developer Workflow by extending it, after Mission completion, through an Evidence → Review → Knowledge sequence using only previously approved, existing public Kernel service contracts. This closes the "Builder/Reviewer workflow integration" outcome Milestone 4 has listed as future scope since its opening, completing at the Host layer the same Evidence → Review → Knowledge sequence Sprint 16 already certified legal at the Kernel-composition level. Review and Knowledge integration are implementation details of completing the developer workflow, not new architectural capability.
+
+RFC Coverage
+
+- RFC-0009 — Host Contract (Primary)
+- Referenced: RFC-0002 — Evidence Model, RFC-0006 — Engineering Assessment Model, RFC-0007 — Knowledge Model, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+- `NEXUS-RAT-2026-07-13-014` — governs this sprint's entire scope: title, authorized completion workflow, Host/Kernel responsibility split, the binding Knowledge-eligibility implementation clarification, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-13-013` — governs the Sprint 26 pipeline this sprint extends; unaffected and unmodified.
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is provider-independent.
+
+Authorized Completion Workflow (binding)
+
+```text
+Developer Workflow → MissionExecutionService.completeMission() (Sprint 25/26, unchanged) →
+EvidenceService.registerEvidence() → ReviewService.startReview() → ReviewService.publishFinding() →
+ReviewService.finalizeReviewOutcome() → KnowledgeService.captureKnowledge() → Host presents completion result
+```
+
+This is the only workflow extension this sprint may exercise, extending the exact sequence Sprint 16's integration test already proves legal. Knowledge eligibility SHALL NOT be encoded as Host-side conditional logic (`if (reviewAccepted) { captureKnowledge(); }`); the Host SHALL call `captureKnowledge()` unconditionally and treat a Kernel-thrown `KnowledgeCapturePreconditionError` as an ordinary Kernel-rejection stop, mirroring the Sprint 25/26 pattern.
+
+Authorized Vertical Slice
+
+- Extend `HostMissionWorkflow` (Sprint 25/26) to invoke the Authorized Completion Workflow immediately after the existing `completeMission()` call.
+- Wire `EvidenceService`, `ReviewService`, and `KnowledgeService` into the Host composition root, mirroring the existing `resolveService` pattern.
+- Extend session-only history with Review outcome and Knowledge capture status, preserving Sprint 25's non-durable, minimal-field constraint.
+
+Deferred Concepts
+
+- Live AI Providers, production Adapter integration, Adapter Selection, provider routing; human review intervention, review retry workflows; streaming execution, background workflow execution, workflow automation, multi-provider coordination; persistent/durable workflow/execution/review/knowledge history; Policy Engine integration, Evidence indexing, Knowledge conflict resolution; `COPILOT_INSTRUCTIONS.md`.
+
+Definition of Done
+
+- The Developer Workflow exercises the exact Authorized Completion Workflow, in order, with no duplicate orchestration.
+- Host makes no Evidence-validity, Review-outcome-interpretation, or Knowledge-eligibility decision itself; `captureKnowledge()` is called unconditionally.
+- Success and Kernel-rejection outcomes are both handled deterministically without fabricating state.
+- Existing Sprint 16 integration tests and Sprint 25/26 tests for unchanged behavior pass unmodified.
+- No `src/kernel`/`src/adapters` file changes; Sprint 18's boundary test passes unmodified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md` for the complete Sprint Implementation Record.
+
+---
+
 ## Future Sprint Planning (Milestone 4)
 
-Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025); Sprint 25 Approved (NEXUS-REV-2026-07-13-026)
+Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025); Sprint 25 Approved (NEXUS-REV-2026-07-13-026); Sprint 26 Approved (NEXUS-REV-2026-07-13-027); Sprint 27 Approved (NEXUS-REV-2026-07-13-028)
 
-Sprint 25's review cycle is complete with no open findings. No Sprint 26 exists in this Implementation Plan. Both the Adapter-domain (Sprint 23/24) and Mission-domain (Sprint 25) Host entry points are now certified; live provider selection for the Adapter domain remains an open, separate future decision. Sequencing beyond Sprint 25 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.
+Sprint 27's review cycle is complete with no open findings, completing the provider-independent Developer Workflow ratified by `NEXUS-RAT-2026-07-13-014`. No Sprint 28 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow). Per `NEXUS-RAT-2026-07-13-013`'s Repository State section, the repository is now ready to begin Milestone 5 — Production Adapter Integration (the sole remaining substitution: MockAdapter → Live Provider Adapter).

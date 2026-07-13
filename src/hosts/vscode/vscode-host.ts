@@ -8,9 +8,14 @@ import { Kernel } from '../../kernel/kernel';
 import { createKernelServices } from '../../kernel/common/create-kernel-services';
 import type { IKernelService } from '../../kernel/common/kernel-service';
 import type { KernelLogger } from '../../kernel/common/kernel-logger';
+import { EvidenceService } from '../../kernel/evidence/evidence.service';
+import { ExecutionStrategyService } from '../../kernel/execution/execution-strategy.service';
+import { RoleService } from '../../kernel/execution/role.service';
+import { KnowledgeService } from '../../kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../kernel/mission/mission-execution.service';
 import { MissionPlanningService } from '../../kernel/mission/mission-planning.service';
 import { MissionService } from '../../kernel/mission/mission.service';
+import { ReviewService } from '../../kernel/review/review.service';
 import type {
   HostCommandHandler,
   HostCommandRegistry,
@@ -30,6 +35,7 @@ import { StaticHostAdapterOperationalMetadataProvider } from './host-operational
 
 export interface VscodeHostOptions {
   readonly adapters?: readonly Adapter[];
+  readonly missionWorkflowAdapterId?: string;
   readonly operationalMetadataProvider?: HostAdapterOperationalMetadataProvider;
 }
 
@@ -208,6 +214,31 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     'MissionExecutionService',
     (service): service is MissionExecutionService => service instanceof MissionExecutionService,
   );
+  const roleService = resolveService(
+    composedServices,
+    'RoleService',
+    (service): service is RoleService => service instanceof RoleService,
+  );
+  const executionStrategyService = resolveService(
+    composedServices,
+    'ExecutionStrategyService',
+    (service): service is ExecutionStrategyService => service instanceof ExecutionStrategyService,
+  );
+  const evidenceService = resolveService(
+    composedServices,
+    'EvidenceService',
+    (service): service is EvidenceService => service instanceof EvidenceService,
+  );
+  const reviewService = resolveService(
+    composedServices,
+    'ReviewService',
+    (service): service is ReviewService => service instanceof ReviewService,
+  );
+  const knowledgeService = resolveService(
+    composedServices,
+    'KnowledgeService',
+    (service): service is KnowledgeService => service instanceof KnowledgeService,
+  );
   const operationalMetadataProvider =
     options.operationalMetadataProvider ?? new StaticHostAdapterOperationalMetadataProvider({});
   const presentation = new VscodePresentationSurface(outputChannel);
@@ -222,6 +253,18 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     missionService,
     planningService,
     executionService,
+    {
+      roleService,
+      executionStrategyService,
+      adapterService,
+      adapterId: options.missionWorkflowAdapterId ?? 'mock-adapter',
+      requiredCapability: 'CodeModification',
+    },
+    {
+      evidenceService,
+      reviewService,
+      knowledgeService,
+    },
     presentation,
     workspaceTrust,
   );

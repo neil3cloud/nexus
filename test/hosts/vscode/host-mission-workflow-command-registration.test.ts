@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { MOCK_ADAPTER_ID } from '../../../src/adapters/mock/mock-adapter';
+import { AdapterResponse } from '../../../src/kernel/adapter/adapter-response';
+import { Evidence } from '../../../src/kernel/evidence/evidence.aggregate';
+import { ExecutionRole } from '../../../src/kernel/execution/execution-role';
+import { RoleAssignment } from '../../../src/kernel/execution/role-assignment';
+import type { KnowledgeSnapshot } from '../../../src/kernel/knowledge/knowledge.types';
 import type {
   HostCommandHandler,
   HostCommandRegistry,
@@ -11,6 +17,8 @@ import type {
 } from '../../../src/hosts/vscode/host.contract';
 import {
   HostMissionWorkflow,
+  type MissionWorkflowCompletionServices,
+  type MissionWorkflowPipelineServices,
   type MissionWorkflowExecutionService,
   type MissionWorkflowMissionService,
   type MissionWorkflowMissionState,
@@ -31,9 +39,20 @@ describe('HostMissionWorkflowCommandRegistration', () => {
       new RecordingMissionService(),
       new RecordingPlanningService(),
       new RecordingExecutionService(),
+      createRecordingPipeline(),
+      createRecordingCompletion(),
       new SilentPresentationSurface(),
       new StaticWorkspaceTrustSurface(true),
-      createDeterministicIdentity(['command-mission', 'command-plan', 'command-task']),
+      createDeterministicIdentity([
+        'command-mission',
+        'command-plan',
+        'command-task',
+        'command-strategy',
+        'command-evidence',
+        'command-review',
+        'command-finding',
+        'command-knowledge',
+      ]),
     );
     new HostMissionWorkflowCommandRegistration(
       registry,
@@ -54,12 +73,19 @@ describe('HostMissionWorkflowCommandRegistration', () => {
       missionId: 'mission-command-mission',
       finalStatus: 'Completed',
       taskStatus: 'Completed',
+      adapterDispatchStatus: 'Completed',
+      reviewOutcome: 'Accepted',
+      knowledgeCaptureStatus: 'Candidate',
     });
     await expect(registry.invoke(HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND)).resolves.toEqual([
       {
         missionId: 'mission-command-mission',
         objective: 'Create a developer workflow Mission.',
         finalStatus: 'Completed',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Completed',
+        reviewOutcome: 'Accepted',
+        knowledgeCaptureStatus: 'Candidate',
       },
     ]);
   });
@@ -72,9 +98,11 @@ describe('HostMissionWorkflowCommandRegistration', () => {
       missionService,
       new RecordingPlanningService(),
       new RecordingExecutionService(),
+      createRecordingPipeline(),
+      createRecordingCompletion(),
       new SilentPresentationSurface(),
       new StaticWorkspaceTrustSurface(true),
-      createDeterministicIdentity(['cancel-mission', 'cancel-plan', 'cancel-task']),
+      createDeterministicIdentity(['cancel-mission', 'cancel-plan', 'cancel-task', 'cancel-strategy']),
     );
     new HostMissionWorkflowCommandRegistration(
       registry,
@@ -115,6 +143,185 @@ class RecordingCommandRegistry implements HostCommandRegistry {
 
     return handler();
   }
+}
+
+function createRecordingPipeline(): MissionWorkflowPipelineServices {
+  return {
+    roleService: {
+      async assignRole(input) {
+        return RoleAssignment.create(input);
+      },
+      async retrieveRole() {
+        return ExecutionRole.create({
+          id: 'builder',
+          name: 'Builder',
+          description: 'Responsible for implementing authorized engineering changes.',
+          category: 'Engineering Responsibility',
+        });
+      },
+    },
+    executionStrategyService: {
+      async createExecutionStrategy(input) {
+        return {
+          id: input.id ?? 'generated-execution-strategy',
+          missionId: input.missionId,
+          dependencyOrderingRule: 'RequireCompletedDependencies',
+          concurrencyRule: 'IndependentTasksMayBeReadyConcurrently',
+        };
+      },
+      async evaluateAssignmentReadiness(input) {
+        return {
+          executionStrategyId: input.executionStrategyId,
+          missionId: 'mission-command-mission',
+          missionPlanId: input.missionPlanId,
+          taskId: input.taskId,
+          roleId: 'builder',
+          ready: true,
+          satisfiedDependencyTaskIds: [],
+          concurrencyRule: 'IndependentTasksMayBeReadyConcurrently',
+        };
+      },
+    },
+    adapterService: {
+      async dispatch() {
+        return AdapterResponse.create({
+          status: 'Completed',
+          diagnostics: [
+            {
+              code: 'mock-adapter.completed',
+              message: 'Mock Adapter deterministically completed the request.',
+            },
+          ],
+          executionMetadata: {
+            adapterId: MOCK_ADAPTER_ID,
+          },
+        });
+      },
+    },
+    adapterId: MOCK_ADAPTER_ID,
+    requiredCapability: 'CodeModification',
+  };
+}
+
+function createRecordingCompletion(): MissionWorkflowCompletionServices {
+  return {
+    evidenceService: {
+      async registerEvidence(request) {
+        return Evidence.register(request);
+      },
+    },
+    reviewService: {
+      async startReview(command) {
+        return {
+          id: command.id ?? 'generated-review',
+          missionId: command.missionId,
+          missionPlanRevision: command.missionPlanRevision,
+          status: 'In Progress',
+          reviewCriteria: command.reviewCriteria,
+          evidenceReferences: command.evidenceReferences,
+          findings: [],
+        };
+      },
+      async publishFinding(command) {
+        return {
+          id: command.findingId ?? 'generated-finding',
+          reviewId: command.reviewId,
+          severity: 'Informational',
+          category: 'Alignment',
+          summary: command.summary,
+          description: command.description,
+          supportingEvidenceReferences: command.supportingEvidenceReferences,
+          affectedArtifactReferences: command.affectedArtifactReferences,
+          criteriaReferences: command.criteriaReferences,
+          status: 'Created',
+        };
+      },
+      async finalizeReviewOutcome(command) {
+        return {
+          review: {
+            id: command.reviewId,
+            missionId: 'mission-command-mission',
+            missionPlanRevision: 'revision-3',
+            status: 'Completed',
+            outcome: 'Accepted',
+            reviewCriteria: [],
+            evidenceReferences: [],
+            findings: [],
+          },
+          findings: [],
+        };
+      },
+    },
+    knowledgeService: {
+      async captureKnowledge(request) {
+        return knowledgeSnapshot(request);
+      },
+    },
+  };
+}
+
+function knowledgeSnapshot(input: {
+  readonly id?: string;
+  readonly missionId: string;
+  readonly missionPlanRevisionId: string;
+  readonly summary: string;
+  readonly supportingEvidenceIds: readonly string[];
+  readonly supportingReviewId: string;
+  readonly contributingEventIds: readonly string[];
+  readonly approvingAuthority: string;
+}): KnowledgeSnapshot {
+  return {
+    id: input.id ?? 'generated-knowledge',
+    missionId: input.missionId,
+    missionPlanRevisionId: input.missionPlanRevisionId,
+    summary: input.summary,
+    scope: 'Repository',
+    status: 'Candidate',
+    supportingEvidenceIds: input.supportingEvidenceIds,
+    supportingReviewId: input.supportingReviewId,
+    contributingEventIds: input.contributingEventIds,
+    approvingAuthority: input.approvingAuthority,
+    attribution: {
+      missionId: input.missionId,
+      missionPlanRevisionId: input.missionPlanRevisionId,
+      supportingEvidenceIds: input.supportingEvidenceIds,
+      supportingReviewId: input.supportingReviewId,
+      contributingEventIds: input.contributingEventIds,
+      approvingAuthority: input.approvingAuthority,
+    },
+    provenance: {
+      evidenceLineage: input.supportingEvidenceIds,
+      reviewLineage: input.supportingReviewId,
+      missionLineage: {
+        missionId: input.missionId,
+        missionPlanRevisionId: input.missionPlanRevisionId,
+      },
+      approvalLineage: input.approvingAuthority,
+    },
+    revisions: [
+      {
+        revisionNumber: 1,
+        summary: input.summary,
+        attribution: {
+          missionId: input.missionId,
+          missionPlanRevisionId: input.missionPlanRevisionId,
+          supportingEvidenceIds: input.supportingEvidenceIds,
+          supportingReviewId: input.supportingReviewId,
+          contributingEventIds: input.contributingEventIds,
+          approvingAuthority: input.approvingAuthority,
+        },
+        provenance: {
+          evidenceLineage: input.supportingEvidenceIds,
+          reviewLineage: input.supportingReviewId,
+          missionLineage: {
+            missionId: input.missionId,
+            missionPlanRevisionId: input.missionPlanRevisionId,
+          },
+          approvalLineage: input.approvingAuthority,
+        },
+      },
+    ],
+  };
 }
 
 class RecordingInputSurface implements HostInputSurface {

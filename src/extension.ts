@@ -17,6 +17,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   ]);
   const host = createVscodeHost({
     adapters: [createMockAdapter()],
+    missionWorkflowAdapterId: MOCK_ADAPTER_ID,
     operationalMetadataProvider: new StaticHostAdapterOperationalMetadataProvider({
       [MOCK_ADAPTER_ID]: {
         installationStatus: AdapterInstallationStatus.create({

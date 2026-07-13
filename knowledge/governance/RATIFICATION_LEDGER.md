@@ -1296,3 +1296,172 @@ The Builder MAY introduce a minimal coordination method in `ExecutionStrategySer
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-13-013
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-013
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Ratifies the refined implementation scope for Sprint 26 — Developer Workflow Adapter Integration, clarifying architectural intent, preserving provider independence, and ensuring reuse of the previously certified Sprint 20 execution pipeline without introducing new execution architecture.
+
+## Originating Review Finding(s)
+
+None. Originated as a Sprint Owner refinement of a `/nexus-plan` Sprint proposal (2026-07-13), retitling and re-scoping the planner's proposed "Sprint 26 — Developer Workflow Execution Pipeline Integration" as "Sprint 26 — Developer Workflow Adapter Integration."
+
+## Governance Decision
+
+The Sprint Owner approves connecting Sprint 25's Developer Workflow to the already-certified Sprint 20 Adapter execution pipeline, exercising the complete provider-independent execution path through the Host. This introduces exactly one architectural variable: **Developer Workflow → Certified Adapter Pipeline Integration**. No additional architectural responsibilities are authorized.
+
+The planner's proposed title, "Developer Workflow Execution Pipeline Integration," is rejected in favor of "Developer Workflow Adapter Integration" because Sprint 20 already normatively established the Execution Pipeline; Sprint 26 integrates with that pipeline rather than redefining or extending it.
+
+The Host SHALL orchestrate the Developer Workflow, invoke existing public Kernel service contracts, present execution progress and results, and preserve Workspace Trust enforcement. The Host SHALL NOT assign execution roles, select adapters, or determine execution success/failure — these remain exclusively Kernel-owned (Mission execution, Role Assignment, Execution Strategy, Adapter dispatch authorization, Task lifecycle, Domain Events). The Adapter Runtime remains unchanged; `MockAdapter` remains the only execution implementation; no production provider behavior is introduced.
+
+Sprint 26 SHALL exercise exactly this execution sequence, reusing the Sprint 20-certified pipeline verbatim, and SHALL NOT introduce a duplicate execution path:
+
+```text
+Developer Workflow
+        ↓
+MissionExecutionService.startTask()
+        ↓
+RoleService.assignRole()
+        ↓
+ExecutionStrategyService.evaluateAssignmentReadiness()
+        ↓
+AdapterService.dispatch()
+        ↓
+MockAdapter
+        ↓
+AdapterResponse
+        ↓
+MissionExecutionService.completeTask()
+```
+
+Execution semantics: Start Task → assign execution role → validate execution readiness → dispatch to Adapter → await response. If execution succeeds, complete the Task and present results. If execution does not succeed, stop deterministically, present Adapter diagnostics, and preserve the Task's last authoritative lifecycle state — Task completion or failure SHALL NOT be fabricated (no Kernel Task-failure operation exists; none is introduced by this ratification).
+
+## Authorized Builder Scope
+
+The Builder MAY:
+
+- integrate the existing Developer Workflow with the existing Adapter execution pipeline;
+- invoke Adapter dispatch through the existing `AdapterService`;
+- preserve explicit `adapterId` dispatch or deterministic single-match lookup exactly as ratified by `NEXUS-RAT-2026-07-13-011`;
+- process Adapter responses through existing public Kernel contracts;
+- complete Task execution only after successful Adapter execution;
+- present Adapter diagnostics through the existing Host presentation model;
+- extend session history with the Adapter execution outcome while preserving Sprint 25's session-only, non-durable semantics;
+- update implementation documentation (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, the Sprint 26 record).
+
+No additional execution orchestration is authorized.
+
+## Scope Restrictions
+
+- No production AI provider integration (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, or any live provider).
+- No Adapter Selection (routing policy, provider preference, capability scoring, fallback routing, load balancing, multi-adapter execution) — `NEXUS-RAT-2026-07-13-011` remains unaffected.
+- No background execution, workflow automation, retry policies, streaming execution/responses, partial results, cancellation, or progress callbacks beyond what Sprint 24/25 already established.
+- No persistent execution history, Knowledge integration, Shared Reality visualization, Mission browser, or execution dashboards.
+- No new Kernel domain; no reassignment of architectural responsibility; no modification to `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, or any Sprint 8/10/19/20/23/24/25 approved baseline beyond the authorized Developer Workflow extension itself.
+- Existing Sprint 20 execution-pipeline tests SHALL continue to pass unmodified, validating unchanged behavior.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 20 — Execution Pipeline Integration (Milestone 4) — the certified pipeline this sprint reuses verbatim.
+- Sprint 23 — Host Ingress Foundation; Sprint 24 — Host Runtime Completion — the Adapter-domain Host entry point this sprint connects to.
+- Sprint 25 — Developer Workflow Foundation — the Mission-domain Host entry point this sprint extends.
+- Sprint 26 — Developer Workflow Adapter Integration (Milestone 4) — the governed sprint.
+
+## Related Review(s)
+
+None. No Review finding originated this ratification.
+
+## Full Ratification Text
+
+> The Sprint Owner approves the implementation direction proposed by `nexus-plan` with the following refinements. The purpose of Sprint 26 is not to create a new execution pipeline. The purpose of Sprint 26 is to connect the Developer Workflow established in Sprint 25 to the already-certified Adapter execution pipeline established in Sprint 20, exercising the complete provider-independent execution path through the Host. This Sprint introduces exactly one architectural variable: Developer Workflow → Certified Adapter Pipeline Integration. No additional architectural responsibilities are authorized. The Sprint shall be recorded as "Sprint 26 — Developer Workflow Adapter Integration," not "Developer Workflow Execution Pipeline Integration," because Sprint 20 already normatively established the Execution Pipeline; Sprint 26 integrates with that pipeline rather than redefining or extending it. The Host SHALL orchestrate the Developer Workflow, invoke existing public Kernel service contracts, present execution progress and results, and preserve Workspace Trust enforcement; it SHALL NOT assign execution roles, select adapters, or determine execution success or failure. The Kernel remains authoritative for Mission execution, Role Assignment, Execution Strategy, Adapter dispatch authorization, Task lifecycle, and Domain Events; no Kernel ownership changes are authorized. The Adapter Runtime remains unchanged; MockAdapter continues to serve as the only execution implementation; no production provider behavior is introduced. Sprint 26 SHALL exercise exactly the authorized execution sequence (Developer Workflow → MissionExecutionService.startTask → RoleService.assignRole → ExecutionStrategyService.evaluateAssignmentReadiness → AdapterService.dispatch → MockAdapter → AdapterResponse → MissionExecutionService.completeTask) and SHALL NOT introduce a duplicate execution path. Task execution SHALL NOT fabricate completion or failure: on success, complete the Task and present results; on non-success, stop deterministically, present Adapter diagnostics, and preserve the Task's last authoritative lifecycle state. Deferred: provider integration, Adapter Selection, background/streaming/retry/cancellation workflow behavior, and persistent execution history/Knowledge/Shared Reality/dashboard integration. The only remaining architectural substitution for a subsequent sprint SHALL be MockAdapter → Live Provider Adapter, requiring no further Host, Kernel, or execution architecture change.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-13-014
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-014
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Sprint 27 Scope Ratification — Developer Workflow Completion. Refines and supersedes `nexus-plan`'s proposed "Sprint 27 — Host Review & Knowledge Workflow Integration" draft where differences exist.
+
+## Originating Review Finding(s)
+
+None. Originated as a Sprint Owner refinement of a `/nexus-plan` Sprint proposal (2026-07-14).
+
+## Governance Decision
+
+The Sprint Owner approves Sprint 27, retitled **"Developer Workflow Completion"** to reflect that Review and Knowledge integration are implementation details of completing the provider-independent developer workflow, not the primary delivered capability. Sprint 27 SHALL integrate only previously approved Kernel capabilities (`EvidenceService`, `ReviewService`, `KnowledgeService`) through their existing public service contracts. No new Kernel service contracts, aggregate access, repository access, or Domain Event interaction are authorized. No new business rules or execution semantics are authorized.
+
+The Host SHALL remain responsible only for workflow orchestration, user interaction, presentation, and invoking existing public Kernel service contracts. The Host SHALL NOT implement business rules, interpret Review Findings, determine Knowledge eligibility, or own execution/lifecycle decisions. The Kernel remains the authoritative owner of Evidence registration, Review lifecycle, Review outcome determination, Knowledge eligibility, Knowledge capture, and all business rules.
+
+The authorized completion workflow is: Developer Workflow → Mission Completion → `EvidenceService.registerEvidence()` → `ReviewService` (start Review, publish Finding(s), finalize Review outcome) → Kernel determines Review Outcome → (if Knowledge Eligible) `KnowledgeService.captureKnowledge()` → Host presents completion result. The Host SHALL observe the workflow; the Kernel SHALL determine workflow semantics.
+
+**Binding implementation clarification (Sprint Owner-approved resolution of an inherent contract constraint):** The Sprint 9-approved `FinalizeReviewOutcomeCommand` requires the caller to supply an explicit `outcome` value — the Review domain does not derive an outcome from Findings, and Sprint 27 is not authorized to change that Approved Vertical Slice. The Host MAY supply a deterministic, fixed `outcome` value as an explicit command input, exactly as Sprint 26 already supplies a deterministic default `roleId`/explicit `adapterId` — this is data supply, not business interpretation. Knowledge eligibility SHALL NOT be encoded as Host-side conditional logic (e.g., `if (reviewAccepted) { captureKnowledge(); }`). Instead, the Host SHALL call `KnowledgeService.captureKnowledge()` unconditionally as the next workflow step after finalizing the Review outcome, and SHALL treat the Kernel's own precondition enforcement inside `Knowledge.capture()` (which throws `KnowledgeCapturePreconditionError` when the supporting Review has not reached a terminal accepted state, per the frozen Sprint 12 rule) as the sole eligibility determination, handled through the same Kernel-rejection stop-deterministically pattern Sprint 25/26 already established. This preserves "Knowledge eligibility SHALL remain exclusively owned by the Kernel" without requiring a new Kernel contract.
+
+## Authorized Builder Scope
+
+The Builder MAY:
+
+- extend `HostMissionWorkflow` (or an equivalent Host orchestration component) to, after `completeMission`, invoke `EvidenceService.registerEvidence` → `ReviewService.startReview` → `ReviewService.publishFinding` → `ReviewService.finalizeReviewOutcome` → `KnowledgeService.captureKnowledge`, in that order, using only existing public service contracts;
+- supply deterministic, explicit command inputs (identities, a fixed Review outcome value, Evidence/Finding/Knowledge content) exactly as Sprint 25/26 already supply deterministic Mission/Task identities and a deterministic default Role/Adapter;
+- call `KnowledgeService.captureKnowledge()` unconditionally following `finalizeReviewOutcome`, treating a `KnowledgeCapturePreconditionError` (or any other Kernel rejection) as an ordinary Kernel-rejection stop, mirroring the existing Sprint 25/26 rejection-handling pattern;
+- wire `EvidenceService`, `ReviewService`, and `KnowledgeService` into the existing VS Code Host composition root, mirroring the Sprint 25/26 `resolveService` pattern;
+- extend session-only workflow history with Review outcome and Knowledge capture status, preserving Sprint 25's non-durable, minimal-field, presentation-only constraint;
+- present Review Findings and Knowledge capture results through the existing `HostPresentationSurface`.
+
+No additional execution orchestration, business rule, or Kernel service contract is authorized.
+
+## Scope Restrictions
+
+- No live AI Providers, production Adapter integration, Adapter Selection, or provider routing.
+- No streaming execution or background workflow execution.
+- No human review intervention or review retry workflows.
+- No Policy Engine integration, Evidence indexing, or Knowledge conflict resolution.
+- No persistent or durable workflow/execution/review/knowledge history — session history remains session-scoped, non-durable, and presentation-oriented only; it SHALL NOT become engineering history, execution history, review history, or knowledge storage.
+- No workflow automation or multi-provider coordination.
+- No new Kernel capabilities, aggregates, repositories, business rules, lifecycle transitions, or Domain Events.
+- No redefinition of previously approved Sprint 25 or Sprint 26 behavior.
+- This ratification does not modify RFC-0002, RFC-0006, RFC-0007, RFC-0009, RFC-0010, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 5 — Evidence Foundation; Sprint 9 — Review Foundation; Sprint 12–14 — Knowledge Foundation/Event Publication/Lifecycle Advancement — the certified Kernel capabilities this sprint integrates.
+- Sprint 16 — End-to-End Mission Workflow Integration Validation — the Kernel-composition-level precedent proving Evidence → Review → Knowledge sequencing legal.
+- Sprint 25 — Developer Workflow Foundation; Sprint 26 — Developer Workflow Adapter Integration — the Host Developer Workflow this sprint completes.
+
+## Related Review(s)
+
+None. No Review finding originated this ratification.
+
+## Full Ratification Text
+
+> Sprint 27 is hereby APPROVED and AUTHORIZED for implementation. The Sprint objective is refined to emphasize completion of the provider-independent developer workflow rather than implementation of individual domain services. No new Kernel capabilities are authorized. No new business rules are authorized. Sprint 27 SHALL integrate only previously approved Kernel capabilities through existing public service contracts. The Sprint title is hereby ratified as "Sprint 27 — Developer Workflow Completion." This title better reflects the architectural capability being delivered; Review and Knowledge remain implementation details rather than the primary capability. Sprint 27 SHALL complete the provider-independent developer workflow by exercising the existing Mission completion workflow through the Host using only previously approved public Kernel service contracts. The Sprint SHALL complete the end-to-end developer workflow, preserve provider independence, preserve existing Kernel ownership, introduce no new execution semantics, and introduce no new business rules. The Host SHALL remain responsible only for workflow orchestration, user interaction, presentation, and invoking existing public Kernel service contracts; the Host SHALL NOT implement business rules, interpret Review Findings, determine Knowledge eligibility, own execution semantics, or own lifecycle decisions. The Kernel SHALL remain the authoritative owner of Evidence registration, Review lifecycle, Review outcome determination, Knowledge eligibility, Knowledge capture, business rules, and execution decisions. The authorized completion workflow is: Developer Workflow → Mission Completion → EvidenceService.registerEvidence() → ReviewService → Kernel determines Review Outcome → (If Knowledge Eligible) KnowledgeService.captureKnowledge() → Host presents completion result. The Host SHALL observe the workflow; the Kernel SHALL determine workflow semantics. Sprint 27 SHALL invoke only existing public service contracts; no new Kernel service contracts, aggregate access, repository access, or direct Domain Event interaction are authorized. Review outcome SHALL be determined exclusively by the Review domain; Review findings SHALL remain Review-domain artifacts; the Host SHALL NOT interpret Review findings and SHALL consume Review outcomes only through public Kernel contracts. Knowledge eligibility SHALL remain exclusively owned by the Kernel; the Host SHALL NOT contain logic equivalent to `if (reviewAccepted) { captureKnowledge(); }`; instead the Host SHALL consume the completion workflow through existing public Kernel contracts, with business ownership remaining inside the Kernel. Sprint 27 MAY extend the existing Host session history; session history SHALL remain session scoped, non-durable, and presentation oriented, and SHALL NOT become engineering history, execution history, review history, or knowledge storage. Sprint 27 SHALL preserve previously ratified architectural principles: Host orchestration only, Kernel business ownership, public service contract interaction, provider independence, Approved Vertical Slice immutability, one architectural variable per Sprint, and Specification-First implementation; it SHALL NOT redefine previously approved behavior from Sprint 25 or Sprint 26. Deferred: Live AI Providers, production Adapter integration, Adapter Selection, provider routing, streaming execution, background workflow execution, human review intervention, review retry workflows, Policy Engine integration, Evidence indexing, Knowledge conflict resolution, persistent workflow history, durable execution history, workflow automation, and multi-provider coordination. Upon successful independent review, Sprint 27 SHALL be marked Approved, Milestone 4 SHALL remain complete and extended with the completed developer workflow, and the repository SHALL be ready to begin Milestone 5 — Production Adapter Integration.
+
+## Current Status
+
+Active
+
+---

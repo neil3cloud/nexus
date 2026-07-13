@@ -1,14 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
+import { MOCK_ADAPTER_ID, createMockAdapter } from '../../../src/adapters/mock/mock-adapter';
+import { AdapterResponse } from '../../../src/kernel/adapter/adapter-response';
 import type { KernelLogger } from '../../../src/kernel/common/kernel-logger';
 import { createKernelServices } from '../../../src/kernel/common/create-kernel-services';
 import type { IKernelService } from '../../../src/kernel/common/kernel-service';
+import { AdapterService } from '../../../src/kernel/adapter/adapter.service';
+import { Evidence } from '../../../src/kernel/evidence/evidence.aggregate';
+import { EvidenceService } from '../../../src/kernel/evidence/evidence.service';
+import { ExecutionRole } from '../../../src/kernel/execution/execution-role';
+import { ExecutionStrategyService } from '../../../src/kernel/execution/execution-strategy.service';
+import { RoleAssignment } from '../../../src/kernel/execution/role-assignment';
+import { RoleService } from '../../../src/kernel/execution/role.service';
 import { Kernel } from '../../../src/kernel/kernel';
+import { KnowledgeService } from '../../../src/kernel/knowledge/knowledge.service';
+import type { KnowledgeSnapshot } from '../../../src/kernel/knowledge/knowledge.types';
 import { MissionExecutionService } from '../../../src/kernel/mission/mission-execution.service';
 import { MissionPlanningService } from '../../../src/kernel/mission/mission-planning.service';
 import { MissionService } from '../../../src/kernel/mission/mission.service';
 import type { MissionStatus } from '../../../src/kernel/mission/mission.types';
 import type { TaskStatus } from '../../../src/kernel/mission/mission-planning.types';
+import { ReviewService } from '../../../src/kernel/review/review.service';
 import type {
   HostPresentationSurface,
   HostProgressOptions,
@@ -16,6 +28,8 @@ import type {
 } from '../../../src/hosts/vscode/host.contract';
 import {
   HostMissionWorkflow,
+  type MissionWorkflowCompletionServices,
+  type MissionWorkflowPipelineServices,
   type MissionWorkflowExecutionService,
   type MissionWorkflowMissionService,
   type MissionWorkflowMissionState,
@@ -25,31 +39,52 @@ import {
 import { HostMissionWorkflowError } from '../../../src/hosts/vscode/host-mission-workflow.errors';
 
 describe('HostMissionWorkflow', () => {
-  it('executes the Sprint 25 eleven-call Mission workflow sequence', async () => {
+  it('executes the Sprint 26 Mission workflow Adapter pipeline sequence', async () => {
     const recorder = new ServiceCallRecorder();
     const presentation = new RecordingPresentationSurface();
     const workflow = new HostMissionWorkflow(
       new RecordingMissionService(recorder),
       new RecordingPlanningService(recorder),
       new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder),
+      createRecordingCompletion(recorder),
       presentation,
       new StaticWorkspaceTrustSurface(true),
-      createDeterministicIdentity(['sprint-25-mission', 'sprint-25-plan', 'sprint-25-task']),
+      createDeterministicIdentity([
+        'sprint-26-mission',
+        'sprint-26-plan',
+        'sprint-26-task',
+        'sprint-26-strategy',
+        'sprint-26-evidence',
+        'sprint-26-review',
+        'sprint-26-finding',
+        'sprint-26-knowledge',
+      ]),
     );
 
-    await expect(
-      workflow.runDeveloperMissionWorkflow({
-        objective: 'Run a Sprint 25 developer workflow.',
-        taskTitle: 'Execute developer task',
-        taskDescription: 'Complete the single developer workflow task.',
-      }),
-    ).resolves.toEqual({
-      missionId: 'mission-sprint-25-mission',
-      missionPlanId: 'mission-plan-sprint-25-plan',
-      taskId: 'task-sprint-25-task',
+    const result = await workflow.runDeveloperMissionWorkflow({
+      objective: 'Run a Sprint 25 developer workflow.',
+      taskTitle: 'Execute developer task',
+      taskDescription: 'Complete the single developer workflow task.',
+    });
+
+    expect(result).toMatchObject({
+      missionId: 'mission-sprint-26-mission',
+      missionPlanId: 'mission-plan-sprint-26-plan',
+      taskId: 'task-sprint-26-task',
       finalStatus: 'Completed',
       missionPlanRevision: 3,
       taskStatus: 'Completed',
+      adapterId: MOCK_ADAPTER_ID,
+      adapterDispatchStatus: 'Completed',
+      reviewOutcome: 'Accepted',
+      knowledgeCaptureStatus: 'Candidate',
+      knowledge: {
+        id: 'knowledge-sprint-26-knowledge',
+        status: 'Candidate',
+        supportingReviewId: 'review-sprint-26-review',
+        supportingEvidenceIds: ['evidence-sprint-26-evidence'],
+      },
     });
     expect(recorder.calls).toEqual([
       'MissionService.createMission',
@@ -60,21 +95,39 @@ describe('HostMissionWorkflow', () => {
       'MissionService.markMissionReady',
       'MissionExecutionService.startMission',
       'MissionExecutionService.startTask',
+      'ExecutionStrategyService.createExecutionStrategy',
+      'RoleService.assignRole',
+      'ExecutionStrategyService.evaluateAssignmentReadiness',
+      'RoleService.retrieveRole',
+      'AdapterService.dispatch',
       'MissionExecutionService.completeTask',
       'MissionService.reviewMission',
       'MissionExecutionService.completeMission',
+      'EvidenceService.registerEvidence',
+      'ReviewService.startReview',
+      'ReviewService.publishFinding',
+      'ReviewService.finalizeReviewOutcome',
+      'KnowledgeService.captureKnowledge',
     ]);
     expect(presentation.lines).toContain(
-      'Mission Workflow Progress: started mission-sprint-25-mission',
+      'Mission Workflow Progress: started mission-sprint-26-mission',
     );
+    expect(presentation.lines).toContain('Adapter Dispatch Status: Completed');
     expect(presentation.lines).toContain('Mission Status: Completed');
     expect(presentation.lines).toContain('MissionPlan Revision: 3');
     expect(presentation.lines).toContain('Task Status: Completed');
+    expect(presentation.lines).toContain('Review Finding: Developer Workflow completion evidence recorded.');
+    expect(presentation.lines).toContain('Review Outcome: Accepted');
+    expect(presentation.lines).toContain('Knowledge Capture Status: Candidate');
     expect(workflow.showMissionWorkflowHistory()).toEqual([
       {
-        missionId: 'mission-sprint-25-mission',
+        missionId: 'mission-sprint-26-mission',
         objective: 'Run a Sprint 25 developer workflow.',
         finalStatus: 'Completed',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Completed',
+        reviewOutcome: 'Accepted',
+        knowledgeCaptureStatus: 'Candidate',
       },
     ]);
   });
@@ -86,9 +139,16 @@ describe('HostMissionWorkflow', () => {
       new RecordingMissionService(recorder),
       new RecordingPlanningService(recorder),
       new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder),
+      createRecordingCompletion(recorder),
       presentation,
       new StaticWorkspaceTrustSurface(false),
-      createDeterministicIdentity(['untrusted-mission', 'untrusted-plan', 'untrusted-task']),
+      createDeterministicIdentity([
+        'untrusted-mission',
+        'untrusted-plan',
+        'untrusted-task',
+        'untrusted-strategy',
+      ]),
     );
 
     await expect(
@@ -114,9 +174,11 @@ describe('HostMissionWorkflow', () => {
       new RecordingMissionService(recorder),
       new RecordingPlanningService(recorder),
       new RejectingExecutionService(recorder),
+      createRecordingPipeline(recorder),
+      createRecordingCompletion(recorder),
       presentation,
       new StaticWorkspaceTrustSurface(true),
-      createDeterministicIdentity(['reject-mission', 'reject-plan', 'reject-task']),
+      createDeterministicIdentity(['reject-mission', 'reject-plan', 'reject-task', 'reject-strategy']),
     );
 
     await expect(
@@ -140,6 +202,7 @@ describe('HostMissionWorkflow', () => {
         missionId: 'mission-reject-mission',
         objective: 'Stop on rejection.',
         finalStatus: 'Ready',
+        adapterId: MOCK_ADAPTER_ID,
       },
     ]);
     expect(presentation.lines).toContain(
@@ -147,10 +210,131 @@ describe('HostMissionWorkflow', () => {
     );
   });
 
+  it('calls Knowledge capture unconditionally and stops on Kernel Knowledge rejection', async () => {
+    const recorder = new ServiceCallRecorder();
+    const presentation = new RecordingPresentationSurface();
+    const workflow = new HostMissionWorkflow(
+      new RecordingMissionService(recorder),
+      new RecordingPlanningService(recorder),
+      new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder),
+      createRecordingCompletion(recorder, true),
+      presentation,
+      new StaticWorkspaceTrustSurface(true),
+      createDeterministicIdentity([
+        'knowledge-reject-mission',
+        'knowledge-reject-plan',
+        'knowledge-reject-task',
+        'knowledge-reject-strategy',
+        'knowledge-reject-evidence',
+        'knowledge-reject-review',
+        'knowledge-reject-finding',
+        'knowledge-reject-knowledge',
+      ]),
+    );
+
+    await expect(
+      workflow.runDeveloperMissionWorkflow({
+        objective: 'Stop on Knowledge rejection.',
+        taskTitle: 'Knowledge rejection task',
+        taskDescription: 'Kernel Knowledge rejection stops the workflow.',
+      }),
+    ).rejects.toThrow('Kernel rejected Knowledge capture.');
+    expect(recorder.calls).toEqual([
+      'MissionService.createMission',
+      'MissionPlanningService.createMissionPlan',
+      'MissionService.planMission',
+      'MissionPlanningService.addTask',
+      'MissionPlanningService.updateTask',
+      'MissionService.markMissionReady',
+      'MissionExecutionService.startMission',
+      'MissionExecutionService.startTask',
+      'ExecutionStrategyService.createExecutionStrategy',
+      'RoleService.assignRole',
+      'ExecutionStrategyService.evaluateAssignmentReadiness',
+      'RoleService.retrieveRole',
+      'AdapterService.dispatch',
+      'MissionExecutionService.completeTask',
+      'MissionService.reviewMission',
+      'MissionExecutionService.completeMission',
+      'EvidenceService.registerEvidence',
+      'ReviewService.startReview',
+      'ReviewService.publishFinding',
+      'ReviewService.finalizeReviewOutcome',
+      'KnowledgeService.captureKnowledge',
+    ]);
+    expect(workflow.showMissionWorkflowHistory()).toEqual([
+      {
+        missionId: 'mission-knowledge-reject-mission',
+        objective: 'Stop on Knowledge rejection.',
+        finalStatus: 'Completed',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Completed',
+        reviewOutcome: 'Accepted',
+      },
+    ]);
+    expect(presentation.lines).toContain(
+      'Host Diagnostic host-mission-workflow.kernel-rejected: Kernel rejected Knowledge capture.',
+    );
+    expect(presentation.lines).not.toContain('Mission Workflow Progress: completed mission-knowledge-reject-mission');
+  });
+
+  it('stops on non-Completed Adapter responses without completing the Task', async () => {
+    const recorder = new ServiceCallRecorder();
+    const presentation = new RecordingPresentationSurface();
+    const workflow = new HostMissionWorkflow(
+      new RecordingMissionService(recorder),
+      new RecordingPlanningService(recorder),
+      new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder, 'Failed'),
+      createRecordingCompletion(recorder),
+      presentation,
+      new StaticWorkspaceTrustSurface(true),
+      createDeterministicIdentity(['failed-mission', 'failed-plan', 'failed-task', 'failed-strategy']),
+    );
+
+    await expect(
+      workflow.runDeveloperMissionWorkflow({
+        objective: 'Stop on Adapter failure.',
+        taskTitle: 'Adapter failure task',
+        taskDescription: 'Adapter failure stops before Task completion.',
+      }),
+    ).rejects.toMatchObject({
+      code: 'host-mission-workflow.adapter-dispatch-failed',
+    } satisfies Partial<HostMissionWorkflowError>);
+    expect(recorder.calls).toEqual([
+      'MissionService.createMission',
+      'MissionPlanningService.createMissionPlan',
+      'MissionService.planMission',
+      'MissionPlanningService.addTask',
+      'MissionPlanningService.updateTask',
+      'MissionService.markMissionReady',
+      'MissionExecutionService.startMission',
+      'MissionExecutionService.startTask',
+      'ExecutionStrategyService.createExecutionStrategy',
+      'RoleService.assignRole',
+      'ExecutionStrategyService.evaluateAssignmentReadiness',
+      'RoleService.retrieveRole',
+      'AdapterService.dispatch',
+    ]);
+    expect(workflow.showMissionWorkflowHistory()).toEqual([
+      {
+        missionId: 'mission-failed-mission',
+        objective: 'Stop on Adapter failure.',
+        finalStatus: 'Executing',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Failed',
+      },
+    ]);
+    expect(presentation.lines).toContain(
+      'Adapter Diagnostic mock-adapter.execution-failed: Mock Adapter deterministically failed the request.',
+    );
+  });
+
   it('composes with real Kernel services and completes a single-Task Mission', async () => {
     let services: readonly IKernelService[] = [];
     const kernel = new Kernel((eventBus) => {
-      services = createKernelServices(eventBus);
+      services = createKernelServices(eventBus, { adapters: [createMockAdapter()] });
 
       return services;
     }, new NullLogger());
@@ -170,9 +354,54 @@ describe('HostMissionWorkflow', () => {
         'MissionExecutionService',
         (service): service is MissionExecutionService => service instanceof MissionExecutionService,
       ),
+      {
+        roleService: requireService(
+          services,
+          'RoleService',
+          (service): service is RoleService => service instanceof RoleService,
+        ),
+        executionStrategyService: requireService(
+          services,
+          'ExecutionStrategyService',
+          (service): service is ExecutionStrategyService => service instanceof ExecutionStrategyService,
+        ),
+        adapterService: requireService(
+          services,
+          'AdapterService',
+          (service): service is AdapterService => service instanceof AdapterService,
+        ),
+        adapterId: MOCK_ADAPTER_ID,
+        requiredCapability: 'CodeModification',
+      },
+      {
+        evidenceService: requireService(
+          services,
+          'EvidenceService',
+          (service): service is EvidenceService => service instanceof EvidenceService,
+        ),
+        reviewService: requireService(
+          services,
+          'ReviewService',
+          (service): service is ReviewService => service instanceof ReviewService,
+        ),
+        knowledgeService: requireService(
+          services,
+          'KnowledgeService',
+          (service): service is KnowledgeService => service instanceof KnowledgeService,
+        ),
+      },
       new RecordingPresentationSurface(),
       new StaticWorkspaceTrustSurface(true),
-      createDeterministicIdentity(['integration-mission', 'integration-plan', 'integration-task']),
+      createDeterministicIdentity([
+        'integration-mission',
+        'integration-plan',
+        'integration-task',
+        'integration-strategy',
+        'integration-evidence',
+        'integration-review',
+        'integration-finding',
+        'integration-knowledge',
+      ]),
     );
 
     await kernel.initialize();
@@ -185,6 +414,10 @@ describe('HostMissionWorkflow', () => {
 
     expect(result.finalStatus).toBe('Completed');
     expect(result.taskStatus).toBe('Completed');
+    expect(result.adapterDispatchStatus).toBe('Completed');
+    expect(result.reviewOutcome).toBe('Accepted');
+    expect(result.knowledgeCaptureStatus).toBe('Candidate');
+    expect(result.knowledge.id).toBe('knowledge-integration-knowledge');
     expect(result.missionPlanRevision).toBe(3);
     expect(kernel.getEventBus().replay(result.missionId).map((event) => event.eventType)).toEqual([
       'MissionCreated',
@@ -197,6 +430,12 @@ describe('HostMissionWorkflow', () => {
       'TaskCompleted',
       'MissionReviewed',
       'MissionCompleted',
+      'EvidenceCaptured',
+      'ReviewStarted',
+      'FindingCreated',
+      'ReviewCompleted',
+      'ReviewAccepted',
+      'KnowledgeCandidateCreated',
     ]);
 
     kernel.dispose();
@@ -243,7 +482,7 @@ class RecordingPlanningService implements MissionWorkflowPlanningService {
   ): Promise<MissionWorkflowPlanState> {
     this.recorder.calls.push('MissionPlanningService.createMissionPlan');
 
-    return planState(request.id ?? 'generated-mission-plan', 1, 'task-sprint-25-task', 'Planned');
+    return planState(request.id ?? 'generated-mission-plan', 1, 'task-sprint-26-task', 'Planned');
   }
 
   public async addTask(request: Parameters<MissionWorkflowPlanningService['addTask']>[0]): Promise<MissionWorkflowPlanState> {
@@ -257,6 +496,171 @@ class RecordingPlanningService implements MissionWorkflowPlanningService {
 
     return planState('mission-plan', 3, request.taskId, 'Ready');
   }
+}
+
+function createRecordingPipeline(
+  recorder: ServiceCallRecorder,
+  adapterStatus: 'Completed' | 'Failed' = 'Completed',
+): MissionWorkflowPipelineServices {
+  return {
+    roleService: {
+      async assignRole(input) {
+        recorder.calls.push('RoleService.assignRole');
+
+        return RoleAssignment.create(input);
+      },
+      async retrieveRole() {
+        recorder.calls.push('RoleService.retrieveRole');
+
+        return ExecutionRole.create({
+          id: 'builder',
+          name: 'Builder',
+          description: 'Responsible for implementing authorized engineering changes.',
+          category: 'Engineering Responsibility',
+        });
+      },
+    },
+    executionStrategyService: {
+      async createExecutionStrategy(input) {
+        recorder.calls.push('ExecutionStrategyService.createExecutionStrategy');
+
+        return {
+          id: input.id ?? 'generated-execution-strategy',
+          missionId: input.missionId,
+          dependencyOrderingRule: 'RequireCompletedDependencies',
+          concurrencyRule: 'IndependentTasksMayBeReadyConcurrently',
+        };
+      },
+      async evaluateAssignmentReadiness(input) {
+        recorder.calls.push('ExecutionStrategyService.evaluateAssignmentReadiness');
+
+        return {
+          executionStrategyId: input.executionStrategyId,
+          missionId: 'mission-sprint-26-mission',
+          missionPlanId: input.missionPlanId,
+          taskId: input.taskId,
+          roleId: 'builder',
+          ready: true,
+          satisfiedDependencyTaskIds: [],
+          concurrencyRule: 'IndependentTasksMayBeReadyConcurrently',
+        };
+      },
+    },
+    adapterService: {
+      async dispatch() {
+        recorder.calls.push('AdapterService.dispatch');
+
+        return AdapterResponse.create(
+          adapterStatus === 'Completed'
+            ? {
+                status: 'Completed',
+                diagnostics: [
+                  {
+                    code: 'mock-adapter.completed',
+                    message: 'Mock Adapter deterministically completed the request.',
+                  },
+                ],
+                executionMetadata: {
+                  adapterId: MOCK_ADAPTER_ID,
+                },
+              }
+            : {
+                status: 'Failed',
+                diagnostics: [
+                  {
+                    code: 'mock-adapter.execution-failed',
+                    message: 'Mock Adapter deterministically failed the request.',
+                  },
+                ],
+                executionMetadata: {
+                  adapterId: MOCK_ADAPTER_ID,
+                },
+              },
+        );
+      },
+    },
+    adapterId: MOCK_ADAPTER_ID,
+    requiredCapability: 'CodeModification',
+  };
+}
+
+function createRecordingCompletion(
+  recorder: ServiceCallRecorder,
+  rejectKnowledge = false,
+): MissionWorkflowCompletionServices {
+  return {
+    evidenceService: {
+      async registerEvidence(request) {
+        recorder.calls.push('EvidenceService.registerEvidence');
+
+        return Evidence.register(request);
+      },
+    },
+    reviewService: {
+      async startReview(command) {
+        recorder.calls.push('ReviewService.startReview');
+
+        return {
+          id: command.id ?? 'generated-review',
+          missionId: command.missionId,
+          missionPlanRevision: command.missionPlanRevision,
+          status: 'In Progress',
+          reviewCriteria: command.reviewCriteria,
+          evidenceReferences: command.evidenceReferences,
+          findings: [],
+        };
+      },
+      async publishFinding(command) {
+        recorder.calls.push('ReviewService.publishFinding');
+
+        return {
+          id: command.findingId ?? 'generated-finding',
+          reviewId: command.reviewId,
+          severity: 'Informational',
+          category: 'Alignment',
+          summary: command.summary,
+          description: command.description,
+          supportingEvidenceReferences: command.supportingEvidenceReferences,
+          affectedArtifactReferences: command.affectedArtifactReferences,
+          criteriaReferences: command.criteriaReferences,
+          status: 'Created',
+        };
+      },
+      async finalizeReviewOutcome(command) {
+        recorder.calls.push('ReviewService.finalizeReviewOutcome');
+
+        return {
+          review: {
+            id: command.reviewId,
+            missionId: 'mission-sprint-26-mission',
+            missionPlanRevision: 'revision-3',
+            status: 'Completed',
+            outcome: 'Accepted',
+            reviewCriteria: [
+              {
+                id: 'sprint-27-developer-workflow-completion',
+                description: 'Sprint 27 Developer Workflow completion acceptance criteria.',
+              },
+            ],
+            evidenceReferences: ['evidence-sprint-26-evidence'],
+            findings: [],
+          },
+          findings: [],
+        };
+      },
+    },
+    knowledgeService: {
+      async captureKnowledge(request) {
+        recorder.calls.push('KnowledgeService.captureKnowledge');
+
+        if (rejectKnowledge) {
+          throw new Error('Kernel rejected Knowledge capture.');
+        }
+
+        return knowledgeSnapshot(request);
+      },
+    },
+  };
 }
 
 class RecordingExecutionService implements MissionWorkflowExecutionService {
@@ -352,6 +756,61 @@ function planState(
       {
         id: taskId,
         status,
+      },
+    ],
+  };
+}
+
+function knowledgeSnapshot(input: Parameters<KnowledgeService['captureKnowledge']>[0]): KnowledgeSnapshot {
+  return {
+    id: input.id ?? 'generated-knowledge',
+    missionId: input.missionId,
+    missionPlanRevisionId: input.missionPlanRevisionId,
+    summary: input.summary,
+    scope: 'Repository',
+    status: 'Candidate',
+    supportingEvidenceIds: input.supportingEvidenceIds,
+    supportingReviewId: input.supportingReviewId,
+    contributingEventIds: input.contributingEventIds,
+    approvingAuthority: input.approvingAuthority,
+    attribution: {
+      missionId: input.missionId,
+      missionPlanRevisionId: input.missionPlanRevisionId,
+      supportingEvidenceIds: input.supportingEvidenceIds,
+      supportingReviewId: input.supportingReviewId,
+      contributingEventIds: input.contributingEventIds,
+      approvingAuthority: input.approvingAuthority,
+    },
+    provenance: {
+      evidenceLineage: input.supportingEvidenceIds,
+      reviewLineage: input.supportingReviewId,
+      missionLineage: {
+        missionId: input.missionId,
+        missionPlanRevisionId: input.missionPlanRevisionId,
+      },
+      approvalLineage: input.approvingAuthority,
+    },
+    revisions: [
+      {
+        revisionNumber: 1,
+        summary: input.summary,
+        attribution: {
+          missionId: input.missionId,
+          missionPlanRevisionId: input.missionPlanRevisionId,
+          supportingEvidenceIds: input.supportingEvidenceIds,
+          supportingReviewId: input.supportingReviewId,
+          contributingEventIds: input.contributingEventIds,
+          approvingAuthority: input.approvingAuthority,
+        },
+        provenance: {
+          evidenceLineage: input.supportingEvidenceIds,
+          reviewLineage: input.supportingReviewId,
+          missionLineage: {
+            missionId: input.missionId,
+            missionPlanRevisionId: input.missionPlanRevisionId,
+          },
+          approvalLineage: input.approvingAuthority,
+        },
       },
     ],
   };

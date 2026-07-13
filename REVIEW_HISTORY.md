@@ -2,6 +2,136 @@
 
 ---
 
+## NEXUS-REV-2026-07-13-028 — Sprint 27 — Developer Workflow Completion
+
+- **Reviewed Sprint:** Sprint 27 — Developer Workflow Completion
+- **Reviewed Vertical Slice:** `HostMissionWorkflow` extension inserting `EvidenceService.registerEvidence` → `ReviewService.startReview` → `ReviewService.publishFinding` → `ReviewService.finalizeReviewOutcome` → `KnowledgeService.captureKnowledge` immediately after `completeMission()` (`src/hosts/vscode/host-mission-workflow.ts`); composition-root wiring in `vscode-host.ts`; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Partial, Primary). Referenced: RFC-0002 — Evidence Model, RFC-0006 — Engineering Assessment Model, RFC-0007 — Knowledge Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 27 completes the provider-independent Developer Workflow exactly as scoped by `NEXUS-RAT-2026-07-13-014`. `git diff --stat -- src/kernel src/adapters` is confirmed **empty** — this sprint touches no Kernel or Adapter source file; all changes are additive within `src/hosts/vscode/` (`vscode-host.ts`'s diff is additive `resolveService` wiring only, mirroring the Sprint 25/26 pattern).
+
+`host-mission-workflow.ts` was read line-by-line: the new private `completeDeveloperWorkflow` method is invoked immediately after the existing `completeMission()` call and executes exactly `EvidenceService.registerEvidence` → `ReviewService.startReview` → `ReviewService.publishFinding` → `ReviewService.finalizeReviewOutcome` → `KnowledgeService.captureKnowledge`, in that order, with no duplicate or alternate orchestration — confirmed by a dedicated unit test asserting the full 21-call sequence. The ratification's most consequential — and most easily violated — requirement is the ban on Host-side logic equivalent to `if (reviewAccepted) { captureKnowledge(); }`. Code inspection confirms `captureKnowledge()` is called unconditionally immediately after `finalizeReviewOutcome()`, with no branch on the `outcome` value in between (`host-mission-workflow.ts:429-436`); a dedicated test (`'calls Knowledge capture unconditionally and stops on Kernel Knowledge rejection'`) proves this directly by injecting a Kernel-thrown Knowledge rejection *after* a successful `Accepted` outcome and confirming `KnowledgeService.captureKnowledge` was still called and the workflow still stopped deterministically — the only way that assertion can pass is if the call is unconditional. This satisfies the ratification's binding clarification precisely: eligibility is enforced solely by the Kernel's own `KnowledgeCapturePreconditionError`, not by Host business logic.
+
+The other necessary technical accommodation — that the frozen Sprint 9 `FinalizeReviewOutcomeCommand` requires an explicit caller-supplied `outcome`, which the Review domain does not derive from Findings — is handled exactly as the ratification's binding clarification prescribes: `MissionWorkflowCompletionServices.reviewOutcome` is an optional, deterministic, fixed input (`completion.reviewOutcome ?? 'Accepted'`), supplied the same way Sprint 26 already supplies a deterministic default `roleId`. This is command data, not Review-outcome interpretation; the Host never inspects Finding content or Review semantics beyond passing the fixed value through. The real-Kernel integration test (`'composes with real Kernel services and completes a single-Task Mission'`) independently confirms the full event sequence through the actual composed `ReviewService`/`KnowledgeService`: `EvidenceCaptured, ReviewStarted, FindingCreated, ReviewCompleted, ReviewAccepted, KnowledgeCandidateCreated`, proving the Sprint 12 Knowledge capture preconditions (terminal accepted Review, supporting Evidence, completed Mission work) are genuinely satisfied by real Kernel-owned validation, not fabricated by the Host.
+
+Independent re-validation confirms the Builder's reported results exactly: `tsc --noEmit`, ESLint, and `npm run build` (esbuild) all pass cleanly, and Vitest reports **48 files / 255 tests**, all passing. Sprint 20's and Sprint 16's frozen integration tests are absent from the diff and pass unmodified. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 27 record are mutually consistent and accurately scoped. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 255 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: live AI Providers, production Adapter integration, Adapter Selection, provider routing; human review intervention, review retry workflows, AI/human-generated Review judgment; streaming execution, background workflow execution, workflow automation, multi-provider coordination; persistent/durable workflow, execution, review, or knowledge history; Policy Engine integration, Evidence indexing, Knowledge conflict resolution, Shared Reality visualization, Mission browser, dashboards; `COPILOT_INSTRUCTIONS.md`; any new Kernel/Adapter aggregate, repository, business rule, lifecycle transition, or Domain Event.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Developer Workflow completion via Evidence/Review/Knowledge integration); no unrelated functionality introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0002/0006/0007/0009/0010 correctly cited; `NEXUS-RAT-2026-07-13-014`'s binding Authorized Completion Workflow and Knowledge-eligibility clarification followed exactly.
+- Gate 3 (Terminology): PASS — no renamed Kernel concept; existing `EvidenceService`/`ReviewService`/`KnowledgeService` vocabulary (`ReviewOutcomeValue`, `KnowledgeStatusValue`, `FindingCategoryValue`, etc.) reused unchanged and with valid enumerated values (`'Accepted'`, `'Repository'`, `'Alignment'`, `'Informational'`).
+- Gate 4 (Aggregate Ownership): PASS — the Host instantiates no aggregate and touches no aggregate internals directly (`Evidence.register` is invoked only inside test doubles standing in for the real `EvidenceService`, never by the Host); all production interaction flows through the three public service contracts.
+- Gate 5 (Data Model): PASS — no `RegisterEvidenceRequest`/`StartReviewCommand`/`PublishFindingCommand`/`FinalizeReviewOutcomeCommand`/`KnowledgeCaptureRequest` shape changed.
+- Gate 6 (State Machine): PASS — no new Review, Finding, or Knowledge state introduced; the Review is driven Pending → In Progress → Completed and Knowledge lands at the correct `Candidate` status via existing, unmodified lifecycle rules.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; the composed-Kernel integration test's event sequence (`EvidenceCaptured, ReviewStarted, FindingCreated, ReviewCompleted, ReviewAccepted, KnowledgeCandidateCreated`) matches the existing catalog and Sprint 16's established ordering.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new orchestration code lives entirely in `src/hosts/vscode/`, reusing the existing `resolveService` composition pattern.
+- Gate 10 (Code Quality): PASS — deterministic; the ratification's central constraint (no `if (reviewAccepted)`-shaped Host logic) is verifiably honored by both code inspection and a test that specifically forces the branch-free path to be exercised; no dead code; no speculative abstraction.
+- Gate 11 (Testing): PASS — unit tests cover the full 21-call sequence, the unconditional-Knowledge-capture/Kernel-rejection stop path, command registration, and real `createKernelServices` composition with genuine Kernel-side Review/Knowledge validation; Sprint 16's and Sprint 20's existing tests continue to pass.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 27 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 27 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0027-developer-workflow-completion.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 27 status set to **Approved** (`NEXUS-REV-2026-07-13-028`); Milestone 4 status line updated accordingly. Additionally corrected a pre-existing, unrelated documentation defect discovered during this review: a duplicate, stale `## Future Sprint Planning (Milestone 4)` heading (with an incomplete Status line lacking Sprint 26/27) was orphaned immediately before the Sprint 26 section, left over from an earlier planning edit. Removed as Category 4 — Documentation Drift, Minor severity; no content was lost, since the correct, complete section already existed later in the file.
+
+### Builder Task Recommendation
+
+None. The Sprint 27 review cycle is complete with no open findings. This completes the provider-independent Developer Workflow ratified by `NEXUS-RAT-2026-07-13-014`. Per that ratification's Repository State section, the repository is now ready to begin **Milestone 5 — Production Adapter Integration** (the sole remaining substitution: `MockAdapter → Live Provider Adapter`, including the associated `COPILOT_INSTRUCTIONS.md` activation reserved by `NEXUS-RAT-2026-07-13-010`). Next step is a Sprint Owner action via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-027 — Sprint 26 — Developer Workflow Adapter Integration
+
+- **Reviewed Sprint:** Sprint 26 — Developer Workflow Adapter Integration
+- **Reviewed Vertical Slice:** `HostMissionWorkflow` extension inserting the Role Assignment → Execution Strategy readiness → Adapter dispatch sequence between `startTask` and `completeTask` (`src/hosts/vscode/host-mission-workflow.ts`); composition-root wiring in `vscode-host.ts`; `extension.ts` `missionWorkflowAdapterId` wiring; associated unit and integration tests.
+- **RFC Coverage:** RFC-0004 — Execution Model (Partial, Primary — extending Sprint 20's certified pipeline to a real Host trigger). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 26 connects Sprint 25's Developer Workflow to Sprint 20's already-certified Adapter execution pipeline, exactly as scoped by `NEXUS-RAT-2026-07-13-013`. `git diff --stat -- src/kernel src/adapters` is confirmed **empty** — this sprint touches no Kernel or Adapter source file; all changes are additive within `src/hosts/vscode/` plus one line in `extension.ts` wiring `missionWorkflowAdapterId`.
+
+`host-mission-workflow.ts` was read line-by-line: the inserted sequence — `ExecutionStrategyService.createExecutionStrategy` → `RoleService.assignRole` → `ExecutionStrategyService.evaluateAssignmentReadiness` → `RoleService.retrieveRole` → `AdapterService.dispatch` — sits exactly between the existing `startTask` and `completeTask` calls, matching the Ratification's Authorized Execution Path verbatim, with no duplicate or alternate orchestration path. A dedicated unit test asserts the full sixteen-call sequence in order. The Host makes no role, readiness, or dispatch-outcome decision itself: every such call is a pass-through to `RoleService.assignRole`/`ExecutionStrategyService.evaluateAssignmentReadiness`/`AdapterService.dispatch` (confirmed against `role.service.ts`, `execution-strategy.service.ts`, and `adapter.service.ts`), and the Host's only branch (`adapterSnapshot.status !== 'Completed'`) reads the Adapter's own determination rather than computing one — satisfying the Critical Boundary's "Host SHALL NOT... determine execution success/failure" rule. Adapter dispatch uses the explicit `adapterId` supplied by Host composition (`vscode-host.ts`: `options.missionWorkflowAdapterId ?? 'mock-adapter'`), preserving `NEXUS-RAT-2026-07-13-011`'s explicit-dispatch-only guardrail; no selection, routing, or scoring logic was introduced.
+
+On a `Completed` Adapter response, the Task and Mission complete and results present, verified by the primary success test. On a non-`Completed` response, `failAdapterResponse` presents Adapter diagnostics, records the Task's true last-known Mission status, and does not call `completeTask` or fabricate a Task-failure state — verified by a dedicated test asserting the call sequence stops immediately after `AdapterService.dispatch`. Sprint 20's `test/integration/execution-pipeline-integration.integration.test.ts` is absent from the diff and passes unmodified; Sprint 18's `src/kernel` import-graph boundary test is unaffected. Independent re-validation confirms the Builder's reported results exactly: `tsc --noEmit`, ESLint, and `npm run build` (esbuild) all pass cleanly, and Vitest reports **48 files / 254 tests**, all passing. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 26 record are mutually consistent and accurately scoped. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 254 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: live AI provider integration; Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing / multi-adapter execution; background execution, workflow automation, retry policies, streaming, cancellation, progress callbacks beyond Sprint 24's existing `withProgress` markers; persistent execution history, Knowledge integration, Shared Reality visualization, Mission browser, execution dashboards; `COPILOT_INSTRUCTIONS.md`; any new Kernel/Adapter aggregate, repository, business rule, lifecycle transition, or Domain Event.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Developer Workflow → Adapter pipeline integration); no unrelated functionality introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/0008/0009/0010 correctly cited as Referenced only (no normative concept redefined); `NEXUS-RAT-2026-07-13-013`'s binding Authorized Execution Path followed exactly.
+- Gate 3 (Terminology): PASS — no renamed Kernel or Adapter concept; existing `RoleService`/`ExecutionStrategyService`/`AdapterService` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — the Host instantiates no aggregate and touches no aggregate internals; all interaction flows through the existing public service contracts.
+- Gate 5 (Data Model): PASS — no `AdapterRequest`/`AdapterResponse`/`RoleAssignment`/`ExecutionStrategy` shape changed; `AdapterRequest` construction mirrors Sprint 20's test construction pattern.
+- Gate 6 (State Machine): PASS — no new Task or Mission state introduced; non-`Completed` Adapter responses leave the Task at its existing `InProgress` state rather than inventing a failure state.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; the composed-Kernel integration test's event sequence matches Sprint 25's baseline unchanged.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new orchestration code lives entirely in `src/hosts/vscode/`, reusing existing `HostPresentationSurface`/`HostWorkspaceTrustSurface` abstractions.
+- Gate 10 (Code Quality): PASS — deterministic; the Host's only decision point is a pass-through status check; no dead code; no speculative abstraction; no Adapter Selection Policy introduced.
+- Gate 11 (Testing): PASS — unit tests cover the full pipeline call-order sequence, the non-`Completed` stop path, command registration, and real `createKernelServices` composition with `MockAdapter`; Sprint 20's and Sprint 25's existing tests continue to pass.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 26 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 26 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0026-developer-workflow-adapter-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 26 status set to **Approved** (`NEXUS-REV-2026-07-13-027`); Milestone 4 status line updated accordingly. No Sprint 27 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 26 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`. Per the Sprint 26 record's Expected Outcome, the only remaining architectural substitution anticipated is `MockAdapter → Live Provider Adapter`; that decision, along with `COPILOT_INSTRUCTIONS.md` activation (`NEXUS-RAT-2026-07-13-010`), remains open for Sprint Owner planning.
+
+---
+
 ## NEXUS-REV-2026-07-13-026 — Sprint 25 — Developer Workflow Foundation
 
 - **Reviewed Sprint:** Sprint 25 — Developer Workflow Foundation

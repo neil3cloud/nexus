@@ -790,7 +790,7 @@ Notes:
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025); Sprint 25 Implemented — Pending Reviewer Validation)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025); Sprint 25 Approved (NEXUS-REV-2026-07-13-026); Sprint 26 Approved (NEXUS-REV-2026-07-13-027); Sprint 27 Implemented — Pending Reviewer Validation)
 
 ## Sprint 19 — Mock Adapter Runtime Integration
 
@@ -1043,7 +1043,7 @@ Notes:
 
 ## Sprint 25 — Developer Workflow Foundation
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved (NEXUS-REV-2026-07-13-026)
 
 RFC Coverage:
 
@@ -1077,6 +1077,84 @@ Notes:
 - This sprint introduces no new bounded context and does not modify RFC-0001, RFC-0004, RFC-0009, RFC-0010, or the Kernel Canon.
 - Opens a second, parallel Host entry point (Mission domain) alongside Sprint 23/24's Adapter-domain entry point; orthogonal to existing Adapter-domain behavior.
 - Repository-wide validation passed: TypeScript compile, ESLint, Vitest 48 files / 253 tests, esbuild.
+
+---
+
+## Sprint 26 — Developer Workflow Adapter Integration
+
+Status: Approved (NEXUS-REV-2026-07-13-027)
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Primary)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-013` — governs this sprint's entire scope: title, authorized execution sequence, Host/Kernel/Adapter Runtime responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred.
+
+Implemented Concepts:
+
+- Extension of `HostMissionWorkflow` (Sprint 25) inserting `ExecutionStrategyService.createExecutionStrategy`, `RoleService.assignRole`, `ExecutionStrategyService.evaluateAssignmentReadiness`, `RoleService.retrieveRole`, and `AdapterService.dispatch` between `startTask` and `completeTask`, reusing Sprint 20's certified pipeline without introducing a duplicate execution path.
+- Explicit `mock-adapter` dispatch with required `CodeModification` capability supplied by Host composition; no Adapter Selection Policy, routing, scoring, fallback, or provider preference was introduced.
+- `MockAdapter` registration at the VS Code Host composition root shared with Sprint 23/24.
+- Session-only history extended with Adapter ID and dispatch status, preserving Sprint 25's non-durable, minimal-field constraint.
+- Deterministic non-`Completed` Adapter response handling that presents Adapter diagnostics, records true last-known Mission status, and does not fabricate a Task failure or call `completeTask`.
+
+Critical Boundary:
+
+- Host assigns no role, selects no adapter, and determines no execution outcome itself — those decisions flow through `RoleService`/`ExecutionStrategyService`/`AdapterService`/`MockAdapter` only. On non-`Completed` Adapter response, the workflow stops deterministically without calling `completeTask` and without fabricating any Task-failure state.
+
+Deferred Concepts:
+
+- Live AI provider integration; Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing / multi-adapter execution; background execution, workflow automation, retry policies, streaming, cancellation, progress callbacks beyond existing markers; persistent execution history, Knowledge, Shared Reality visualization, Mission browser, dashboards; `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+- Converges the Adapter-domain (Sprint 23/24) and Mission-domain (Sprint 25) Host entry points into one working, provider-independent developer workflow.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 48 files / 254 tests, esbuild.
+
+---
+
+## Sprint 27 — Developer Workflow Completion
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary)
+- Referenced: RFC-0002 — Evidence Model, RFC-0006 — Engineering Assessment Model, RFC-0007 — Knowledge Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-014` — governs this sprint's entire scope: title ("Developer Workflow Completion," refining `nexus-plan`'s proposed "Host Review & Knowledge Workflow Integration"), authorized completion workflow, Host/Kernel responsibility split, the binding Knowledge-eligibility implementation clarification (`captureKnowledge()` called unconditionally; eligibility enforced solely by the Kernel's existing `KnowledgeCapturePreconditionError`), authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-13-013` — governs the Sprint 26 pipeline this sprint extends; unaffected and unmodified.
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred.
+
+Implemented Concepts:
+
+- Extension of `HostMissionWorkflow` (Sprint 25/26) inserting `EvidenceService.registerEvidence`, `ReviewService.startReview`, `ReviewService.publishFinding`, `ReviewService.finalizeReviewOutcome`, and `KnowledgeService.captureKnowledge` immediately after the existing `completeMission()` call.
+- Deterministic, fixed Host-supplied command inputs (identities, Review outcome value, Evidence/Finding/Knowledge content) mirroring Sprint 25/26's deterministic identity and default-Role/explicit-Adapter pattern.
+- `EvidenceService`/`ReviewService`/`KnowledgeService` wired into the VS Code Host composition root via the existing `resolveService` pattern.
+- Session-only history extended with Review outcome and Knowledge capture status.
+
+Deferred Concepts:
+
+- Live AI Providers, production Adapter integration, Adapter Selection, provider routing; human review intervention, review retry workflows; streaming execution, background workflow execution, workflow automation, multi-provider coordination; persistent/durable workflow/execution/review/knowledge history; Policy Engine integration, Evidence indexing, Knowledge conflict resolution; `COPILOT_INSTRUCTIONS.md`.
+
+Critical Boundary:
+
+- Host makes no Evidence-validity, Review-outcome-interpretation, or Knowledge-eligibility decision itself — those decisions flow through `EvidenceService`/`ReviewService`/`KnowledgeService` only. `captureKnowledge()` is invoked unconditionally; a `KnowledgeCapturePreconditionError` (or any other Kernel rejection) is handled through the existing Sprint 25/26 Kernel-rejection stop pattern, not a Host-side eligibility branch.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0002, RFC-0006, RFC-0007, RFC-0009, RFC-0010, or the Kernel Canon.
+- Completes the provider-independent Developer Workflow; upon approval, the repository is ready to begin Milestone 5 — Production Adapter Integration.
 
 ---
 

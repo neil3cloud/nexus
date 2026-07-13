@@ -1,5 +1,212 @@
 # Nexus Implementation Report
 
+## Sprint 27 — Developer Workflow Completion
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 27 Developer Workflow Completion vertical slice. This sprint completes the provider-independent Host Developer Workflow by extending the existing Mission/Task/Adapter flow through the authorized Evidence -> Review -> Knowledge completion sequence using only existing public Kernel service contracts.
+
+Implemented scope:
+
+- Extended `HostMissionWorkflow` to invoke `EvidenceService.registerEvidence()`, `ReviewService.startReview()`, `ReviewService.publishFinding()`, `ReviewService.finalizeReviewOutcome()`, and `KnowledgeService.captureKnowledge()` immediately after successful `MissionExecutionService.completeMission()`.
+- Supplied deterministic Host command inputs for Evidence, Review, Finding, Review outcome, and Knowledge capture without adding Host-side Evidence validity, Review interpretation, or Knowledge eligibility rules.
+- Called `KnowledgeService.captureKnowledge()` unconditionally after `finalizeReviewOutcome()`; Kernel-thrown rejection stops the workflow through the existing deterministic Kernel-rejection path.
+- Presented Review Finding, Review outcome, Knowledge capture status, and captured Knowledge identity through the existing `HostPresentationSurface`.
+- Extended session-only workflow history with Review outcome and Knowledge capture status while preserving the non-durable presentation-only constraint.
+- Wired `EvidenceService`, `ReviewService`, and `KnowledgeService` into the VS Code Host composition root using the existing `resolveService` pattern.
+- Added focused unit and integration coverage for the authorized call sequence, successful Knowledge capture, command history output, real Kernel service composition, and Knowledge rejection stop behavior.
+
+Out of scope and not implemented:
+
+- Live AI Providers, production Adapter integration, Adapter Selection, provider routing, or multi-provider coordination.
+- Human review intervention, review retry workflows, or AI-generated review judgment.
+- Streaming, background workflow execution, workflow automation, cancellation, or retries.
+- Persistent workflow/execution/review/knowledge history, Evidence indexing, Knowledge conflict resolution, Mission browser, dashboards, or Shared Reality visualization.
+- New Kernel capabilities, aggregates, repositories, business rules, lifecycle transitions, Domain Events, or direct Kernel/Adapter source changes.
+- `COPILOT_INSTRUCTIONS.md` activation or consumption.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0002 — Evidence Model.
+- RFC-0006 — Engineering Assessment Model.
+- RFC-0007 — Knowledge Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Host-layer orchestration of the provider-independent Developer Workflow completion phase.
+- Existing public Kernel service invocation for Evidence registration, Review lifecycle/finding/outcome, and Knowledge capture.
+- Deterministic Host-supplied command data for the authorized completion workflow.
+- Session-only Review outcome and Knowledge capture status presentation/history.
+- Deterministic stop behavior on Kernel rejection during the completion phase.
+
+Deferred Concepts:
+
+- Production provider Adapters, Adapter Selection, provider routing, and live AI execution.
+- Human review intervention, review retry workflows, and AI/human Review judgment generation.
+- Persistent workflow, execution, review, and knowledge history.
+- Evidence indexing, Knowledge conflict resolution, Policy Engine integration, and Shared Reality visualization.
+- Streaming execution, background workflow execution, workflow automation, cancellation, and multi-provider coordination.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-13-014`, `NEXUS-RAT-2026-07-13-013`, `NEXUS-RAT-2026-07-13-010`).
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0007-knowledge-model.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0005-evidence-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0009-review-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0012-knowledge-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0013-knowledge-event-publication.md`.
+- `knowledge/implementation/sprints/sprint-0014-knowledge-lifecycle-advancement.md`.
+- `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md`.
+- `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md`.
+- `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Deterministic Review outcome input supplied by the Host is command data, not Host interpretation, consistent with `NEXUS-RAT-2026-07-13-014`.
+- Knowledge eligibility remains exclusively enforced by `KnowledgeService.captureKnowledge()` and the Knowledge aggregate; the Host does not branch on Review outcome before invoking Knowledge capture.
+- Session history remains non-authoritative Host presentation state because it is in-memory only and records minimal workflow outcome fields.
+- Deterministic completion Evidence/Finding/Knowledge content is fixed workflow data and does not introduce new Review or Knowledge business rules.
+
+### Known Limitations
+
+- The workflow still supports exactly one Task per Mission.
+- Only one deterministic Evidence item, Finding, Review outcome, and Knowledge capture path is exercised.
+- Review outcome is a fixed Host-supplied command value, not human or AI-generated engineering judgment.
+- Mission workflow history remains session-scoped and is discarded with the extension process.
+- Kernel rejection recovery remains stop-and-present diagnostics only; retry and partial-completion recovery remain deferred.
+
+### Validation Summary
+
+- TypeScript compile passed.
+- Focused Sprint 27 Vitest coverage passed: 3 files, 9 tests.
+- ESLint passed.
+- Full Vitest suite passed on rerun: 48 files, 255 tests. The first full `npm run validate` attempt hit a transient timeout in the frozen Sprint 21 local-process runtime integration test; that test passed immediately on targeted rerun and in the subsequent full suite.
+- esbuild passed.
+- `git diff --stat HEAD -- src\kernel src\adapters` is empty.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 26 — Developer Workflow Adapter Integration
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 26 Developer Workflow Adapter Integration vertical slice. This sprint connects the Sprint 25 Host Mission workflow to the Sprint 20 certified Adapter execution pipeline through existing public Kernel services and the existing provider-independent `MockAdapter`.
+
+Implemented scope:
+
+- Extended `HostMissionWorkflow` to insert `ExecutionStrategyService.createExecutionStrategy`, `RoleService.assignRole`, `ExecutionStrategyService.evaluateAssignmentReadiness`, `RoleService.retrieveRole`, and `AdapterService.dispatch` between `startTask` and `completeTask`.
+- Built Adapter requests from the Kernel readiness result and retrieved Role, using deterministic Mission/Task/Execution Strategy identity metadata.
+- Completed Tasks only after a `Completed` Adapter response.
+- Stopped deterministically on non-`Completed` Adapter responses, presented Adapter diagnostics, recorded the true last-known Mission status, and did not fabricate Task failure state.
+- Wired VS Code Host composition to provide Role, Execution Strategy, and Adapter services plus explicit `mock-adapter` / `CodeModification` dispatch inputs.
+- Extended session-only Mission workflow history with Adapter ID and dispatch status.
+- Updated unit and integration tests for success sequencing, non-success Adapter handling, command registration, real Kernel composition with `MockAdapter`, and unchanged Sprint 20 pipeline behavior.
+
+Out of scope and not implemented:
+
+- Live AI provider integration or production provider Adapter behavior.
+- Adapter Selection Policy, routing, capability scoring, provider preference, fallback, load balancing, or multi-adapter execution.
+- Background execution, workflow automation, retries, streaming, cancellation, or additional progress callbacks beyond existing markers.
+- Persistent execution history, Knowledge integration, Shared Reality visualization, Mission browser, dashboards, or `COPILOT_INSTRUCTIONS.md`.
+- New Kernel or Adapter business rules, states, lifecycle transitions, events, or source changes.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model (Partial).
+
+Referenced RFCs:
+
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0009 — Host Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Host-driven invocation of the certified execution pipeline using public Kernel services.
+- Explicit provider-independent Adapter dispatch using `MockAdapter`.
+- Adapter response-gated Task completion.
+- Deterministic non-success Adapter stop behavior without fabricated Task failure state.
+- Session-only Adapter dispatch outcome history.
+
+Deferred Concepts:
+
+- Production providers and live AI execution.
+- Adapter Selection Policy and any routing/fallback/provider-preference behavior.
+- Persistent execution history and broader workflow dashboards.
+- Knowledge, Shared Reality, Review-domain, and Evidence workflow integration.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-13-013`, `NEXUS-RAT-2026-07-13-011`, `NEXUS-RAT-2026-07-13-010`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration.md`.
+- `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md`.
+- `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The Host may orchestrate the certified pipeline by invoking public Kernel services, but role assignment, readiness evaluation, dispatch authorization, and Adapter execution outcomes remain owned by Kernel/Adapter contracts.
+- Explicit `mock-adapter` dispatch supplied by composition is not Adapter selection and remains consistent with `NEXUS-RAT-2026-07-13-011`.
+- Session history remains non-authoritative Host presentation state because it is in-memory only and records only minimal workflow outcome fields.
+
+### Known Limitations
+
+- The workflow continues to support exactly one Task per Mission.
+- Only `MockAdapter` participates; no production provider Adapter exists.
+- Non-`Completed` Adapter responses stop the workflow with the Task left in the last Kernel-authored state because Task execution failure states remain deferred.
+- Mission workflow history is discarded with the extension process.
+
+### Validation Summary
+
+- Targeted Sprint 26 validation passed: 4 files, 11 tests.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 48 files, 254 tests.
+- `git diff --stat -- src\kernel src\adapters` is empty.
+- Built-in search for `globalState|workspaceState|Memento` under `src\hosts` returned no matches.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 25 — Developer Workflow Foundation
 
 ### Implemented Slice
