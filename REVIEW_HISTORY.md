@@ -2,6 +2,136 @@
 
 ---
 
+## NEXUS-REV-2026-07-13-022 — Sprint 22 — Adapter Runtime Operational Metadata
+
+- **Reviewed Sprint:** Sprint 22 — Adapter Runtime Operational Metadata
+- **Reviewed Vertical Slice:** `AdapterInstallationStatus`, `AdapterHealthStatus`, `AdapterRuntimeDiagnostics`, `AdapterConfiguration`, `AdapterExecutableDiscovery` (`src/adapters/runtime/`); one additive extension to `AdapterCapability` (`src/kernel/adapter/adapter-capability.ts`); associated unit tests.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Partial, Primary). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 22 fully honors both Critical Boundary rules established during planning after the earlier "Provider" vocabulary draft was rejected. `git diff --stat HEAD -- src/kernel/` confirms exactly one Kernel file changed — `adapter-capability.ts` — with a three-line, purely additive diff appending `'CLI'`, `'Chat'`, `'Completion'` to `supportedAdapterCapabilities`; no other line in the file changed, and no other `src/kernel` file was touched. `grep -rn "Provider"` and `grep -rn "'Builder'\|'Reviewer'"` across `src/adapters/runtime/` both return zero matches — no Provider-prefixed type was introduced anywhere, and neither Engineering Role name was added as a capability value, directly resolving both violations flagged in the rejected draft. No second registry exists (`grep -rn "class.*Registry"` under `src/adapters/` returns nothing); `AdapterRegistry` remains the sole registry.
+
+The five new Adapter-layer types are correctly placed outside `src/kernel`, are immutable, and are cleanly separated from RFC-0008 Contract concepts: `AdapterInstallationStatus` (`Discovered`/`Missing`/`UnsupportedVersion`/`InvalidInstallation`) and `AdapterHealthStatus` (`Ready`/`Missing`/`Unsupported`/`Misconfigured`) are distinct, independent value objects with their own state lists — neither merges into or extends the existing, frozen `AdapterLifecycle` state machine (`Registered`→`Available`→`Active`→`Completed`→`Unavailable`), confirmed unchanged by the diff. `AdapterConfiguration` goes beyond the minimum bar: it actively rejects any configuration key containing `auth`, `credential`, `password`, `secret`, or `token` (case-insensitive substring match) via `assertNonSecretKey`, throwing `InvalidAdapterRuntimeMetadataError` rather than merely omitting an authentication field by convention. `AdapterExecutableDiscovery` correctly reuses the existing, unmodified `LocalProcessRuntimeContract` (Sprint 21) for short-lived `--version` probes, exactly as the record's Architectural Responsibilities authorized, and correctly maps `ExecutableNotFound`/non-success/version-mismatch outcomes to the new `AdapterInstallationStatus` states with attributed diagnostics.
+
+`git diff --stat HEAD -- src/adapters/mock/ src/kernel/execution/` confirms `MockAdapter`, `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, Execution Strategy, and Role Assignment are all untouched. Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **42 files / 236 tests**, esbuild build. `IMPLEMENTATION_REPORT.md` § Sprint 22 and `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` § Sprint 22 accurately describe implemented and deferred scope and are mutually consistent with the Sprint 22 record, including its Governance History section. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 42 files / 236 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: any `Provider`-prefixed type or second runtime registry; live provider integration (GitHub Copilot/Claude/Gemini/Codex CLI, OpenAI, Azure OpenAI); authentication, login, OAuth, tokens, credential storage, secrets, account management (actively rejected by `AdapterConfiguration`, not merely absent); provider execution, prompt submission, response parsing, streaming, protocol translation, retries; Adapter Selection Policy / routing / fallback / prioritization (per `NEXUS-RAT-2026-07-13-011`); Host/VS Code integration; `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`, activation pushed to first live host execution).
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice; exactly one narrowly-scoped, additive Kernel change.
+- Gate 2 (Architectural Authority): PASS — RFC-0008's non-exhaustive capability list correctly cited as authority for the additive extension; no reinterpretation.
+- Gate 3 (Terminology): PASS — no "Provider" vocabulary; no Role/Capability conflation; new types use consistent `Adapter*` naming.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched; new types are independent value objects, not Kernel entities.
+- Gate 5 (Data Model): PASS — `AdapterLifecycle`/`AdapterMetadata`/`AdapterRegistry` confirmed byte-for-byte unchanged; new states are distinct, non-overlapping value objects.
+- Gate 6 (State Machine): PASS — `AdapterLifecycle`'s existing transitions untouched; new installation/health states form independent, non-conflicting vocabularies.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — RFC-0010's Dependency Rule independently re-verified: the sole Kernel diff is additive-only within the Contract's own capability vocabulary; all descriptive/detection logic lives outside `src/kernel`.
+- Gate 9 (Technology Compliance): PASS — new code correctly placed under `src/adapters/runtime/`, consistent with Sprint 19/21 precedent.
+- Gate 10 (Code Quality): PASS — deterministic, immutable value objects; active secret-key rejection exceeds the minimum bar; no dead code; no second registry (no duplicated architecture).
+- Gate 11 (Testing): PASS — unit tests cover snapshot immutability, deterministic diagnostics, configuration validation and secret rejection, invalid-metadata rejection, and executable discovery across all outcome branches; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 22 record (including its Governance History) are mutually consistent.
+- Gate 13 (Implementation Report): PASS — Sprint 22 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0022-adapter-runtime-operational-metadata.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 22 status set to **Approved** (`NEXUS-REV-2026-07-13-022`). No Sprint 23 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 22 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-021 — Sprint 21 — Local Process Runtime Foundation
+
+- **Reviewed Sprint:** Sprint 21 — Local Process Runtime Foundation
+- **Reviewed Vertical Slice:** `LocalProcessRuntime` and supporting value objects (`src/adapters/runtime/`), a test-only `LocalProcessTestAdapter` proving Adapter-layer integration, and associated unit/integration tests.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Partial, Primary). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 21 fully honors both Critical guardrails written into its Sprint Implementation Record. `git diff --stat HEAD -- src/kernel/ src/adapters/mock/` confirms **zero** changes to `src/kernel` or to `MockAdapter` — `git status` shows only new files under `src/adapters/runtime/`, `test/adapters/runtime/`, and one new integration test. `LocalProcessRuntime` (`src/adapters/runtime/local-process-runtime.ts`) is the sole file in the repository importing `node:child_process`; `spawn(...)` is called exactly once, inside `spawnProcess()`, entirely encapsulated within the runtime implementation. Adapters consume only `LocalProcessRuntimeContract` (`execute(input): Promise<ProcessResult>`), never the operating-system API directly — the exact `Kernel → Adapter → Local Process Runtime → Operating System` dependency direction the Sprint Owner's directive required. Sprint 18's `src/kernel` import-graph boundary test is unmodified and continues to pass, independently re-verifying the Kernel imports nothing from `src/adapters/`.
+
+The MockAdapter guardrail is honored via the record's Approach 2: a new, separate `LocalProcessTestAdapter` (`test/integration/local-process-runtime.integration.test.ts`) proves `LocalProcessRuntime` dispatches correctly through the pre-existing, unmodified `InMemoryAdapterRegistry`/`AdapterService` (confirmed byte-identical to the Sprint 20-approved state), using `process.execPath` (the already-running Node.js binary) with an inline script — a deterministic, cross-platform-safe target requiring no external dependency. `MockAdapter` itself (`src/adapters/mock/mock-adapter.ts`) is untouched.
+
+The runtime's design shows good engineering judgment beyond the minimum bar: timeout and cancellation are tested via a dependency-injected `FakeSpawnedProcess`/process-factory rather than real timing races, avoiding CI flakiness (exactly the risk flagged in the Sprint 21 record's Known Limitations); `ProcessResult`/`ProcessRequest`/`ProcessExitStatus`/`ProcessDiagnostics` are immutable value objects; diagnostics correctly distinguish `ExecutableNotFound` (via `ENOENT` detection) from generic `StartupFailed`, `TimedOut`, `Cancelled`, and `AbnormalTermination` (signal-terminated) from normal non-zero exit.
+
+Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **41 files / 232 tests**, esbuild build. `IMPLEMENTATION_REPORT.md` § Sprint 21 and `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` § Sprint 21 accurately describe implemented and deferred scope, correctly cite `NEXUS-RAT-2026-07-13-010`/`-011`, and are mutually consistent with the Sprint 21 record. All declared Deferred Concepts (production providers, authentication, Adapter Selection Policy, CLI/response interpretation, `COPILOT_INSTRUCTIONS.md`) remain correctly unimplemented and unapproximated. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 41 files / 232 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: all production provider integrations (GitHub Copilot/Claude/Codex/Gemini CLI, OpenAI, Azure OpenAI); authentication, login management, credential storage, provider configuration/discovery/negotiation; process orchestration (parallel execution, process pools, retries, fallback, scheduling, prioritization); Adapter Selection Policy / routing / capability scoring / provider preference / load balancing (per `NEXUS-RAT-2026-07-13-011`); CLI/response interpretation and provider protocol semantics; `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`); and any modification to `MockAdapter`, the Adapter Contract, Execution Strategy, Role Assignment, Kernel orchestration, or Domain Events.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice; zero `src/kernel` or `MockAdapter` files changed.
+- Gate 2 (Architectural Authority): PASS — RFC-0008, RFC-0010, and both governing ratifications followed; no reinterpretation.
+- Gate 3 (Terminology): PASS — no renamed concepts; new runtime types are additive and correctly scoped outside RFC-0008's Adapter Contract ownership.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched; the test-only Adapter interacts with the Adapter layer exclusively through public contracts.
+- Gate 5 (Data Model): PASS — no Kernel data model change; new runtime value objects are immutable and self-contained.
+- Gate 6 (State Machine): PASS — no state or transition change.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — RFC-0010's Dependency Rule independently re-verified: `node:child_process` usage confined to a single file outside `src/kernel`; Sprint 18's boundary test still passes.
+- Gate 9 (Technology Compliance): PASS — new code correctly placed under `src/adapters/runtime/`, consistent with Sprint 19's `src/adapters/mock/` precedent.
+- Gate 10 (Code Quality): PASS — deterministic; dependency-injected process factory and clock avoid timing-based flakiness; no dead code; no speculative abstraction.
+- Gate 11 (Testing): PASS — unit tests cover value-object validation and all termination-reason branches (Exited/success, Exited/non-zero, ExecutableNotFound, StartupFailed, TimedOut, Cancelled, AbnormalTermination); one integration test proves Adapter-layer wiring; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 21 record are mutually consistent and correctly cite both governing ratifications.
+- Gate 13 (Implementation Report): PASS — Sprint 21 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0021-local-process-runtime-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 21 status set to **Approved** (`NEXUS-REV-2026-07-13-021`). No Sprint 22 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 21 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan` — the natural candidate is a concrete provider Adapter (e.g., GitHub Copilot CLI) built on this sprint's `LocalProcessRuntime`, which would also trigger `COPILOT_INSTRUCTIONS.md`'s creation per `NEXUS-RAT-2026-07-13-010`.
+
+---
+
 ## NEXUS-REV-2026-07-13-020 — Sprint 20 — Execution Pipeline Integration
 
 - **Reviewed Sprint:** Sprint 20 — Execution Pipeline Integration

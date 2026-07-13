@@ -1,5 +1,187 @@
 # Nexus Implementation Report
 
+## Sprint 22 — Adapter Runtime Operational Metadata
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 22 Adapter Runtime Operational Metadata vertical slice. This sprint makes Adapter runtime state operationally self-describing before any live provider integration is introduced.
+
+Implemented scope:
+
+- Added immutable Adapter-layer metadata models outside `src/kernel`: `AdapterInstallationStatus`, `AdapterHealthStatus`, `AdapterRuntimeDiagnostics`, and `AdapterConfiguration`.
+- Added `AdapterExecutableDiscovery` for short-lived executable/version detection through `LocalProcessRuntimeContract`.
+- Extended `AdapterCapability` with technical capability values `CLI`, `Chat`, and `Completion`.
+- Added unit coverage for immutable snapshots, deterministic diagnostics, configuration validation, secret-bearing setting rejection, invalid metadata rejection, and executable discovery outcomes.
+- Preserved `AdapterRegistry` as the sole registry and left `AdapterLifecycle`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, and Role Assignment unchanged.
+
+Out of scope and not implemented:
+
+- Provider-prefixed types or a second runtime registry.
+- GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI, Azure OpenAI, or any live provider integration.
+- Authentication, login, OAuth, tokens, credential storage, secrets, or account management.
+- Provider execution, prompt submission, response parsing, streaming, protocol translation, retries, routing, fallback, prioritization, Adapter Selection Policy, Host integration, or `COPILOT_INSTRUCTIONS.md`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0008 — Kernel Adapter Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Adapter runtime installation status.
+- Adapter runtime health status.
+- Runtime diagnostics with deterministic attribution.
+- Adapter runtime configuration metadata without authentication or secrets.
+- Executable/version discovery helper for concrete Adapter instances.
+- Additive technical Adapter capability values.
+
+Deferred Concepts:
+
+- All production provider integrations and provider execution behavior.
+- Authentication, credentials, tokens, account management, and secrets.
+- Adapter Selection Policy, routing, fallback, prioritization, and provider selection.
+- Host/VS Code integration.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/implementation/sprints/sprint-0007-adapter-framework.md`.
+- `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0022-adapter-runtime-operational-metadata.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Operational metadata is Adapter-layer tooling, not new RFC-0008 Contract vocabulary.
+- `AdapterExecutableDiscovery` may use `LocalProcessRuntimeContract` for short-lived version probes while process execution remains owned by the runtime.
+- `AdapterConfiguration` may describe paths, environment metadata, and runtime settings, but must reject secret-bearing configuration keys.
+- The authorized additive `AdapterCapability` extension is limited to technical capability values and does not redefine Engineering Roles.
+
+### Known Limitations
+
+- The metadata models describe runtime readiness only; they do not prove future provider execution correctness.
+- No production Adapter consumes the metadata yet.
+- Executable discovery detects version output and process status; it does not parse provider protocols or perform work execution.
+
+### Validation Summary
+
+- Targeted Sprint 22 validation passed: 2 files, 11 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 42 files, 236 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 21 — Local Process Runtime Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 21 Local Process Runtime Foundation vertical slice. This sprint adds provider-agnostic local process execution infrastructure beneath the Adapter layer, outside `src/kernel`, without introducing any production provider integration.
+
+Implemented scope:
+
+- Added `src/adapters/runtime/local-process-runtime.ts`.
+- Added `LocalProcessRuntimeContract` so Adapters consume a runtime abstraction rather than operating-system process APIs.
+- Added immutable runtime value objects: `ProcessRequest`, `ProcessExecutionOptions`, `ProcessResult`, `ProcessExitStatus`, and `ProcessDiagnostics`.
+- Added explicit runtime errors for invalid request and result definitions.
+- Implemented process launch, stdout/stderr capture, exit status, execution duration, timeout termination, cancellation termination, and deterministic diagnostics.
+- Added unit tests for value-object validation, successful execution, non-zero exit, executable-not-found, startup failure, timeout, cancellation, and abnormal termination.
+- Added an Adapter-layer integration proof using a separate test-only Adapter that consumes `LocalProcessRuntime`; `MockAdapter` remains unchanged.
+
+Out of scope and not implemented:
+
+- GitHub Copilot CLI, Claude CLI, Codex CLI, Gemini CLI, OpenAI, Azure OpenAI, or any production provider integration.
+- Authentication, login management, credential storage, provider configuration, provider discovery, provider capability negotiation.
+- Parallel execution, process pools, retries, fallback execution, scheduling, prioritization, Adapter Selection Policy, routing, capability scoring, provider preference, fallback selection, or load balancing.
+- CLI/response interpretation, markdown interpretation, JSON payload semantics, provider protocol validation, prompt interpretation, and `COPILOT_INSTRUCTIONS.md`.
+- Kernel architectural changes, Kernel imports of runtime code, Adapter Contract changes, Execution Strategy changes, Role Assignment changes, Domain Events, repositories, or `MockAdapter` modifications.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0008 — Kernel Adapter Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Provider-agnostic process execution infrastructure beneath Adapters.
+- Immutable process request, execution options, process result, exit status, and diagnostics value objects.
+- Deterministic process lifecycle handling: launch, output capture, exit status, timeout, cancellation, and diagnostics.
+- Adapter-layer integration proof without changing the Kernel or `MockAdapter`.
+
+Deferred Concepts:
+
+- All production provider integrations and provider runtime features.
+- Process orchestration, retries, scheduling, fallback execution, and process pools.
+- Adapter Selection Policy / routing / prioritization.
+- CLI interpretation and provider protocol semantics.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration.md`.
+- `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `LocalProcessRuntime` is Adapter-layer infrastructure, not a Kernel capability, and therefore belongs under `src/adapters/runtime/`.
+- Adapters consume `LocalProcessRuntimeContract`; operating-system process management remains encapsulated inside the concrete runtime implementation.
+- Runtime diagnostics are process-execution diagnostics; provider-specific interpretation remains the responsibility of future provider Adapters.
+- A test-only Adapter is sufficient to prove Adapter-layer integration while preserving `MockAdapter`'s approved in-process behavior.
+
+### Known Limitations
+
+- The runtime executes only local processes and does not implement remote or distributed execution.
+- Timeout and cancellation terminate the spawned process; no process-tree management, retry, or cleanup orchestration is introduced.
+- The runtime does not parse or interpret CLI responses.
+- No production Adapter consumes the runtime yet.
+
+### Validation Summary
+
+- Targeted Sprint 21 validation passed: 3 files, 12 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 41 files, 232 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 20 — Execution Pipeline Integration
 
 ### Implemented Slice

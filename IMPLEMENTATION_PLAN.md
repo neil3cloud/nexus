@@ -924,7 +924,7 @@ Sprint 18's review cycle is complete with no open findings, and with it, Milesto
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved)
 
 Objective
 
@@ -1042,8 +1042,121 @@ See `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration
 
 ---
 
+## Sprint 21 — Local Process Runtime Foundation
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-021)
+
+Objective
+
+Implement a provider-agnostic Local Process Runtime enabling the Adapter layer to execute local processes deterministically, without introducing any production AI provider integration. Splits "production provider Adapter integration" into two bounded steps: this sprint (generic process execution, no provider, no auth, no network) and a future sprint (a specific provider Adapter built on top of it).
+
+RFC Coverage
+
+- RFC-0008 — Kernel Adapter Contract (Partial)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is explicitly not the production-provider-integration sprint that ratification names as the activation trigger.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+
+Critical Boundary
+
+`LocalProcessRuntime` and its supporting types are Adapter-layer infrastructure, not a Kernel capability — RFC-0010 § Execution Responsibilities forbids the Kernel from implementing "external tool execution." All new code SHALL live outside `src/kernel` (e.g., `src/adapters/runtime/`); Sprint 18's `src/kernel` import-graph boundary test SHALL continue to pass unmodified.
+
+Critical Guardrail
+
+`MockAdapter`'s Sprint 19-approved baseline ("never invoke external processes") is an Approved Vertical Slice and remains frozen except to correct a genuine, reported implementation defect (the Constitution's own narrow exception). `LocalProcessRuntime` integration SHALL be proven via dedicated tests or a new, separate test-only Adapter — not by redesigning or extending `MockAdapter` itself.
+
+Authorized Scope
+
+- `LocalProcessRuntime`, `ProcessRequest`, `ProcessResult`, `ProcessExecutionOptions`, `ProcessExitStatus`, `ProcessDiagnostics` — process launch, output capture, exit status, timeout, cancellation, deterministic diagnostics.
+- Integration proof beneath the Adapter layer without modifying `MockAdapter`.
+
+Deferred Concepts
+
+- All production provider integrations (GitHub Copilot CLI, Claude CLI, Codex CLI, Gemini CLI, OpenAI, Azure OpenAI), authentication, credential storage, provider discovery/negotiation.
+- Process orchestration: parallel execution, process pools, retries, fallback execution, scheduling, prioritization.
+- Adapter Selection Policy (unaffected, per `NEXUS-RAT-2026-07-13-011`).
+- CLI/response interpretation (markdown, JSON payload semantics, provider protocol validation).
+- `COPILOT_INSTRUCTIONS.md`.
+
+Definition of Done
+
+- Deterministic local process execution with timeout and cancellation support, fully unit tested.
+- Runtime placed outside `src/kernel`; Sprint 18's boundary test passes unmodified.
+- `MockAdapter`'s Sprint 19-approved behavior unchanged.
+- No production provider, authentication, or Kernel architectural change introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Added `LocalProcessRuntime` under `src/adapters/runtime/`, outside `src/kernel`.
+- Added `LocalProcessRuntimeContract` so Adapters consume a runtime abstraction instead of operating-system process APIs.
+- Added immutable runtime value objects: `ProcessRequest`, `ProcessExecutionOptions`, `ProcessResult`, `ProcessExitStatus`, and `ProcessDiagnostics`.
+- Implemented provider-agnostic process launch, stdout/stderr capture, exit status, timeout termination, cancellation termination, and deterministic diagnostics for executable-not-found, startup failure, timeout, cancellation, abnormal termination, and non-zero exit code.
+- Added unit coverage for runtime value-object validation and deterministic process execution behavior.
+- Added an Adapter-layer integration proof using a separate test-only Adapter; `MockAdapter` remains unchanged.
+- Preserved Kernel boundaries: no `src/kernel` source change was introduced by Sprint 21.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 41 files / 232 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 22 — Adapter Runtime Operational Metadata
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-022)
+
+Objective
+
+Make the certified Adapter Runtime operationally self-describing (installation detection, health status, runtime diagnostics, configuration metadata for a concrete Adapter instance) before any live production provider is introduced. This is an implementation refinement of the existing RFC-0008 Adapter architecture — no new architectural layer, no new registry.
+
+Governance History
+
+An earlier draft proposed a parallel "Provider" vocabulary (`ProviderMetadata`, `ProviderCapability`, `ProviderRegistry`) mis-citing "RFC-0008 — Provider Contract," and conflated `ProviderCapability` with Engineering Roles (`Builder`, `Reviewer`), directly contradicting RFC-0008's rule that Capabilities SHALL NOT redefine Engineering Roles. This was flagged and rejected during `/nexus-plan`; the Sprint Owner reframed the sprint entirely in terms of the existing Adapter vocabulary. No RFC Amendment or ADR was required since no new architectural concept survives into this record.
+
+RFC Coverage
+
+- RFC-0008 — Kernel Adapter Contract (Primary, Partial)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md`'s activation point is pushed to when the first live provider executes inside the completed Nexus host, per explicit Sprint Owner direction this sprint; not created or consumed this sprint.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+
+Critical Boundary (two rules)
+
+1. `AdapterCapability`'s supported-value list (`src/kernel/adapter/adapter-capability.ts`) may be additively extended with new technical-capability values (e.g., CLI, Streaming, Chat, Completion) — the sole authorized Kernel change this sprint, consistent with RFC-0008's non-exhaustive capability list. `Builder`/`Reviewer` SHALL NOT appear as capability values.
+2. Everything else (installation detection, health status, diagnostics, configuration) is Adapter-layer implementation tooling and SHALL live outside `src/kernel`, mirroring the Sprint 19/21 precedent. `AdapterLifecycle`, `AdapterRegistry`, and `AdapterMetadata`'s existing fields remain frozen.
+
+Deferred Concepts
+
+- Any `Provider`-prefixed type or second runtime registry; live provider integration; authentication; provider protocol translation; Adapter Selection Policy; Host/VS Code integration; `COPILOT_INSTRUCTIONS.md`.
+
+Definition of Done
+
+- Deterministic, immutable installation/health/diagnostics/configuration models exist outside `src/kernel`.
+- The only Kernel change (if any) is the additive `AdapterCapability` extension; no other `src/kernel` file changes.
+- No second registry; `AdapterRegistry` remains sole registry; `AdapterLifecycle` unchanged.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Added immutable Adapter-layer operational metadata models under `src/adapters/runtime/`: `AdapterInstallationStatus`, `AdapterHealthStatus`, `AdapterRuntimeDiagnostics`, and `AdapterConfiguration`.
+- Added `AdapterExecutableDiscovery`, using `LocalProcessRuntimeContract` for short-lived executable/version probes.
+- Extended `AdapterCapability` with technical capability values `CLI`, `Chat`, and `Completion`; `Builder` and `Reviewer` remain rejected as capabilities.
+- Preserved `AdapterRegistry` as the sole registry and left `AdapterLifecycle`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, and Role Assignment unchanged.
+- Preserved all deferred concepts: no Provider-prefixed types, second registry, live provider execution, authentication, provider protocol translation, Host integration, Adapter Selection Policy, or `COPILOT_INSTRUCTIONS.md`.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 42 files / 236 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0022-adapter-runtime-operational-metadata.md` for the complete Sprint Implementation Record.
+
+---
+
 ## Future Sprint Planning (Milestone 4)
 
-Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020)
+Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022)
 
-Sprint 20's review cycle is complete with no open findings. No Sprint 21 exists in this Implementation Plan. Sequencing beyond Sprint 20 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.
+Sprint 22's review cycle is complete with no open findings. No Sprint 23 exists in this Implementation Plan. Sequencing beyond Sprint 22 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.

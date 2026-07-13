@@ -39,8 +39,12 @@ describe('Adapter value objects', () => {
 
     expect(capability.toString()).toBe('StaticAnalysis');
     expect(capability.equals(AdapterCapability.fromString('StaticAnalysis'))).toBe(true);
+    expect(AdapterCapability.fromString('CLI').toString()).toBe('CLI');
+    expect(AdapterCapability.fromString('Chat').toString()).toBe('Chat');
+    expect(AdapterCapability.fromString('Completion').toString()).toBe('Completion');
     expect(Object.isFrozen(capability)).toBe(true);
     expect(() => AdapterCapability.fromString('Builder')).toThrow(InvalidAdapterDefinitionError);
+    expect(() => AdapterCapability.fromString('Reviewer')).toThrow(InvalidAdapterDefinitionError);
   });
 
   it('validates deterministic lifecycle transitions', () => {

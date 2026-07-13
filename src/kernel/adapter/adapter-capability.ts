@@ -6,6 +6,9 @@ export const supportedAdapterCapabilities = [
   'StaticAnalysis',
   'DocumentationGeneration',
   'TestGeneration',
+  'CLI',
+  'Chat',
+  'Completion',
 ] as const;
 
 export type AdapterCapabilityName = (typeof supportedAdapterCapabilities)[number];
