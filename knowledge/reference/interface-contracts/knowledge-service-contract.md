@@ -12,6 +12,10 @@ Define capture and evolution of accepted Knowledge.
 
 - captureKnowledge(command)
 - reviseKnowledge(command)
+- approveKnowledge(command)
+- activateKnowledge(command)
+- supersedeKnowledge(command)
+- archiveKnowledge(command)
 - queryKnowledge(query)
 
 ## Command/Query Shape

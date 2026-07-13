@@ -72,7 +72,11 @@ export class ReviewService extends ServiceLifecycle implements ReviewServiceCont
     const eventBus = this.requireEventBus();
     const review = await this.requireReview(command.reviewId);
 
-    review.complete(command.outcome, this.createEventMetadata());
+    review.complete(
+      command.outcome,
+      this.createEventMetadata(),
+      requiresOutcomeSpecificEvent(command.outcome) ? this.createEventMetadata() : undefined,
+    );
 
     await this.repository.save(review);
     await this.publishRecordedEvents(review, eventBus);
@@ -140,6 +144,16 @@ export class ReviewService extends ServiceLifecycle implements ReviewServiceCont
 
 function normalizeReviewId(reviewId: ReviewId | string): ReviewId {
   return typeof reviewId === 'string' ? ReviewId.fromString(reviewId) : reviewId;
+}
+
+function requiresOutcomeSpecificEvent(outcome: string): boolean {
+  const normalizedOutcome = outcome.trim();
+
+  return (
+    normalizedOutcome === 'Accepted' ||
+    normalizedOutcome === 'Accepted With Observations' ||
+    normalizedOutcome === 'Rejected'
+  );
 }
 
 function toReviewResult(review: Review): ReviewResult {

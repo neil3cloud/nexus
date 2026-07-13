@@ -152,10 +152,13 @@ describe('ReviewService', () => {
       sequence([
         'event-started-accepted',
         'event-completed-accepted',
+        'event-accepted',
         'event-started-observed',
         'event-completed-observed',
+        'event-observed',
         'event-started-rejected',
         'event-completed-rejected',
+        'event-rejected',
         'event-started-action',
         'event-finding-created',
         'event-completed-action',

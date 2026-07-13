@@ -155,7 +155,7 @@ Only one Plan may be Active.
 ## States
 
 ```
-Pending
+Planned
 
 ↓
 
@@ -163,11 +163,7 @@ Ready
 
 ↓
 
-Assigned
-
-↓
-
-Executing
+InProgress
 
 ↓
 
@@ -177,8 +173,6 @@ Completed
 Alternative
 
 ```
-Blocked
-
 Cancelled
 ```
 
@@ -186,15 +180,16 @@ Cancelled
 
 ## Transition Table
 
-| Current   | Event                 | Next      |
-| --------- | --------------------- | --------- |
-| Pending   | DependenciesSatisfied | Ready     |
-| Ready     | AssignmentCreated     | Assigned  |
-| Assigned  | TaskStarted           | Executing |
-| Executing | TaskCompleted         | Completed |
-| Any       | DependencyBlocked     | Blocked   |
-| Blocked   | DependencyResolved    | Ready     |
-| Pending   | TaskCancelled         | Cancelled |
+| Current    | Transition                              | Next       |
+| ---------- | --------------------------------------- | ---------- |
+| Planned    | Task marked ready                       | Ready      |
+| Ready      | TaskStarted                             | InProgress |
+| InProgress | TaskCompleted                           | Completed  |
+| Planned    | TaskCancelled                           | Cancelled  |
+| Ready      | TaskCancelled                           | Cancelled  |
+| InProgress | TaskCancelled                           | Cancelled  |
+
+`TaskReady` publication remains deferred until an implemented Task Coordinator producer exists.
 
 ---
 
@@ -202,7 +197,7 @@ Cancelled
 
 Tasks SHALL belong to one Mission Plan.
 
-Completed Tasks SHALL NOT return to Executing.
+Completed Tasks SHALL NOT return to InProgress.
 
 Cancelled Tasks SHALL remain terminal.
 

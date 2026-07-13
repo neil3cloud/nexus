@@ -8,6 +8,7 @@
 
 - Knowledge capture interface
 - Knowledge revision interface
+- Knowledge lifecycle advancement interface
 - Knowledge retrieval interface
 
 ## Responsibilities
@@ -26,8 +27,11 @@
 
 - Publishes KnowledgeCandidateCreated for completed `captureKnowledge` transitions
 - Publishes KnowledgeRevisionCreated for completed `reviseKnowledge` transitions
+- Publishes KnowledgeAccepted for completed `approveKnowledge` transitions
+- Publishes KnowledgePublished for completed `activateKnowledge` transitions
+- Publishes KnowledgeSuperseded for completed `supersedeKnowledge` transitions
+- Publishes KnowledgeArchived for completed `archiveKnowledge` transitions
 - Does not subscribe to domain events
-- Deferred: KnowledgeAccepted, KnowledgePublished, KnowledgeSuperseded, and KnowledgeArchived remain unimplemented until their corresponding lifecycle-advancement service operations are authorized
 
 ## Persistence
 

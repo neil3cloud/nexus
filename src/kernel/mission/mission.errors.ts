@@ -51,6 +51,13 @@ export class MissionEventPublisherUnavailableError extends MissionDomainError {
   }
 }
 
+export class MissionPlanningEventPublisherUnavailableError extends MissionDomainError {
+  public constructor() {
+    super('MissionPlanningService requires an EventBusContract to publish MissionPlan and Task domain events.');
+    this.name = 'MissionPlanningEventPublisherUnavailableError';
+  }
+}
+
 export class MissionPlanningValidationError extends MissionDomainError {
   public constructor(message: string) {
     super(message);

@@ -83,7 +83,7 @@ export function createAcceptedReview(
   });
 
   review.start(metadata(`event-started-${id}`));
-  review.complete(outcome, metadata(`event-completed-${id}`));
+  review.complete(outcome, metadata(`event-completed-${id}`), metadata(`event-outcome-${id}`));
   review.pullDomainEvents();
 
   return review;
@@ -99,7 +99,7 @@ export function createRejectedReview(): Review {
   });
 
   review.start(metadata('event-started-review'));
-  review.complete('Rejected', metadata('event-completed-review'));
+  review.complete('Rejected', metadata('event-completed-review'), metadata('event-rejected-review'));
   review.pullDomainEvents();
 
   return review;

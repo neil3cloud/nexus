@@ -235,94 +235,6 @@ Payload
 
 ---
 
-## MissionPlanRevised
-
-Aggregate
-
-Mission
-
-Producer
-
-Mission Service
-
-Consumers
-
-- Execution Service
-- Event Store
-
-Payload
-
-- Mission Identifier
-- Mission Plan Revision
-
----
-
-## TaskAdded
-
-Aggregate
-
-Mission
-
-Producer
-
-Mission Service
-
-Consumers
-
-- Execution Service
-- Event Store
-
-Payload
-
-- Mission Identifier
-- Task Identifier
-
----
-
-## TaskCompleted
-
-Aggregate
-
-Mission
-
-Producer
-
-Mission Service
-
-Consumers
-
-- Mission Service
-- Event Store
-
-Payload
-
-- Mission Identifier
-- Task Identifier
-
----
-
-## TaskRemoved
-
-Aggregate
-
-Mission
-
-Producer
-
-Mission Service
-
-Consumers
-
-- Execution Service
-- Event Store
-
-Payload
-
-- Mission Identifier
-- Task Identifier
-
----
-
 ## MissionReviewed
 
 Aggregate
@@ -410,15 +322,15 @@ Payload
 
 Producer
 
-Planning Service
+MissionPlanningService
 
 ---
 
 ## MissionPlanActivated
 
-Producer
+Deferred
 
-Planning Service
+No implemented operation exists.
 
 ---
 
@@ -426,19 +338,11 @@ Planning Service
 
 Producer
 
-Execution Strategy
+MissionPlanningService
 
 Consumers
 
 Task Coordination
-
----
-
-## MissionPlanSuperseded
-
-Producer
-
-Planning Service
 
 ---
 
@@ -448,13 +352,21 @@ Planning Service
 
 Producer
 
-Planning Service
+MissionPlanningService
+
+---
+
+## TaskRemoved
+
+Deferred
+
+Unpublished; producer attribution pending future ratification.
 
 ---
 
 ## TaskReady
 
-Producer
+Deferred Producer
 
 Task Coordinator
 
@@ -462,7 +374,7 @@ Task Coordinator
 
 ## TaskAssigned
 
-Producer
+Deferred Producer
 
 Execution Strategy
 
@@ -476,7 +388,7 @@ Adapter
 
 Producer
 
-Adapter
+MissionExecutionService
 
 ---
 
@@ -484,7 +396,7 @@ Adapter
 
 Producer
 
-Adapter
+MissionExecutionService
 
 Consumers
 
@@ -494,7 +406,7 @@ Review Service
 
 ## TaskBlocked
 
-Producer
+Deferred Producer
 
 Execution Strategy
 
@@ -504,7 +416,7 @@ Execution Strategy
 
 Producer
 
-Mission Service
+MissionExecutionService
 
 ---
 
@@ -771,6 +683,14 @@ Knowledge Service
 ---
 
 ## KnowledgePublished
+
+Producer
+
+Knowledge Service
+
+---
+
+## KnowledgeSuperseded
 
 Producer
 

@@ -11,10 +11,18 @@ import type { IReviewRepository } from '../review/review.repository';
 import { Knowledge } from './knowledge.aggregate';
 import type {
   KnowledgeCaptureRequest,
+  KnowledgeLifecycleRequest,
   KnowledgeServiceContract,
   QueryKnowledgeRequest,
   ReviseKnowledgeRequest,
 } from './knowledge.contract';
+import type { KnowledgeDomainEvent } from './knowledge.events';
+import {
+  createKnowledgeAcceptedEvent,
+  createKnowledgeArchivedEvent,
+  createKnowledgePublishedEvent,
+  createKnowledgeSupersededEvent,
+} from './knowledge.events';
 import {
   KnowledgeEventPublisherUnavailableError,
   KnowledgeNotFoundError,
@@ -88,6 +96,38 @@ export class KnowledgeService extends ServiceLifecycle implements KnowledgeServi
     return revisedKnowledge.toSnapshot();
   }
 
+  public async approveKnowledge(request: KnowledgeLifecycleRequest): Promise<KnowledgeSnapshot> {
+    return this.advanceKnowledgeLifecycle(
+      request,
+      (knowledge) => knowledge.approve(),
+      createKnowledgeAcceptedEvent,
+    );
+  }
+
+  public async activateKnowledge(request: KnowledgeLifecycleRequest): Promise<KnowledgeSnapshot> {
+    return this.advanceKnowledgeLifecycle(
+      request,
+      (knowledge) => knowledge.activate(),
+      createKnowledgePublishedEvent,
+    );
+  }
+
+  public async supersedeKnowledge(request: KnowledgeLifecycleRequest): Promise<KnowledgeSnapshot> {
+    return this.advanceKnowledgeLifecycle(
+      request,
+      (knowledge) => knowledge.supersede(),
+      createKnowledgeSupersededEvent,
+    );
+  }
+
+  public async archiveKnowledge(request: KnowledgeLifecycleRequest): Promise<KnowledgeSnapshot> {
+    return this.advanceKnowledgeLifecycle(
+      request,
+      (knowledge) => knowledge.archive(),
+      createKnowledgeArchivedEvent,
+    );
+  }
+
   public async retrieveKnowledge(request: QueryKnowledgeRequest): Promise<KnowledgeSnapshot> {
     return (await this.requireKnowledge(request.knowledgeId)).toSnapshot();
   }
@@ -106,6 +146,20 @@ export class KnowledgeService extends ServiceLifecycle implements KnowledgeServi
     }
 
     return knowledge;
+  }
+
+  private async advanceKnowledgeLifecycle(
+    request: KnowledgeLifecycleRequest,
+    transition: (knowledge: Knowledge) => Knowledge,
+    createEvent: (knowledge: Knowledge, metadata: ReturnType<KnowledgeService['createEventMetadata']>) => KnowledgeDomainEvent,
+  ): Promise<KnowledgeSnapshot> {
+    const eventBus = this.requireEventBus();
+    const advancedKnowledge = transition(await this.requireKnowledge(request.knowledgeId));
+
+    await this.repository.save(advancedKnowledge);
+    await eventBus.publish(createEvent(advancedKnowledge, this.createEventMetadata()));
+
+    return advancedKnowledge.toSnapshot();
   }
 
   private createEventMetadata(): {

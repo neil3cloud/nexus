@@ -30,6 +30,22 @@ class TestLogger implements KernelLogger {
   public error(): void {}
 }
 
+class FailingSaveMissionPlanRepository extends InMemoryMissionRepository {
+  private failMissionPlanSaves = false;
+
+  public failNextMissionPlanSaves(): void {
+    this.failMissionPlanSaves = true;
+  }
+
+  public override async saveMissionPlan(missionPlan: MissionPlan): Promise<void> {
+    if (this.failMissionPlanSaves) {
+      throw new Error('Save MissionPlan failed.');
+    }
+
+    await super.saveMissionPlan(missionPlan);
+  }
+}
+
 function metadata(eventId: string): DomainEventMetadata {
   return {
     eventId,
@@ -110,7 +126,14 @@ describe('MissionExecutionService', () => {
     const service = new MissionExecutionService(
       repository,
       eventBus,
-      sequence(['event-started', 'event-completed']),
+      sequence([
+        'event-mission-started',
+        'event-task-1-started',
+        'event-task-1-completed',
+        'event-task-2-started',
+        'event-task-2-completed',
+        'event-mission-completed',
+      ]),
       () => timestamp,
     );
     const mission = createReadyMission();
@@ -143,6 +166,10 @@ describe('MissionExecutionService', () => {
     expect(persistedPlan?.tasks.map((task) => task.status)).toEqual(['Completed', 'Completed']);
     expect(eventBus.replay('mission-1').map((event) => event.eventType)).toEqual([
       'MissionStarted',
+      'TaskStarted',
+      'TaskCompleted',
+      'TaskStarted',
+      'TaskCompleted',
       'MissionCompleted',
     ]);
   });
@@ -166,7 +193,12 @@ describe('MissionExecutionService', () => {
     const service = new MissionExecutionService(
       repository,
       eventBus,
-      sequence(['event-started', 'event-completed']),
+      sequence([
+        'event-mission-started',
+        'event-rejected-start',
+        'event-task-cancelled',
+        'event-rejected-restart',
+      ]),
     );
 
     await repository.save(createReadyMission());
@@ -182,6 +214,7 @@ describe('MissionExecutionService', () => {
     );
     expect(eventBus.replay('mission-1').map((event) => event.eventType)).toEqual([
       'MissionStarted',
+      'TaskCancelled',
     ]);
   });
 
@@ -190,7 +223,7 @@ describe('MissionExecutionService', () => {
     const service = new MissionExecutionService(
       repository,
       new EventBus(new TestLogger()),
-      sequence(['event-started', 'event-completed']),
+      sequence(['event-mission-started', 'event-rejected-completion']),
     );
 
     await repository.save(createReadyMission());
@@ -233,7 +266,14 @@ describe('MissionExecutionService', () => {
     const executionService = new MissionExecutionService(
       repository,
       eventBus,
-      sequence(['event-started', 'event-completed']),
+      sequence([
+        'event-started',
+        'event-task-1-started',
+        'event-task-1-completed',
+        'event-task-2-started',
+        'event-task-2-completed',
+        'event-completed',
+      ]),
       () => timestamp,
     );
 
@@ -275,6 +315,26 @@ describe('MissionExecutionService', () => {
         eventId: 'event-started',
         eventType: 'MissionStarted',
         causality: ['event-ready'],
+      },
+      {
+        eventId: 'event-task-1-started',
+        eventType: 'TaskStarted',
+        causality: [],
+      },
+      {
+        eventId: 'event-task-1-completed',
+        eventType: 'TaskCompleted',
+        causality: [],
+      },
+      {
+        eventId: 'event-task-2-started',
+        eventType: 'TaskStarted',
+        causality: [],
+      },
+      {
+        eventId: 'event-task-2-completed',
+        eventType: 'TaskCompleted',
+        causality: [],
       },
       {
         eventId: 'event-reviewed',
@@ -323,5 +383,53 @@ describe('MissionExecutionService', () => {
     expect(cancellingEventBus.replay('mission-1').map((event) => event.eventType)).toEqual([
       'MissionCancelled',
     ]);
+  });
+
+  it('publishes TaskStarted, TaskCompleted, and TaskCancelled only after MissionPlan persistence', async () => {
+    const cases = [
+      {
+        eventId: 'event-task-started',
+        operation: (service: MissionExecutionService) =>
+          service.startTask({ missionId: 'mission-1', taskId: 'task-1' }),
+      },
+      {
+        eventId: 'event-task-completed',
+        prepare: (missionPlan: MissionPlan) => {
+          missionPlan.startTask(TaskId.fromString('task-1'));
+        },
+        operation: (service: MissionExecutionService) =>
+          service.completeTask({ missionId: 'mission-1', taskId: 'task-1' }),
+      },
+      {
+        eventId: 'event-task-cancelled',
+        operation: (service: MissionExecutionService) =>
+          service.cancelTask({ missionId: 'mission-1', taskId: 'task-1' }),
+      },
+    ];
+
+    for (const item of cases) {
+      const repository = new FailingSaveMissionPlanRepository();
+      const eventBus = new EventBus(new TestLogger());
+      const service = new MissionExecutionService(
+        repository,
+        eventBus,
+        sequence([item.eventId]),
+        () => timestamp,
+      );
+      const mission = createReadyMission();
+      const missionPlan = createExecutableMissionPlan();
+
+      await repository.save(mission);
+      await repository.saveMissionPlan(missionPlan);
+      mission.start(metadata('event-mission-started'));
+      mission.pullDomainEvents();
+      await repository.save(mission);
+      item.prepare?.(missionPlan);
+      await repository.saveMissionPlan(missionPlan);
+      repository.failNextMissionPlanSaves();
+
+      await expect(item.operation(service)).rejects.toThrow('Save MissionPlan failed.');
+      expect(eventBus.replay('mission-1')).toEqual([]);
+    }
   });
 });

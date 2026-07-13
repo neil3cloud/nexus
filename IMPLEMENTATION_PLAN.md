@@ -14,7 +14,24 @@ Each sprint SHALL deliver a working, testable increment while preserving conform
 
 ---
 
-# Milestone 1 — Foundation
+# Milestone 1 — Core Mission Kernel
+
+Status: ✅ COMPLETE
+
+Objective
+
+Establish the Mission domain: Mission, Mission Planning, and Mission Execution, atop the VS Code extension host bootstrap.
+
+RFC Coverage
+
+- RFC-0009 — Host Contract (Partial)
+- RFC-0001 — Mission Model (Partial)
+
+Governance Note
+
+Sprint 2 (Mission Foundation), Sprint 3 (Mission Planning), and Sprint 4 (Mission Execution) predate `REVIEW_HISTORY.md`'s existence and are recorded as Historically Accepted Governance Deviations per NEXUS-RAT-2026-07-13-008 — see each sprint's status line below. This does not diminish Milestone 1's completion; it is corroborated by eleven-to-thirteen subsequent independently-reviewed sprints building on this foundation without defect.
+
+---
 
 ## Sprint 1 — VS Code Extension Foundation
 
@@ -37,7 +54,7 @@ RFC Coverage
 
 ## Sprint 2 — Mission Foundation
 
-Status: Implemented — Review Remediation Complete, Pending Reviewer Validation
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). Implemented and remediated prior to `REVIEW_HISTORY.md`'s existence; no persisted Reviewer certification exists or is fabricated retroactively. Superseded in practice by Sprint 3/4 and eleven subsequent independently-reviewed sprints building on this foundation without defect.
 
 Objective
 
@@ -72,13 +89,13 @@ Definition of Done
 - All Mission tests pass.
 - Lifecycle conforms to RFC-0001 for implemented Mission states and transitions.
 - Deferred RFC-0001 concepts remain unimplemented.
-- Reviewer approval pending.
+- Historically Accepted Governance Deviation per NEXUS-RAT-2026-07-13-008; no persisted Reviewer certification exists.
 
 ---
 
 ## Sprint 3 — Mission Planning
 
-Status: Implemented — Kernel Integration Remediation Complete, Pending Reviewer Validation
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). Remediation tasks below cite reviews (`NEXUS-REV-2026-07-12-003`/`-004`) that were never persisted to `REVIEW_HISTORY.md`; no fabricated retroactive certification is recorded. Superseded in practice by twelve subsequent independently-reviewed sprints building on this foundation without defect.
 
 RFC Coverage
 
@@ -104,7 +121,7 @@ Review Remediation
 
 ## Sprint 4 — Mission Execution
 
-Status: Implemented — Pending Reviewer Validation
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). Implemented prior to `REVIEW_HISTORY.md`'s existence; no persisted Reviewer certification exists or is fabricated retroactively. Superseded in practice by eleven subsequent independently-reviewed sprints building on this foundation without defect.
 
 RFC Coverage
 
@@ -150,6 +167,33 @@ Definition of Done
 - MissionExecutionService coordinates repository loading, aggregate calls, and persistence only.
 - Execution remains deterministic and provider-agnostic.
 - Unit tests cover aggregate execution, invalid transitions, dependency violations, completion rejection, service orchestration, and repository persistence.
+
+---
+
+# Milestone 2 — AI Collaboration Kernel
+
+Status: ✅ COMPLETE (Sprint 5 through Sprint 15)
+
+Objective
+
+Build the Nexus Kernel's remaining core domains and their event-driven collaboration surface: Evidence, Shared Reality, the Adapter Framework, Execution Roles, Review, Execution Strategy, Domain Event publication across Mission/Evidence/Review/Knowledge/MissionPlan/Task, and Knowledge (capture through lifecycle advancement).
+
+RFC Coverage
+
+- RFC-0002 — Evidence Model (Partial)
+- RFC-0003 — Shared Reality Projection Model (Partial)
+- RFC-0004 — Execution Model (Partial)
+- RFC-0005 — Domain Event Model (Partial)
+- RFC-0006 — Engineering Assessment Model (Partial)
+- RFC-0007 — Knowledge Model (Partial)
+- RFC-0008 — Kernel Adapter Contract (Partial)
+- RFC-0001 — Mission Model (Partial, extended via Sprint 15's Mission Plan/Task Event Publication)
+
+Governance Note
+
+Every sprint in this milestone (5 through 15) carries a persisted Reviewer certification in `REVIEW_HISTORY.md`, each closed with no open findings.
+
+See the Milestone 2 Completion Report (`knowledge/implementation/milestone-2-completion-report.md`) for the full outcome summary.
 
 ---
 
@@ -625,3 +669,178 @@ Definition of Done
 - Unit tests cover event recording, the event-recording contract, and service-level publication for both operations.
 
 See `knowledge/implementation/sprints/sprint-0013-knowledge-event-publication.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 14 — Knowledge Lifecycle Advancement
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-009; documentation finding closed by NEXUS-REV-2026-07-13-010)
+
+Objective
+
+Extend `KnowledgeService` with the four lifecycle-advancement operations — `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, `archiveKnowledge` — deferred by Sprint 12 and Sprint 13, publishing their already-ratified events `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, and `KnowledgeArchived` per NEXUS-RAT-2026-07-13-005, following the exact save-then-publish pattern established in Sprint 13.
+
+RFC Coverage
+
+- RFC-0005 — Domain Event Model (Partial, extending the Sprint 11/13 pattern)
+- RFC-0007 — Knowledge Model (Referenced — exercises the already-normative Memory Lifecycle states)
+
+Ratification
+
+- NEXUS-RAT-2026-07-13-005 — ratifies implementation of `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, `archiveKnowledge` and their already-named events, previously deferred by NEXUS-RAT-2026-07-13-004. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are unmodified.
+
+Authorized Concepts
+
+- `KnowledgeService` operations `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, `archiveKnowledge`, each a thin orchestration calling the corresponding existing frozen `Knowledge` aggregate method.
+- `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, `KnowledgeArchived` event publication, save-then-publish, mirroring Sprint 13.
+
+Deferred Concepts
+
+- Successor-reference modeling (a "supersedes"/"supersededBy" link between Knowledge items).
+- Authorization/policy enforcement for who may call the lifecycle-advancement operations.
+- Event subscriptions/consumers.
+- Context Assembly consumption of Knowledge.
+- Mission Plan Events, Task Events, Execution Strategy Events (unresolved Task Lifecycle naming mismatch).
+- Shared Reality, Context Package, and Policy Events.
+- Durable Event Streams.
+
+Definition of Done
+
+- `KnowledgeService` gains exactly the four lifecycle-advancement operations, each matching the Sprint 13 save-then-publish pattern.
+- No new business precondition, authorization check, or successor-reference field is introduced.
+- Events publish only after successful persistence; illegal transitions continue to raise `InvalidKnowledgeLifecycleTransitionError` unchanged.
+- No event subscription or consumer is introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover all four operations' publication, persistence-failure handling, not-found handling, illegal-transition handling, and deterministic publication.
+
+See `knowledge/implementation/sprints/sprint-0014-knowledge-lifecycle-advancement.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 15 — Mission Plan & Task Event Publication
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-011; TASK-001 remediation verified by NEXUS-REV-2026-07-13-012; TASK-002 remediation verified by NEXUS-REV-2026-07-13-013, authorized by NEXUS-RAT-2026-07-13-007 — review cycle complete with no open findings). No Sprint 16 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first workflow).
+
+Objective
+
+Complete Kernel-owned Domain Event publication by extending the established save-then-publish pattern (Mission: Sprint 2; Evidence/Review: Sprint 11; Knowledge: Sprint 13/14) to the `MissionPlan` and `Task` aggregates, publishing events for previously implemented lifecycle operations only. Closes the deferred concept first recorded in Sprint 11 and carried forward, unresolved, through Sprint 13 and Sprint 14.
+
+RFC Coverage
+
+- RFC-0005 — Domain Event Model (Partial, extending the Sprint 11/13 pattern)
+- RFC-0001 — Mission Model (Referenced — existing lifecycle operations only; Mission lifecycle semantics unchanged)
+
+Ratification
+
+- NEXUS-RAT-2026-07-13-006 — ratifies Sprint 3's `TaskStatus` as implementation-layer operational lifecycle vocabulary distinct from RFC-0004's normative Execution State; corrects `kernel-state-machine.md`'s Task Lifecycle to match; reattributes Mission Plan/Task Domain Event producers to `MissionPlanningService` (`MissionPlanCreated`, `MissionPlanRevised`, `TaskCreated`) and `MissionExecutionService` (`TaskStarted`, `TaskCompleted`, `TaskCancelled`); resolves a pre-existing `kernel-event-catalog.md` duplication (legacy `MissionPlanRevised`/`TaskAdded` under `# Mission Events`, and a redundant `MissionPlanSuperseded` entry); defers `MissionPlanActivated` (no implementing operation exists). RFC-0004, RFC-0005, and the Kernel Canon are unmodified.
+
+Authorized Concepts
+
+- `MissionPlanningService` optional `EventBusContract` injection, publishing `MissionPlanCreated`, `MissionPlanRevised`, `TaskCreated`.
+- `MissionExecutionService`'s already-required `EventBusContract` (Sprint 4 baseline) extended to publish `TaskStarted`, `TaskCompleted`, `TaskCancelled` from its existing Task execution operations.
+- `MissionPlan` and `Task` aggregate recorded-events collections and `pullDomainEvents()`, mirroring `Mission`'s established pattern.
+- `kernel-state-machine.md` Task Lifecycle correction to the approved Sprint 3 `TaskStatus` state set.
+- `kernel-event-catalog.md` producer reattribution and duplicate-entry reconciliation per NEXUS-RAT-2026-07-13-006.
+
+Deferred Concepts
+
+- `MissionPlanActivated` — no implemented operation exists.
+- `TaskReady`, `TaskAssigned`, `TaskBlocked` — Execution Strategy/Task Coordinator producer roles unimplemented.
+- Event subscriptions/consumers.
+- Knowledge, Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Definition of Done
+
+- `MissionPlan` and `Task` remain unmodified in business rules; only recorded-events infrastructure is added.
+- Events publish only after the corresponding state transition has been successfully persisted.
+- No new Task state or MissionPlan status field is introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Unit tests cover aggregate event recording, `pullDomainEvents()`, and service-level publication for all six authorized events.
+
+See `knowledge/implementation/sprints/sprint-0015-mission-plan-task-event-publication.md` for the complete Sprint Implementation Record.
+
+---
+
+# Milestone 3 — Kernel Integration & Composition
+
+Status: In Progress (Sprint 16 Approved)
+
+Objective
+
+Validate that the implemented Kernel bounded contexts compose correctly into a complete engineering workflow, exercising the actual composed services rather than isolated unit tests. This milestone marks the transition from implementing independent bounded contexts to validating the complete composed Kernel. No new foundational domains are introduced during this milestone unless explicitly authorized through a future Sprint Owner Ratification.
+
+Engineering Principle
+
+Beginning with Milestone 3, implementation priorities SHALL shift from introducing new domains to validating composed behavior. Future implementation SHALL prioritize integration, composition, deterministic execution, architectural correctness, cross-domain validation, and production readiness — driven by demonstrated integration needs rather than speculative architectural expansion.
+
+Planning Principle
+
+Future Sprint sequencing within this milestone is intentionally provisional.
+
+Following each approved Sprint, `nexus-plan` SHALL assess the repository state and determine the next implementation slice based on implementation experience, repository readiness, governance decisions, and approved ratifications.
+
+Approved vertical slices remain immutable.
+
+Expected Outcomes
+
+- End-to-end Mission workflow
+- Cross-domain integration
+- Event flow validation
+- Builder/Reviewer workflow integration
+- Adapter runtime integration
+- Context Package foundation
+- Repository-wide integration validation
+
+---
+
+## Sprint 16 — End-to-End Mission Workflow Integration Validation
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-014)
+
+Objective
+
+Validate that the implemented Kernel bounded contexts compose correctly into a complete engineering workflow, exercising the Kernel using the actual composed services (via `createKernelServices`) rather than isolated unit tests. This sprint validates the implementation; it does not expand the architecture.
+
+RFC Coverage
+
+- RFC-0001 — Mission Model (Referenced)
+- RFC-0002 — Evidence Model (Referenced)
+- RFC-0003 — Shared Reality Projection Model (Referenced)
+- RFC-0004 — Execution Model (Referenced)
+- RFC-0005 — Domain Event Model (Referenced)
+- RFC-0006 — Engineering Assessment Model (Referenced)
+- RFC-0007 — Knowledge Model (Referenced)
+
+Sprint 16 validates previously implemented behavior only; it introduces no new normative concepts.
+
+Authorized Scope
+
+- End-to-end integration test infrastructure exercising the composed Kernel through: Create Mission → Create Mission Plan → Create Tasks → Execute Tasks → Complete Mission → Perform Review → Capture Knowledge.
+- Composed-service validation, dependency-injection wiring verification, repository interaction validation, aggregate interaction validation, Domain Event ordering verification, cross-domain invariant validation.
+- Correction of implementation defects discovered during integration testing, provided they remain within existing approved architecture.
+
+Deferred Concepts
+
+- AI provider integrations (Claude CLI, GitHub Copilot, Gemini, Codex), Adapter runtime implementations, VS Code host integration, workflow/governance automation, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production/distributed infrastructure.
+
+Definition of Done
+
+- All Kernel services compose successfully; complete Mission workflow executes successfully.
+- Domain Events publish in deterministic, causally-correct order.
+- Aggregate boundaries remain intact; repositories coordinate correctly; dependency-injection wiring is valid.
+- Cross-domain invariants are preserved; repository-wide validation passes; no architectural regressions.
+
+See `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Future Sprint Planning
+
+Status: Milestone 2 Complete; Sprint 16 Approved (NEXUS-REV-2026-07-13-014)
+
+Milestone 2 completion assessed: see `knowledge/implementation/milestone-2-completion-report.md`.
+
+Repository readiness evaluated: see `knowledge/implementation/repository-readiness-assessment.md`.
+
+Sprint 16 is approved with no open findings. No Sprint 17 exists in this Implementation Plan. Sequencing beyond Sprint 16 within Milestone 3 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 3 slice via `/nexus-plan`.

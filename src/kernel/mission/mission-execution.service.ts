@@ -3,13 +3,13 @@ import { randomUUID } from 'node:crypto';
 import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import { Mission } from './mission.aggregate';
+import type { TaskExecutionRequest, MissionExecutionRequest } from './mission-execution.types';
 import { MissionId } from './mission-id';
 import { MissionPlan } from './mission-plan.aggregate';
 import {
   MissionExecutionValidationError,
   MissionNotFoundError,
 } from './mission.errors';
-import type { TaskExecutionRequest, MissionExecutionRequest } from './mission-execution.types';
 import type { DomainEventMetadata } from './mission.types';
 import type { IMissionPlanRepository, IMissionRepository } from './mission.repository';
 import { TaskId } from './task-id';
@@ -72,33 +72,34 @@ export class MissionExecutionService extends ServiceLifecycle {
   }
 
   public async startTask(request: TaskExecutionRequest): Promise<MissionPlan> {
-    return this.updateMissionPlanTask(request, (missionPlan, taskId) => {
-      missionPlan.startTask(taskId);
+    return this.updateMissionPlanTask(request, (missionPlan, taskId, metadata) => {
+      missionPlan.startTask(taskId, metadata);
     });
   }
 
   public async completeTask(request: TaskExecutionRequest): Promise<MissionPlan> {
-    return this.updateMissionPlanTask(request, (missionPlan, taskId) => {
-      missionPlan.completeTask(taskId);
+    return this.updateMissionPlanTask(request, (missionPlan, taskId, metadata) => {
+      missionPlan.completeTask(taskId, metadata);
     });
   }
 
   public async cancelTask(request: TaskExecutionRequest): Promise<MissionPlan> {
-    return this.updateMissionPlanTask(request, (missionPlan, taskId) => {
-      missionPlan.cancelTask(taskId);
+    return this.updateMissionPlanTask(request, (missionPlan, taskId, metadata) => {
+      missionPlan.cancelTask(taskId, metadata);
     });
   }
 
   private async updateMissionPlanTask(
     request: TaskExecutionRequest,
-    update: (missionPlan: MissionPlan, taskId: TaskId) => void,
+    update: (missionPlan: MissionPlan, taskId: TaskId, metadata: DomainEventMetadata) => void,
   ): Promise<MissionPlan> {
     const { mission, missionPlan } = await this.loadExecutionAggregates(request.missionId);
 
     mission.assertTaskExecutionPermitted();
-    update(missionPlan, TaskId.fromString(request.taskId));
+    update(missionPlan, TaskId.fromString(request.taskId), this.createEventMetadata());
 
     await this.repository.saveMissionPlan(missionPlan);
+    await this.publishMissionPlanRecordedEvents(missionPlan);
 
     return missionPlan;
   }
@@ -134,6 +135,12 @@ export class MissionExecutionService extends ServiceLifecycle {
 
   private async publishRecordedEvents(mission: Mission): Promise<void> {
     for (const event of mission.pullDomainEvents()) {
+      await this.eventBus.publish(event);
+    }
+  }
+
+  private async publishMissionPlanRecordedEvents(missionPlan: MissionPlan): Promise<void> {
+    for (const event of missionPlan.pullDomainEvents()) {
       await this.eventBus.publish(event);
     }
   }

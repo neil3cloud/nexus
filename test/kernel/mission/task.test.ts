@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { MissionPlanId } from '../../../src/kernel/mission/mission-plan-id';
+import { MissionId } from '../../../src/kernel/mission/mission-id';
 import {
   MissionPlanningValidationError,
   TaskLifecycleTransitionError,
@@ -8,6 +9,16 @@ import {
 import { Task } from '../../../src/kernel/mission/task';
 import { TaskDependency } from '../../../src/kernel/mission/task-dependency';
 import { TaskId } from '../../../src/kernel/mission/task-id';
+import type { DomainEventMetadata } from '../../../src/kernel/mission/mission.types';
+
+const timestamp = '2026-07-12T00:00:00.000Z';
+
+function metadata(eventId: string): DomainEventMetadata {
+  return {
+    eventId,
+    timestamp,
+  };
+}
 
 function createTask(): Task {
   return Task.create({
@@ -87,5 +98,50 @@ describe('Task', () => {
         TaskDependency.fromTaskIds(TaskId.fromString('other-task'), TaskId.fromString('task-3')),
       ),
     ).toThrow(MissionPlanningValidationError);
+  });
+
+  it('records and drains Task lifecycle domain events when metadata is supplied', () => {
+    const task = createTask();
+    const missionId = MissionId.fromString('mission-1');
+
+    task.markReady();
+    task.start(metadata('event-started'), missionId);
+    task.complete(metadata('event-completed'), missionId);
+
+    expect(task.pullDomainEvents()).toEqual([
+      {
+        eventId: 'event-started',
+        missionId: 'mission-1',
+        eventType: 'TaskStarted',
+        timestamp,
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+          taskId: 'task-1',
+        },
+        payload: {
+          missionPlanId: 'plan-1',
+          taskId: 'task-1',
+          status: 'InProgress',
+        },
+      },
+      {
+        eventId: 'event-completed',
+        missionId: 'mission-1',
+        eventType: 'TaskCompleted',
+        timestamp,
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+          taskId: 'task-1',
+        },
+        payload: {
+          missionPlanId: 'plan-1',
+          taskId: 'task-1',
+          status: 'Completed',
+        },
+      },
+    ]);
+    expect(task.pullDomainEvents()).toEqual([]);
   });
 });

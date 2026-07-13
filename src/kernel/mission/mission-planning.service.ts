@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import { MissionId } from './mission-id';
 import { MissionPlan } from './mission-plan.aggregate';
@@ -9,6 +10,7 @@ import {
   MissionPlanAlreadyExistsError,
   MissionPlanNotFoundError,
   MissionPlanningTerminalMissionError,
+  MissionPlanningEventPublisherUnavailableError,
   MissionPlanningValidationError,
   MissionNotFoundError,
 } from './mission.errors';
@@ -21,6 +23,7 @@ import type {
   RevisionMetadata,
   UpdateTaskRequest,
 } from './mission-planning.types';
+import type { DomainEventMetadata } from './mission.types';
 import { InMemoryMissionRepository } from './mission.repository';
 import type { IMissionPlanRepository, IMissionRepository } from './mission.repository';
 import { Task } from './task';
@@ -31,6 +34,7 @@ type MissionPlanningRepository = IMissionPlanRepository & Pick<IMissionRepositor
 export class MissionPlanningService extends ServiceLifecycle {
   public constructor(
     private readonly repository: MissionPlanningRepository = new InMemoryMissionRepository(),
+    private readonly eventBus?: EventBusContract,
     private readonly createIdentity: () => string = randomUUID,
     private readonly createTimestamp: () => string = () => new Date().toISOString(),
   ) {
@@ -38,6 +42,7 @@ export class MissionPlanningService extends ServiceLifecycle {
   }
 
   public async createMissionPlan(request: CreateMissionPlanRequest): Promise<MissionPlan> {
+    const eventBus = this.requireEventBus();
     const missionPlanId = MissionPlanId.fromString(request.id ?? this.createIdentity());
     const missionId = MissionId.fromString(request.missionId);
     const mission = await this.repository.getById(missionId);
@@ -66,9 +71,11 @@ export class MissionPlanningService extends ServiceLifecycle {
         request.revisionReason,
         request.revisionMetadata,
       ),
+      eventMetadata: this.createEventMetadata(),
     });
 
     await this.repository.saveMissionPlan(missionPlan);
+    await this.publishRecordedEvents(missionPlan, eventBus);
 
     return missionPlan;
   }
@@ -88,10 +95,11 @@ export class MissionPlanningService extends ServiceLifecycle {
           ...(request.metadata === undefined ? {} : { metadata: request.metadata }),
         });
 
-        missionPlan.addTask(task, revisionMetadata);
+        missionPlan.addTask(task, revisionMetadata, this.createEventMetadata());
       },
       request.revisionReason,
       request.revisionMetadata,
+      true,
     );
   }
 
@@ -115,6 +123,7 @@ export class MissionPlanningService extends ServiceLifecycle {
       },
       request.revisionReason,
       request.revisionMetadata,
+      false,
     );
   }
 
@@ -126,6 +135,7 @@ export class MissionPlanningService extends ServiceLifecycle {
       },
       request.revisionReason,
       request.revisionMetadata,
+      false,
     );
   }
 
@@ -136,10 +146,12 @@ export class MissionPlanningService extends ServiceLifecycle {
         missionPlan.revise(
           request.metadata === undefined ? {} : { metadata: request.metadata },
           revisionMetadata,
+          this.createEventMetadata(),
         );
       },
       request.revisionReason,
       request.revisionMetadata,
+      true,
     );
   }
 
@@ -148,7 +160,9 @@ export class MissionPlanningService extends ServiceLifecycle {
     update: (missionPlan: MissionPlan, revisionMetadata: RevisionMetadata) => void,
     revisionReason?: string,
     revisionAttributes?: PlanningMetadata,
+    publishEvents = false,
   ): Promise<MissionPlan> {
+    const eventBus = publishEvents ? this.requireEventBus() : undefined;
     const normalizedMissionPlanId = MissionPlanId.fromString(missionPlanId);
     const missionPlan = await this.repository.getMissionPlanById(normalizedMissionPlanId);
 
@@ -166,8 +180,18 @@ export class MissionPlanningService extends ServiceLifecycle {
 
     update(missionPlan, this.createRevisionMetadata(revisionReason, revisionAttributes));
     await this.repository.saveMissionPlan(missionPlan);
+    if (eventBus !== undefined) {
+      await this.publishRecordedEvents(missionPlan, eventBus);
+    }
 
     return missionPlan;
+  }
+
+  private createEventMetadata(): DomainEventMetadata {
+    return {
+      eventId: this.createIdentity(),
+      timestamp: this.createTimestamp(),
+    };
   }
 
   private createRevisionMetadata(
@@ -186,6 +210,23 @@ export class MissionPlanningService extends ServiceLifecycle {
       attributes: attributes ?? {},
     };
   }
+
+  private async publishRecordedEvents(
+    missionPlan: MissionPlan,
+    eventBus: EventBusContract,
+  ): Promise<void> {
+    for (const event of missionPlan.pullDomainEvents()) {
+      await eventBus.publish(event);
+    }
+  }
+
+  private requireEventBus(): EventBusContract {
+    if (this.eventBus === undefined) {
+      throw new MissionPlanningEventPublisherUnavailableError();
+    }
+
+    return this.eventBus;
+  }
 }
 
 function assertMissionCanBePlanned(
@@ -196,4 +237,3 @@ function assertMissionCanBePlanned(
     throw new MissionPlanningTerminalMissionError(missionId, status);
   }
 }
-

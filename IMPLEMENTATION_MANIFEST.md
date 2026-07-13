@@ -6,7 +6,9 @@ This manifest records implementation progress for Nexus vertical slices. Normati
 
 ---
 
-# Milestone 1 — Kernel Foundation
+# Milestone 1 — Core Mission Kernel
+
+Status: ✅ COMPLETE (Sprint 1 through Sprint 4)
 
 ## Sprint 1 — VS Code Extension Foundation
 
@@ -38,7 +40,7 @@ Deferred Concepts:
 
 ## Sprint 2 — Mission Foundation
 
-Status: Implemented — Pending Reviewer Validation
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). No Reviewer certification for this sprint was ever persisted in `REVIEW_HISTORY.md`; none is fabricated retroactively. See `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-008 for the full investigation and governance decision.
 
 Primary RFC:
 
@@ -66,7 +68,7 @@ Deferred Concepts:
 
 ## Sprint 3 — Mission Planning Review Remediation
 
-Status: Implemented — NEXUS-REV-2026-07-12-004 Complete, Pending Reviewer Validation
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). The Source Review entries below (`NEXUS-REV-2026-07-12-003`/`-004`) were never persisted in `REVIEW_HISTORY.md`; no fabricated retroactive certification is recorded. See `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-008.
 
 Source Review:
 
@@ -132,7 +134,7 @@ Notes:
 
 ## Sprint 4 — Mission Execution
 
-Status: Implemented — Pending Reviewer Validation
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). No Reviewer certification for this sprint was ever persisted in `REVIEW_HISTORY.md`; none is fabricated retroactively. See `knowledge/governance/RATIFICATION_LEDGER.md` § NEXUS-RAT-2026-07-13-008.
 
 RFC Coverage:
 
@@ -187,6 +189,10 @@ Notes:
 - Mission completion continues to respect the RFC-0001 lifecycle permission requirement; this slice does not reinterpret the known MissionPaused lifecycle inconsistency.
 
 ---
+
+# Milestone 2 — AI Collaboration Kernel
+
+Status: ✅ COMPLETE (Sprint 5 through Sprint 15)
 
 ## Sprint 5 — Evidence Foundation
 
@@ -610,13 +616,122 @@ Notes:
 
 ---
 
+## Sprint 14 — Knowledge Lifecycle Advancement
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+- RFC-0007 — Knowledge Model (Referenced)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-005 — ratifies `KnowledgeService.approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge`, publishing `KnowledgeAccepted`/`KnowledgePublished`/`KnowledgeSuperseded`/`KnowledgeArchived` respectively (event names previously reused/named by NEXUS-RAT-2026-07-13-003/-004), each a thin orchestration invoking the corresponding existing frozen `Knowledge` aggregate method and publishing only after successful persistence. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are unmodified. No successor-reference modeling, authorization/policy enforcement, or event subscription is authorized.
+
+Implemented Concepts:
+
+- `KnowledgeService.approveKnowledge`/`activateKnowledge`/`supersedeKnowledge`/`archiveKnowledge` — minimal `{ knowledgeId }` request shape, matching `ReviseKnowledgeRequest`.
+- `knowledge.events.ts` factories for `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, `KnowledgeArchived`.
+- `Knowledge.approve()`/`activate()`/`supersede()`/`archive()` gain the same optional `DomainEventMetadata` parameter already added to `capture()`/`revise()` in Sprint 13.
+- Reference-document corrections to `knowledge-service.md` and `knowledge-service-contract.md` authorized by NEXUS-RAT-2026-07-13-005.
+
+Deferred Concepts:
+
+- Successor-reference modeling (a "supersedes"/"supersededBy" link between Knowledge items) — not defined by RFC-0007.
+- Authorization, policy evaluation, or governance-workflow enforcement for who may call the lifecycle-advancement operations.
+- Event subscriptions/consumers.
+- Context Assembly consumption of Knowledge.
+- Mission Plan Events, Task Events, Execution Strategy Events (unresolved Task Lifecycle naming mismatch).
+- Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0014-knowledge-lifecycle-advancement.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0007, RFC-0005, RFC-0006, or the Kernel Canon.
+- `KnowledgeStatus`'s existing linear transition legality (Sprint 12, frozen) and the aggregate's existing parameterless lifecycle methods are consumed unmodified, per NEXUS-RAT-2026-07-13-005 and the Approved Vertical Slice Immutability rule.
+
+---
+
+## Sprint 15 — Mission Plan & Task Event Publication
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial)
+- RFC-0001 — Mission Model (Referenced)
+
+Ratification:
+
+- NEXUS-RAT-2026-07-13-006 — ratifies `TaskStatus` as implementation-layer vocabulary distinct from RFC-0004's Execution State; corrects `kernel-state-machine.md`'s Task Lifecycle; reattributes Mission Plan/Task event producers to `MissionPlanningService` and `MissionExecutionService`; resolves a pre-existing `kernel-event-catalog.md` duplication (legacy `MissionPlanRevised`/`TaskAdded` entries, redundant `MissionPlanSuperseded` entry); defers `MissionPlanActivated`.
+
+Planned Concepts:
+
+- `MissionPlanningService` optional `EventBusContract` injection publishing `MissionPlanCreated`, `MissionPlanRevised`, `TaskCreated`.
+- `MissionExecutionService`'s existing required `EventBusContract` extended to publish `TaskStarted`, `TaskCompleted`, `TaskCancelled` from its existing Task execution operations.
+- `MissionPlan`/`Task` aggregate recorded-events collections and `pullDomainEvents()`, new to these aggregates.
+- Reference-document corrections to `kernel-state-machine.md` and `kernel-event-catalog.md` per NEXUS-RAT-2026-07-13-006.
+
+Deferred Concepts:
+
+- `MissionPlanActivated` — no implemented operation exists.
+- `TaskReady`, `TaskAssigned`, `TaskBlocked` — Execution Strategy/Task Coordinator producer roles unimplemented.
+- Event subscriptions/consumers.
+- Knowledge, Shared Reality, Context Package, and Policy Events.
+- Durable/persistent Event Streams.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0015-mission-plan-task-event-publication.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0001, RFC-0004, RFC-0005, or the Kernel Canon.
+- `Mission`'s existing, frozen `MissionEventType` union (`mission.events.ts`) already contains unused `MissionPlanRevised`/`TaskAdded`/`TaskCompleted`/`TaskRemoved` entries dating from before Sprint 3 introduced `MissionPlan`/`Task` as independent aggregates; these are never constructed anywhere and are out of scope for this sprint. New Mission Plan/Task events are defined on new `MissionPlanDomainEvent`/`TaskDomainEvent` type unions, not by modifying `mission.events.ts`.
+
+---
+
+# Milestone 3 — Kernel Integration & Composition
+
+Status: In Progress (Sprint 16 Implemented — Pending Reviewer Validation)
+
+## Sprint 16 — End-to-End Mission Workflow Integration Validation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0001 — Mission Model (Referenced)
+- RFC-0002 — Evidence Model (Referenced)
+- RFC-0003 — Shared Reality Projection Model (Referenced)
+- RFC-0004 — Execution Model (Referenced)
+- RFC-0005 — Domain Event Model (Referenced)
+- RFC-0006 — Engineering Assessment Model (Referenced)
+- RFC-0007 — Knowledge Model (Referenced)
+
+Implemented Concepts:
+
+- End-to-end integration test suite exercising the composed Kernel (`createKernelServices`) through: Create Mission → Create Mission Plan → Create Tasks → Execute Tasks → Complete Mission → Perform Review → Capture Knowledge.
+- Composed-service, dependency-injection, repository-interaction, aggregate-interaction, Domain Event ordering, and cross-domain invariant validation.
+- Review outcome-specific Domain Event identity correction discovered during integration validation; `ReviewCompleted` and `ReviewAccepted`/`ReviewRejected` now use distinct event identities.
+
+Deferred Concepts:
+
+- AI provider integrations (Claude CLI, GitHub Copilot, Gemini, Codex), Adapter runtime implementations, VS Code host integration, workflow/governance automation, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production/distributed infrastructure.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new normative concepts; it validates existing approved behavior only.
+
+---
+
 ## Sprint 2 — Review Remediation
 
-Status: Implemented — TASK-004 Blocked Pending Human Ratification
+Status: Historically Accepted Governance Deviation (NEXUS-RAT-2026-07-13-008). Source Review `NEXUS-REV-2026-07-12-002` was never persisted in `REVIEW_HISTORY.md`; no fabricated retroactive certification is recorded. TASK-004 is closed by NEXUS-RAT-2026-07-13-008 — its underlying concern has been repeatedly addressed by eight subsequent reference-document reconciliation ratifications and requires no further work.
 
 Source Review:
 
-- NEXUS-REV-2026-07-12-002
+- NEXUS-REV-2026-07-12-002 (never persisted; see NEXUS-RAT-2026-07-13-008)
 
 RFC Coverage:
 
@@ -628,10 +743,7 @@ Completed Tasks:
 - TASK-001 — Removed duplicate `MissionService.create(objective)` method; `createMission(request)` remains the Mission Service creation operation.
 - TASK-002 — Added Mission lifecycle event causality chaining from the immediately preceding Mission event ID, persisted through `MissionSnapshot`, and optional lifecycle operation correlation IDs.
 - TASK-003 — Documented the non-atomic MissionService save/publish limitation in `IMPLEMENTATION_REPORT.md`.
-
-Blocked Tasks:
-
-- TASK-004 — Mission reference documentation reconciliation remains blocked until explicit human ratification.
+- TASK-004 — CLOSED by NEXUS-RAT-2026-07-13-008. No further implementation work required; no recovery sprint authorized.
 
 Deferred Concepts:
 

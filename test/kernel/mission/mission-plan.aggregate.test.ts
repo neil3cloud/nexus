@@ -12,10 +12,20 @@ import type { RevisionMetadata } from '../../../src/kernel/mission/mission-plann
 import { Task } from '../../../src/kernel/mission/task';
 import { TaskDependency } from '../../../src/kernel/mission/task-dependency';
 import { TaskId } from '../../../src/kernel/mission/task-id';
+import type { DomainEventMetadata } from '../../../src/kernel/mission/mission.types';
+
+const timestamp = '2026-07-12T00:00:00.000Z';
+
+function eventMetadata(eventId: string): DomainEventMetadata {
+  return {
+    eventId,
+    timestamp,
+  };
+}
 
 function revisionMetadata(reason: string): RevisionMetadata {
   return {
-    createdAt: '2026-07-12T00:00:00.000Z',
+    createdAt: timestamp,
     reason,
     attributes: {
       sprint: 'Sprint 3',
@@ -283,5 +293,95 @@ describe('MissionPlan aggregate', () => {
     const missionPlan = createMissionPlan();
 
     expect(() => missionPlan.assertExecutable()).toThrow(MissionExecutionValidationError);
+  });
+
+  it('records and drains MissionPlan planning domain events', () => {
+    const missionPlan = MissionPlan.create({
+      id: MissionPlanId.fromString('plan-1'),
+      missionId: MissionId.fromString('mission-1'),
+      revisionMetadata: revisionMetadata('Initial plan'),
+      eventMetadata: eventMetadata('event-plan-created'),
+    });
+
+    missionPlan.addTask(
+      createTask('task-1'),
+      revisionMetadata('Add task'),
+      eventMetadata('event-task-created'),
+    );
+    missionPlan.revise(
+      {
+        metadata: {
+          revised: true,
+        },
+      },
+      revisionMetadata('Revise metadata'),
+      eventMetadata('event-plan-revised'),
+    );
+
+    expect(missionPlan.pullDomainEvents()).toEqual([
+      {
+        eventId: 'event-plan-created',
+        missionId: 'mission-1',
+        eventType: 'MissionPlanCreated',
+        timestamp,
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+          missionPlanRevisionId: '1',
+        },
+        payload: {
+          missionPlanId: 'plan-1',
+          revisionNumber: 1,
+        },
+      },
+      {
+        eventId: 'event-task-created',
+        missionId: 'mission-1',
+        eventType: 'TaskCreated',
+        timestamp,
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+          missionPlanRevisionId: '2',
+        },
+        payload: {
+          missionPlanId: 'plan-1',
+          revisionNumber: 2,
+          taskId: 'task-1',
+        },
+      },
+      {
+        eventId: 'event-plan-revised',
+        missionId: 'mission-1',
+        eventType: 'MissionPlanRevised',
+        timestamp,
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+          missionPlanRevisionId: '3',
+        },
+        payload: {
+          missionPlanId: 'plan-1',
+          revisionNumber: 3,
+        },
+      },
+    ]);
+    expect(missionPlan.pullDomainEvents()).toEqual([]);
+  });
+
+  it('records Task execution events through the MissionPlan boundary', () => {
+    const missionPlan = createMissionPlan();
+    const task = createTask('task-1');
+
+    task.markReady();
+    missionPlan.addTask(task, revisionMetadata('Add task'));
+    missionPlan.startTask(TaskId.fromString('task-1'), eventMetadata('event-task-started'));
+    missionPlan.completeTask(TaskId.fromString('task-1'), eventMetadata('event-task-completed'));
+
+    expect(missionPlan.pullDomainEvents().map((event) => event.eventType)).toEqual([
+      'TaskStarted',
+      'TaskCompleted',
+    ]);
+    expect(missionPlan.pullDomainEvents()).toEqual([]);
   });
 });

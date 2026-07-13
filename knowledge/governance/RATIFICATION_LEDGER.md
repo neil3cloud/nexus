@@ -774,3 +774,331 @@ The Sprint Owner ratifies the following reconciliation:
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-13-005
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-005
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Authorizes implementation of the four Knowledge lifecycle-advancement `KnowledgeService` operations and their corresponding Domain Events, previously deferred by NEXUS-RAT-2026-07-13-004. Identified during `/nexus-plan` Sprint 14 governance scan.
+
+## Originating Review Finding(s)
+
+- None. Identified during `/nexus-plan` State 2 (Governance Scan) prior to Sprint 14 planning.
+
+## Governance Decision
+
+NEXUS-RAT-2026-07-13-003 and NEXUS-RAT-2026-07-13-004 previously ratified the `KnowledgeStatus` lifecycle, the `Knowledge` aggregate lifecycle methods (`approve()`, `activate()`, `supersede()`, `archive()`), and the corresponding Domain Event names (`KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, and `KnowledgeArchived`), while explicitly deferring their implementation.
+
+This ratification now authorizes that implementation.
+
+`KnowledgeService` SHALL gain the application-service operations `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, and `archiveKnowledge`. Each operation SHALL remain a thin orchestration service that:
+
+- invokes the corresponding approved `Knowledge` aggregate method;
+- persists the resulting state transition;
+- publishes the corresponding ratified Domain Event only after successful persistence, following the established save-then-publish pattern introduced in Sprint 13.
+
+This sprint SHALL implement the existing approved `Knowledge` aggregate behavior only. It SHALL NOT redefine, extend, or reinterpret the `Knowledge` aggregate's business rules.
+
+RFC-0007 remains the sole normative owner of the Knowledge lifecycle semantics and remains unmodified.
+
+**Governed by:**
+
+- RFC-0007 — Knowledge Model (unmodified)
+- RFC-0005 — Domain Event Model (publication pattern only)
+- Sprint 12 approved `Knowledge` aggregate baseline
+- Sprint 13 approved Domain Event publication pattern
+
+## Governance Rule Established
+
+None new. This ratification applies the Governance Rule established by NEXUS-RAT-2026-07-13-004 (Domain events represent completed domain facts, not implementation actions) to the four already-named lifecycle events; it does not establish a new rule.
+
+## Authorized Builder Scope
+
+- Add `approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, and `archiveKnowledge` to `KnowledgeServiceContract` and `KnowledgeService`.
+- Use minimal request objects containing only `{ knowledgeId }`, consistent with the existing `ReviseKnowledgeRequest` design.
+- Publish `KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, and `KnowledgeArchived` respectively, only after successful persistence.
+- Update `knowledge/reference/service-catalog/knowledge-service.md` and `knowledge/reference/interface-contracts/knowledge-service-contract.md` to document the four new operations.
+- Confirm that `knowledge/reference/kernel-event-catalog.md` already reflects the authorized event names and update it only if required for consistency.
+
+## Scope Restrictions
+
+This sprint SHALL NOT:
+
+- introduce additional business rules beyond those already defined by the approved `Knowledge` aggregate;
+- redefine or extend the Knowledge lifecycle;
+- introduce authorization, policy evaluation, governance workflows, or approval automation;
+- introduce successor-reference modeling for superseded Knowledge; future linkage between superseded and successor Knowledge remains deferred;
+- introduce event subscriptions, event consumers, or event-driven orchestration;
+- modify RFC-0007, RFC-0005, RFC-0006, or the Kernel Canon.
+
+## Architectural Rule
+
+`KnowledgeService` SHALL remain an application orchestration service. All lifecycle validation and transition legality SHALL remain the responsibility of the `Knowledge` aggregate. Domain Events SHALL remain notifications of successfully persisted state transitions and SHALL NOT initiate or coordinate subsequent domain behavior.
+
+## Related Sprint(s)
+
+- Sprint 12 — Knowledge Foundation (approved baseline being extended).
+- Sprint 13 — Knowledge Event Publication (approved publication pattern being extended).
+- Sprint 14 — Knowledge Lifecycle Advancement (planned).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 14 implementation and the corresponding Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies implementation of the four Knowledge lifecycle-advancement `KnowledgeService` operations (`approveKnowledge`, `activateKnowledge`, `supersedeKnowledge`, `archiveKnowledge`) and their corresponding, previously-named Domain Events (`KnowledgeAccepted`, `KnowledgePublished`, `KnowledgeSuperseded`, `KnowledgeArchived`), each a thin orchestration invoking the corresponding approved `Knowledge` aggregate method, persisting the resulting transition, and publishing the corresponding event only after successful persistence, following the Sprint 13 save-then-publish pattern. This sprint implements existing approved `Knowledge` aggregate behavior only; it does not redefine, extend, or reinterpret the aggregate's business rules, introduce successor-reference modeling for superseded Knowledge, or introduce authorization/policy/event-consumer concepts. RFC-0007, RFC-0005, RFC-0006, and the Kernel Canon are not modified.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-13-006
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-006
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Task Lifecycle three-way naming reconciliation, Mission Plan/Task Domain Event producer-role reattribution, and resolution of a pre-existing Mission Plan/Task event catalog duplication, scoping the first Mission Plan/Task Event Publication vertical slice. Identified during `/nexus-plan` Sprint 15 governance scan.
+
+## Originating Review Finding(s)
+
+- None. Identified during `/nexus-plan` State 2 (Governance Scan) prior to Sprint 15 planning. First flagged as a deferred concept in the Sprint 11 record (`knowledge/implementation/sprints/sprint-0011-domain-event-publication.md`) and carried forward, unresolved, through Sprint 13 and Sprint 14.
+
+## Governance Decision
+
+Two compounding governance gaps have blocked Mission Plan and Task Domain Event publication since Sprint 11:
+
+**1. Task Lifecycle three-way naming mismatch.** Three sources describe the Task/Execution state model with different vocabularies:
+
+- The approved, frozen Sprint 3 `TaskStatus` enum (`src/kernel/mission/task.ts`): `Pending → Ready → InProgress → Completed`, alternative `Cancelled` (5 states).
+- `knowledge/reference/kernel-state-machine.md` § Task Lifecycle: `Pending → Ready → Assigned → Executing → Completed`, alternative `Blocked`, `Cancelled` (7 states).
+- RFC-0004 § Execution State (normative minimum state set): `Pending, Ready, Assigned, Executing, Awaiting Review, Completed, Failed, Blocked` (8 states).
+
+Sprint 3's `TaskStatus` is an Approved Vertical Slice and is frozen per `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability; it SHALL NOT be modified or expanded by this ratification. The Sprint Owner ratifies that `TaskStatus` is recognized as **implementation-layer operational lifecycle vocabulary**, distinct from RFC-0004's normative Execution State model — the same pattern already established for `ReviewStatus`/`FindingStatus` relative to RFC-0006 (NEXUS-RAT-2026-07-12-006). RFC-0004 remains the sole normative owner of Execution State and is unmodified; RFC-0004's fuller state set (`Assigned`, `Awaiting Review`, `Failed`, `Blocked`) remains a normative target not yet fully realized in implementation, and this partial-conformance gap remains explicitly tracked as a deferred concept rather than approximated. `kernel-state-machine.md` — a Reference Document, not an RFC — is corrected to describe the approved `TaskStatus` reality rather than an unimplemented aspirational state set, per the Implementation Constitution's authority order (Reference Documents are corrected to match approved implementation-governing artifacts; they do not themselves establish normative behavior).
+
+**2. Mission Plan/Task Domain Event producer-role mismatch, and a pre-existing catalog duplication this ratification also resolves.** `knowledge/reference/kernel-event-catalog.md` § Mission Plan Events / Task Events attributes producers that do not exist as implemented services: `TaskStarted`/`TaskCompleted` to "Adapter"; `TaskAssigned`, `TaskBlocked`, and `MissionPlanRevised` (in that section) to "Execution Strategy"; `TaskReady` to "Task Coordinator". No Adapter, Execution Strategy event-producing path, or Task Coordinator concept currently produces events. The two services that actually exist and perform the corresponding state transitions are `MissionPlanningService` (Sprint 3 — MissionPlan/Task creation, revision) and `MissionExecutionService` (Sprint 4 — Task start, complete, cancel).
+
+Additionally, the catalog independently contains a **pre-existing duplication** predating this ratification: the legacy `# Mission Events` section (Aggregate: Mission) already lists `MissionPlanRevised` (Producer: Mission Service) and `TaskAdded` (Producer: Mission Service) — remnants from before Sprint 3 introduced `MissionPlan` and `Task` as their own aggregate roots — alongside the newer, aggregate-correct `# Mission Plan Events` / `# Task Events` sections, which separately list a second, differently-attributed `MissionPlanRevised` entry, a `MissionPlanSuperseded` entry, and a `TaskCreated` entry. `kernel-state-machine.md`'s own Mission Plan Lifecycle transition table already names `MissionPlanRevised` (not `MissionPlanSuperseded`) as the event that transitions a Plan from Active to Superseded, confirming `MissionPlanSuperseded` is a redundant duplicate of the same fact, not a distinct event.
+
+The Sprint Owner ratifies that the Kernel Event Catalog SHALL attribute event producers only to implemented producer roles, following the same discipline already established in Sprint 11 for Evidence/Review ("only the event names cataloged for the producer roles actually implemented this slice"), and that the pre-existing duplicate entries SHALL be reconciled to one canonical entry per fact, using the aggregate-correct `MissionPlan`/`Task` section as canonical (consistent with Sprint 3's approved aggregate model), mirroring the Sprint 6 precedent (NEXUS-RAT-2026-07-12-002) for removing duplicate/obsolete contract surfaces:
+
+| Event | Corrected Producer | Rationale |
+| --- | --- | --- |
+| `MissionPlanCreated` | `MissionPlanningService` | Matches existing `createMissionPlan` operation. No duplicate. |
+| `MissionPlanRevised` | `MissionPlanningService` | Matches existing `reviseMissionPlan` operation and `kernel-state-machine.md`'s transition table. Canonical name; the legacy `# Mission Events` duplicate (Producer: Mission Service) and the redundant `MissionPlanSuperseded` entry are removed as the same fact under competing names. |
+| `TaskCreated` | `MissionPlanningService` | Matches existing `addTask` operation. Canonical name; the legacy `# Mission Events` `TaskAdded` duplicate (Producer: Mission Service) is removed as the same fact under a competing name. |
+| `TaskStarted` | `MissionExecutionService` | Matches existing `startTask` operation (reattributed from "Adapter"). |
+| `TaskCompleted` | `MissionExecutionService` | Matches existing `completeTask` operation (reattributed from "Adapter"). |
+| `TaskCancelled` | `MissionExecutionService` | Matches existing `cancelTask` operation (reattributed from "Mission Service", which is not the operation's actual owner). |
+
+`MissionPlanActivated` is **not** included in this table and is **not authorized for publication**: the approved Sprint 3 `MissionPlan` aggregate has no Draft/Active/Superseded status field and no activation operation exists on `MissionPlanningService` to trigger it from — mirroring the Sprint 11 precedent for `EvidenceAccepted`/`EvidenceRejected` ("Producer: Review Service, no corresponding operation exists"). It remains deferred, not merely event-silent, until a future sprint introduces Mission Plan status/activation as its own vertical slice.
+
+Producer roles not yet implemented — `TaskReady` (Task Coordinator), `TaskAssigned` (Execution Strategy), `TaskBlocked` (Execution Strategy) — SHALL remain deferred until their corresponding vertical slices (Task Coordination, Execution Strategy event production) are implemented. They are not reattributed, renamed, or approximated by this ratification.
+
+## Authorized Builder Scope
+
+- Correct `knowledge/reference/kernel-state-machine.md` § Task Lifecycle to describe the approved Sprint 3 `TaskStatus` state set and transitions (`Pending → Ready → InProgress → Completed`, alternative `Cancelled`), removing or clearly marking as deferred/not-yet-implemented the `Assigned`, `Executing`-as-distinct-from-`InProgress`, and `Blocked` states that do not exist in the approved implementation.
+- Correct `knowledge/reference/kernel-event-catalog.md`:
+  - Reattribute producers per the table above: `MissionPlanCreated`, `MissionPlanRevised`, `TaskCreated` → `MissionPlanningService`; `TaskStarted`, `TaskCompleted`, `TaskCancelled` → `MissionExecutionService`.
+  - Remove the legacy `# Mission Events` section's duplicate `MissionPlanRevised` and `TaskAdded` entries (Producer: Mission Service), consolidating each into its single canonical entry under `# Mission Plan Events` / `# Task Events`.
+  - Remove the redundant `MissionPlanSuperseded` entry, consolidated into the canonical `MissionPlanRevised` entry.
+  - Move `MissionPlanActivated` out of the actively-cataloged producer table into a clearly marked deferred/no-operation-exists note, without deleting the event name itself (RFC-0003/RFC-0004's normative Mission Plan lifecycle still names an Active state; only the implementation-layer producer path is deferred).
+- Implement `MissionPlanningService` and `MissionExecutionService` optional `EventBusContract` injection (Mission/Evidence/Review/Knowledge pattern) and aggregate-level recorded-events/`pullDomainEvents()` access on `MissionPlan` and `Task`, publishing only the six events reattributed above, only after the corresponding state transition has been successfully persisted.
+- Reference this ratification from the Sprint 15 Sprint Implementation Record.
+
+## Scope Restrictions
+
+- Sprint 3's approved `TaskStatus` enum, its values, and its transition rules SHALL NOT be modified, renamed, or expanded. No new Task state (`Assigned`, `Awaiting Review`, `Failed`, `Blocked`) is introduced by this ratification.
+- Sprint 3's approved `MissionPlan` aggregate SHALL NOT gain a status/Draft/Active/Superseded field or an activation operation. `MissionPlanActivated` publication is explicitly out of scope, not merely deferred as event-silent.
+- RFC-0004 SHALL NOT be modified. RFC-0004's Execution State remains the normative concept; this ratification does not narrow or redefine it — it only governs implementation-layer vocabulary and Reference Document accuracy.
+- No Kernel Canon changes.
+- `TaskReady`, `TaskAssigned`, and `TaskBlocked` SHALL NOT be published by the consuming sprint; they remain deferred, not merely event-silent.
+- No Execution Strategy, Adapter, or Task Coordinator event-producing capability is introduced or approximated by this ratification.
+- The catalog reconciliation authorized above removes duplicate entries only; it does not rename, redefine, or alter the semantics of the surviving canonical event (`MissionPlanRevised` retains the meaning already stated in `kernel-state-machine.md`'s transition table).
+- No source code or test changes are authorized by this ratification alone; implementation authorization is governed separately by the Sprint 15 Sprint Implementation Record.
+- This ratification does not reopen or redesign Sprint 3 (Mission Planning) or Sprint 4 (Mission Execution); both remain frozen per Approved Vertical Slice Immutability.
+
+## Governance Rule Applied
+
+None new. This ratification applies the Governance Rule established by NEXUS-RAT-2026-07-13-004 (Domain events represent completed domain facts, not implementation actions) and the producer-role discipline established by Sprint 11 to the Mission Plan/Task event domain.
+
+## Related Sprint(s)
+
+- Sprint 3 — Mission Planning (approved baseline being referenced, not reopened).
+- Sprint 4 — Mission Execution (approved baseline being referenced, not reopened).
+- Sprint 11 — Domain Event Publication (Evidence, Review) (originating deferred-concept record).
+- Sprint 15 — Mission Plan & Task Event Publication (planned).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 15 implementation and the corresponding Reviewer cycle.
+
+## Full Ratification Text
+
+> Sprint 3 `TaskStatus` is hereby recognized as implementation-layer operational lifecycle vocabulary, distinct from RFC-0004's normative Execution State model. `kernel-state-machine.md` SHALL be reconciled to reflect the approved implementation vocabulary. The Kernel Event Catalog SHALL attribute event producers only to implemented producer roles. `MissionPlanningService` SHALL own planning events (`MissionPlanCreated`, `MissionPlanRevised`, `TaskCreated`). `MissionExecutionService` SHALL own execution events (`TaskStarted`, `TaskCompleted`, `TaskCancelled`). The catalog's pre-existing duplicate entries (`# Mission Events`' legacy `MissionPlanRevised`/`TaskAdded`, and the redundant `MissionPlanSuperseded` entry) SHALL be reconciled to their single canonical entry under `# Mission Plan Events`/`# Task Events`. `MissionPlanActivated` is explicitly deferred — no implemented operation triggers it. Producer roles not yet implemented (such as Execution Strategy, Task Coordinator, or future Adapters) SHALL remain deferred until their corresponding vertical slices are implemented. RFC-0004, RFC-0005, and the Kernel Canon are not modified. Sprint 3 and Sprint 4 are not reopened.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-13-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-007
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Reconciliation of the residual duplicate `TaskCompleted`/`TaskRemoved` entries under `kernel-event-catalog.md`'s legacy `# Mission Events` section, unblocking Sprint 15's `builder-task.md` TASK-002.
+
+## Originating Review Finding(s)
+
+- NEXUS-REV-2026-07-13-011-F-002 — residual pre-existing duplicate `TaskCompleted`/`TaskRemoved` catalog entries under the legacy `# Mission Events` section, structurally identical to the duplication NEXUS-RAT-2026-07-13-006 resolved for `MissionPlanRevised`/`TaskAdded` but not named for removal by that ratification.
+
+## Governance Decision
+
+The Sprint Owner accepts the Reviewer's analysis in NEXUS-REV-2026-07-13-011-F-002. The residual `TaskCompleted`/`TaskRemoved` entries under `kernel-event-catalog.md`'s legacy `# Mission Events` section (Aggregate: Mission, Producer: "Mission Service") are a repository documentation inconsistency, not an implementation defect. The Builder correctly left these entries untouched during Sprint 15 because NEXUS-RAT-2026-07-13-006's Authorized Builder Scope named only `MissionPlanRevised` and `TaskAdded` for removal.
+
+The Sprint Owner authorizes a documentation-only reconciliation:
+
+1. **`TaskCompleted`:** Remove the legacy entry from the `# Mission Events` section. Retain the canonical `# Task Events` section entry, Producer: `MissionExecutionService` (already correctly attributed by Sprint 15).
+2. **`TaskRemoved`:** `MissionPlanningService.removeTask()` is a confirmed, implemented, approved operation (Sprint 3, extended event-silent by Sprint 15 per NEXUS-RAT-2026-07-13-006). Per the Sprint Owner's conditional direction, because this operation exists, the `TaskRemoved` entry SHALL be **retained**, relocated from the legacy `# Mission Events` section to the canonical `# Task Events` section, and marked as a deferred, unpublished event — mirroring the `Deferred`/`Deferred Producer` marking pattern Sprint 15 already established for `MissionPlanActivated`/`TaskReady`/`TaskAssigned`/`TaskBlocked` — pending a future ratification that determines its publication semantics (event name reconciliation, if any, and producer attribution for `MissionPlanningService.removeTask()`).
+
+This ratification does not name a new event, assign a producer to `TaskRemoved`'s eventual publication, or authorize `MissionPlanningService.removeTask()` to begin publishing an event. It authorizes catalog reconciliation only.
+
+## Authorized Builder Scope
+
+- Update `knowledge/reference/kernel-event-catalog.md` only:
+  - Remove the legacy `# Mission Events` section's `TaskCompleted` entry (Aggregate: Mission, Producer: Mission Service).
+  - Relocate the legacy `# Mission Events` section's `TaskRemoved` entry to the canonical `# Task Events` section, marking it `Deferred` (no producer attribution; unpublished), consistent with the `MissionPlanActivated`/`TaskReady`/`TaskAssigned`/`TaskBlocked` marking pattern already present in that section.
+- Update `builder-task.md` TASK-002 status to reflect this ratification unblocking it (workflow bookkeeping, not itself a Reference Document change).
+- Reference this ratification from the Sprint 15 Sprint Implementation Record's Known Limitations or Reviewer Notes, and from `IMPLEMENTATION_PLAN.md`'s Sprint 15 status line, as appropriate for traceability.
+
+## Scope Restrictions
+
+- The Builder SHALL NOT modify the Kernel Canon.
+- The Builder SHALL NOT modify any RFC.
+- The Builder SHALL NOT modify producer ownership for any event already reattributed by NEXUS-RAT-2026-07-13-006.
+- The Builder SHALL NOT introduce a new event name.
+- The Builder SHALL NOT modify implementation behavior — `MissionPlanningService.removeTask()` SHALL NOT begin publishing an event as a result of this ratification.
+- No source code or test changes are authorized by this ratification.
+- Sprint 3, Sprint 4, and Sprint 15's approved implementation baselines are not reopened.
+
+## Related Sprint(s)
+
+- Sprint 3 — Mission Planning (approved baseline being referenced, not reopened).
+- Sprint 15 — Mission Plan & Task Event Publication (approved with findings; this ratification resolves the sprint's sole remaining open finding, F-002/TASK-002).
+
+## Related Review(s)
+
+- NEXUS-REV-2026-07-13-011 — Sprint 15 — Mission Plan & Task Event Publication; originating finding F-002.
+
+## Full Ratification Text
+
+> The Sprint Owner accepts the Reviewer's analysis in NEXUS-REV-2026-07-13-011-F-002 and authorizes a documentation-only reconciliation of `kernel-event-catalog.md`. The legacy `# Mission Events` section's `TaskCompleted` entry (Producer: Mission Service) is removed; the canonical `# Task Events` section's `TaskCompleted` entry (Producer: MissionExecutionService) is retained as the single authoritative definition. The legacy `# Mission Events` section's `TaskRemoved` entry is retained — because `MissionPlanningService.removeTask()` is a confirmed implemented operation — and relocated to the canonical `# Task Events` section, marked `Deferred` pending a future ratification determining its publication semantics. This ratification authorizes only the `kernel-event-catalog.md` change described; it does not modify the Kernel Canon, any RFC, producer ownership, event names, or implementation behavior.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-13-008
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-008
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Governance Recovery: Sprint 2 — Mission Foundation, Sprint 3 — Mission Planning, and Sprint 4 — Mission Execution are declared Historically Accepted Governance Deviations. No Reviewer certification for these sprints exists in any persisted repository artifact. Retrospective Reviewer certification is explicitly not fabricated. Closes the legacy "Sprint 2 — Review Remediation" TASK-004.
+
+## Originating Review Finding(s)
+
+- None. Identified during `/nexus-plan` State 1/2 (Repository Analysis / Governance Scan) while assessing Milestone 2 completion ahead of Sprint 16 planning.
+
+## Investigation Findings
+
+A full git-history investigation was performed across all 23 commits in the repository before this ratification was drafted, per Sprint Owner direction that "no retrospective Reviewer records, repository history reconstruction, or governance migration SHALL occur unless supported by repository evidence."
+
+- `REVIEW_HISTORY.md` was created as an **empty file** (git blob `e69de29`, 0 bytes) in commit `6568d92` ("Add implementation technology standards, domain schema, capability contracts, data model, event catalog, and state machine documentation", 2026-07-11). In every subsequent commit through the current HEAD (`ad57575`), its first entry is `NEXUS-REV-2026-07-12-008` (Sprint 5 — Evidence Foundation). No commit at any point in repository history contains `NEXUS-REV-2026-07-12-001` through `-007`.
+- `IMPLEMENTATION_MANIFEST.md` was likewise created empty in commit `4170367` ("Enhancement to implementation workflow", 2026-07-12). Its Sprint 2/3/4 sections, which cite `NEXUS-REV-2026-07-12-002`, `-003`, and `-004`, already carried those dangling citations as of the last real commit (`ad57575`) — this is not an artifact of the current uncommitted working session.
+- `builder-task.md` has never been committed to this repository at any point, consistent with its documented status as a transient workflow artifact (`IMPLEMENTATION_CONSTITUTION.md` § Sprint Owner Ratifications: "Ratifications SHALL NOT exist solely in transient implementation artifacts, including... `builder-task.md`").
+
+Conclusion: the cited reviews for Sprint 2–4 either occurred as ephemeral, unpersisted session output prior to `REVIEW_HISTORY.md`'s existence, or were never formally conducted. No durable evidence of Reviewer certification exists for Sprint 2, Sprint 3, or Sprint 4. This is a historical governance recording omission, not a repository migration defect, and not evidence of an implementation or architectural defect — Sprint 5 through Sprint 15 were each independently certified by a persisted Reviewer review and none surfaced a defect attributable to the Sprint 2–4 Mission/MissionPlan/Task foundation they build on.
+
+## Governance Decision
+
+Sprint 2 — Mission Foundation, Sprint 3 — Mission Planning, and Sprint 4 — Mission Execution are hereby declared **Historically Accepted Governance Deviations**. This declaration:
+
+- acknowledges that these three sprints were implemented before `REVIEW_HISTORY.md`, the Ratification Ledger, and the current Specification-First Builder/Reviewer governance workflow existed as repository artifacts;
+- is **not** retrospective Reviewer approval — no `NEXUS-REV` entry is created for Sprint 2, 3, or 4, and none SHALL be fabricated;
+- treats the absence of certification as a permanently documented fact of repository history, not a defect requiring remediation;
+- relies on the corroborating evidence that Sprint 5 through Sprint 15 — all independently, persistently certified — were built on and repeatedly exercised the Sprint 2–4 Mission/MissionPlan/Task foundation without any Reviewer surfacing an architectural or implementation defect attributable to it.
+
+The legacy "Sprint 2 — Review Remediation" entry's **TASK-004** ("Mission reference documentation reconciliation remains blocked until explicit human ratification", citing the unpersisted `NEXUS-REV-2026-07-12-002`) is hereby **closed** by this ratification. No further implementation work is required and no recovery sprint is authorized for it — its underlying concern (Mission reference-documentation accuracy) has since been repeatedly addressed through eight subsequent reference-document reconciliation ratifications (NEXUS-RAT-2026-07-12-002 through -007, and NEXUS-RAT-2026-07-13-003 through -007), leaving no known open documentation gap traceable to TASK-004 specifically.
+
+## Authorized Builder Scope
+
+Documentation only, confined to governance-status bookkeeping:
+
+- `IMPLEMENTATION_PLAN.md`: update Sprint 2, Sprint 3, and Sprint 4 status lines from "Implemented — ... Pending Reviewer Validation" to reflect Historically Accepted Governance Deviation status, citing this ratification.
+- `IMPLEMENTATION_MANIFEST.md`: update the same three sprint sections and the legacy "Sprint 2 — Review Remediation" entry to reflect this ratification and TASK-004's closure.
+- `IMPLEMENTATION_REPORT.md`: add a governance note if that document contains Sprint 2/3/4 sections referencing the same unpersisted reviews.
+- `REVIEW_HISTORY.md`: append a governance note (not a `NEXUS-REV` entry) documenting this historical gap and its resolution, for permanent traceability at the point where a reader would otherwise expect to find Sprint 2–4's certification.
+
+## Scope Restrictions
+
+- No `NEXUS-REV-2026-07-12-001` through `-007` entry, or any other retrospective Reviewer certification entry, SHALL be created for Sprint 2, 3, or 4.
+- Sprint 2, Sprint 3, and Sprint 4's approved implementation (Mission, MissionPlan, Task, and their services) SHALL NOT be reopened, modified, or reinterpreted by this ratification.
+- No source code or test change is authorized by this ratification.
+- No RFC or Kernel Canon change is authorized.
+- This ratification does not certify Sprint 2–4 as architecturally sound in the sense a real Reviewer pass would — it records a governance-recovery acceptance grounded in the corroborating evidence above, and remains distinguishable in the repository record from genuine Reviewer certification.
+
+## Related Sprint(s)
+
+- Sprint 2 — Mission Foundation.
+- Sprint 3 — Mission Planning.
+- Sprint 4 — Mission Execution.
+- Sprint 5 through Sprint 15 (corroborating evidence; not reopened).
+
+## Related Review(s)
+
+- None. No Reviewer review exists for the sprints this ratification addresses; that is the subject of this ratification.
+
+## Full Ratification Text
+
+> Sprint 2 — Mission Foundation, Sprint 3 — Mission Planning, and Sprint 4 — Mission Execution are declared Historically Accepted Governance Deviations, following a full git-history investigation confirming no Reviewer certification for these sprints was ever persisted in this repository (`REVIEW_HISTORY.md` and `IMPLEMENTATION_MANIFEST.md` were both created empty; `builder-task.md` was never committed). This is a governance acknowledgement of historical repository evolution, not retrospective Reviewer approval — no `NEXUS-REV` entry is created or SHALL be fabricated for these sprints. The legacy "Sprint 2 — Review Remediation" TASK-004 is closed; its underlying concern has been superseded by subsequent reference-document reconciliation ratifications. Sprint 2–4's approved implementation is not reopened. No RFC, Kernel Canon, source code, or test change is authorized.
+
+## Current Status
+
+Active

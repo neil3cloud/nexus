@@ -2,7 +2,14 @@ import type { DomainEvent } from '../events/domain-event';
 import type { DomainEventMetadata } from '../mission/mission.types';
 import type { Knowledge } from './knowledge.aggregate';
 
-export const knowledgeEventTypes = ['KnowledgeCandidateCreated', 'KnowledgeRevisionCreated'] as const;
+export const knowledgeEventTypes = [
+  'KnowledgeCandidateCreated',
+  'KnowledgeRevisionCreated',
+  'KnowledgeAccepted',
+  'KnowledgePublished',
+  'KnowledgeSuperseded',
+  'KnowledgeArchived',
+] as const;
 
 export type KnowledgeEventType = (typeof knowledgeEventTypes)[number];
 
@@ -32,6 +39,45 @@ export function createKnowledgeRevisionCreatedEvent(
     knowledgeId: knowledge.id.toString(),
     revisionNumber,
     previousRevisionNumber: revisionNumber - 1,
+  });
+}
+
+export function createKnowledgeAcceptedEvent(
+  knowledge: Knowledge,
+  metadata: DomainEventMetadata,
+): KnowledgeDomainEvent {
+  return createKnowledgeLifecycleEvent('KnowledgeAccepted', knowledge, metadata);
+}
+
+export function createKnowledgePublishedEvent(
+  knowledge: Knowledge,
+  metadata: DomainEventMetadata,
+): KnowledgeDomainEvent {
+  return createKnowledgeLifecycleEvent('KnowledgePublished', knowledge, metadata);
+}
+
+export function createKnowledgeSupersededEvent(
+  knowledge: Knowledge,
+  metadata: DomainEventMetadata,
+): KnowledgeDomainEvent {
+  return createKnowledgeLifecycleEvent('KnowledgeSuperseded', knowledge, metadata);
+}
+
+export function createKnowledgeArchivedEvent(
+  knowledge: Knowledge,
+  metadata: DomainEventMetadata,
+): KnowledgeDomainEvent {
+  return createKnowledgeLifecycleEvent('KnowledgeArchived', knowledge, metadata);
+}
+
+function createKnowledgeLifecycleEvent(
+  eventType: KnowledgeEventType,
+  knowledge: Knowledge,
+  metadata: DomainEventMetadata,
+): KnowledgeDomainEvent {
+  return createKnowledgeEvent(eventType, knowledge, metadata, {
+    knowledgeId: knowledge.id.toString(),
+    status: knowledge.status.toString(),
   });
 }
 

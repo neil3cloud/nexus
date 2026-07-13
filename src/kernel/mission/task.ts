@@ -2,12 +2,21 @@ import {
   MissionPlanningValidationError,
   TaskLifecycleTransitionError,
 } from './mission.errors';
+import type { TaskDomainEvent } from './mission-execution.events';
+import {
+  createTaskCancelledEvent,
+  createTaskCompletedEvent,
+  createTaskStartedEvent,
+} from './mission-execution.events';
+import type { MissionId } from './mission-id';
 import { MissionPlanId } from './mission-plan-id';
 import type { PlanningMetadata, TaskSnapshot, TaskStatus } from './mission-planning.types';
+import type { DomainEventMetadata } from './mission.types';
 import { TaskDependency } from './task-dependency';
 import { TaskId } from './task-id';
 
 export class Task {
+  private readonly recordedEvents: TaskDomainEvent[] = [];
   private readonly dependenciesByTaskId = new Map<string, TaskId>();
   private metadataValue: PlanningMetadata;
 
@@ -145,16 +154,49 @@ export class Task {
     this.transitionTo('Ready');
   }
 
-  public start(): void {
+  public start(metadata?: DomainEventMetadata, missionId?: MissionId): void {
     this.transitionTo('InProgress');
+    if (metadata !== undefined && missionId !== undefined) {
+      this.recordedEvents.push(
+        createTaskStartedEvent({
+          missionId,
+          missionPlanId: this.parentMissionPlanIdValue,
+          taskId: this.taskId,
+          status: this.statusValue,
+          metadata,
+        }),
+      );
+    }
   }
 
-  public complete(): void {
+  public complete(metadata?: DomainEventMetadata, missionId?: MissionId): void {
     this.transitionTo('Completed');
+    if (metadata !== undefined && missionId !== undefined) {
+      this.recordedEvents.push(
+        createTaskCompletedEvent({
+          missionId,
+          missionPlanId: this.parentMissionPlanIdValue,
+          taskId: this.taskId,
+          status: this.statusValue,
+          metadata,
+        }),
+      );
+    }
   }
 
-  public cancel(): void {
+  public cancel(metadata?: DomainEventMetadata, missionId?: MissionId): void {
     this.transitionTo('Cancelled');
+    if (metadata !== undefined && missionId !== undefined) {
+      this.recordedEvents.push(
+        createTaskCancelledEvent({
+          missionId,
+          missionPlanId: this.parentMissionPlanIdValue,
+          taskId: this.taskId,
+          status: this.statusValue,
+          metadata,
+        }),
+      );
+    }
   }
 
   public addDependency(dependency: TaskDependency): void {
@@ -207,6 +249,14 @@ export class Task {
       dependencies: this.prerequisites().map((dependency) => dependency.toString()),
       metadata: cloneMetadata(this.metadataValue),
     };
+  }
+
+  public pullDomainEvents(): readonly TaskDomainEvent[] {
+    const events = [...this.recordedEvents];
+
+    this.recordedEvents.length = 0;
+
+    return events;
   }
 }
 

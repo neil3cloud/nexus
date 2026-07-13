@@ -34,7 +34,7 @@ export function createKernelServices(eventBus: EventBusContract): readonly IKern
   return [
     new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0')),
     new MissionService(missionRepository, eventBus),
-    new MissionPlanningService(missionRepository),
+    new MissionPlanningService(missionRepository, eventBus),
     new MissionExecutionService(missionRepository, eventBus),
     new EvidenceService(evidenceRepository, eventBus),
     new ProjectionService(missionRepository, evidenceRepository),

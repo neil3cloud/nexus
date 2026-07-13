@@ -1,10 +1,17 @@
 import { MissionId } from './mission-id';
+import type { TaskDomainEvent } from './mission-execution.events';
 import {
   MissionExecutionValidationError,
   MissionPlanningValidationError,
   TaskNotFoundError,
 } from './mission.errors';
 import { MissionPlanId } from './mission-plan-id';
+import type { MissionPlanDomainEvent } from './mission-planning.events';
+import {
+  createMissionPlanCreatedEvent,
+  createMissionPlanRevisedEvent,
+  createTaskCreatedEvent,
+} from './mission-planning.events';
 import type {
   MissionPlanSnapshot,
   PlanningMetadata,
@@ -12,12 +19,14 @@ import type {
   TaskSnapshot,
   TaskStatus,
 } from './mission-planning.types';
+import type { DomainEventMetadata } from './mission.types';
 import { PlanRevision, cloneRevisionMetadata, cloneTaskSnapshot } from './plan-revision';
 import { Task } from './task';
 import { TaskDependency } from './task-dependency';
 import { TaskId } from './task-id';
 
 export class MissionPlan {
+  private readonly recordedEvents: (MissionPlanDomainEvent | TaskDomainEvent)[] = [];
   private readonly tasksById = new Map<string, Task>();
   private readonly revisionsValue: PlanRevision[] = [];
   private metadataValue: PlanningMetadata;
@@ -38,10 +47,14 @@ export class MissionPlan {
     readonly missionId: MissionId;
     readonly metadata?: PlanningMetadata;
     readonly revisionMetadata: RevisionMetadata;
+    readonly eventMetadata?: DomainEventMetadata;
   }): MissionPlan {
     const missionPlan = new MissionPlan(input.id, input.missionId, 1, input.metadata ?? {});
 
     missionPlan.recordCurrentRevision(input.revisionMetadata);
+    if (input.eventMetadata !== undefined) {
+      missionPlan.recordedEvents.push(createMissionPlanCreatedEvent(missionPlan, input.eventMetadata));
+    }
 
     return missionPlan;
   }
@@ -89,7 +102,11 @@ export class MissionPlan {
     return [...this.revisionsValue];
   }
 
-  public addTask(task: Task, revisionMetadata: RevisionMetadata): void {
+  public addTask(
+    task: Task,
+    revisionMetadata: RevisionMetadata,
+    eventMetadata?: DomainEventMetadata,
+  ): void {
     this.assertTaskOwnership(task);
 
     const taskId = task.id.toString();
@@ -102,6 +119,9 @@ export class MissionPlan {
     this.assertDependencyUpdateIsAcyclic(task.id, task.prerequisites());
     this.tasksById.set(taskId, Task.fromSnapshot(task.toSnapshot()));
     this.recordNextRevision(revisionMetadata);
+    if (eventMetadata !== undefined) {
+      this.recordedEvents.push(createTaskCreatedEvent(this, task.id, eventMetadata));
+    }
   }
 
   public updateTask(
@@ -186,27 +206,41 @@ export class MissionPlan {
     }
   }
 
-  public startTask(taskId: TaskId): void {
+  public startTask(taskId: TaskId, eventMetadata?: DomainEventMetadata): void {
     const task = this.requireTask(taskId);
 
     this.assertPrerequisitesCompleted(task);
-    task.start();
+    task.start(eventMetadata, this.missionIdValue);
+    this.recordTaskEvents(task);
   }
 
-  public completeTask(taskId: TaskId): void {
-    this.requireTask(taskId).complete();
+  public completeTask(taskId: TaskId, eventMetadata?: DomainEventMetadata): void {
+    const task = this.requireTask(taskId);
+
+    task.complete(eventMetadata, this.missionIdValue);
+    this.recordTaskEvents(task);
   }
 
-  public cancelTask(taskId: TaskId): void {
-    this.requireTask(taskId).cancel();
+  public cancelTask(taskId: TaskId, eventMetadata?: DomainEventMetadata): void {
+    const task = this.requireTask(taskId);
+
+    task.cancel(eventMetadata, this.missionIdValue);
+    this.recordTaskEvents(task);
   }
 
-  public revise(input: { readonly metadata?: PlanningMetadata }, revisionMetadata: RevisionMetadata): void {
+  public revise(
+    input: { readonly metadata?: PlanningMetadata },
+    revisionMetadata: RevisionMetadata,
+    eventMetadata?: DomainEventMetadata,
+  ): void {
     if (input.metadata !== undefined) {
       this.metadataValue = Object.freeze({ ...input.metadata });
     }
 
     this.recordNextRevision(revisionMetadata);
+    if (eventMetadata !== undefined) {
+      this.recordedEvents.push(createMissionPlanRevisedEvent(this, eventMetadata));
+    }
   }
 
   public getRevision(revisionNumber: number): PlanRevision | undefined {
@@ -222,6 +256,14 @@ export class MissionPlan {
       tasks: this.currentTaskSnapshots(),
       revisions: this.revisionsValue.map((revision) => revision.toSnapshot()),
     };
+  }
+
+  public pullDomainEvents(): readonly (MissionPlanDomainEvent | TaskDomainEvent)[] {
+    const events = [...this.recordedEvents];
+
+    this.recordedEvents.length = 0;
+
+    return events;
   }
 
   private assertTaskOwnership(task: Task): void {
@@ -336,6 +378,10 @@ export class MissionPlan {
         this.currentTaskSnapshots(),
       ),
     );
+  }
+
+  private recordTaskEvents(task: Task): void {
+    this.recordedEvents.push(...task.pullDomainEvents());
   }
 
   private currentTaskSnapshots(): readonly TaskSnapshot[] {

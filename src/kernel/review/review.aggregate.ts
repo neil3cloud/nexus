@@ -153,7 +153,11 @@ export class Review {
     this.recordedEvents.push(createFindingCreatedEvent(this, storedFinding, metadata));
   }
 
-  public complete(outcome: ReviewOutcome | string, metadata: DomainEventMetadata): void {
+  public complete(
+    outcome: ReviewOutcome | string,
+    metadata: DomainEventMetadata,
+    outcomeMetadata?: DomainEventMetadata,
+  ): void {
     if (this.statusValue.state !== 'In Progress') {
       throw new ReviewCompletionRejectedError(
         `Review '${this.reviewId.toString()}' must be In Progress before completion.`,
@@ -162,7 +166,7 @@ export class Review {
 
     this.outcomeValue = typeof outcome === 'string' ? ReviewOutcome.fromString(outcome) : outcome;
     this.transitionTo('Completed');
-    this.recordCompletedEvents(this.outcomeValue, metadata);
+    this.recordCompletedEvents(this.outcomeValue, metadata, outcomeMetadata);
   }
 
   public pullDomainEvents(): readonly ReviewDomainEvent[] {
@@ -240,20 +244,40 @@ export class Review {
     }
   }
 
-  private recordCompletedEvents(outcome: ReviewOutcome, metadata: DomainEventMetadata): void {
+  private recordCompletedEvents(
+    outcome: ReviewOutcome,
+    metadata: DomainEventMetadata,
+    outcomeMetadata: DomainEventMetadata | undefined,
+  ): void {
     const outcomeValue = outcome.toString();
 
     this.recordedEvents.push(createReviewCompletedEvent(this, outcome, metadata));
 
     if (outcomeValue === 'Accepted' || outcomeValue === 'Accepted With Observations') {
-      this.recordedEvents.push(createReviewAcceptedEvent(this, outcome, metadata));
+      this.recordedEvents.push(
+        createReviewAcceptedEvent(this, outcome, requireOutcomeEventMetadata(outcomeMetadata)),
+      );
       return;
     }
 
     if (outcomeValue === 'Rejected') {
-      this.recordedEvents.push(createReviewRejectedEvent(this, outcome, metadata));
+      this.recordedEvents.push(
+        createReviewRejectedEvent(this, outcome, requireOutcomeEventMetadata(outcomeMetadata)),
+      );
     }
   }
+}
+
+function requireOutcomeEventMetadata(
+  metadata: DomainEventMetadata | undefined,
+): DomainEventMetadata {
+  if (metadata === undefined) {
+    throw new ReviewCompletionRejectedError(
+      'Review outcome-specific Domain Event metadata is required.',
+    );
+  }
+
+  return metadata;
 }
 
 function normalizeReviewId(reviewId: ReviewId | string): ReviewId {

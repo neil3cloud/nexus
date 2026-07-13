@@ -103,7 +103,7 @@ describe('Review', () => {
     const review = createReview();
     review.start(metadata('event-started'));
     review.publishFinding(createFinding(), metadata('event-finding-created'));
-    review.complete('Rejected', metadata('event-completed'));
+    review.complete('Rejected', metadata('event-completed'), metadata('event-rejected'));
 
     const restored = Review.fromSnapshot(review.toSnapshot());
 
@@ -120,7 +120,7 @@ describe('Review', () => {
     );
 
     review.start(metadata('event-started'));
-    review.complete('Accepted', metadata('event-completed'));
+    review.complete('Accepted', metadata('event-completed'), metadata('event-accepted'));
 
     expect(() => review.start(metadata('event-started-again'))).toThrow(InvalidReviewLifecycleTransitionError);
     expect(() => review.publishFinding(createFinding(), metadata('event-finding-created'))).toThrow(
@@ -179,7 +179,7 @@ describe('Review', () => {
 
     review.start(metadata('event-started'));
     review.publishFinding(createFinding(), metadata('event-finding-created'));
-    review.complete('Rejected', metadata('event-completed'));
+    review.complete('Rejected', metadata('event-completed'), metadata('event-rejected'));
 
     expect(review.pullDomainEvents().map((event) => ({
       eventId: event.eventId,
@@ -231,7 +231,7 @@ describe('Review', () => {
         },
       },
       {
-        eventId: 'event-completed',
+        eventId: 'event-rejected',
         missionId: 'mission-1',
         eventType: 'ReviewRejected',
         attribution: {
