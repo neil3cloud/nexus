@@ -1,6 +1,6 @@
 # Nexus Adapter Runtime Instructions
 
-This document describes runtime execution guidance for production Adapter implementations. It is provider-neutral and applies to CLI-backed Adapters such as `GeminiCliAdapter`.
+This document describes runtime execution guidance for production Adapter implementations. It is provider-neutral and applies to CLI-backed Adapters such as `GeminiCliAdapter` and `CodexCliAdapter`.
 
 ## Runtime lifecycle
 
@@ -20,7 +20,7 @@ CLI-backed Adapters pass the Kernel request as provider input without independen
 - `executionConstraints`
 - `requestMetadata`
 
-`GeminiCliAdapter` embeds this payload in a prompt marker named `NEXUS_ADAPTER_REQUEST_JSON`. The provider is instructed to return a single JSON object and no Markdown, prose, comments, or code fences.
+CLI-backed Adapters embed this payload in a prompt marker named `NEXUS_ADAPTER_REQUEST_JSON`. The provider is instructed to return a single JSON object and no Markdown, prose, comments, or code fences.
 
 ## Command invocation
 
@@ -30,7 +30,13 @@ CLI-backed Adapters pass the Kernel request as provider input without independen
 gemini --prompt "<Nexus Adapter prompt>"
 ```
 
-The executable may be supplied by runtime composition for deterministic testing or local installation differences. Authentication is external to Nexus: the local Gemini CLI session must already be authenticated by the developer through Gemini CLI's own login flow. Nexus does not store, request, prompt for, or manage credentials, API keys, OAuth flows, or tokens.
+`CodexCliAdapter` uses the local `codex` executable by default and invokes Codex CLI's non-interactive execution command through the injected `LocalProcessRuntimeContract`.
+
+```text
+codex exec "<Nexus Adapter prompt>"
+```
+
+The executable and base arguments may be supplied by runtime composition for deterministic testing or local installation differences. Authentication is external to Nexus: the local Gemini CLI or Codex CLI session must already be authenticated by the developer through the provider CLI's own login flow. Nexus does not store, request, prompt for, or manage credentials, API keys, OAuth flows, or tokens.
 
 ## Response contract
 
@@ -48,7 +54,7 @@ The CLI output is parsed as one JSON object with this shape:
   "producedArtifacts": ["artifact-reference"],
   "findings": [],
   "executionMetadata": {
-    "provider": "gemini-cli"
+    "provider": "codex-cli"
   }
 }
 ```
@@ -72,7 +78,9 @@ Adapters do not retry automatically. Timeout configuration is explicit and local
 
 ## Manual Production Verification
 
-Manual verification is intentionally separate from automated repository validation. It requires a real local Gemini CLI installation and a pre-authenticated local CLI session.
+Manual verification is intentionally separate from automated repository validation. It requires a real local provider CLI installation and a pre-authenticated local CLI session.
+
+### Gemini CLI
 
 1. Confirm executable discovery:
 
@@ -90,5 +98,30 @@ Manual verification is intentionally separate from automated repository validati
 4. Confirm expected failure handling by temporarily configuring an invalid executable path and verifying the Adapter reports `process.executable-not-found`.
 5. Confirm timeout handling by using a very small timeout against a long-running local test-double command, not a live provider request.
 6. Record the local Gemini CLI version, operating system, command outcome, and observed diagnostics in the Sprint implementation evidence.
+
+### Codex CLI
+
+1. Confirm executable discovery:
+
+   ```text
+   codex --version
+   ```
+
+2. Confirm the local Codex CLI can execute a minimal request:
+
+   ```text
+   codex exec "Return exactly this JSON: {\"status\":\"Completed\",\"diagnostics\":[{\"code\":\"manual.completed\",\"message\":\"Manual verification completed.\"}],\"producedArtifacts\":[\"manual-codex-cli-verification\"],\"findings\":[],\"executionMetadata\":{\"manualVerification\":\"true\"}}"
+   ```
+
+   If the local shell wrapper splits quoted prompt arguments, use Codex CLI's documented stdin form instead:
+
+   ```text
+   echo "<same prompt>" | codex exec -
+   ```
+
+3. Confirm the output is a single parseable JSON object matching the response contract above.
+4. Confirm expected failure handling by temporarily configuring an invalid executable path and verifying the Adapter reports `process.executable-not-found`.
+5. Confirm timeout handling by using a very small timeout against a long-running local test-double command, not a live provider request.
+6. Record the local Codex CLI version, operating system, command outcome, and observed diagnostics in the Sprint implementation evidence.
 
 The manual procedure is not part of `npm run validate` and does not require deterministic provider content across machines.

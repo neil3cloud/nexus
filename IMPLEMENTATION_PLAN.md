@@ -1620,3 +1620,74 @@ Definition of Done
 - Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
 
 See `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-integration.md` for the complete Sprint Implementation Record.
+
+---
+
+# Milestone 6 — Multi-Provider Adapter Integration
+
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004)
+
+Objective
+
+Prove that the RFC-0008 Adapter Contract scales beyond a single production provider by implementing and certifying a second production Adapter, `CodexCliAdapter`, in isolation — mirroring the Sprint 29 pattern of implement-then-certify-in-isolation before any Developer Workflow wiring is authorized.
+
+Governance Note
+
+Per `NEXUS-RAT-2026-07-14-005`, following Milestone 5's completion (Sprint 30, `NEXUS-REV-2026-07-14-003`), the Sprint Owner opened Milestone 6 with a second production Adapter rather than a persisted Adapter-selection configuration surface, Marketplace publication, or Execution Model deepening — each remaining a valid future candidate. The second production Adapter targets **Codex CLI**, assuming the identical **pre-authenticated local CLI session** authentication model already ratified for Gemini CLI (`NEXUS-RAT-2026-07-14-002`).
+
+Planning Principle
+
+Sprint sequencing within this milestone is intentionally provisional. Following each approved Sprint, `nexus-plan` SHALL assess the repository state and determine the next implementation slice based on implementation experience, repository readiness, governance decisions, and approved ratifications. Approved vertical slices remain immutable.
+
+Expected Outcomes
+
+- A certified, isolated `CodexCliAdapter` production Adapter implementation, proving the RFC-0008 Adapter Contract generalizes across providers without Developer Workflow coupling (Sprint 31).
+- Developer Workflow integration of `CodexCliAdapter` and/or a persisted Adapter-selection configuration surface (future slice, scope to be determined by a future Sprint Owner decision).
+
+---
+
+## Sprint 31 — Codex CLI Adapter Runtime Integration
+
+Status: ✅ Approved (NEXUS-REV-2026-07-14-004)
+
+Objective
+
+Implement the second production Adapter — `CodexCliAdapter` — conforming to the frozen RFC-0008 Adapter Contract, validating that it correctly interoperates with the existing `LocalProcessRuntime` (Sprint 21) while preserving every previously certified architectural boundary. This Sprint validates the Adapter implementation itself, in isolation, mirroring Sprint 29's `GeminiCliAdapter` pattern exactly. It SHALL NOT introduce Developer Workflow integration. It SHALL NOT modify Host orchestration. It SHALL NOT modify Kernel behavior.
+
+RFC Coverage
+
+- RFC-0008 — Kernel Adapter Contract (Partial — second production implementation).
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-005` — governs this sprint's entire scope: Milestone 6 direction, provider selection (Codex CLI), authentication model (pre-authenticated local CLI session, inherited from `NEXUS-RAT-2026-07-14-002`), the binding Isolation Boundary and Two-Tier Acceptance Criteria (mirroring `NEXUS-RAT-2026-07-14-003`), authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-002` — the Gemini CLI provider-selection/authentication-model precedent this ratification mirrors for Codex CLI.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+
+Authorized Scope
+
+- `CodexCliAdapter implements Adapter` under `src/adapters/codex/`, constructor-injected with `LocalProcessRuntimeContract`, mirroring `GeminiCliAdapter`'s and `MockAdapter`'s existing placement outside `src/kernel`.
+- Deterministic diagnostics reusing `ProcessDiagnostics` where applicable, for: executable-not-found, non-zero exit, malformed/unparseable CLI output, timeout, runtime error.
+- Composition-time registration of `CodexCliAdapter` through the existing `createKernelServices` `adapters` option, exercised in tests only via direct `AdapterService.dispatch` calls with an explicit `adapterId` — never wired into `HostMissionWorkflow` or any Host command.
+- `ADAPTER_RUNTIME_INSTRUCTIONS.md` reconciliation, extending its existing provider-neutral guidance to explicitly cover a second CLI-backed provider, without redefining its runtime-guidance-only scope.
+- The automated deterministic-test-double suite (Acceptance Criteria § 1) and a documented manual verification procedure (Acceptance Criteria § 2), mirroring Sprint 29's Two-Tier Acceptance Criteria exactly.
+
+Deferred Concepts
+
+- Developer Workflow integration; any new Host command targeting `CodexCliAdapter`; any Host orchestration change.
+- Persisted Adapter-selection configuration surface (remains deferred from Sprint 24/30, unaffected by this Sprint).
+- GitHub Copilot CLI Adapter; Claude CLI Adapter; any third production Adapter.
+- Adapter Selection Policy, provider routing, provider preference, fallback, multi-adapter execution.
+- Authentication management, credential storage, OAuth, `SecretStorage` integration.
+- Streaming responses, multi-provider coordination, background execution, retries beyond Sprint 21's existing timeout/cancellation primitives.
+
+Definition of Done
+
+- `CodexCliAdapter` dispatches successfully and deterministically through `AdapterService` in isolation against a test-double executable, with correct diagnostics for all specified failure modes.
+- A documented Manual Production Verification procedure exists and its results are recorded in the Implementation Report.
+- No `src/kernel` file changes; no Host orchestration/Developer Workflow file changes; both existing Developer Workflow commands continue registering `MockAdapter`/`GeminiCliAdapter` respectively, unmodified.
+- Sprint 18's `src/kernel` import-graph boundary test passes unmodified.
+- Repository-wide automated validation passes: TypeScript compile, ESLint, Vitest, esbuild — Manual Production Verification excluded from this automated gate by design.
+
+See `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md` for the complete Sprint Implementation Record.

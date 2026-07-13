@@ -1,5 +1,110 @@
 # Nexus Implementation Report
 
+## Sprint 31 — Codex CLI Adapter Runtime Integration
+
+### Implemented Slice
+
+Implemented the Milestone 6 Sprint 31 Codex CLI Adapter Runtime Integration vertical slice. This sprint introduces the second production Adapter implementation in isolation, alongside the certified `MockAdapter` and `GeminiCliAdapter`, without wiring it into Developer Workflow execution.
+
+Implemented scope:
+
+- Added `CodexCliAdapter` under `src/adapters/codex/`.
+- Implemented RFC-0008 `Adapter` metadata and `execute(request): Promise<AdapterResponse>`.
+- Translated `AdapterRequest` into a local `ProcessRequest` and invoked it only through constructor-injected `LocalProcessRuntimeContract`.
+- Used Codex CLI's non-interactive execution shape, `codex exec "<Nexus Adapter prompt>"`, by default.
+- Parsed successful Codex CLI JSON output into the existing `AdapterResponse` shape.
+- Preserved process diagnostics from `LocalProcessRuntimeContract` for executable-not-found, non-zero exit, timeout, and startup/runtime failure paths.
+- Added malformed-output, invalid-timeout, unsupported-role, and runtime-exception Adapter diagnostics.
+- Added deterministic local test-double coverage and direct `AdapterService.dispatch` composition coverage with `MockAdapter`, `GeminiCliAdapter`, and `CodexCliAdapter` registered together.
+- Updated `ADAPTER_RUNTIME_INSTRUCTIONS.md` as provider-neutral runtime guidance covering both Gemini CLI and Codex CLI manual verification.
+
+Out of scope and not implemented:
+
+- Developer Workflow integration or any Host command targeting `CodexCliAdapter`.
+- Host orchestration changes, `HostMissionWorkflow` changes, or `extension.ts` dispatch-target changes.
+- Any `src/kernel` changes.
+- Adapter Selection, provider routing, provider preference, fallback, persisted Adapter-selection configuration, or multi-adapter execution policy.
+- Authentication management, credential storage, OAuth, `SecretStorage`, streaming responses, retries beyond existing runtime timeout behavior, or multi-provider coordination.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any third production Adapter.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0008 — Kernel Adapter Contract (Partial — second production implementation).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Production `Adapter` implementation for Codex CLI.
+- Adapter metadata, declared capabilities, and supported roles using the existing Adapter Framework vocabulary.
+- Adapter request translation to a local process invocation.
+- Adapter response parsing and attribution-preserving execution metadata.
+- Deterministic Adapter diagnostics for runtime and parsing failure modes.
+- Composition-time registration through the existing `createKernelServices` `adapters` option, exercised only through explicit `adapterId` dispatch.
+
+Deferred Concepts:
+
+- Developer Workflow integration and any Host command targeting `CodexCliAdapter`.
+- GitHub Copilot CLI, Claude CLI, or any third production Adapter.
+- Adapter Selection Policy, provider routing, provider preference, fallback, persisted Adapter-selection configuration, and multi-adapter execution.
+- Authentication management, credential storage, OAuth, `SecretStorage`, and Nexus-managed credentials.
+- Streaming responses, multi-provider coordination, and background provider execution.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-005`, `NEXUS-RAT-2026-07-14-002`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0007-adapter-framework.md`.
+- `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0029-gemini-cli-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `ADAPTER_RUNTIME_INSTRUCTIONS.md`.
+
+### Architectural Assumptions
+
+- Codex CLI request execution can be represented as a single local process invocation through the existing `LocalProcessRuntimeContract`.
+- The Adapter can require JSON-only provider output because RFC-0008 defines Adapter Response shape, while provider-specific protocol details remain inside the Adapter boundary.
+- The executable path and base arguments are runtime composition details, enabling deterministic local test-double execution without adding Adapter Selection or provider routing.
+- Codex CLI uses `codex exec [PROMPT]` for non-interactive execution; the Adapter's injected runtime passes the prompt as a process argument, avoiding shell prompt-splitting behavior.
+
+### Known Limitations
+
+- `CodexCliAdapter` is not reachable from any VS Code command or Developer Workflow path in this sprint.
+- Automated validation exercises only a deterministic local test-double executable, never the live Codex CLI.
+- Manual Production Verification depends on a local Codex CLI installation and a usable pre-authenticated Codex account/session.
+- In this environment, Codex CLI executable discovery succeeded (`C:\Users\NeilBusa\AppData\Roaming\npm\codex.ps1`, version `codex-cli 0.144.3`). Live request execution succeeded outside the repository using Codex CLI stdin mode with `--skip-git-repo-check`, `--ignore-rules`, `--ephemeral`, and `--output-last-message`; Codex returned the expected parseable JSON response contract.
+- No retry, streaming, or multi-turn session support is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 31 Vitest suite passed: 2 files, 7 tests.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 54 files, 272 tests.
+- Sprint 18 Kernel boundary certification passed unmodified.
+- `git diff --stat -- src\kernel src\hosts src\extension.ts package.json` is empty.
+- Manual Production Verification procedure is documented in `ADAPTER_RUNTIME_INSTRUCTIONS.md`; live execution evidence is recorded above.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
 
 ### Implemented Slice

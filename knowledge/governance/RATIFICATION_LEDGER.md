@@ -1775,3 +1775,77 @@ None. No Review finding originated this ratification; it resolves a `/nexus-plan
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-005
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-005
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Milestone 6 Opening and Sprint 31 Scope Ratification — Codex CLI Adapter Runtime Integration. Resolves the two governance questions `nexus-plan` raised after Milestone 5's completion (Sprint 30, `NEXUS-REV-2026-07-14-003`): (1) which direction Milestone 6 should take, and (2) which provider the second production Adapter should target.
+
+## Originating Review Finding(s)
+
+None. Originated as a Sprint Owner response to a `/nexus-plan` Repository Analysis (2026-07-14) raised after Milestone 5's completion.
+
+## Governance Decision
+
+**Milestone Direction:** Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** (or an equivalent Sprint Owner-approved name applied at Sprint generation time) and SHALL begin with a **second production Adapter**, implemented and certified in isolation, mirroring the Sprint 29 pattern (implement → certify in isolation → defer Developer Workflow wiring to a later Sprint). The Sprint Owner explicitly declined, at this time, to prioritize a persisted Adapter-selection configuration surface, a third packaging/Marketplace slice, or Execution Model deepening; each remains a valid future candidate and none is foreclosed by this ratification.
+
+**Provider Selection:** The second production Adapter SHALL target **Codex CLI**, not GitHub Copilot CLI or Claude CLI. This is the first ratification to bindingly select Codex CLI for a production Adapter; GitHub Copilot CLI and Claude CLI remain available as candidates for future Adapters.
+
+**Authentication Model (inherited, not re-decided):** Consistent with `NEXUS-RAT-2026-07-14-002`'s Gemini CLI precedent and the provider-neutral guarantee already documented in `ADAPTER_RUNTIME_INSTRUCTIONS.md`, `CodexCliAdapter` SHALL assume a **pre-authenticated local `codex` CLI session**. Nexus SHALL NOT store, manage, request, prompt for, or otherwise handle credentials, API keys, tokens, or OAuth flows for Codex CLI, exactly as it does not for Gemini CLI. The Adapter SHALL invoke the already-authenticated local `codex` executable through the existing `LocalProcessRuntimeContract`, exactly as `GeminiCliAdapter` does.
+
+**Isolation Boundary (binding, mirroring NEXUS-RAT-2026-07-14-003):** The implementing Sprint SHALL implement `CodexCliAdapter` conforming to the frozen RFC-0008 Adapter Contract, in isolation, validated via a deterministic local test-double executable (never a live `codex` CLI, for Automated Repository Validation) plus a documented, non-automated Manual Production Verification procedure against a real, locally authenticated Codex CLI installation — the identical Two-Tier Acceptance Criteria structure `NEXUS-RAT-2026-07-14-003` established for Gemini CLI. The Sprint SHALL NOT introduce Developer Workflow integration, modify Host orchestration, modify `HostMissionWorkflow`, or modify any `src/kernel` file. `CodexCliAdapter` SHALL be registered through the existing `createKernelServices` `adapters` option and exercised only via direct `AdapterService.dispatch` calls with an explicit `adapterId` in tests.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- implement a `CodexCliAdapter` (or equivalently named) production Adapter conforming to the existing, frozen RFC-0008 Adapter Contract, invoking a local `codex` CLI executable through the existing `LocalProcessRuntimeContract`, placed outside `src/kernel` mirroring `GeminiCliAdapter`'s (`src/adapters/gemini/`) and `MockAdapter`'s existing placement (e.g. `src/adapters/codex/`);
+- deterministic diagnostics for executable-not-found, non-zero exit, malformed/unparseable output, timeout, and runtime error, reusing `ProcessDiagnostics` where applicable, mirroring `GeminiCliAdapter`'s diagnostic surface;
+- composition-time registration of `CodexCliAdapter` through the existing `createKernelServices` `adapters` option, exercised only via direct `AdapterService.dispatch` calls in tests — NOT wired as any Developer Workflow command's dispatch target;
+- an update to `ADAPTER_RUNTIME_INSTRUCTIONS.md` reconciling it as provider-neutral guidance now covering a second CLI-backed provider, without redefining its existing runtime-guidance-only scope;
+- the automated deterministic-test-double suite and the documented (non-automated) Manual Production Verification procedure described above.
+
+No Developer Workflow file, Host orchestration file, or Kernel file may be modified.
+
+## Scope Restrictions
+
+- No Developer Workflow integration; no `HostMissionWorkflow` change; no new Host command targeting `CodexCliAdapter`.
+- No Host orchestration changes; no Kernel architectural changes.
+- No Adapter Selection, provider routing, or persisted Adapter-configuration surface — that capability remains deferred, unaffected by this ratification, per `NEXUS-RAT-2026-07-13-011` and the Sprint 24/30 deferral.
+- No authentication management, credential storage, OAuth, or `SecretStorage` integration — the pre-authenticated-local-session model remains binding for Codex CLI exactly as for Gemini CLI.
+- No streaming responses or multi-provider coordination.
+- The Manual Production Verification procedure SHALL remain documentation, not automation; it SHALL NOT be added to `npm run validate` or any CI-gating script.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, and existing integration tests SHALL continue to pass.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0010, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 7 — Adapter Framework (the Adapter Contract this implementation conforms to).
+- Sprint 19 — Mock Adapter Runtime Integration; Sprint 29 — Gemini CLI Adapter Runtime Integration (the isolated-implementation-before-wiring precedent this Sprint mirrors exactly).
+- Sprint 21 — Local Process Runtime Foundation (the process-execution primitive reused here).
+- Sprint 30 — Developer Workflow Integration of GeminiCliAdapter (the completed Milestone 5 slice this ratification follows; `NEXUS-REV-2026-07-14-003`).
+- `NEXUS-RAT-2026-07-14-002` (the Gemini CLI provider-selection/authentication-model precedent this ratification mirrors for Codex CLI).
+- `NEXUS-RAT-2026-07-14-003` (the Two-Tier Acceptance Criteria and isolation-boundary precedent this ratification reuses verbatim).
+
+## Related Review(s)
+
+None. No Review finding originated this ratification; it resolves a `/nexus-plan` Repository Analysis and Sprint Owner direction.
+
+## Full Ratification Text
+
+> The Sprint Owner opens Milestone 6 following Milestone 5's completion (Sprint 30, NEXUS-REV-2026-07-14-003). Milestone 6 SHALL begin with a second production Adapter, implemented and certified in isolation, mirroring the Sprint 29 pattern of implement-then-certify-in-isolation before any Developer Workflow wiring is authorized. The Sprint Owner declines, at this time, to prioritize persisted Adapter-selection configuration, Marketplace publication, or Execution Model deepening; each remains available for a future Milestone. The second production Adapter SHALL target Codex CLI. CodexCliAdapter SHALL assume a pre-authenticated local codex CLI session, identical in structure to the Gemini CLI authentication model ratified by NEXUS-RAT-2026-07-14-002; Nexus SHALL NOT store, manage, request, or otherwise handle credentials, API keys, tokens, or OAuth flows for Codex CLI. The implementing Sprint SHALL implement CodexCliAdapter conforming to the frozen RFC-0008 Adapter Contract, via constructor-injected LocalProcessRuntimeContract, placed outside src/kernel mirroring GeminiCliAdapter's and MockAdapter's existing placement. The Sprint SHALL satisfy the identical Two-Tier Acceptance Criteria structure NEXUS-RAT-2026-07-14-003 established for Gemini CLI: Automated Repository Validation using a deterministic local test-double executable, never a live Codex CLI, as part of npm run validate; and a documented, non-automated Manual Production Verification procedure against a real, locally authenticated Codex CLI installation. The Sprint SHALL NOT introduce Developer Workflow integration, modify Host orchestration, modify HostMissionWorkflow, or modify any src/kernel file; CodexCliAdapter SHALL be registered through the existing createKernelServices adapters option and exercised only via direct AdapterService.dispatch calls with an explicit adapterId in tests. No previously approved test SHALL regress. This ratification does not modify RFC-0004, RFC-0008, RFC-0010, or the Kernel Canon. The Sprint Owner authorizes nexus-plan to generate the Sprint 31 Implementation Record under Milestone 6 and authorizes the Builder to implement Sprint 31 in accordance with the Specification-First governance model.
+
+## Current Status
+
+Active
+
+---

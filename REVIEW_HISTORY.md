@@ -2,6 +2,76 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-004 — Sprint 31 — Codex CLI Adapter Runtime Integration
+
+- **Reviewed Sprint:** Sprint 31 — Codex CLI Adapter Runtime Integration
+- **Reviewed Vertical Slice:** `CodexCliAdapter` (`src/adapters/codex/codex-cli-adapter.ts`), constructor-injected with `LocalProcessRuntimeContract`; deterministic local test-double suite (`test/adapters/codex/codex-cli-adapter.test.ts`, `test/adapters/codex/codex-cli-test-double.cjs`); composition-time registration proof (`test/integration/codex-cli-adapter-runtime.integration.test.ts`); `ADAPTER_RUNTIME_INSTRUCTIONS.md` reconciliation.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Primary, Partial — second production implementation). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 31 implements Nexus's second production Adapter, `CodexCliAdapter`, exactly as scoped by `NEXUS-RAT-2026-07-14-005`, introducing exactly one architectural variable (`CodexCliAdapter` registered alongside, not replacing, `MockAdapter` and `GeminiCliAdapter`) while preserving every previously certified boundary. This is a clean, isolated repetition of the already-certified Sprint 29 pattern with the provider swapped from Gemini CLI to Codex CLI.
+
+Independent re-verification: `git diff --stat -- src/kernel src/hosts src/extension.ts package.json src/adapters/mock src/adapters/runtime src/adapters/gemini` confirmed **empty** — every previously certified component is untouched. `knowledge/governance/RATIFICATION_LEDGER.md`'s diff was independently confirmed to be exactly the `NEXUS-RAT-2026-07-14-005` entry added during the prior `/nexus-plan` cycle, not a Builder modification. A repository-wide grep confirmed `CodexCliAdapter` is referenced nowhere in `src/extension.ts` or `src/hosts/**`; neither existing Developer Workflow command's dispatch target changed.
+
+`CodexCliAdapter` was read in full and confirmed structurally identical to the certified `GeminiCliAdapter` (metadata shape, request/response translation, diagnostics, timeout handling), differing only in provider-specific invocation (`codex exec "<prompt>"` vs `gemini --prompt`) and diagnostic/attribution naming (`codex-cli-adapter.*`, `provider: 'codex-cli'`).
+
+I independently ran the targeted Sprint 31 suite (`test/adapters/codex`, `test/integration/codex-cli-adapter-runtime.integration.test.ts`): 2 files / 7 tests passed, matching the Builder's claim exactly. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**54 files / 272 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test included and passing unmodified within that run.
+
+Reviewed the deterministic test-double executable (`codex-cli-test-double.cjs`) in full: fully deterministic, driven only by an `executionConstraints` flag, with no network, filesystem, or authentication dependency — correctly satisfying the Automated Repository Validation tier's CI-safety requirement. Reviewed the `ADAPTER_RUNTIME_INSTRUCTIONS.md` diff: purely additive, extending the existing Gemini CLI guidance to explicitly cover Codex CLI (including its own Manual Production Verification section), without redefining the document's runtime-guidance-only scope or introducing any governance claim.
+
+Cross-checked the Builder's reported Manual Production Verification result (real `codex` CLI discovered at version `codex-cli 0.144.3`; a live smoke test outside the repository succeeded via `codex exec` stdin mode, returning a parseable JSON response matching the Adapter response contract) against `IMPLEMENTATION_REPORT.md` and the Sprint 31 record — both consistently document this as documented, non-automated evidence, correctly excluded from the CI-safe gate.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 54 files / 272 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Developer Workflow integration / any new Host command targeting `CodexCliAdapter`; any `HostMissionWorkflow`/Host-orchestration/`extension.ts` change; persisted Adapter-selection configuration surface; GitHub Copilot CLI / Claude CLI or any third production Adapter; Adapter Selection Policy, provider routing, provider preference, fallback, multi-adapter execution; authentication management, credential storage, OAuth, `SecretStorage`; streaming responses, multi-provider coordination, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (isolated second production Adapter implementation); no Developer Workflow coupling introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/RFC-0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-005`'s binding Critical Boundary, Authentication Model, and Two-Tier Acceptance Criteria followed exactly, mirroring `NEXUS-RAT-2026-07-14-003`'s Gemini CLI precedent.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `Adapter`/`AdapterRequest`/`AdapterResponse`/`AdapterMetadata` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; Adapter remains stateless per RFC-0008.
+- Gate 5 (Data Model): PASS — `AdapterResponse`'s existing shape preserved unchanged.
+- Gate 6 (State Machine): PASS — no state machine touched; `AdapterLifecycle` untouched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/hosts src/extension.ts package.json` independently re-confirmed empty; Sprint 18's boundary test unaffected; `CodexCliAdapter` independently confirmed absent from `src/hosts/**` and `src/extension.ts` via grep.
+- Gate 9 (Technology Compliance): PASS — `CodexCliAdapter` correctly placed under `src/adapters/codex/`, mirroring `GeminiCliAdapter`/`MockAdapter` precedent exactly.
+- Gate 10 (Code Quality): PASS — deterministic diagnostics, immutable request/response translation, no hidden behavior; structurally consistent with the certified Gemini CLI Adapter.
+- Gate 11 (Testing): PASS — Automated Repository Validation tier is fully deterministic and CI-safe; Manual Production Verification correctly documented and excluded from automation.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `ADAPTER_RUNTIME_INSTRUCTIONS.md`, and the Sprint 31 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 31 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0031-codex-cli-adapter-runtime-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 31 status set to **Approved** (`NEXUS-REV-2026-07-14-004`); Milestone 6 status line updated accordingly. No Sprint 32 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+None. Zero findings; nothing blocks or requires remediation. Per `NEXUS-RAT-2026-07-14-005`, only after this Sprint's independent certification (now recorded here) SHALL a future Sprint authorize Developer Workflow integration of `CodexCliAdapter` — that scoping decision remains the next Sprint Owner action via `/nexus-plan`.
+
+---
+
 ## NEXUS-REV-2026-07-14-003 — Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
 
 - **Reviewed Sprint:** Sprint 30 — Developer Workflow Integration of GeminiCliAdapter

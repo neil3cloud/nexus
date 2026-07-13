@@ -1160,7 +1160,7 @@ Notes:
 
 # Milestone 5 — Production Adapter Integration
 
-Status: In Progress (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Implemented — Pending Reviewer Validation)
+Status: ✅ COMPLETE (Sprint 28 Approved with Findings; Sprint 29 Approved — NEXUS-REV-2026-07-14-002; Sprint 30 Approved — NEXUS-REV-2026-07-14-003)
 
 ## Sprint 28 — VS Code Extension Installability
 
@@ -1242,7 +1242,7 @@ Notes:
 
 ## Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved (NEXUS-REV-2026-07-14-003)
 
 RFC Coverage:
 
@@ -1278,6 +1278,54 @@ Notes:
 
 - See `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-integration.md` for the complete Sprint Implementation Record.
 - This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+
+---
+
+# Milestone 6 — Multi-Provider Adapter Integration
+
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004)
+
+## Sprint 31 — Codex CLI Adapter Runtime Integration
+
+Status: Approved (NEXUS-REV-2026-07-14-004)
+
+RFC Coverage:
+
+- RFC-0008 — Kernel Adapter Contract (Primary, Partial — second production implementation)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-005` — governs this sprint's entire scope: Milestone 6 direction, provider selection (Codex CLI), authentication model (pre-authenticated local CLI session, inherited from `NEXUS-RAT-2026-07-14-002`), the binding Isolation Boundary and Two-Tier Acceptance Criteria, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-002` — the Gemini CLI provider-selection/authentication-model precedent this ratification mirrors for Codex CLI.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected.
+
+Planned Concepts:
+
+- `CodexCliAdapter implements Adapter` under `src/adapters/codex/`, constructor-injected with `LocalProcessRuntimeContract`, mirroring `GeminiCliAdapter`'s and `MockAdapter`'s existing placement outside `src/kernel`.
+- Deterministic diagnostics for executable-not-found, non-zero exit, malformed/unparseable output, timeout, and runtime error, reusing `ProcessDiagnostics` where applicable.
+- Composition-time registration of `CodexCliAdapter` through the existing `createKernelServices` `adapters` option, exercised in tests only via direct `AdapterService.dispatch` calls — never wired into `HostMissionWorkflow` or any Host command.
+- `ADAPTER_RUNTIME_INSTRUCTIONS.md` reconciliation extending its existing provider-neutral guidance to a second CLI-backed provider.
+- A deterministic local test-double executable suite (Automated Repository Validation) and a documented, non-automated Manual Production Verification procedure against a real, locally authenticated Codex CLI.
+
+Deferred Concepts:
+
+- Developer Workflow integration; any new Host command targeting `CodexCliAdapter`; any Host orchestration change.
+- Persisted Adapter-selection configuration surface (remains deferred from Sprint 24/30, unaffected by this Sprint).
+- GitHub Copilot CLI Adapter; Claude CLI Adapter; any third production Adapter.
+- Adapter Selection Policy, provider routing, provider preference, fallback, multi-adapter execution.
+- Authentication management, credential storage, OAuth, `SecretStorage` integration.
+- Streaming responses, multi-provider coordination, background execution.
+
+Critical Boundary:
+
+- This sprint introduces exactly one architectural variable — `CodexCliAdapter` registered alongside `MockAdapter` and `GeminiCliAdapter` — while every other component remains unchanged. No `src/kernel`, Host orchestration, or Developer Workflow file may be modified. Manual Production Verification is documentation only and SHALL NOT be added to `npm run validate` or any CI-gating script.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0010, or the Kernel Canon.
+- Only after this sprint's independent certification SHALL a future Sprint authorize Developer Workflow integration of `CodexCliAdapter`.
 
 ---
 
