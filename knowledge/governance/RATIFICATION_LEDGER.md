@@ -150,13 +150,13 @@ Reconstructed from the superseded Builder Task document and surviving review sum
 >
 > TASK-002 is RATIFIED and the blocker is removed. Canonical RFC-0003 naming is:
 >
-> | Concept | Canonical Name |
-> | --- | --- |
-> | Capability | Shared Reality |
-> | Domain Model | SharedReality |
+> | Concept             | Canonical Name    |
+> | ------------------- | ----------------- |
+> | Capability          | Shared Reality    |
+> | Domain Model        | SharedReality     |
 > | Application Service | ProjectionService |
-> | Request | ProjectionRequest |
-> | Result | ProjectionResult |
+> | Request             | ProjectionRequest |
+> | Result              | ProjectionResult  |
 >
 > The `SharedRealityService` alias is not part of the canonical architecture and SHALL be removed unless explicitly reintroduced by a future RFC. Exactly one published `ProjectionRequest` and one published `ProjectionService` contract surface SHALL remain after reconciliation. The Builder SHALL NOT implement deferred RFC-0003 capabilities, introduce Context Assembly, expand Shared Reality functionality, redesign architecture, or modify RFC ownership.
 
@@ -390,18 +390,18 @@ RFC-0006 ubiquitous-language ratification ("Review" implementation vocabulary) a
 
 **TASK-001 — RFC-0006 vocabulary.** "Review" is ratified as the canonical implementation-layer vocabulary for RFC-0006 (Engineering Assessment Model) concepts. RFC-0006 remains the sole normative owner of the underlying semantics (assessment lifecycle guarantees, determinism, explainability, attribution, the four-outcome guarantee) and is not modified. The canonical implementation vocabulary is:
 
-| RFC-0006 Normative Term | Canonical Implementation Name |
-| --- | --- |
-| Engineering Assessment / Assessment Session | `Review` |
-| Assessment Criteria | `ReviewCriteria` |
-| Assessment Finding | `Finding` |
-| Finding Severity | `Severity` |
-| Finding Intent | `FindingCategory` |
-| Observation | `Observation` |
-| Actionable Finding | `ActionableFinding` |
-| Assessment Outcome | `ReviewOutcome` (Accepted / Accepted With Observations / Action Required / Rejected) |
-| *(implementation-layer only; not RFC-0006-owned)* | `ReviewStatus` (`Pending → In Progress → Completed`) |
-| *(implementation-layer only; not RFC-0006-owned)* | `FindingStatus` (`Created → Accepted / Resolved / Dismissed`) |
+| RFC-0006 Normative Term                           | Canonical Implementation Name                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Engineering Assessment / Assessment Session       | `Review`                                                                             |
+| Assessment Criteria                               | `ReviewCriteria`                                                                     |
+| Assessment Finding                                | `Finding`                                                                            |
+| Finding Severity                                  | `Severity`                                                                           |
+| Finding Intent                                    | `FindingCategory`                                                                    |
+| Observation                                       | `Observation`                                                                        |
+| Actionable Finding                                | `ActionableFinding`                                                                  |
+| Assessment Outcome                                | `ReviewOutcome` (Accepted / Accepted With Observations / Action Required / Rejected) |
+| _(implementation-layer only; not RFC-0006-owned)_ | `ReviewStatus` (`Pending → In Progress → Completed`)                                 |
+| _(implementation-layer only; not RFC-0006-owned)_ | `FindingStatus` (`Created → Accepted / Resolved / Dismissed`)                        |
 
 Per Sprint Owner direction, Reference Documents are reconciled to this ratified vocabulary in full, including renaming `kernel-data-model.md`'s pre-existing `FindingIntent` field type and enumeration entry to `FindingCategory`, so that no parallel implementation concept remains. `kernel-state-machine.md`'s fourth Review outcome, previously mislabeled "Actionable Findings," is corrected to RFC-0006's literal "Action Required" — this direction (Reference Document → RFC-0006) is required by the Implementation Constitution's authority order and is not discretionary.
 
@@ -648,14 +648,14 @@ Canonical implementation-layer vocabulary for RFC-0007 (Knowledge Model), correc
 
 The canonical implementation vocabulary is:
 
-| RFC-0007 Normative Term | Canonical Implementation Name |
-| --- | --- |
-| Engineering Memory | `Knowledge` (aggregate) |
-| *(implementation-layer identity)* | `KnowledgeId` |
+| RFC-0007 Normative Term                                                    | Canonical Implementation Name                                               |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Engineering Memory                                                         | `Knowledge` (aggregate)                                                     |
+| _(implementation-layer identity)_                                          | `KnowledgeId`                                                               |
 | Memory Lifecycle (`Candidate → Approved → Active → Superseded → Archived`) | `KnowledgeStatus` (`Candidate → Approved → Active → Superseded → Archived`) |
-| Memory Scope | `KnowledgeScope` |
-| Memory Provenance | `KnowledgeProvenance` |
-| Memory Attribution | `KnowledgeAttribution` |
+| Memory Scope                                                               | `KnowledgeScope`                                                            |
+| Memory Provenance                                                          | `KnowledgeProvenance`                                                       |
+| Memory Attribution                                                         | `KnowledgeAttribution`                                                      |
 
 Three previously inconsistent Knowledge/Memory event-name sets exist in the reference corpus (`kernel-event-catalog.md`'s `KnowledgeCandidateCreated`/`KnowledgeAccepted`/`KnowledgePublished`; `knowledge-service.md`'s `KnowledgeCaptured`/`KnowledgeUpdated`/`KnowledgeSuperseded`; and RFC-0007's own 5-state Memory Lifecycle, which neither event set fully covers). Reconciling these, together with `knowledge-service.md`'s described event-subscription/consumer design, is explicitly deferred to the first Knowledge Event Publication vertical slice (RFC-0005 integration), following the established Foundation → Event Publication pattern previously used for Evidence (Sprint 5 → 11) and Review (Sprint 9 → 11).
 
@@ -724,14 +724,14 @@ Three previously inconsistent Knowledge/Memory event-name sources existed: `kern
 
 The Sprint Owner ratifies the following reconciliation:
 
-| Operation | Event | Status |
-| --- | --- | --- |
-| `captureKnowledge` | `KnowledgeCandidateCreated` (reused from `kernel-event-catalog.md`) | Authorized for Sprint 13 |
-| `reviseKnowledge` | `KnowledgeRevisionCreated` (new) | Authorized for Sprint 13 |
-| *(future)* `approveKnowledge` | `KnowledgeAccepted` (reused) | Deferred |
-| *(future)* `activateKnowledge` | `KnowledgePublished` (reused) | Deferred |
-| *(future)* `supersedeKnowledge` | `KnowledgeSuperseded` (reused from `knowledge-service.md`) | Deferred |
-| *(future)* `archiveKnowledge` | `KnowledgeArchived` (new) | Deferred |
+| Operation                       | Event                                                               | Status                   |
+| ------------------------------- | ------------------------------------------------------------------- | ------------------------ |
+| `captureKnowledge`              | `KnowledgeCandidateCreated` (reused from `kernel-event-catalog.md`) | Authorized for Sprint 13 |
+| `reviseKnowledge`               | `KnowledgeRevisionCreated` (new)                                    | Authorized for Sprint 13 |
+| _(future)_ `approveKnowledge`   | `KnowledgeAccepted` (reused)                                        | Deferred                 |
+| _(future)_ `activateKnowledge`  | `KnowledgePublished` (reused)                                       | Deferred                 |
+| _(future)_ `supersedeKnowledge` | `KnowledgeSuperseded` (reused from `knowledge-service.md`)          | Deferred                 |
+| _(future)_ `archiveKnowledge`   | `KnowledgeArchived` (new)                                           | Deferred                 |
 
 `KnowledgeRevisionCreated` (not `KnowledgeRevised`, per Sprint Owner direction) is the ratified name for the Memory Evolution event — chosen because it names the resulting fact (a new revision now exists) rather than the action that produced it, consistent with the Governance Rule established below.
 
@@ -901,14 +901,14 @@ Additionally, the catalog independently contains a **pre-existing duplication** 
 
 The Sprint Owner ratifies that the Kernel Event Catalog SHALL attribute event producers only to implemented producer roles, following the same discipline already established in Sprint 11 for Evidence/Review ("only the event names cataloged for the producer roles actually implemented this slice"), and that the pre-existing duplicate entries SHALL be reconciled to one canonical entry per fact, using the aggregate-correct `MissionPlan`/`Task` section as canonical (consistent with Sprint 3's approved aggregate model), mirroring the Sprint 6 precedent (NEXUS-RAT-2026-07-12-002) for removing duplicate/obsolete contract surfaces:
 
-| Event | Corrected Producer | Rationale |
-| --- | --- | --- |
-| `MissionPlanCreated` | `MissionPlanningService` | Matches existing `createMissionPlan` operation. No duplicate. |
-| `MissionPlanRevised` | `MissionPlanningService` | Matches existing `reviseMissionPlan` operation and `kernel-state-machine.md`'s transition table. Canonical name; the legacy `# Mission Events` duplicate (Producer: Mission Service) and the redundant `MissionPlanSuperseded` entry are removed as the same fact under competing names. |
-| `TaskCreated` | `MissionPlanningService` | Matches existing `addTask` operation. Canonical name; the legacy `# Mission Events` `TaskAdded` duplicate (Producer: Mission Service) is removed as the same fact under a competing name. |
-| `TaskStarted` | `MissionExecutionService` | Matches existing `startTask` operation (reattributed from "Adapter"). |
-| `TaskCompleted` | `MissionExecutionService` | Matches existing `completeTask` operation (reattributed from "Adapter"). |
-| `TaskCancelled` | `MissionExecutionService` | Matches existing `cancelTask` operation (reattributed from "Mission Service", which is not the operation's actual owner). |
+| Event                | Corrected Producer        | Rationale                                                                                                                                                                                                                                                                                |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MissionPlanCreated` | `MissionPlanningService`  | Matches existing `createMissionPlan` operation. No duplicate.                                                                                                                                                                                                                            |
+| `MissionPlanRevised` | `MissionPlanningService`  | Matches existing `reviseMissionPlan` operation and `kernel-state-machine.md`'s transition table. Canonical name; the legacy `# Mission Events` duplicate (Producer: Mission Service) and the redundant `MissionPlanSuperseded` entry are removed as the same fact under competing names. |
+| `TaskCreated`        | `MissionPlanningService`  | Matches existing `addTask` operation. Canonical name; the legacy `# Mission Events` `TaskAdded` duplicate (Producer: Mission Service) is removed as the same fact under a competing name.                                                                                                |
+| `TaskStarted`        | `MissionExecutionService` | Matches existing `startTask` operation (reattributed from "Adapter").                                                                                                                                                                                                                    |
+| `TaskCompleted`      | `MissionExecutionService` | Matches existing `completeTask` operation (reattributed from "Adapter").                                                                                                                                                                                                                 |
+| `TaskCancelled`      | `MissionExecutionService` | Matches existing `cancelTask` operation (reattributed from "Mission Service", which is not the operation's actual owner).                                                                                                                                                                |
 
 `MissionPlanActivated` is **not** included in this table and is **not authorized for publication**: the approved Sprint 3 `MissionPlan` aggregate has no Draft/Active/Superseded status field and no activation operation exists on `MissionPlanningService` to trigger it from — mirroring the Sprint 11 precedent for `EvidenceAccepted`/`EvidenceRejected` ("Producer: Review Service, no corresponding operation exists"). It remains deferred, not merely event-silent, until a future sprint introduces Mission Plan status/activation as its own vertical slice.
 
@@ -1562,13 +1562,13 @@ None. Originated as a Sprint Owner response to `nexus-plan`'s Governance Report 
 
 **Provider-Neutral Runtime Instructions:** The Sprint Owner determines that activating a document literally named `COPILOT_INSTRUCTIONS.md` — now that the first production Adapter is confirmed to be Gemini CLI, not GitHub Copilot CLI — would incorrectly bind repository terminology to a vendor the repository is not integrating first, and would conflict with RFC-0008's provider-independent Adapter architecture. The canonical document is hereby retitled:
 
-| Previous (illustrative name, never created) | Canonical |
-| --- | --- |
-| `COPILOT_INSTRUCTIONS.md` | `ADAPTER_RUNTIME_INSTRUCTIONS.md` |
+| Previous (illustrative name, never created) | Canonical                         |
+| ------------------------------------------- | --------------------------------- |
+| `COPILOT_INSTRUCTIONS.md`                   | `ADAPTER_RUNTIME_INSTRUCTIONS.md` |
 
 This is a terminology ratification only. It introduces no change to Kernel behavior, governance responsibilities, RFC-0008 semantics, or runtime execution semantics. `ADAPTER_RUNTIME_INSTRUCTIONS.md` SHALL define only runtime execution guidance for production Adapter implementations — adapter execution lifecycle, request construction, command invocation, response parsing, diagnostics, runtime expectations, and operational requirements for future production Adapters (Gemini CLI first, with GitHub Copilot CLI, Claude CLI, Codex CLI, and others conforming to the same common runtime contract rather than each introducing a provider-specific instruction document). It SHALL NOT define repository governance, Sprint planning, architectural ownership, Builder authority, Reviewer authority, or implementation policy — those responsibilities remain exclusively owned by `IMPLEMENTATION_CONSTITUTION.md`, the Ratification Ledger, Sprint Implementation Records, and other existing governance artifacts.
 
-**Repository Law Update:** The trigger established under `NEXUS-RAT-2026-07-13-010` ("deferred until the repository's first production AI provider integration sprint") is hereby fulfilled and its document-naming portion superseded. The canonical repository law is now: *the first production Adapter integration sprint activates `ADAPTER_RUNTIME_INSTRUCTIONS.md`.* `NEXUS-RAT-2026-07-13-010` itself remains recorded unmodified per the Constitution's immutable-ledger rule; this entry documents the superseding relationship. Any historical or future reference to `COPILOT_INSTRUCTIONS.md` anywhere in the repository SHALL be read as referring to `ADAPTER_RUNTIME_INSTRUCTIONS.md`.
+**Repository Law Update:** The trigger established under `NEXUS-RAT-2026-07-13-010` ("deferred until the repository's first production AI provider integration sprint") is hereby fulfilled and its document-naming portion superseded. The canonical repository law is now: _the first production Adapter integration sprint activates `ADAPTER_RUNTIME_INSTRUCTIONS.md`._ `NEXUS-RAT-2026-07-13-010` itself remains recorded unmodified per the Constitution's immutable-ledger rule; this entry documents the superseding relationship. Any historical or future reference to `COPILOT_INSTRUCTIONS.md` anywhere in the repository SHALL be read as referring to `ADAPTER_RUNTIME_INSTRUCTIONS.md`.
 
 ## Authorized Builder Scope
 
@@ -1925,6 +1925,253 @@ None. No Review finding originated this ratification; it resolves a `/nexus-plan
 ## Full Ratification Text
 
 > The Sprint Owner approves Sprint 32, titled Production Workflow Parity. Sprint 32 SHALL integrate CodexCliAdapter, certified in isolation by Sprint 31, into the Developer Workflow, mirroring exactly the architectural pattern NEXUS-RAT-2026-07-14-004 established for GeminiCliAdapter in Sprint 30. The Sprint Owner does not authorize a persisted Adapter-selection configuration surface or Execution Model deepening this Sprint; both remain valid future candidates, unforeclosed. Sprint 32 SHALL introduce a third Developer Workflow command dedicated to CodexCliAdapter, leaving nexus.runDeveloperMissionWorkflow (MockAdapter) and nexus.runDeveloperMissionWorkflowWithGeminiCli (GeminiCliAdapter) entirely unmodified. The new command SHALL dispatch via an explicit adapterId only; no Adapter routing, selection policy, persisted preference, or runtime ambiguity is introduced, remaining fully consistent with NEXUS-RAT-2026-07-13-011. The Host MAY expose multiple workflow entry points; the Kernel SHALL remain unaware of which command initiated execution; Execution Strategy SHALL continue receiving an explicit adapter identifier; the Adapter Registry SHALL continue performing deterministic dispatch only. Upon completion, every certified production Adapter SHALL have a corresponding, independently dispatched Developer Workflow command. No previously approved test SHALL regress. This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon. The Sprint Owner authorizes nexus-plan to generate the Sprint 32 Implementation Record under Milestone 6 and authorizes the Builder to implement Sprint 32 in accordance with the Specification-First governance model.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-14-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-007
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 33 Scope Ratification — Adapter Configuration Foundation. Resolves the governance question `nexus-plan` raised after Sprint 32's completion (`NEXUS-REV-2026-07-14-005`/`-006`) regarding which of the three candidate directions named in `NEXUS-RAT-2026-07-14-005`'s Governance Note (persisted Adapter-selection configuration surface, a third production Adapter, or Execution Model deepening) Sprint 33 should pursue.
+
+## Originating Review Finding(s)
+
+None. Originated as a Sprint Owner response to a `/nexus-plan` governance question (2026-07-14) raised after Sprint 32's completion.
+
+## Governance Decision
+
+Sprint 33 SHALL be titled **Adapter Configuration Foundation**. The Sprint Owner selects the persisted Adapter-selection configuration surface as Milestone 6's next slice, declining at this time to add a fourth production Adapter or to begin Execution Model deepening; both remain valid future candidates, unforeclosed by this ratification.
+
+Sprint 33 SHALL introduce a provider-neutral Adapter Configuration capability that allows the Host to resolve an explicit `adapterId` from VS Code User or Workspace configuration, while preserving the deterministic execution model established through Milestone 5 and Sprint 31/32. Configuration resolution SHALL occur entirely within the Host. The Kernel SHALL continue to be invoked with an explicit `adapterId` exactly as today — the Host resolves _which_ explicit `adapterId` to pass; it does not introduce Adapter Selection Policy, routing, or capability scoring. This distinction is binding: resolving a configured default identifier is not the same architectural concept as automatic provider selection, which `NEXUS-RAT-2026-07-13-011` continues to defer.
+
+## Architectural Responsibilities (binding)
+
+- The Host MAY read a User/Workspace-scoped configuration value naming a default Developer Workflow `adapterId`; this is a Host-local concern, not a Kernel concept.
+- The Kernel SHALL remain unaware of configuration; it SHALL continue to receive only an explicit `adapterId` at the call site, exactly as today.
+- The Adapter Registry SHALL continue performing deterministic dispatch only, never routing or scoring.
+- The existing explicit-command workflow (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`) SHALL remain available and unmodified; configuration is additive, not a replacement for explicit commands.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Add VS Code User and Workspace configuration (`package.json` `contributes.configuration`) declaring a default Developer Workflow adapter identifier setting.
+- Implement Host-local resolution of this configuration value into an explicit `adapterId`, consumed only by the Host before invoking the existing, unmodified execution pipeline.
+- Preserve the existing execution pipeline (`HostMissionWorkflow`, `AdapterService.dispatch`, and the full Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge sequence) unchanged.
+- Maintain backward compatibility with the three existing explicit Developer Workflow commands (`MockAdapter`, `GeminiCliAdapter`, `CodexCliAdapter`), which SHALL continue to dispatch via their own hardcoded `adapterId` exactly as certified in Sprints 25, 30, and 32.
+- Add unit/integration test coverage for configuration resolution (default present, default absent, default naming an unregistered/unknown adapter identifier), using only deterministic test-doubles.
+
+The Builder SHALL NOT:
+
+- introduce Adapter Selection Policy, routing, capability scoring, automatic provider selection, role-based adapter assignment, or multi-provider coordination;
+- modify the behavior, dispatch target, or test coverage of any existing Developer Workflow command;
+- introduce any RFC-0004 Execution Model concept beyond what Sprints 1–32 already certified;
+- introduce authentication management, credential storage, OAuth, or `SecretStorage` integration;
+- modify `src/kernel`.
+
+## Scope Restrictions
+
+- No Adapter Selection Policy, routing, capability scoring, or automatic provider selection — configuration resolves a single explicit default identifier; it does not choose among adapters based on runtime state, capability, or role.
+- No role-based adapter assignment or multi-provider coordination.
+- No Execution Model deepening (full RFC-0004 Execution State set, Execution Session, Review-gated execution progression) — remains deferred, unaffected by this ratification.
+- No modification to the three existing, frozen Developer Workflow commands or their certified test coverage.
+- No live-network-dependent step added to `npm run validate` or any script it invokes.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, and existing integration tests (including the Sprint 28 Extension Host suite and the Sprint 18 kernel boundary test) SHALL continue to pass.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 24 — Adapter Runtime Operational Metadata; Sprint 30 — Developer Workflow Integration of GeminiCliAdapter; Sprint 32 — Production Workflow Parity (each deferred persisted Adapter-selection configuration to a future Sprint; this Sprint is that future Sprint).
+- Sprint 25/26/27 — Developer Workflow Foundation/Adapter Integration/Completion (the certified execution pipeline this Sprint's configuration resolution feeds an explicit `adapterId` into, unchanged).
+- `NEXUS-RAT-2026-07-13-011` (the binding constraint that explicit-`adapterId`-only dispatch continues; this ratification clarifies that configuration-resolved defaults are not Adapter Selection Policy).
+- `NEXUS-RAT-2026-07-14-005` (named this Sprint's three candidate directions; this ratification selects one).
+
+## Related Review(s)
+
+None. No Review finding originated this ratification; it resolves a `/nexus-plan` governance question.
+
+## Full Ratification Text
+
+> The Sprint Owner approves Sprint 33, titled Adapter Configuration Foundation. Sprint 33 SHALL introduce a provider-neutral Adapter Configuration capability that allows the Host to resolve an explicit adapterId from User or Workspace configuration while preserving the deterministic execution model established in Milestone 5. Configuration SHALL be resolved entirely within the Host. The Kernel SHALL continue to be invoked with an explicit adapterId. The existing execution pipeline SHALL remain unchanged. The three existing explicit Developer Workflow commands SHALL remain available and unmodified, maintaining backward compatibility. The Sprint Owner explicitly declines, at this time, to authorize Adapter Selection Policy, routing, capability scoring, automatic provider selection, role-based adapter assignment, multi-provider coordination, or Execution Model expansion (RFC-0004); each remains a valid future candidate, unforeclosed. No previously approved test SHALL regress. This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon. The Sprint Owner authorizes nexus-plan to generate the Sprint 33 Implementation Record under Milestone 6 and authorizes the Builder to implement Sprint 33 in accordance with the Specification-First governance model.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-14-008
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-008
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 33 Review Remediation Authorization. Authorizes Builder remediation of the two Critical Category 2 Architectural Violations and one Documentation Drift finding recorded by `NEXUS-REV-2026-07-14-007` (Sprint 33 — Adapter Configuration Foundation, disposition FAIL), as translated into `builder-task.md` TASK-001, TASK-002, and DOC-001.
+
+## Originating Review Finding(s)
+
+- `NEXUS-REV-2026-07-14-007-F-001` (Critical, Category 2 — Architectural Violation) — the pre-existing `nexus.runDeveloperMissionWorkflow` command's dispatch target was made configuration-dependent instead of remaining hardcoded.
+- `NEXUS-REV-2026-07-14-007-F-002` (Critical, Category 2 — Architectural Violation) — unauthorized retroactive edits to the Active `NEXUS-RAT-2026-07-14-005` ratification and the Approved Sprint 31 record.
+- `NEXUS-REV-2026-07-14-007-F-003` (Minor, Category 4 — Documentation Drift) — `IMPLEMENTATION_REPORT.md`'s Sprint 33 section inaccurately declares no architectural deviations.
+
+## Governance Decision
+
+The Sprint Owner accepts the findings recorded in `NEXUS-REV-2026-07-14-007` in full. The findings identify implementation divergence from the already-approved `NEXUS-RAT-2026-07-14-007`, not a need for new architectural direction. No new architectural concepts are introduced and no architectural direction changes; this ratification authorizes implementation reconciliation only. Sprint 33 remains an implementation remediation sprint whose objective is to restore conformance with the previously approved architectural intent, preserving the certified architectural baseline established through Milestones 1–5.
+
+**TASK-001 — Developer Workflow Configuration.** Approved. The existing explicit Developer Workflow commands (`nexus.runDeveloperMissionWorkflow`, `nexus.runDeveloperMissionWorkflowWithGeminiCli`, `nexus.runDeveloperMissionWorkflowWithCodexCli`) remain immutable and SHALL be restored to their previously certified behavior exactly as approved in Sprints 25, 30, and 32. The Adapter Configuration capability SHALL remain additive, exposed only through a separate additive command or equivalent additive Host surface. Configuration SHALL NOT modify the dispatch behavior of any existing command; the Host MAY resolve configuration only for the newly introduced additive workflow entry point. The Kernel SHALL remain unaware of configuration. The explicit-`adapterId`-dispatch model established by previous ratifications (including `NEXUS-RAT-2026-07-13-011`) SHALL remain the only authorized dispatch mechanism.
+
+**TASK-002 — Governance Artifact Integrity.** Approved. Previously approved governance artifacts SHALL NOT be rewritten. The Builder SHALL restore `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `NEXUS-RAT-2026-07-14-005`, and the Sprint 31 Implementation Record to their previously approved wording. If the Sprint Owner later decides to rename Milestone 6, that SHALL occur only through a new, superseding ratification — historical governance artifacts SHALL remain immutable, and normative governance history SHALL be corrected through superseding artifacts rather than modification of previously approved records.
+
+**DOC-001 — Documentation Disclosure.** Approved. After TASK-001 and TASK-002 are completed, the Builder SHALL update `IMPLEMENTATION_REPORT.md` and the Sprint 33 Implementation Record to accurately disclose the implemented remediation. Documentation SHALL describe the corrective action taken and SHALL NOT state that no deviations occurred when remediation has been required. Repository documentation SHALL always distinguish between implementation behavior, governance remediation, and architectural evolution.
+
+## Governance Reinforcement (binding on future Builder work)
+
+1. Previously approved implementation behavior SHALL remain immutable unless explicitly superseded by a new Sprint Owner ratification.
+2. Previously approved governance artifacts SHALL NOT be edited to reflect later architectural decisions. Future changes SHALL be recorded through new governance artifacts that reference earlier decisions.
+3. New implementation capabilities SHALL be additive unless a ratification explicitly authorizes behavioral replacement.
+
+## Architectural Impact
+
+None. This ratification performs implementation reconciliation only. The architectural baseline established through Milestones 1–5 remains unchanged. Sprint 33 continues to introduce exactly one architectural capability — Adapter Configuration Foundation — and no additional capability is authorized.
+
+## Authorized Builder Scope
+
+The Builder is authorized only to:
+
+- implement TASK-001 (`builder-task.md`);
+- implement TASK-002 (`builder-task.md`);
+- complete DOC-001 (`builder-task.md`);
+- update associated automated tests where required;
+- update implementation documentation reflecting the remediation.
+
+The Builder SHALL NOT:
+
+- modify Kernel behavior;
+- modify RFCs;
+- introduce Adapter Selection, routing, or persisted-preference semantics beyond the already-approved Sprint 33 scope;
+- introduce additional Host responsibilities;
+- modify previously approved governance artifacts except as explicitly authorized by this ratification (i.e., restoring them to their previously approved wording).
+
+## Scope Restrictions
+
+- No Adapter Selection Policy, routing, capability scoring, or automatic provider selection.
+- No Execution Model deepening or new RFC-0004 concepts.
+- No authentication management, credential storage, OAuth, or `SecretStorage` integration.
+- No modification to `src/kernel`.
+- Sprint 33 remediation is complete only when: TASK-001 and TASK-002 pass independent Reviewer re-verification; DOC-001 accurately documents the remediation; repository-wide validation passes; Sprint 18's Kernel Boundary Certification passes unmodified; the three existing Developer Workflow commands retain their previously approved behavior; the Adapter Configuration capability exists only as an additive Host capability; previously approved governance artifacts are restored; and repository history is internally consistent.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 25 — Developer Workflow Foundation; Sprint 30 — Developer Workflow Integration of GeminiCliAdapter; Sprint 32 — Production Workflow Parity (the certified command behavior this ratification requires be restored).
+- Sprint 31 — Codex CLI Adapter Runtime Integration (the Approved record this ratification requires be restored to its originally approved wording).
+- Sprint 33 — Adapter Configuration Foundation (the Rejected sprint this ratification authorizes remediation of).
+- `NEXUS-RAT-2026-07-14-007` (the original Sprint 33 scope ratification; remediation restores conformance with it, does not supersede it).
+- `NEXUS-RAT-2026-07-13-011` (the explicit-`adapterId`-only dispatch constraint this ratification reaffirms).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-14-007` (Sprint 33, disposition FAIL — the review this ratification responds to).
+
+## Full Ratification Text
+
+> The Sprint Owner accepts the findings recorded in NEXUS-REV-2026-07-14-007. The findings identify implementation divergence from the already-approved Sprint 33 ratification (NEXUS-RAT-2026-07-14-007). No new architectural concepts are introduced. No architectural direction changes. This ratification authorizes implementation reconciliation only. Sprint 33 remains an implementation remediation sprint; the objective is to restore conformance with previously approved architectural intent; all remediation SHALL preserve the certified architectural baseline established through Milestones 1-5. TASK-001 (Developer Workflow Configuration) is approved: the existing explicit Developer Workflow commands remain immutable; the Adapter Configuration capability SHALL remain additive; the Builder SHALL restore the previously certified command behavior exactly as approved in Sprints 25, 30, and 32; the configured-dispatch capability SHALL be exposed through a separate additive command or equivalent additive Host surface; nexus.runDeveloperMissionWorkflow, nexus.runDeveloperMissionWorkflowWithGeminiCli, and nexus.runDeveloperMissionWorkflowWithCodexCli SHALL remain unchanged; configuration SHALL NOT modify the dispatch behavior of any existing command; the Host MAY resolve configuration only for the newly introduced additive workflow entry point; the Kernel SHALL remain unaware of configuration; the explicit adapterId dispatch model established by previous ratifications SHALL remain the only authorized dispatch mechanism. TASK-002 (Governance Artifact Integrity) is approved: previously approved governance artifacts SHALL NOT be rewritten; the Builder SHALL restore IMPLEMENTATION_PLAN.md, IMPLEMENTATION_MANIFEST.md, NEXUS-RAT-2026-07-14-005, and the Sprint 31 implementation record to their previously approved wording; if the Sprint Owner later decides to rename Milestone 6, that SHALL occur only through a new superseding ratification; historical governance artifacts SHALL remain immutable. DOC-001 (Documentation Disclosure) is approved: after TASK-001 and TASK-002 are completed, the Builder SHALL update IMPLEMENTATION_REPORT.md and the Sprint 33 Implementation Record to accurately disclose the implemented remediation; documentation SHALL NOT state that no deviations occurred when remediation has been required. The Builder is authorized only to implement TASK-001, implement TASK-002, complete DOC-001, update associated automated tests where required, and update implementation documentation reflecting the remediation; the Builder SHALL NOT modify Kernel behavior, modify RFCs, introduce Adapter Selection or routing, introduce persisted preference semantics beyond the already approved Sprint 33 scope, introduce additional Host responsibilities, or modify previously approved governance artifacts except as explicitly authorized here. Sprint 33 remediation is complete when TASK-001 and TASK-002 pass independent review, DOC-001 accurately documents the remediation, repository validation passes, Sprint 18 Kernel Boundary Certification passes unchanged, existing certified Developer Workflow commands retain their previously approved behavior, the Adapter Configuration capability exists only as an additive Host capability, previously approved governance artifacts are restored, and repository history remains internally consistent. Upon successful completion, Sprint 33 remains the authoritative implementation of Adapter Configuration Foundation, previously approved vertical slices remain immutable, governance artifact integrity is restored, and planning may proceed to Sprint 34.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-14-009
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-009
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 34 Scope Ratification — Developer Workflow UX Consolidation. Resolves the `nexus-plan` governance question raised after Sprint 33's completion (`NEXUS-REV-2026-07-14-008`/`-009`): whether the candidate "Sprint 34 — Unified Developer Workflow" objective is still open, given that Sprint 33 already delivered the Host Configuration → explicit `adapterId` → Execution Pipeline architecture that objective describes as its end state.
+
+## Originating Review Finding(s)
+
+None. Originated as a `/nexus-plan` Governance Report (2026-07-14) identifying that the candidate Sprint 34 objective, read literally, would require modifying or removing the three existing Developer Workflow commands (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`) — an action `NEXUS-RAT-2026-07-14-007` and `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability already prohibit without a superseding ratification.
+
+## Governance Decision
+
+The Sprint Owner confirms that Sprint 33 already completed the architectural unification: a provider-neutral Developer Workflow entry point (`nexus.runDeveloperMissionWorkflowWithConfiguredAdapter`) resolving a Host-configured default `adapterId` through the unchanged, certified Execution Pipeline exists today. Sprint 34 SHALL NOT re-open, redesign, or re-litigate this architecture.
+
+Sprint 34 is approved as a **Developer Workflow UX Consolidation** sprint — documentation, discoverability, and product-usability scope only. Sprint 34 SHALL NOT introduce any new runtime or architectural capability.
+
+Sprint 34 SHALL:
+
+- promote `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` as the canonical, primary developer entry point in user-facing surfaces (command title/description, `package.json` `contributes.commands` ordering/labeling, README/user-facing documentation, Command Palette presentation);
+- improve command discoverability, naming, and user guidance for the configured-adapter workflow;
+- preserve the existing Host → explicit `adapterId` → Execution Pipeline architecture established by Sprint 33 exactly as certified;
+- leave `nexus.runDeveloperMissionWorkflow`, `nexus.runDeveloperMissionWorkflowWithGeminiCli`, and `nexus.runDeveloperMissionWorkflowWithCodexCli` fully operational, unmodified in behavior, and available as backward-compatible entry points.
+
+Removal or deprecation of the three existing provider-specific commands is explicitly **not authorized** by this ratification and is deferred to a future governance ratification, to be considered only after sufficient operational experience with the consolidated UX has been gathered.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Edit `package.json` `contributes.commands` titles/descriptions/ordering to present `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` as the primary Developer Workflow command.
+- Edit user-facing documentation (README, in-repo usage guidance) describing the configured-adapter command as the recommended default and the three provider-specific commands as explicit/compatibility alternatives.
+- Add clarifying command descriptions, tooltips, or `enablement`/category metadata supported by the existing VS Code contribution model, without changing command identifiers, registration order, or dispatch targets.
+- Add or extend documentation-level test coverage (e.g., asserting `package.json` command metadata) where it does not require any change to `src/kernel`, `src/adapters`, or existing command dispatch behavior.
+
+The Builder SHALL NOT:
+
+- rename, remove, merge, or alias any existing command identifier (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`, `...WithConfiguredAdapter`, `nexus.showMissionWorkflowHistory`);
+- change any command's dispatch target, adapter resolution behavior, or execution pipeline;
+- introduce Adapter Selection Policy, routing, capability scoring, or automatic provider selection;
+- introduce any new RFC-0004, RFC-0008, RFC-0009, or RFC-0010 concept;
+- modify `src/kernel` or `src/adapters`;
+- modify the behavior or test coverage of any existing Developer Workflow command.
+
+## Scope Restrictions
+
+- Documentation, metadata, and presentation changes only; no runtime dispatch logic may change.
+- No modification to `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`, `HostMissionWorkflowCommandRegistration`'s registration logic, or any Kernel/Adapter source file.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass unmodified.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+- This ratification does not authorize deprecation or removal of any existing command; that remains explicitly deferred.
+
+## Related Sprint(s)
+
+- Sprint 33 — Adapter Configuration Foundation (the architecture this Sprint promotes in the UX layer, unmodified).
+- Sprint 25/30/32 — Developer Workflow Foundation / GeminiCliAdapter Integration / Production Workflow Parity (the three existing commands preserved as compatibility entry points).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-14-008`, `NEXUS-REV-2026-07-14-009` (Sprint 33 approval and remediation verification, the baseline this Sprint builds on).
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 34 as a Developer Workflow UX Consolidation sprint. Sprint 34 SHALL NOT introduce any new runtime or architectural capability. Sprint 34 SHALL promote `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` as the canonical developer entry point; improve command discoverability, naming, documentation, package metadata, and user guidance; preserve the existing Host → explicit adapterId → Execution Pipeline architecture established by Sprint 33; and leave all existing provider-specific commands operational for backward compatibility. The existing commands SHALL be treated as compatibility entry points rather than primary user workflows. Removal or deprecation of previously approved commands is explicitly deferred to a future governance ratification after sufficient operational experience has been gathered. Rationale: Sprint 33 already completed the architectural unification; Sprint 34 therefore focuses exclusively on developer experience, discoverability, and product usability while preserving Approved Vertical Slice Immutability. No architectural changes are authorized.
 
 ## Current Status
 

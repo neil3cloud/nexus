@@ -17,6 +17,15 @@ import { MissionPlanningService } from '../../kernel/mission/mission-planning.se
 import { MissionService } from '../../kernel/mission/mission.service';
 import { ReviewService } from '../../kernel/review/review.service';
 import type {
+  HostAdapterConfigurationSurface,
+} from './host-adapter-configuration';
+import {
+  DEVELOPER_WORKFLOW_DEFAULT_ADAPTER_ID_CONFIGURATION_KEY,
+  HostAdapterConfigurationResolver,
+  HostConfiguredMissionWorkflow,
+  NEXUS_CONFIGURATION_SECTION,
+} from './host-adapter-configuration';
+import type {
   HostCommandHandler,
   HostCommandRegistry,
   HostDisposable,
@@ -32,6 +41,11 @@ import { HostMissionWorkflow } from './host-mission-workflow';
 import { HostMissionWorkflowCommandRegistration } from './host-mission-workflow-command-registration';
 import type { HostAdapterOperationalMetadataProvider } from './host-operational-metadata';
 import { StaticHostAdapterOperationalMetadataProvider } from './host-operational-metadata';
+
+type RegisteredMissionWorkflow = Pick<
+  HostMissionWorkflow,
+  'runDeveloperMissionWorkflow' | 'showMissionWorkflowHistory'
+>;
 
 export interface VscodeHostOptions {
   readonly adapters?: readonly Adapter[];
@@ -121,6 +135,16 @@ class VscodeWorkspaceTrustSurface implements HostWorkspaceTrustSurface {
   }
 }
 
+class VscodeAdapterConfigurationSurface implements HostAdapterConfigurationSurface {
+  public getDeveloperWorkflowDefaultAdapterId(): string | undefined {
+    const value = vscode.workspace
+      .getConfiguration(NEXUS_CONFIGURATION_SECTION)
+      .get<unknown>(DEVELOPER_WORKFLOW_DEFAULT_ADAPTER_ID_CONFIGURATION_KEY);
+
+    return typeof value === 'string' ? value : undefined;
+  }
+}
+
 export class VscodeHost implements vscode.Disposable {
   private readonly outputChannel: vscode.OutputChannel;
   private readonly kernel: Kernel;
@@ -129,6 +153,7 @@ export class VscodeHost implements vscode.Disposable {
   private readonly missionWorkflow: HostMissionWorkflow;
   private readonly geminiCliMissionWorkflow: HostMissionWorkflow | undefined;
   private readonly codexCliMissionWorkflow: HostMissionWorkflow | undefined;
+  private readonly configuredAdapterMissionWorkflow: HostConfiguredMissionWorkflow;
   private commandRegistrations: HostDisposable[] = [];
 
   public constructor(
@@ -137,6 +162,7 @@ export class VscodeHost implements vscode.Disposable {
     logger: KernelLogger,
     ingress: HostIngressLayer,
     missionWorkflow: HostMissionWorkflow,
+    configuredAdapterMissionWorkflow: HostConfiguredMissionWorkflow,
     geminiCliMissionWorkflow?: HostMissionWorkflow,
     codexCliMissionWorkflow?: HostMissionWorkflow,
   ) {
@@ -145,6 +171,7 @@ export class VscodeHost implements vscode.Disposable {
     this.logger = logger;
     this.ingress = ingress;
     this.missionWorkflow = missionWorkflow;
+    this.configuredAdapterMissionWorkflow = configuredAdapterMissionWorkflow;
     this.geminiCliMissionWorkflow = geminiCliMissionWorkflow;
     this.codexCliMissionWorkflow = codexCliMissionWorkflow;
   }
@@ -166,6 +193,7 @@ export class VscodeHost implements vscode.Disposable {
         createMissionWorkflowCommandOptions(
           this.geminiCliMissionWorkflow,
           this.codexCliMissionWorkflow,
+          this.configuredAdapterMissionWorkflow,
         ),
       ),
     ];
@@ -255,75 +283,94 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     options.operationalMetadataProvider ?? new StaticHostAdapterOperationalMetadataProvider({});
   const presentation = new VscodePresentationSurface(outputChannel);
   const workspaceTrust = new VscodeWorkspaceTrustSurface();
+  const registeredAdapterIds = (options.adapters ?? []).map((adapter) => adapter.metadata.id.toString());
   const ingress = new HostIngressLayer(
     adapterService,
     operationalMetadataProvider,
     presentation,
     workspaceTrust,
   );
-  const missionWorkflow = new HostMissionWorkflow(
+  const fallbackMissionWorkflowAdapterId = options.missionWorkflowAdapterId ?? 'mock-adapter';
+  const missionWorkflow = createMissionWorkflow({
+    adapterId: fallbackMissionWorkflowAdapterId,
     missionService,
     planningService,
     executionService,
-    {
-      roleService,
-      executionStrategyService,
-      adapterService,
-      adapterId: options.missionWorkflowAdapterId ?? 'mock-adapter',
-      requiredCapability: 'CodeModification',
-    },
-    {
-      evidenceService,
-      reviewService,
-      knowledgeService,
-    },
+    roleService,
+    executionStrategyService,
+    adapterService,
+    evidenceService,
+    reviewService,
+    knowledgeService,
     presentation,
     workspaceTrust,
+  });
+  const configuredWorkflowAdapterIds = new Set([
+    fallbackMissionWorkflowAdapterId,
+    ...registeredAdapterIds,
+  ]);
+  const workflowsByAdapterId = new Map(
+    [...configuredWorkflowAdapterIds].map((adapterId) => [
+      adapterId,
+      createMissionWorkflow({
+        adapterId,
+        missionService,
+        planningService,
+        executionService,
+        roleService,
+        executionStrategyService,
+        adapterService,
+        evidenceService,
+        reviewService,
+        knowledgeService,
+        presentation,
+        workspaceTrust,
+      }),
+    ]),
+  );
+  const configuredAdapterMissionWorkflow = new HostConfiguredMissionWorkflow(
+    new HostAdapterConfigurationResolver(
+      new VscodeAdapterConfigurationSurface(),
+      registeredAdapterIds,
+      fallbackMissionWorkflowAdapterId,
+      presentation,
+    ),
+    workflowsByAdapterId,
   );
   const geminiCliMissionWorkflow =
     options.geminiCliMissionWorkflowAdapterId === undefined
       ? undefined
-      : new HostMissionWorkflow(
-          missionService,
-          planningService,
-          executionService,
-          {
-            roleService,
-            executionStrategyService,
-            adapterService,
-            adapterId: options.geminiCliMissionWorkflowAdapterId,
-            requiredCapability: 'CodeModification',
-          },
-          {
-            evidenceService,
-            reviewService,
-            knowledgeService,
-          },
-          presentation,
-          workspaceTrust,
-        );
-  const codexCliMissionWorkflow =
-    options.codexCliMissionWorkflowAdapterId === undefined
-      ? undefined
-      : new HostMissionWorkflow(
+      : createMissionWorkflow({
+         adapterId: options.geminiCliMissionWorkflowAdapterId,
          missionService,
          planningService,
          executionService,
-         {
-           roleService,
-           executionStrategyService,
-           adapterService,
-           adapterId: options.codexCliMissionWorkflowAdapterId,
-           requiredCapability: 'CodeModification',
-         },
-         {
-           evidenceService,
-           reviewService,
-           knowledgeService,
-         },
+         roleService,
+         executionStrategyService,
+         adapterService,
+         evidenceService,
+         reviewService,
+         knowledgeService,
          presentation,
          workspaceTrust,
-        );
+        });
+  const codexCliMissionWorkflow =
+    options.codexCliMissionWorkflowAdapterId === undefined
+      ? undefined
+      : createMissionWorkflow({
+         adapterId: options.codexCliMissionWorkflowAdapterId,
+         missionService,
+         planningService,
+         executionService,
+         roleService,
+         executionStrategyService,
+         adapterService,
+         evidenceService,
+         reviewService,
+         knowledgeService,
+         presentation,
+         workspaceTrust,
+        });
 
   return new VscodeHost(
     outputChannel,
@@ -331,22 +378,61 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     logger,
     ingress,
     missionWorkflow,
+    configuredAdapterMissionWorkflow,
     geminiCliMissionWorkflow,
     codexCliMissionWorkflow,
   );
 }
 
 function createMissionWorkflowCommandOptions(
-  geminiCliWorkflow: HostMissionWorkflow | undefined,
-  codexCliWorkflow: HostMissionWorkflow | undefined,
+  geminiCliWorkflow: RegisteredMissionWorkflow | undefined,
+  codexCliWorkflow: RegisteredMissionWorkflow | undefined,
+  configuredAdapterWorkflow: RegisteredMissionWorkflow,
 ): {
   readonly geminiCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly codexCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+  readonly configuredAdapterWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
 } {
   return {
     ...(geminiCliWorkflow === undefined ? {} : { geminiCliWorkflow }),
     ...(codexCliWorkflow === undefined ? {} : { codexCliWorkflow }),
+    configuredAdapterWorkflow,
   };
+}
+
+function createMissionWorkflow(input: {
+  readonly adapterId: string;
+  readonly missionService: MissionService;
+  readonly planningService: MissionPlanningService;
+  readonly executionService: MissionExecutionService;
+  readonly roleService: RoleService;
+  readonly executionStrategyService: ExecutionStrategyService;
+  readonly adapterService: AdapterService;
+  readonly evidenceService: EvidenceService;
+  readonly reviewService: ReviewService;
+  readonly knowledgeService: KnowledgeService;
+  readonly presentation: HostPresentationSurface;
+  readonly workspaceTrust: HostWorkspaceTrustSurface;
+}): HostMissionWorkflow {
+  return new HostMissionWorkflow(
+    input.missionService,
+    input.planningService,
+    input.executionService,
+    {
+      roleService: input.roleService,
+      executionStrategyService: input.executionStrategyService,
+      adapterService: input.adapterService,
+      adapterId: input.adapterId,
+      requiredCapability: 'CodeModification',
+    },
+    {
+      evidenceService: input.evidenceService,
+      reviewService: input.reviewService,
+      knowledgeService: input.knowledgeService,
+    },
+    input.presentation,
+    input.workspaceTrust,
+  );
 }
 
 function resolveAdapterService(services: readonly IKernelService[]): AdapterService {

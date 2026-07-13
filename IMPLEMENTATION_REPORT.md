@@ -1,5 +1,192 @@
 # Nexus Implementation Report
 
+## Sprint 34 — Developer Workflow UX Consolidation
+
+### Implemented Slice
+
+Implemented the Milestone 6 Sprint 34 Developer Workflow UX Consolidation vertical slice. This sprint consolidates the user-facing Developer Workflow presentation around the Sprint 33 configured-adapter entry point without changing runtime dispatch, Host adapter resolution, Kernel behavior, or Adapter behavior.
+
+Implemented scope:
+
+- Updated `package.json` `contributes.commands` ordering and command presentation so `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` is the primary **Nexus: Run Developer Workflow** Command Palette entry.
+- Updated the Mock, Gemini CLI, and Codex CLI Developer Workflow command labels to present them as explicit compatibility alternatives while preserving all command identifiers.
+- Updated the `nexus.developerWorkflow.defaultAdapterId` configuration description to identify the configured-adapter command as the recommended default workflow.
+- Updated `README.md` user guidance to describe `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` and `nexus.developerWorkflow.defaultAdapterId` as the recommended workflow path, with provider-specific commands documented as compatibility entry points.
+- Added package metadata test coverage that asserts command ordering, configured-adapter primary presentation, and provider-specific compatibility labels.
+
+Out of scope and not implemented:
+
+- Removal, deprecation, renaming, aliasing, or merging of any existing command identifier.
+- Any command dispatch-target change or Adapter resolution behavior change.
+- Any change to `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`, or command registration/dispatch logic.
+- Any `src/kernel` or `src/adapters` change.
+- Adapter Selection Policy, routing, capability scoring, automatic provider selection, or multi-adapter coordination.
+
+### RFC Coverage
+
+Primary RFC:
+
+- No Primary RFC — documentation/presentation-only slice.
+
+Referenced RFCs:
+
+- RFC-0009 — Host Contract.
+
+Implemented Concepts:
+
+- VS Code command contribution metadata presentation for the configured-adapter Developer Workflow command.
+- README/user-facing documentation for the configured-adapter workflow and default adapter configuration.
+- Documentation-level test coverage for command metadata only.
+
+Deferred Concepts:
+
+- Removal, deprecation, renaming, or aliasing of any existing command identifier.
+- Host Adapter Configuration resolution or dispatch logic changes.
+- Adapter Selection Policy, routing, capability scoring, automatic provider selection, fallback, or multi-adapter coordination.
+- Execution Model deepening, fourth production Adapter, authentication/credential management, and `SecretStorage` integration.
+- Any `src/kernel` or `src/adapters` change.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-009`, `NEXUS-RAT-2026-07-14-007`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolidation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Presenting `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` as the primary command is Command Palette/user-guidance metadata under RFC-0009 Host user interaction and does not alter Kernel engineering behavior.
+- Provider-specific commands remain compatibility entry points because `NEXUS-RAT-2026-07-14-009` explicitly preserves them and defers deprecation/removal.
+
+### Known Limitations
+
+- Four Developer Workflow commands remain registered after this sprint; true command consolidation remains deferred to a future ratification.
+- The sprint does not change session-only, non-durable workflow history behavior.
+- The configured-adapter command continues to depend on the Sprint 33 Host configuration setting and registered Adapter identifiers.
+
+### Validation Summary
+
+- Targeted package metadata validation passed: `npm test -- --run test/hosts/vscode/package-command-metadata.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 59 files, 284 tests.
+- Extension Host suite passed with `npm run test:extension-host`.
+- Sprint 18 Kernel boundary certification remained unmodified and was included in repository-wide validation.
+- No `src/kernel` or `src/adapters` file was modified for Sprint 34.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 33 — Adapter Configuration Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 6 Sprint 33 Adapter Configuration Foundation vertical slice. This sprint adds a provider-neutral VS Code Host configuration surface for resolving an additive configured-adapter Developer Workflow command's default `adapterId`, while preserving the explicit Adapter dispatch contract and the existing Mock, Gemini CLI, and Codex CLI command paths.
+
+Implemented scope:
+
+- Added `nexus.developerWorkflow.defaultAdapterId` under `package.json` `contributes.configuration`, scoped to User/Workspace resource configuration with `mock-adapter` as the backward-compatible default.
+- Added Host-local configuration resolution for the Developer Workflow default adapter identifier.
+- Added `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` as a separate additive Host command that resolves the configured identifier before delegating to a `HostMissionWorkflow` instance composed with an explicit `adapterId`.
+- Preserved the certified `HostMissionWorkflow` execution pipeline from Adapter dispatch onward: Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge.
+- Preserved the three existing Developer Workflow command identifiers and hardcoded dispatch targets: Mock, Gemini CLI, and Codex CLI remain independent of configuration.
+- Restored the Milestone 6 governance wording, `NEXUS-RAT-2026-07-14-005`, and the Sprint 31 record to the previously approved "Multi-Provider Adapter Integration" wording per `NEXUS-RAT-2026-07-14-008`.
+- Added deterministic unit coverage for configured default present, configured default absent, and configured default naming an unknown/unregistered adapter identifier.
+
+Out of scope and not implemented:
+
+- Adapter Selection Policy, automatic provider routing, capability scoring, provider fallback, or multi-adapter coordination.
+- Kernel behavior changes or any `src/kernel` file modifications.
+- Role-based adapter assignment, Execution Model deepening, Execution Session behavior, full RFC-0004 Execution State set, or review-gated execution progression.
+- Authentication management, credential storage, OAuth, `SecretStorage`, streaming responses, background execution, or multi-provider coordination.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- VS Code Host configuration contribution for a default Developer Workflow adapter identifier.
+- Host-local resolution of that setting into a single explicit `adapterId`.
+- Validation that configured adapter identifiers are registered with the Host before workflow invocation.
+- Delegation from the additive configured-adapter Developer Workflow command to an explicit-adapter workflow instance.
+- Deterministic configuration-resolution tests using Host test doubles only.
+
+Deferred Concepts:
+
+- Adapter Selection Policy, automatic provider routing, capability scoring, fallback, and multi-adapter coordination.
+- Role-based adapter assignment and multi-provider coordination.
+- Execution Model deepening and Execution Session behavior.
+- Authentication management and Nexus-managed credentials.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter.
+- Streaming responses and background execution.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-008`, `NEXUS-RAT-2026-07-14-007`, `NEXUS-RAT-2026-07-14-005`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0033-adapter-configuration-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0032-production-workflow-parity.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Resolving a User/Workspace configuration string to a registered adapter identifier is Host-local configuration behavior under RFC-0009, not Adapter Selection Policy.
+- The additive configured-adapter command may delegate to the same explicit-adapter workflow construction pattern used by the frozen Sprint 25/30/32 commands, because the Kernel still receives exactly one explicit `adapterId`.
+- An unknown configured adapter identifier should fail in the Host before invoking a workflow, preserving deterministic attribution and preventing configuration errors from masquerading as Kernel selection behavior.
+
+### Known Limitations
+
+- The configuration setting supplies only one explicit default adapter identifier; it does not rank, score, route, or fall back between providers.
+- Automated validation uses deterministic Host and Adapter test doubles only, never live Gemini CLI or Codex CLI processes.
+- Workflow history remains session-only and non-durable, preserving the Sprint 25 Host constraint.
+
+### Validation Summary
+
+- Targeted Sprint 33 remediation validation passed: 6 files, 15 tests.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 58 files, 282 tests.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Sprint 18 Kernel boundary certification remains unmodified and was included in repository-wide validation.
+- `src/kernel` remains unchanged for this sprint.
+
+### Deviations
+
+`NEXUS-REV-2026-07-14-007` identified two architectural deviations in the initial Sprint 33 implementation: the existing `nexus.runDeveloperMissionWorkflow` command had been made configuration-dependent, and previously approved Milestone 6 governance wording had been altered. `NEXUS-RAT-2026-07-14-008` authorized remediation only.
+
+Remediation completed in this pass:
+
+- Restored `nexus.runDeveloperMissionWorkflow` to hardcoded `mock-adapter` dispatch and moved configuration-dependent dispatch to the additive `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` command.
+- Restored `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `NEXUS-RAT-2026-07-14-005`, and the Sprint 31 Implementation Record to "Multi-Provider Adapter Integration" wording.
+
+No remaining architectural deviations are known after this remediation.
+
+---
+
 ## Sprint 32 — Production Workflow Parity
 
 ### Implemented Slice

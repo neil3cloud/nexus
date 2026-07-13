@@ -26,6 +26,7 @@
     "onCommand:nexus.runDeveloperMissionWorkflow",
     "onCommand:nexus.runDeveloperMissionWorkflowWithGeminiCli",
     "onCommand:nexus.runDeveloperMissionWorkflowWithCodexCli",
+    "onCommand:nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
     "onCommand:nexus.showMissionWorkflowHistory"
   ],
   "contributes": {
@@ -47,22 +48,45 @@
         "title": "Nexus: Show Host Capabilities"
       },
       {
+        "command": "nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
+        "title": "Run Developer Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Developer Workflow"
+      },
+      {
         "command": "nexus.runDeveloperMissionWorkflow",
-        "title": "Nexus: Run Developer Mission Workflow"
+        "title": "Run Developer Workflow (Mock Adapter Compatibility)",
+        "category": "Nexus",
+        "shortTitle": "Run with Mock Adapter"
       },
       {
         "command": "nexus.runDeveloperMissionWorkflowWithGeminiCli",
-        "title": "Nexus: Run Developer Mission Workflow (Gemini CLI)"
+        "title": "Run Developer Workflow (Gemini CLI Compatibility)",
+        "category": "Nexus",
+        "shortTitle": "Run with Gemini CLI"
       },
       {
         "command": "nexus.runDeveloperMissionWorkflowWithCodexCli",
-        "title": "Nexus: Run Developer Mission Workflow (Codex CLI)"
+        "title": "Run Developer Workflow (Codex CLI Compatibility)",
+        "category": "Nexus",
+        "shortTitle": "Run with Codex CLI"
       },
       {
         "command": "nexus.showMissionWorkflowHistory",
         "title": "Nexus: Show Mission Workflow History"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Nexus",
+      "properties": {
+        "nexus.developerWorkflow.defaultAdapterId": {
+          "type": "string",
+          "default": "mock-adapter",
+          "scope": "resource",
+          "markdownDescription": "Default Adapter identifier used by the recommended **Nexus: Run Developer Workflow** command (`nexus.runDeveloperMissionWorkflowWithConfiguredAdapter`). The VS Code Host resolves this value to an explicit `adapterId` before invoking the unchanged Kernel execution pipeline."
+        }
+      }
+    }
   },
   "scripts": {
     "build": "node esbuild.js",

@@ -119,7 +119,6 @@ Notes:
 - No active/inactive plan, plan archival, or plan replacement concept was introduced.
 - Cycle detection is validation only; no scheduling, execution ordering, topological sorting, or critical path analysis was introduced.
 
-
 Implementation Dependencies:
 
 - Existing RFC-0005-aligned `DomainEvent` envelope.
@@ -1283,7 +1282,7 @@ Notes:
 
 # Milestone 6 — Multi-Provider Adapter Integration
 
-Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Implemented — Pending Reviewer Validation)
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Implemented — Pending Reviewer Validation)
 
 ## Sprint 31 — Codex CLI Adapter Runtime Integration
 
@@ -1370,6 +1369,89 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0032-production-workflow-parity.md` for the complete Sprint Implementation Record.
 - This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
 - Upon completion, every certified production Adapter (`MockAdapter`, `GeminiCliAdapter`, `CodexCliAdapter`) SHALL have a corresponding, independently dispatched Developer Workflow command.
+
+---
+
+## Sprint 33 — Adapter Configuration Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-007` — governs this sprint's entire scope: title, authorized configuration surface, Host/Kernel responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-005` — named the three candidate directions for Milestone 6 following Sprint 31; `NEXUS-RAT-2026-07-14-007` selects the persisted Adapter-selection configuration surface.
+- `NEXUS-RAT-2026-07-13-011` — dispatch remains explicit-`adapterId`-only; a configuration-resolved default is not Adapter Selection Policy.
+
+Implemented Concepts:
+
+- VS Code User/Workspace configuration (`package.json` `contributes.configuration`) declaring a default Developer Workflow adapter identifier setting.
+- Host-local resolution of this configuration value into an explicit `adapterId`, consumed only by the Host before invoking the existing, unmodified execution pipeline.
+- Continued availability and backward compatibility of the three existing explicit Developer Workflow commands, which SHALL continue to dispatch via their own hardcoded `adapterId` exactly as certified in Sprints 25, 30, and 32.
+- Unit/integration test coverage for configuration resolution (default present, default absent, default naming an unregistered/unknown adapter identifier), using only deterministic test-doubles.
+
+Deferred Concepts:
+
+- Adapter Selection Policy, automatic provider routing, capability scoring, fallback, or multi-adapter coordination.
+- Role-based adapter assignment; multi-provider coordination.
+- Execution Model deepening (full RFC-0004 Execution State set, Execution Session, Review-gated execution progression).
+- Authentication management, credential storage, OAuth, `SecretStorage` integration.
+- A fourth production Adapter (GitHub Copilot CLI, Claude CLI).
+- Streaming responses, background execution.
+
+Critical Boundary:
+
+- This sprint introduces exactly one architectural variable — Host-local resolution of a configured default `adapterId` — while every other component remains unchanged. No `src/kernel` file may be modified; the three existing Developer Workflow commands and their test coverage remain frozen.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0033-adapter-configuration-foundation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+- Sprint 33's disposition is Approved with Findings (`NEXUS-REV-2026-07-14-008`); its sole finding was remediated and independently verified PASS by `NEXUS-REV-2026-07-14-009`.
+
+---
+
+## Sprint 34 — Developer Workflow UX Consolidation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- No Primary RFC — documentation/presentation-only slice.
+- Referenced: RFC-0009 — Host Contract.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-009` — governs this Sprint's entire scope: title, authorized presentation/documentation surface, the binding decision that command consolidation (removal/deprecation) is deferred, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-007` — governs the Sprint 33 architecture this Sprint promotes; unmodified.
+
+Implemented Concepts:
+
+- `package.json` `contributes.commands` title/category/shortTitle updates presenting `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` as the primary Developer Workflow entry point.
+- README/user-facing documentation updates describing the configured-adapter command and its configuration setting as the recommended default, with the three provider-specific commands described as compatibility alternatives.
+- Command metadata clarifications supported by the existing VS Code contribution model.
+- Test coverage for `package.json` command metadata only.
+
+Deferred Concepts:
+
+- Removal, deprecation, renaming, or aliasing of any existing command identifier.
+- Any change to Host Adapter Configuration resolution or dispatch logic.
+- Adapter Selection Policy, routing, capability scoring, a fourth production Adapter, Execution Model deepening, authentication/credential management.
+- Any `src/kernel` or `src/adapters` change.
+
+Critical Boundary:
+
+- This sprint introduces no new runtime or architectural capability — presentation/documentation only. No `src/kernel`, `src/adapters`, or dispatch-logic file may be modified; all four existing Developer Workflow commands and their test coverage remain frozen.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolidation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify any RFC or the Kernel Canon.
+- Re-scopes the originally candidate "Unified Developer Workflow" objective, which `/nexus-plan` governance analysis found already satisfied architecturally by Sprint 33; true command consolidation remains deferred per `NEXUS-RAT-2026-07-14-009`.
 
 ---
 

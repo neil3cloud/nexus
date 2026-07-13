@@ -2,6 +2,324 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-010 — Sprint 34 — Developer Workflow UX Consolidation
+
+- **Reviewed Sprint:** Sprint 34 — Developer Workflow UX Consolidation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolidation.md`'s Authorized Vertical Slice — presentation/documentation/metadata consolidation of the Developer Workflow around the Sprint 33 configured-adapter command.
+- **RFC Coverage:** No Primary RFC — documentation/presentation-only slice. Referenced: RFC-0009 — Host Contract.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 34 was authorized by `NEXUS-RAT-2026-07-14-009` as a documentation/metadata/presentation-only consolidation of the Developer Workflow around the provider-neutral entry point Sprint 33 already certified (`nexus.runDeveloperMissionWorkflowWithConfiguredAdapter`), explicitly forbidding any change to command identifiers, dispatch targets, Host Adapter Configuration resolution, or Kernel/Adapter behavior.
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `git diff --stat -- src/kernel src/adapters` against the last commit (`aa55d88`) is empty — no Kernel or Adapter source was touched.
+- `package.json`'s `contributes.commands` diff changes only `title`/`category`/`shortTitle` and array ordering for the four Developer Workflow commands, plus the `nexus.developerWorkflow.defaultAdapterId` configuration's `markdownDescription` text. No command `command` identifier was added, removed, or renamed; all five Developer Workflow/history command IDs (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`, `...WithConfiguredAdapter`, `nexus.showMissionWorkflowHistory`) are present unchanged.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` and `src/hosts/vscode/vscode-host.ts` carry a diff against `aa55d88`, but that diff is Sprint 33's already-approved `HostConfiguredMissionWorkflow`/`HostAdapterConfigurationResolver` wiring (verified by `NEXUS-REV-2026-07-14-008`'s Executive Summary, which describes this exact construction), not new Sprint 34 work — neither file's dispatch logic changed again in this pass. `src/hosts/vscode/host-adapter-configuration.ts` (Sprint 33's resolver) is untouched.
+- README's new "Developer Workflow Entry Point" section correctly names `gemini-cli-adapter`/`codex-cli-adapter` as the real registered adapter identifiers (`GEMINI_CLI_ADAPTER_ID`/`CODEX_CLI_ADAPTER_ID` in `src/adapters/gemini/gemini-cli-adapter.ts`/`src/adapters/codex/codex-cli-adapter.ts`), matching the codebase.
+- The new `test/hosts/vscode/package-command-metadata.test.ts` asserts command ordering and title/category/shortTitle metadata only, against no dispatch behavior.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 284 tests** — matching the Builder's claimed count, up from Sprint 33's 58/282 by exactly the one new metadata test file), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed. `test/extension-host/suite/extension-host.test.ts`'s `COMMANDS` array already included the new command (Sprint 33's proactive update, per `NEXUS-REV-2026-07-14-008`); unchanged by this review's diff of interest.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 284 tests, esbuild build, extension-host bundle build (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Command identifier removal/deprecation/aliasing: confirmed not introduced; all four Developer Workflow commands and `nexus.showMissionWorkflowHistory` retain their exact identifiers.
+- Host Adapter Configuration resolution/dispatch logic changes: confirmed not introduced; `host-adapter-configuration.ts` untouched, `HostConfiguredMissionWorkflow`/`HostAdapterConfigurationResolver` construction in `vscode-host.ts` matches the Sprint 33-approved baseline exactly.
+- Adapter Selection Policy, routing, capability scoring, fourth production Adapter, Execution Model deepening, authentication/credential management: none introduced.
+- `src/kernel` / `src/adapters`: confirmed untouched (`git diff --stat` empty).
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice in `NEXUS-RAT-2026-07-14-009` and the Sprint 34 record; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — no `src/kernel` change; Sprint 18's boundary certification is included, unmodified, in the passing Vitest run.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing command's dispatch behavior, identifier, or test coverage changed; Sprint 25/30/32/33 behavior preserved.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 34 sections are consistent with the actual diff and with each other; README accurately reflects registered adapter identifiers.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0034-developer-workflow-ux-consolidation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 34 marked **Approved**; no Sprint 35 exists yet to advance to Current.
+
+### Builder Task Recommendation
+
+None. No findings were recorded.
+
+---
+
+## NEXUS-REV-2026-07-14-009 — Sprint 33 — Adapter Configuration Foundation (DOC-002 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 33 — Adapter Configuration Foundation
+- **Reviewed Vertical Slice:** `knowledge/governance/RATIFICATION_LEDGER.md`'s `NEXUS-RAT-2026-07-14-005` § Governance Decision text only — remediation of `NEXUS-REV-2026-07-14-008-F-001` per `builder-task.md` `DOC-002`.
+- **RFC Coverage:** None — governance-artifact-wording correction only; no RFC governs this.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verifies the Builder's remediation of `NEXUS-REV-2026-07-14-008-F-001` (`DOC-002` in `builder-task.md`). `NEXUS-RAT-2026-07-14-005`'s Governance Decision text now reads "Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** (or an equivalent Sprint Owner-approved name applied at Sprint generation time) and SHALL begin with a **second production Adapter** ..." — byte-identical to the originally ratified wording, confirmed by `git diff` showing zero remaining delta on that line.
+
+Independent re-verification: `git diff -- knowledge/governance/RATIFICATION_LEDGER.md` confirmed the only substantive change since `NEXUS-REV-2026-07-14-008` is the restoration of the parenthetical clause; the remaining diff in the file is exactly the pre-existing cosmetic table-reformatting noise already recorded as `NEXUS-REV-2026-07-14-008-F-002` (Observation, no action required) — no new content changed. No other file in the working tree changed as part of this remediation.
+
+I independently re-ran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (58 files / 282 tests), and `esbuild` all passed, identical to the pre-remediation run — confirming the fix is a pure text restoration with zero behavioral impact.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 58 files / 282 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation touches only one ratification's recorded text; no Deferred Concept from any prior sprint is implicated.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — remediation is scoped to exactly `DOC-002`'s Required Changes; no other file modified.
+- Gate 12 (Documentation): PASS — `NEXUS-RAT-2026-07-14-005` now matches its originally ratified wording exactly.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- `builder-task.md` — `DOC-002` Status → **Completed** (acceptance criteria independently verified satisfied).
+- Sprint Implementation Record (`sprint-0033-adapter-configuration-foundation.md`) — remains **Approved with Findings** (`NEXUS-REV-2026-07-14-008`); this entry records the finding's remediation without altering the Sprint's disposition.
+- `IMPLEMENTATION_PLAN.md` — no change; Sprint 33 remains **Approved with Findings**. This remediation does not reopen or re-disposition the Sprint.
+
+### Builder Task Recommendation
+
+None. `DOC-002` is Completed; `builder-task.md` has zero remaining Open or Blocked tasks.
+
+---
+
+## NEXUS-REV-2026-07-14-008 — Sprint 33 — Adapter Configuration Foundation (Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 33 — Adapter Configuration Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-007-F-001`/`F-002`/`F-003` per `builder-task.md` TASK-001, TASK-002, and DOC-001, authorized by `NEXUS-RAT-2026-07-14-008`.
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Verifies the Builder's remediation of `NEXUS-REV-2026-07-14-007`'s two Critical findings and one Minor finding, as authorized by `NEXUS-RAT-2026-07-14-008`.
+
+**TASK-001 resolved.** `src/hosts/vscode/vscode-host.ts` was re-diffed against the pre-Sprint-33 baseline: the `missionWorkflow` field bound to `nexus.runDeveloperMissionWorkflow` is once again a `HostMissionWorkflow` constructed via the shared `createMissionWorkflow` helper with the hardcoded `adapterId` (`options.missionWorkflowAdapterId ?? 'mock-adapter'`), semantically identical to the Sprint 25/30/32-certified construction. The configuration-resolved capability was moved to a genuinely additive, separately-registered command, `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` (`src/hosts/vscode/host-mission-workflow-command-registration.ts`), confirmed by the new `test/hosts/vscode/host-mission-workflow-configured-command-registration.test.ts`, which explicitly asserts the MockAdapter command's behavior is unaffected by the additive command's registration. `git diff --stat` confirms `test/hosts/vscode/host-mission-workflow-gemini-command-registration.test.ts`, `host-mission-workflow-codex-command-registration.test.ts`, and every `test/integration/*` file are untouched.
+
+**TASK-002 substantially resolved.** `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`'s Milestone 6 headings are confirmed restored verbatim to "Milestone 6 — Multi-Provider Adapter Integration." `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md` is confirmed byte-identical to its pre-Sprint-33 committed state (`git diff` empty). `NEXUS-RAT-2026-07-14-005`'s Governance Decision now again reads "Multi-Provider Adapter Integration" — however, comparison against the original committed text shows the restoration dropped the parenthetical qualifier "(or an equivalent Sprint Owner-approved name applied at Sprint generation time)" that was present in the originally ratified wording. This is a new, minor instance of the same underlying concern (Active ratification text not restored byte-for-byte) — see F-001 below.
+
+Independent validation: `npm run validate` (`tsc --noEmit`, ESLint, Vitest **58 files / 282 tests** — up from 57/281, matching the Builder's claimed +1 file/+1 test for the new command-registration test — and `esbuild`) all passed. `npm run test:extension-host:build` passed; `test/extension-host/suite/extension-host.test.ts`'s `COMMANDS` array was proactively updated to include the new command (avoiding a repeat of the Sprint 30/32 documentation-drift pattern). `git diff --stat -- src/kernel` confirmed empty.
+
+**DOC-001 resolved.** `IMPLEMENTATION_REPORT.md`'s Sprint 33 § Deviations now accurately discloses both original findings and the remediation performed, referencing `NEXUS-REV-2026-07-14-007` and `NEXUS-RAT-2026-07-14-008` by identifier, consistent with the Constitution's Approved Vertical Slice Immutability disclosure requirement.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-008-F-001 — `NEXUS-RAT-2026-07-14-005` restoration dropped a parenthetical qualifier from the originally ratified text
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `NEXUS-RAT-2026-07-14-008` TASK-002 ("restore ... to their previously approved wording"); `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability.
+- **Summary:** The originally ratified `NEXUS-RAT-2026-07-14-005` text read: "Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** (or an equivalent Sprint Owner-approved name applied at Sprint generation time) and SHALL begin with..." The Builder's TASK-002 remediation restored the title itself correctly but the current text reads "Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** and SHALL begin with..." — the parenthetical clause was not restored.
+- **Evidence:** `git diff` of `knowledge/governance/RATIFICATION_LEDGER.md` against the pre-Sprint-33 committed baseline, isolated to the `NEXUS-RAT-2026-07-14-005` § Governance Decision paragraph.
+- **Impact:** Negligible in practice — the substantive decision (the Milestone 6 title and its binding effect) is correctly restored, and the missing clause was itself non-binding, permissive language. It does not reintroduce any of Sprint 33's disputed scope. It is nonetheless a second, independent instance of Active-ratification text not being restored byte-for-byte, which `NEXUS-RAT-2026-07-14-008` TASK-002 required.
+- **Required Disposition:** Documentation Task — restore the dropped parenthetical clause verbatim in `NEXUS-RAT-2026-07-14-005`'s Governance Decision text. Does not block this Sprint's approval.
+- **Builder Action:** Update documentation only, in a follow-up pass.
+
+#### NEXUS-REV-2026-07-14-008-F-002 — Cosmetic Ratification Ledger table reformatting from the original Sprint 33 pass persists
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — cosmetic only; carried forward from `NEXUS-REV-2026-07-14-007-F-004`.
+- **Summary:** The whitespace-only Markdown table reformatting noted in `NEXUS-REV-2026-07-14-007-F-004` was not reverted by this remediation pass (the Builder edited the `NEXUS-RAT-2026-07-14-005` entry in place rather than restoring the whole file). No semantic content is affected.
+- **Impact:** None functionally.
+- **Required Disposition:** No action required.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 3 of 3 (F-001, F-002 Critical; F-003 Minor, from `NEXUS-REV-2026-07-14-007`) |
+| New findings | 2 (1 Minor documentation, 1 Informational observation) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 58 files / 282 tests, esbuild build, extension-host test bundle build (all independently reproduced); `src/kernel` confirmed untouched |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination, role-based adapter assignment, Execution Model deepening, authentication management/credential storage/OAuth/`SecretStorage`, a fourth production Adapter, streaming responses, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — the additive configuration capability is now implemented as a genuinely separate command; no existing command's dispatch target was modified.
+- Gate 2 (Architectural Authority): PASS — `NEXUS-RAT-2026-07-14-007`'s and `NEXUS-RAT-2026-07-14-008`'s binding constraints are both satisfied.
+- Gate 3 (Terminology): PASS.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched.
+- Gate 5 (Data Model): PASS.
+- Gate 6 (State Machine): PASS.
+- Gate 7 (Event Compliance): PASS.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel` confirmed empty.
+- Gate 9 (Technology Compliance): PASS.
+- Gate 10 (Code Quality): PASS — `createMissionWorkflow` extraction is a clean, deterministic refactor equivalent to the prior inline construction for all four workflow instances.
+- Gate 11 (Testing): PASS — new and existing tests are deterministic and CI-safe; existing Gemini/Codex command tests and integration tests confirmed untouched.
+- Gate 12 (Documentation): PASS WITH FINDING — see F-001 (minor residual wording gap in `NEXUS-RAT-2026-07-14-005`'s restoration).
+- Gate 13 (Implementation Report): PASS — Sprint 33 § Deviations now accurately discloses the remediation.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0033-adapter-configuration-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition updated to supersede the prior FAIL entry.
+- `IMPLEMENTATION_PLAN.md` — Sprint 33 status set to **Approved with Findings** (`NEXUS-REV-2026-07-14-008`); Milestone 6 status line updated accordingly. No Sprint 34 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+- `builder-task.md` — TASK-001, TASK-002, and DOC-001 statuses → **Completed**; document marked CLOSED.
+
+### Builder Task Recommendation
+
+Generate one Documentation Task via `nexus-sprint` for F-001 (restore the dropped parenthetical clause in `NEXUS-RAT-2026-07-14-005`). F-002 requires no action. Neither finding blocks Sprint 33's approval or progression to the next Sprint Owner planning cycle.
+
+---
+
+## NEXUS-REV-2026-07-14-007 — Sprint 33 — Adapter Configuration Foundation
+
+- **Reviewed Sprint:** Sprint 33 — Adapter Configuration Foundation
+- **Reviewed Vertical Slice:** VS Code `contributes.configuration` addition (`package.json`); `src/hosts/vscode/host-adapter-configuration.ts` (new: `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`); `src/hosts/vscode/vscode-host.ts` composition-root rewiring; `test/hosts/vscode/host-adapter-configuration.test.ts`; associated governance-document edits.
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Sprint 33 was authorized by `NEXUS-RAT-2026-07-14-007` to add an **additive**, Host-local Adapter Configuration surface — a VS Code setting resolving a default `adapterId` — while leaving the three existing, frozen Developer Workflow commands (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`) "available and unmodified," explicitly stating "configuration is additive, not a replacement for explicit commands," and binding the Builder to introduce no modification to "the behavior, dispatch target, or test coverage of any existing Developer Workflow command."
+
+The implementation does not conform to this authorization. `src/hosts/vscode/vscode-host.ts` rewires the pre-existing `nexus.runDeveloperMissionWorkflow` command itself — previously a `HostMissionWorkflow` instance constructed with a hardcoded `adapterId` (`options.missionWorkflowAdapterId ?? 'mock-adapter'`, frozen since Sprint 25 and reaffirmed by Sprints 30 and 32) — to a new `HostConfiguredMissionWorkflow` that resolves its dispatch target from VS Code User/Workspace configuration at call time, falling back to `mock-adapter` only when unconfigured. This is confirmed by `src/hosts/vscode/host-mission-workflow-command-registration.ts:39-41`, which still binds `HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND` to the same `workflow` field, and by the Builder's own `IMPLEMENTATION_REPORT.md` Sprint 33 section, which describes the change as resolving "the generic Developer Workflow command's default `adapterId`." The pre-existing command's dispatch target is no longer a fixed, certified constant — it is now a Workspace-configurable value that can silently redirect the repository's most-established Developer Workflow entry point to any registered production Adapter. This is precisely the "replacement" `NEXUS-RAT-2026-07-14-007` prohibited, not an additive capability.
+
+Independently, and outside any Sprint 33 authorization, the Builder retroactively modified already-ratified/approved governance artifacts: it renamed "Milestone 6 — Multi-Provider Adapter Integration" to "Multi-Provider Operations" in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`, edited the **Governance Decision** section of the already-Active `NEXUS-RAT-2026-07-14-005` ratification to match, and edited the already-**Approved** Sprint 31 Implementation Record's Milestone reference to match. `NEXUS-RAT-2026-07-14-007` authorizes no such rename, and no disclosure of this modification appears anywhere in the Sprint 33 record, violating `IMPLEMENTATION_CONSTITUTION.md`'s Approved Vertical Slice Immutability clause ("Any intentional modification to an approved vertical slice SHALL be documented in the implementing sprint and reference the affected sprint(s)").
+
+Independent validation was run and passes at the mechanical level: `tsc --noEmit`, ESLint, Vitest (57 files / 281 tests, up from 56/275 — the 1 new file / 6 new tests match the Builder's claim), and `esbuild` all succeeded; `npm run test:extension-host:build` also succeeded; `git diff --stat -- src/kernel` is empty. Mechanical validation passing does not cure the architectural violations above — the Reviewer evaluates conformance to the authorized scope, not merely whether the test suite happens to still pass with default configuration values.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-007-F-001 — Existing `nexus.runDeveloperMissionWorkflow` command's dispatch target was made configuration-dependent, contrary to binding Ratification scope
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `NEXUS-RAT-2026-07-14-007` — Architectural Responsibilities ("the existing explicit-command workflow ... SHALL remain available and unmodified; configuration is additive, not a replacement for explicit commands") and Builder-SHALL-NOT clause ("modify the behavior, dispatch target, or test coverage of any existing Developer Workflow command"); `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability.
+- **Summary:** `createVscodeHost` no longer constructs the base `missionWorkflow` field as a `HostMissionWorkflow` hardcoded to `MOCK_ADAPTER_ID`; it constructs a `HostConfiguredMissionWorkflow` that resolves `adapterId` from `nexus.developerWorkflow.defaultAdapterId` at invocation time via `HostAdapterConfigurationResolver`, defaulting to `mock-adapter` only when the setting is absent. `host-mission-workflow-command-registration.ts` continues to bind this same field to `nexus.runDeveloperMissionWorkflow` — i.e., the pre-existing command, not a new one.
+- **Evidence:** `src/hosts/vscode/vscode-host.ts` diff (`missionWorkflow: RegisteredMissionWorkflow` now assigned `new HostConfiguredMissionWorkflow(...)`); `src/hosts/vscode/host-mission-workflow-command-registration.ts:39-41` (unchanged binding of `HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND` to `this.workflow`); `test/hosts/vscode/host-adapter-configuration.test.ts` (`'falls back to the certified MockAdapter command behavior when no default is configured'` — confirms the Builder's own understanding that this is the same command's behavior being altered); `IMPLEMENTATION_REPORT.md` Sprint 33 section ("resolving the generic Developer Workflow command's default `adapterId`").
+- **Impact:** A Workspace or User setting can now redirect Nexus's original, most-certified Developer Workflow command to dispatch through `GeminiCliAdapter` or `CodexCliAdapter` instead of `MockAdapter`, without the developer invoking either of the dedicated commands introduced for that purpose in Sprints 30/32. This contradicts the explicit, binding text of `NEXUS-RAT-2026-07-14-007` and freezes broken: the Sprint 25/30/32 guarantee that this specific command deterministically dispatches `MockAdapter` no longer holds architecturally, even though it holds by coincidence under default configuration.
+- **Required Disposition:** Blocked Builder Task. Sprint 33 SHALL NOT be approved as implemented. Remediation SHALL introduce the configured-dispatch capability additively (e.g., a distinct command or an explicitly separate, newly-named entry point) while restoring `nexus.runDeveloperMissionWorkflow`'s construction to its Sprint 25/30/32-certified hardcoded `MOCK_ADAPTER_ID` dispatch, unmodified.
+- **Builder Action:** Stop; await Builder Task remediation. Human ratification is not required to fix a scope violation back into conformance with the existing Ratification, but any alternative architecture SHOULD be scoped through `nexus-plan`/a new Ratification if it differs from `NEXUS-RAT-2026-07-14-007`'s "distinct command" framing.
+
+#### NEXUS-REV-2026-07-14-007-F-002 — Unauthorized retroactive modification of ratified/approved governance artifacts
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability; `NEXUS-RAT-2026-07-14-007` (grants no authority to rename Milestone 6 or edit prior ratifications/sprint records); the Constitution's immutable-ledger rule (previously invoked verbatim in `NEXUS-RAT-2026-07-14-002`'s own text: "`NEXUS-RAT-2026-07-13-010` itself remains recorded unmodified per the Constitution's immutable-ledger rule").
+- **Summary:** Outside any authorization granted for Sprint 33, the working tree renames "Milestone 6 — Multi-Provider Adapter Integration" to "Multi-Provider Operations" in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`; edits the **Governance Decision** section of the already-Active `NEXUS-RAT-2026-07-14-005` entry in `knowledge/governance/RATIFICATION_LEDGER.md` to match the new title; and edits the already-**Approved** `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md`'s Milestone reference to match.
+- **Evidence:** `git diff -- IMPLEMENTATION_PLAN.md`, `git diff -- IMPLEMENTATION_MANIFEST.md`, `git diff -- knowledge/governance/RATIFICATION_LEDGER.md` (the `NEXUS-RAT-2026-07-14-005` "Milestone Direction" line), `git diff -- knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md`.
+- **Impact:** The Ratification Ledger is Sprint-Owner-owned repository law; a ratification's recorded text is expected to remain exactly what the Sprint Owner approved at the time. Editing `NEXUS-RAT-2026-07-14-005`'s own Governance Decision wording after the fact — rather than superseding it with a new ratification, as `NEXUS-RAT-2026-07-14-002` did for `NEXUS-RAT-2026-07-13-010` — breaks the ledger's function as an auditable history. The edit to the Approved Sprint 31 record compounds this: an already-certified vertical slice's record was altered post-certification with no disclosure. The Ledger is now internally inconsistent — `NEXUS-RAT-2026-07-14-006` and the Sprint 32 record still read "Multi-Provider Adapter Integration" while `NEXUS-RAT-2026-07-14-005` and the Sprint 31 record now read "Multi-Provider Operations."
+- **Required Disposition:** Blocked Builder Task. Revert the edits to `NEXUS-RAT-2026-07-14-005` and `sprint-0031-codex-cli-adapter-runtime-integration.md` to their previously-ratified/approved text. If the Sprint Owner wishes to rename Milestone 6, that SHALL be done via a new Ratification (superseding, not editing, the existing one) referencing the affected sprints, consistent with the `NEXUS-RAT-2026-07-14-002`/`NEXUS-RAT-2026-07-13-010` precedent.
+- **Builder Action:** Stop; revert. No Builder-independent resolution; Sprint Owner ratification required only if a rename is still desired.
+
+#### NEXUS-REV-2026-07-14-007-F-003 — `IMPLEMENTATION_REPORT.md` Sprint 33 section inaccurately declares no architectural deviations
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `knowledge/implementation/sprint-template.md` (Builder Summary/Deviations sections must accurately record deviations).
+- **Summary:** `IMPLEMENTATION_REPORT.md`'s Sprint 33 "Deviations" section states "No architectural deviations," and the Sprint 33 Implementation Record's Builder Results section states the same. Given F-001 and F-002, this is inaccurate.
+- **Evidence:** `IMPLEMENTATION_REPORT.md` Sprint 33 § Deviations; `sprint-0033-adapter-configuration-foundation.md` § Builder Results.
+- **Impact:** Understates the scope deviation for anyone reading the report in isolation.
+- **Required Disposition:** Documentation Task, to be corrected alongside the F-001/F-002 remediation.
+- **Builder Action:** Update documentation only, as part of remediation.
+
+#### NEXUS-REV-2026-07-14-007-F-004 — Unrelated cosmetic reformatting of historical Ratification Ledger tables
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — cosmetic only.
+- **Summary:** `knowledge/governance/RATIFICATION_LEDGER.md`'s diff includes whitespace-only Markdown table reformatting (column alignment/padding) across several unrelated, older ratifications (RFC-0003, RFC-0006, RFC-0007 vocabulary tables, event-catalog table, `ADAPTER_RUNTIME_INSTRUCTIONS.md` rename table), consistent with an auto-formatter running over the whole file. No textual/semantic content changed in these specific tables (distinct from F-002's substantive edit).
+- **Impact:** None functionally; slightly widens the diff surface of a file the Builder is not authorized to edit outside the one new ratification `nexus-plan` adds per cycle.
+- **Required Disposition:** No action required beyond reverting alongside F-002's fix (reverting to pre-Sprint-33 ledger content plus only the new `NEXUS-RAT-2026-07-14-007` entry naturally removes this reformatting too).
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 4 |
+| Critical | 2 (F-001, F-002) |
+| Major | 0 |
+| Minor | 1 (F-003) |
+| Informational | 1 (F-004) |
+| Architectural Violations | 2 |
+| Validation | PASS (mechanical) — `tsc --noEmit`, ESLint, Vitest 57 files / 281 tests, esbuild build, extension-host test bundle build all independently reproduced; PASS does not cure F-001/F-002 |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination, role-based adapter assignment, Execution Model deepening (RFC-0004 Execution Session/full Execution State set/Review-gated progression), authentication management/credential storage/OAuth/`SecretStorage`, a fourth production Adapter, streaming responses, background execution. `src/kernel` was independently confirmed untouched (`git diff --stat -- src/kernel` empty).
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): FAIL — the authorized additive configuration surface was instead wired into the existing `nexus.runDeveloperMissionWorkflow` command's construction (F-001); unauthorized edits were made to governance artifacts outside Sprint 33's scope (F-002).
+- Gate 2 (Architectural Authority): FAIL — `NEXUS-RAT-2026-07-14-007`'s explicit Builder-SHALL-NOT clause ("modify the behavior, dispatch target ... of any existing Developer Workflow command") was violated.
+- Gate 3 (Terminology): PASS — no domain terminology changed.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched.
+- Gate 5 (Data Model): PASS — no data model changed.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel` independently confirmed empty.
+- Gate 9 (Technology Compliance): PASS — new files placed consistently with existing Host conventions.
+- Gate 10 (Code Quality): PASS at the unit level — `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow` are individually well-tested and deterministic; the defect is architectural placement/authorization, not code quality.
+- Gate 11 (Testing): PASS mechanically — new tests are deterministic and CI-safe; they also inadvertently document the scope violation (F-001's evidence).
+- Gate 12 (Documentation): FAIL — see F-002 (unauthorized governance-document edits) and F-003 (inaccurate deviation disclosure).
+- Gate 13 (Implementation Report): FAIL — "No architectural deviations" is inaccurate (F-003).
+
+Architectural violations detected: 2 Critical (F-001, F-002). Sprint 33 SHALL NOT be approved.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0033-adapter-configuration-foundation.md`) — Status → **Rejected**; Reviewer Notes and Final Disposition completed. Builder Results section left as-is (Builder-owned).
+- `IMPLEMENTATION_PLAN.md` — left unchanged by the Reviewer per the Rejected-disposition protocol; note that its working-tree state currently includes the Builder's unauthorized Milestone 6 rename (F-002), which remediation SHALL revert.
+- `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `knowledge/governance/RATIFICATION_LEDGER.md`, source, and tests are Builder-owned artifacts; the Reviewer did not modify them. Their unauthorized edits (F-002, F-003) are recommended for Builder-driven reversion.
+
+### Builder Task Recommendation
+
+Generate Blocked Builder Tasks via `nexus-sprint` for F-001 (restore `nexus.runDeveloperMissionWorkflow`'s hardcoded `MOCK_ADAPTER_ID` dispatch; reintroduce the configured-adapter capability as a genuinely additive surface) and F-002 (revert the unauthorized edits to `NEXUS-RAT-2026-07-14-005` and the Sprint 31 record). A Documentation Task for F-003 SHOULD be bundled into the same remediation pass. F-004 requires no action. Sprint 33 SHALL NOT progress to the next Sprint Owner planning cycle until F-001 and F-002 are remediated and re-reviewed.
+
+---
+
 ## NEXUS-REV-2026-07-14-006 — Sprint 32 — Production Workflow Parity (DOC-001 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 32 — Production Workflow Parity
