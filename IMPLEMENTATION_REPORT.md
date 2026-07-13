@@ -1,5 +1,105 @@
 # Nexus Implementation Report
 
+## Sprint 25 — Developer Workflow Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 25 Developer Workflow Foundation vertical slice. This sprint adds the first provider-independent Mission developer workflow inside the VS Code Host, sequencing the certified Mission/Planning/Execution golden path through public Kernel service contracts only.
+
+Implemented scope:
+
+- Added `HostMissionWorkflow` as a Host-layer orchestration component for the authorized eleven-call sequence: `createMission`, `createMissionPlan`, `planMission`, `addTask`, `updateTask` to `Ready`, `markMissionReady`, `startMission`, `startTask`, `completeTask`, `reviewMission`, and `completeMission`.
+- Added `nexus.runDeveloperMissionWorkflow` with interactive input for Mission objective and one Task title/description.
+- Added `nexus.showMissionWorkflowHistory` for the session-only in-memory Mission workflow history.
+- Added Workspace Trust enforcement before the first Kernel call.
+- Added deterministic cancellation handling before Kernel calls.
+- Added deterministic progress, result, and failure presentation through the existing Host presentation surface.
+- Added Kernel rejection handling that stops without retrying or continuing and records last-known Mission status when a Mission was created.
+- Added unit and integration coverage for success, cancellation, Kernel rejection, trust gating, history shape, command registration, and real `createKernelServices` composition.
+
+Out of scope and not implemented:
+
+- Evidence, Shared Reality, Review-domain behavior, and Knowledge capture.
+- Multiple Tasks per Mission, Task dependencies, Task Graph authoring, Mission editing, or Mission revision after the fixed single-task sequence.
+- Persistent or cross-session Mission history, including `vscode.Memento`, `globalState`, or `workspaceState`.
+- Live AI providers, Adapter dispatch, Adapter Selection Policy, provider protocol logic, workflow automation, background execution, retries, or scheduling.
+- New Kernel domains, aggregates, business rules, states, or events.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0001 — Mission Model.
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Host command registration for the Mission developer workflow.
+- Host user interaction for Mission objective and single Task input.
+- Host progress/result/error presentation for Mission workflow execution.
+- Host Workspace Trust enforcement before Mission workflow Kernel calls.
+- Session-only minimal Mission workflow history.
+- Public Kernel service invocation only for Mission/Planning/Execution behavior.
+
+Deferred Concepts:
+
+- Evidence, Shared Reality, Review-domain, and Knowledge Host workflows.
+- Multiple Task workflows and Task dependency authoring.
+- Persistent Mission history.
+- Adapter/provider execution and selection.
+- Workflow automation and retry policies.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md`.
+- `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md`.
+- `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The Host may thinly invoke existing public Kernel Mission service contracts without owning Mission business logic, consistent with Sprint 25's Critical Boundary and the Sprint 23/24 Host precedent.
+- Generating Host-supplied identifiers for the authorized calls is implementation wiring; Mission identity validation and lifecycle legality remain owned by the Kernel.
+- Session history is non-authoritative Host presentation state because it is in-memory only and contains only `{missionId, objective, finalStatus}`.
+
+### Known Limitations
+
+- The workflow supports exactly one Task per Mission.
+- Mission workflow history is discarded with the extension process.
+- The workflow stops at Mission completion; Evidence, Review-domain, Shared Reality, and Knowledge capture remain future work.
+- No Adapter or live provider participates in this workflow.
+
+### Validation Summary
+
+- Targeted Sprint 25 validation passed: 3 files, 7 tests.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 48 files, 253 tests.
+- `git diff --stat -- src/kernel src/adapters` is empty.
+- `rg "globalState|workspaceState|Memento" src\hosts` returns no matches.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 24 — Host Runtime Completion
 
 ### Implemented Slice

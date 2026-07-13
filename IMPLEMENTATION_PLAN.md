@@ -924,7 +924,7 @@ Sprint 18's review cycle is complete with no open findings, and with it, Milesto
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved; Sprint 23 Approved with Findings; Sprint 24 Approved)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved; Sprint 23 Approved with Findings; Sprint 24 Approved; Sprint 25 Approved)
 
 Objective
 
@@ -1270,8 +1270,62 @@ See `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md` fo
 
 ---
 
+## Sprint 25 — Developer Workflow Foundation
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-026)
+
+Objective
+
+Implement the first provider-independent Mission developer workflow inside the VS Code extension: a single Host-triggered command sequencing the already-certified Mission → MissionPlan → Task → MissionExecution golden path (the Mission/Planning/Execution portion of Sprint 16's end-to-end integration test) through existing public Kernel service contracts only. Opens a second, parallel Host entry point (Mission domain) alongside Sprint 23/24's Adapter-domain entry point, using the identical thin-orchestration pattern.
+
+RFC Coverage
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0001 — Mission Model, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+None required. Two scope clarifications (Host thin-orchestration boundary; non-durable session-only Mission history) were resolved during `/nexus-plan` by direct application of the already-reviewed Sprint 23/24 Adapter-domain precedent, not new governance.
+
+Authorized Vertical Slice
+
+- A single new Host command sequencing exactly eleven existing public Kernel operations, in the fixed order proven legal by Sprint 16's integration test: `createMission` → `createMissionPlan` → `planMission` → `addTask` → `updateTask`(Ready) → `markMissionReady` → `startMission`(execution) → `startTask` → `completeTask` → `reviewMission`(Mission-lifecycle transition) → `completeMission`(execution).
+- Interactive input (reusing Sprint 24's `HostInputSurface`) for Mission `objective` and one Task's `title`/`description`; deterministic cancellation handling.
+- Deterministic progress/result presentation (reusing Sprint 24's `HostPresentationSurface`/progress pattern).
+- Workspace Trust enforcement before the first Kernel call (reusing Sprint 24's pattern).
+- A session-only (in-memory, non-durable) list of `{missionId, objective, finalStatus}` for missions run.
+
+Deferred Concepts
+
+- Multiple Tasks per Mission, Task dependencies/graphs; Mission editing beyond the fixed single-task sequence.
+- Evidence, Shared Reality, Review (domain), Knowledge capture — the workflow stops at Mission completion.
+- Persistent/cross-session Mission history (no `vscode.Memento`/`globalState`/`workspaceState`).
+- Live AI providers, Adapter dispatch, Adapter Selection Policy — this sprint does not touch the Adapter domain.
+- Workflow automation, background execution, retry policies, scheduling.
+- New Kernel domains, aggregates, business rules, states, or events; `COPILOT_INSTRUCTIONS.md`.
+
+Definition of Done
+
+- The eleven-call sequence executes deterministically end-to-end through public Kernel contracts only, matching Sprint 16's proven outcome (final Mission status `Completed`).
+- Cancellation and Kernel-rejection both abort deterministically with zero further Kernel calls; Workspace Trust gates before the first Kernel call.
+- No `src/kernel`, `src/adapters/` file changes; Sprint 18's boundary test passes unmodified; existing Adapter-domain behavior remains unmodified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Added `HostMissionWorkflow` as a Host-layer Mission workflow entry point that invokes only `MissionService`, `MissionPlanningService`, and `MissionExecutionService` public operations in the authorized eleven-call order.
+- Added `nexus.runDeveloperMissionWorkflow` and `nexus.showMissionWorkflowHistory` command registration, with interactive input for Mission objective and single Task title/description.
+- Added deterministic Workspace Trust refusal before Kernel calls, deterministic input cancellation before Kernel calls, Kernel rejection stop behavior, progress/result presentation, and session-only in-memory history containing only `{missionId, objective, finalStatus}`.
+- Added VS Code composition-root wiring and command contributions without modifying `src/kernel` or `src/adapters`.
+- Added unit and integration coverage for successful execution, cancellation, Kernel rejection, Workspace Trust gating, minimal history shape, command registration, and real `createKernelServices` composition.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 48 files / 253 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
 ## Future Sprint Planning (Milestone 4)
 
-Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025)
+Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025); Sprint 25 Approved (NEXUS-REV-2026-07-13-026)
 
-Sprint 24's review cycle is complete: one Informational, non-blocking Observation was recorded (`NEXUS-REV-2026-07-13-025-F-001`). No Sprint 25 exists in this Implementation Plan. The Host runtime is now certified complete; live provider selection may be revisited. Sequencing beyond Sprint 24 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.
+Sprint 25's review cycle is complete with no open findings. No Sprint 26 exists in this Implementation Plan. Both the Adapter-domain (Sprint 23/24) and Mission-domain (Sprint 25) Host entry points are now certified; live provider selection for the Adapter domain remains an open, separate future decision. Sequencing beyond Sprint 25 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.

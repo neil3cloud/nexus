@@ -2,6 +2,70 @@
 
 ---
 
+## NEXUS-REV-2026-07-13-026 — Sprint 25 — Developer Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 25 — Developer Workflow Foundation
+- **Reviewed Vertical Slice:** `HostMissionWorkflow`, `HostMissionWorkflowError`, `HostMissionWorkflowCommandRegistration` (`src/hosts/vscode/host-mission-workflow*.ts`); composition-root wiring in `vscode-host.ts`; `package.json` command contributions; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Partial, Primary). Referenced: RFC-0001 — Mission Model, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 25 opens the Mission domain's Host entry point exactly as authorized, mirroring the twice-reviewed Adapter-domain pattern (Sprint 23/24) with no deviation. `git diff --stat HEAD -- src/kernel/ src/adapters/` and a diff against every Sprint 19–24 file are both confirmed **empty** — this sprint is purely additive within `src/hosts/vscode/`, touching no Kernel, Adapter, or prior Host file's behavior (`vscode-host.ts`'s diff is additive composition wiring only).
+
+`HostMissionWorkflow.runDeveloperMissionWorkflow` executes the authorized eleven-call sequence in the exact specified order — verified line-by-line against `host-mission-workflow.ts:104-148` and independently re-confirmed by a dedicated unit test asserting the call order array. Two independent tests (one unit-level composing real `createKernelServices`, one in `test/integration/host-mission-workflow.integration.test.ts`) both assert the resulting Domain Event sequence — `MissionCreated, MissionPlanCreated, MissionPlanned, TaskCreated, MissionReady, MissionStarted, TaskStarted, TaskCompleted, MissionReviewed, MissionCompleted` — which is a strict subset of, and consistent with, Sprint 16's certified golden-path event ordering (Sprint 16 additionally captures Evidence/Review/Knowledge, correctly out of scope here). Workspace Trust is checked as the *first* action in the method (`host-mission-workflow.ts:85`), before even identifier generation, and a dedicated test proves zero Kernel calls when untrusted. A dedicated Kernel-rejection test proves the workflow stops at the failing call (no retry, no continuation) and records the Mission's actual last-known status rather than fabricating one.
+
+Both Critical Boundary rules from the Sprint record are honored: the Host performs no Mission validation or business logic — it is a thin, structurally-typed caller of `MissionWorkflowMissionService`/`MissionWorkflowPlanningService`/`MissionWorkflowExecutionService`, satisfied in production by the real, unmodified `MissionService`/`MissionPlanningService`/`MissionExecutionService`; and session history is confirmed to store only `{missionId, objective, finalStatus}` with zero use of `vscode.Memento`/`globalState`/`workspaceState` (independently re-verified by `grep`). Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **48 files / 253 tests**, esbuild build. `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` § Sprint 25 are mutually consistent and accurately scoped. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 253 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: multiple Tasks per Mission, Task dependencies/graphs, Mission editing beyond the fixed single-task sequence; Evidence, Shared Reality, Review (domain), Knowledge capture; persistent/cross-session Mission history; live AI providers, Adapter dispatch, Adapter Selection Policy (this sprint touches no Adapter code at all); workflow automation, background execution, retry policies, scheduling; any new Kernel domain, aggregate, business rule, state, or event; `COPILOT_INSTRUCTIONS.md`.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Mission workflow Host entry point); no unrelated functionality.
+- Gate 2 (Architectural Authority): PASS — RFC-0009 Command Registration/User Interaction correctly cited; the Sprint record's Critical Boundary interpretation of "Host SHALL NOT create/plan Missions" (business-logic ownership, not invocation) is applied consistently and correctly — the Host contains zero Mission validation logic, confirmed by code inspection.
+- Gate 3 (Terminology): PASS — no renamed Kernel concept; `MissionService.reviewMission` (Mission-lifecycle transition) is correctly not confused with the Review domain anywhere in code or comments.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate instantiated or touched by the Host; all interaction through the three public Mission services.
+- Gate 5 (Data Model): PASS — no Mission/MissionPlan/Task/MissionExecution request or response shape changed.
+- Gate 6 (State Machine): PASS — no state machine touched; the eleven-call sequence exactly matches Sprint 16's proven-legal transition order.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; resulting event sequence independently verified against Sprint 16's baseline.
+- Gate 8 (Capability Boundaries): PASS — RFC-0010's Dependency Rule independently re-verified: zero `src/kernel`/`src/adapters` changes; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new code correctly placed under `src/hosts/vscode/`, reusing existing `HostInputSurface`/`HostPresentationSurface`/`HostWorkspaceTrustSurface` abstractions rather than duplicating them.
+- Gate 10 (Code Quality): PASS — deterministic; fails-closed trust gating verified before any Kernel call; Kernel-rejection handling records true last-known state rather than fabricating success; no dead code; no speculative abstraction.
+- Gate 11 (Testing): PASS — unit tests cover the full call-order sequence, workspace-trust refusal with zero-calls proof, Kernel-rejection with partial-history proof, command registration, and cancellation; two independent tests compose the real `createKernelServices` Kernel and assert the true Domain Event sequence; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 25 record are mutually consistent and accurately scoped, correctly avoiding the Sprint 23 overstatement pattern this time.
+- Gate 13 (Implementation Report): PASS — Sprint 25 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0025-developer-workflow-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 25 status set to **Approved** (`NEXUS-REV-2026-07-13-026`). No Sprint 26 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 25 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan` — both the Adapter-domain and Mission-domain Host entry points are now certified; live provider selection for the Adapter domain remains an open, separate decision.
+
+---
+
 ## NEXUS-REV-2026-07-13-025 — Sprint 24 — Host Runtime Completion
 
 - **Reviewed Sprint:** Sprint 24 — Host Runtime Completion

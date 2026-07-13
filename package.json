@@ -29,6 +29,14 @@
       {
         "command": "nexus.showHostCapabilities",
         "title": "Nexus: Show Host Capabilities"
+      },
+      {
+        "command": "nexus.runDeveloperMissionWorkflow",
+        "title": "Nexus: Run Developer Mission Workflow"
+      },
+      {
+        "command": "nexus.showMissionWorkflowHistory",
+        "title": "Nexus: Show Mission Workflow History"
       }
     ]
   },

@@ -8,6 +8,9 @@ import { Kernel } from '../../kernel/kernel';
 import { createKernelServices } from '../../kernel/common/create-kernel-services';
 import type { IKernelService } from '../../kernel/common/kernel-service';
 import type { KernelLogger } from '../../kernel/common/kernel-logger';
+import { MissionExecutionService } from '../../kernel/mission/mission-execution.service';
+import { MissionPlanningService } from '../../kernel/mission/mission-planning.service';
+import { MissionService } from '../../kernel/mission/mission.service';
 import type {
   HostCommandHandler,
   HostCommandRegistry,
@@ -20,6 +23,8 @@ import type {
 } from './host.contract';
 import { HostCommandRegistration } from './host-command-registration';
 import { HostIngressLayer } from './host-ingress';
+import { HostMissionWorkflow } from './host-mission-workflow';
+import { HostMissionWorkflowCommandRegistration } from './host-mission-workflow-command-registration';
 import type { HostAdapterOperationalMetadataProvider } from './host-operational-metadata';
 import { StaticHostAdapterOperationalMetadataProvider } from './host-operational-metadata';
 
@@ -113,6 +118,7 @@ export class VscodeHost implements vscode.Disposable {
   private readonly kernel: Kernel;
   private readonly logger: KernelLogger;
   private readonly ingress: HostIngressLayer;
+  private readonly missionWorkflow: HostMissionWorkflow;
   private commandRegistrations: HostDisposable[] = [];
 
   public constructor(
@@ -120,21 +126,30 @@ export class VscodeHost implements vscode.Disposable {
     kernel: Kernel,
     logger: KernelLogger,
     ingress: HostIngressLayer,
+    missionWorkflow: HostMissionWorkflow,
   ) {
     this.outputChannel = outputChannel;
     this.kernel = kernel;
     this.logger = logger;
     this.ingress = ingress;
+    this.missionWorkflow = missionWorkflow;
   }
 
   public async initialize(): Promise<void> {
     const commandRegistry = new VscodeCommandRegistry();
     const presentation = new VscodePresentationSurface(this.outputChannel);
+    const inputSurface = new VscodeInputSurface();
     this.commandRegistrations = [
       commandRegistry.registerCommand('nexus.initializeWorkspace', async () =>
         this.initializeWorkspaceCommand(),
       ),
-      new HostCommandRegistration(commandRegistry, this.ingress, new VscodeInputSurface(), presentation),
+      new HostCommandRegistration(commandRegistry, this.ingress, inputSurface, presentation),
+      new HostMissionWorkflowCommandRegistration(
+        commandRegistry,
+        this.missionWorkflow,
+        inputSurface,
+        presentation,
+      ),
     ];
 
     await this.kernel.initialize();
@@ -178,25 +193,61 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     logger,
   );
   const adapterService = resolveAdapterService(composedServices);
+  const missionService = resolveService(
+    composedServices,
+    'MissionService',
+    (service): service is MissionService => service instanceof MissionService,
+  );
+  const planningService = resolveService(
+    composedServices,
+    'MissionPlanningService',
+    (service): service is MissionPlanningService => service instanceof MissionPlanningService,
+  );
+  const executionService = resolveService(
+    composedServices,
+    'MissionExecutionService',
+    (service): service is MissionExecutionService => service instanceof MissionExecutionService,
+  );
   const operationalMetadataProvider =
     options.operationalMetadataProvider ?? new StaticHostAdapterOperationalMetadataProvider({});
+  const presentation = new VscodePresentationSurface(outputChannel);
+  const workspaceTrust = new VscodeWorkspaceTrustSurface();
   const ingress = new HostIngressLayer(
     adapterService,
     operationalMetadataProvider,
-    new VscodePresentationSurface(outputChannel),
-    new VscodeWorkspaceTrustSurface(),
+    presentation,
+    workspaceTrust,
+  );
+  const missionWorkflow = new HostMissionWorkflow(
+    missionService,
+    planningService,
+    executionService,
+    presentation,
+    workspaceTrust,
   );
 
-  return new VscodeHost(outputChannel, kernel, logger, ingress);
+  return new VscodeHost(outputChannel, kernel, logger, ingress, missionWorkflow);
 }
 
 function resolveAdapterService(services: readonly IKernelService[]): AdapterService {
-  const adapterService = services.find(
+  return resolveService(
+    services,
+    'AdapterService',
     (service): service is AdapterService => service instanceof AdapterService,
+  );
+}
+
+function resolveService<T extends IKernelService>(
+  services: readonly IKernelService[],
+  serviceName: string,
+  isService: (service: IKernelService) => service is T,
+): T {
+  const adapterService = services.find(
+    isService,
   );
 
   if (adapterService === undefined) {
-    throw new Error('AdapterService is required for VS Code Host ingress.');
+    throw new Error(`${serviceName} is required for VS Code Host composition.`);
   }
 
   return adapterService;

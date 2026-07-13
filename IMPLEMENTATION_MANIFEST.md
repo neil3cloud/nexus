@@ -790,7 +790,7 @@ Notes:
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Implemented — Pending Reviewer Validation)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025); Sprint 25 Implemented — Pending Reviewer Validation)
 
 ## Sprint 19 — Mock Adapter Runtime Integration
 
@@ -1000,7 +1000,7 @@ Notes:
 
 ## Sprint 24 — Host Runtime Completion
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved (NEXUS-REV-2026-07-13-025)
 
 RFC Coverage:
 
@@ -1038,6 +1038,45 @@ Notes:
 - This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon.
 - Identified by repository-state assessment during `/nexus-plan`: all three gaps were found in the already-approved Sprint 23 code via direct grep evidence, not speculative future-proofing.
 - Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 246 tests, esbuild.
+
+---
+
+## Sprint 25 — Developer Workflow Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0001 — Mission Model, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- None required. Two scope clarifications (Host thin-orchestration boundary; non-durable session-only Mission history) were resolved during `/nexus-plan` by direct application of the already-reviewed Sprint 23/24 Adapter-domain precedent.
+
+Implemented Concepts:
+
+- A single new Host command sequencing exactly eleven existing public Kernel operations, in the fixed order proven legal by Sprint 16's integration test: `createMission` → `createMissionPlan` → `planMission` → `addTask` → `updateTask`(Ready) → `markMissionReady` → `startMission`(execution) → `startTask` → `completeTask` → `reviewMission`(Mission-lifecycle transition) → `completeMission`(execution).
+- Interactive input and deterministic progress/result presentation, reusing Sprint 24's `HostInputSurface`/`HostPresentationSurface` abstractions.
+- Workspace Trust enforcement before the first Kernel call, reusing Sprint 24's pattern.
+- A session-only (in-memory, non-durable) list of `{missionId, objective, finalStatus}`.
+- VS Code command contributions for running the developer Mission workflow and showing the in-memory Mission workflow history.
+- Unit and integration coverage for success, cancellation, Kernel rejection, Workspace Trust gating, minimal history shape, and real `createKernelServices` composition.
+
+Critical Boundary:
+
+- The Host owns no Mission business logic; it only sequentially invokes existing `MissionService`/`MissionPlanningService`/`MissionExecutionService` public operations. Session history SHALL NOT use `vscode.Memento`/`globalState`/`workspaceState` or duplicate Mission aggregate state.
+
+Deferred Concepts:
+
+- Multiple Tasks per Mission, Task dependencies/graphs; Evidence, Shared Reality, Review (domain), Knowledge capture; persistent/cross-session Mission history; live AI providers, Adapter dispatch, Adapter Selection Policy; workflow automation, background execution, retry policies.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0001, RFC-0004, RFC-0009, RFC-0010, or the Kernel Canon.
+- Opens a second, parallel Host entry point (Mission domain) alongside Sprint 23/24's Adapter-domain entry point; orthogonal to existing Adapter-domain behavior.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 48 files / 253 tests, esbuild.
 
 ---
 
