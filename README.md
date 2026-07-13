@@ -46,6 +46,8 @@ Use **Nexus: Run Developer Workflow** (`nexus.runDeveloperMissionWorkflowWithCon
 
 Set `nexus.developerWorkflow.defaultAdapterId` to the adapter you want for routine Developer Workflow runs. The built-in default remains `mock-adapter`; configured environments may set it to another registered adapter such as `gemini-cli-adapter` or `codex-cli-adapter`.
 
+Use **Nexus: Run Builder Workflow** (`nexus.runBuilderMissionWorkflow`) when the same configured adapter should execute the dedicated Builder Workflow entry point. The Host resolves `nexus.developerWorkflow.defaultAdapterId` to one explicit `adapterId`, invokes the same certified execution pipeline with explicit `roleId: 'builder'`, and labels the result with the assigned Builder role.
+
 The explicit commands remain available as compatibility entry points when a developer wants to bypass configuration for one run:
 
 - `nexus.runDeveloperMissionWorkflow` — run with the Mock Adapter compatibility path.

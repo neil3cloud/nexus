@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 35 — Builder Workflow Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 6 Sprint 35 Builder Workflow Foundation vertical slice. This sprint adds a dedicated Builder Workflow Host command that reuses the certified Host Adapter Configuration, Host Mission Workflow, Execution Pipeline, and Adapter dispatch architecture without changing Kernel or Adapter behavior.
+
+Implemented scope:
+
+- Added `nexus.runBuilderMissionWorkflow` as an additive VS Code Host command.
+- Registered the new command in `package.json` `activationEvents` and `contributes.commands` as **Nexus: Run Builder Workflow**.
+- Composed the new command through `HostConfiguredMissionWorkflow`, reusing `HostAdapterConfigurationResolver.resolveDeveloperWorkflowAdapterId()` and the configured-adapter workflow map pattern.
+- Constructed Builder Workflow `HostMissionWorkflow` instances with explicit `roleId: 'builder'`.
+- Added Host-local Builder Workflow presentation metadata that labels successful Builder results/history with the assigned `Builder (builder)` Execution Role.
+- Added deterministic tests for Builder command registration/success, input-cancellation failure, Builder result/history role labeling, package command metadata, and extension-host command discoverability.
+- Updated README user guidance to describe the new Builder Workflow command alongside existing Developer Workflow commands.
+
+Out of scope and not implemented:
+
+- Reviewer Workflow, Planner Workflow, or any role-scoped workflow beyond Builder.
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing, Adapter Selection Policy, or fallback routing.
+- New Execution Model concepts, Kernel state changes, Kernel data, Domain Events, or Adapter contracts.
+- Fourth production Adapter, Marketplace publication, or changes under `src/kernel` or `src/adapters`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- No Primary RFC — Host-layer additive command, reusing existing certified contracts.
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model (`builder` Execution Role consumed unmodified).
+- RFC-0009 — Host Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- VS Code Host command contribution and activation for `nexus.runBuilderMissionWorkflow`.
+- Host-local command registration delegating to existing configured-adapter Mission Workflow machinery.
+- Explicit Host composition of Builder Workflow execution with `roleId: 'builder'`.
+- Host presentation/result metadata for the assigned Builder Execution Role.
+
+Deferred Concepts:
+
+- Reviewer Workflow, Planner Workflow, and other role-scoped AI Engineering Workflows.
+- Role-based adapter assignment, automatic routing, workflow chaining, and multi-agent coordination.
+- Execution Model expansion, Execution Session behavior, review-gated progression, or new Kernel lifecycle semantics.
+- Fourth production Adapter, Adapter Selection Policy, Marketplace publication, and Adapter capability scoring.
+- Any `src/kernel` or `src/adapters` change.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-010`, `NEXUS-RAT-2026-07-14-005`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0035-builder-workflow-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- A dedicated Builder Workflow command is Host-layer user interaction under RFC-0009 and does not create a new Kernel concept.
+- Reusing `HostAdapterConfigurationResolver.resolveDeveloperWorkflowAdapterId()` for the Builder Workflow remains configuration resolution to one explicit `adapterId`, not Adapter Selection Policy.
+- Surfacing the assigned Builder role in Host result/history presentation is Host-local metadata derived from the existing RFC-0004 Execution Role and does not introduce Kernel data or a Domain Event.
+
+### Known Limitations
+
+- Only the Builder Workflow command is introduced; Reviewer, Planner, and coordinated multi-role workflows remain deferred.
+- The Builder Workflow uses the same configured adapter setting as the configured Developer Workflow, preserving Sprint 33 configuration scope and avoiding role-based adapter assignment.
+- Workflow history remains session-only and non-durable.
+
+### Validation Summary
+
+- Targeted Sprint 35 validation passed: `npm test -- --run test/hosts/vscode/host-mission-workflow.test.ts test/hosts/vscode/host-mission-workflow-configured-command-registration.test.ts test/hosts/vscode/package-command-metadata.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 59 files, 287 tests.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Sprint 18 Kernel boundary certification remained unmodified and was included in repository-wide validation.
+- No `src/kernel` or `src/adapters` file was modified for Sprint 35.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 34 — Developer Workflow UX Consolidation
 
 ### Implemented Slice

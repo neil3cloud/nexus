@@ -1625,7 +1625,7 @@ See `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-
 
 # Milestone 6 — Multi-Provider Adapter Integration
 
-Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Approved — NEXUS-REV-2026-07-14-010)
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Approved — NEXUS-REV-2026-07-14-010; Sprint 35 Approved — NEXUS-REV-2026-07-14-011)
 
 Objective
 
@@ -1831,3 +1831,46 @@ Definition of Done
 - Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
 
 See `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolidation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 35 — Builder Workflow Foundation
+
+Status: Approved — NEXUS-REV-2026-07-14-011
+
+Objective
+
+Introduce the first AI Engineering Workflow by implementing a dedicated Builder Workflow entry point that reuses the certified Host, Configuration, Execution Pipeline, and Adapter architecture verbatim, differing from the existing Developer Workflow only in explicit Role framing (`roleId: 'builder'`) and Builder-specific result presentation.
+
+RFC Coverage
+
+- No Primary RFC — Host-layer additive command, reusing existing certified contracts.
+- Referenced: RFC-0004 — Execution Model (`builder` Execution Role, already registered by Sprint 8), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-010` — governs this Sprint's entire scope: title, authorized command addition, Host/Kernel responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-005` — named the original three Milestone 6 candidate directions; `NEXUS-RAT-2026-07-14-010` selects a fourth direction instead for Sprint 35.
+
+Authorized Vertical Slice
+
+- A new, additive Host command (e.g. `nexus.runBuilderMissionWorkflow`) constructing the existing `HostMissionWorkflow`/`HostConfiguredMissionWorkflow` machinery with an explicit `roleId: 'builder'`, reusing Host Adapter Configuration resolution (Sprint 33) and the certified Execution Pipeline (Sprints 25–27) verbatim.
+- `package.json` command contribution registration mirroring the existing pattern.
+- Host presentation/result formatting labeling the new command's output as Builder-specific, without introducing new Kernel data or a new Domain Event.
+- Unit/integration test coverage for the new command, using existing deterministic test-doubles exclusively.
+
+Deferred Concepts
+
+- Reviewer Workflow, Planner Workflow, or any other role-scoped workflow beyond Builder.
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing.
+- Execution Model expansion, a fourth production Adapter, Adapter Selection Policy, Marketplace publication.
+- Any `src/kernel` or `src/adapters` change.
+
+Definition of Done
+
+- All existing Developer Workflow commands retain their identifiers, dispatch behavior, and test coverage, unmodified.
+- The new Builder Workflow command dispatches through the identical certified Execution Pipeline with explicit `roleId: 'builder'`.
+- No `src/kernel`/`src/adapters` file changes; Sprint 18's boundary test passes unmodified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0035-builder-workflow-foundation.md` for the complete Sprint Implementation Record.

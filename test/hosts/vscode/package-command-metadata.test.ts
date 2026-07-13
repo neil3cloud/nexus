@@ -7,6 +7,7 @@ const CONFIGURED_COMMAND = 'nexus.runDeveloperMissionWorkflowWithConfiguredAdapt
 const MOCK_COMMAND = 'nexus.runDeveloperMissionWorkflow';
 const GEMINI_COMMAND = 'nexus.runDeveloperMissionWorkflowWithGeminiCli';
 const CODEX_COMMAND = 'nexus.runDeveloperMissionWorkflowWithCodexCli';
+const BUILDER_COMMAND = 'nexus.runBuilderMissionWorkflow';
 const HISTORY_COMMAND = 'nexus.showMissionWorkflowHistory';
 
 describe('package command metadata', () => {
@@ -19,6 +20,7 @@ describe('package command metadata', () => {
       'nexus.dispatchAdapterRequest',
       'nexus.showHostCapabilities',
       CONFIGURED_COMMAND,
+      BUILDER_COMMAND,
       MOCK_COMMAND,
       GEMINI_COMMAND,
       CODEX_COMMAND,
@@ -30,6 +32,12 @@ describe('package command metadata', () => {
       title: 'Run Developer Workflow',
       category: 'Nexus',
       shortTitle: 'Run Developer Workflow',
+    });
+    expect(command(commands, BUILDER_COMMAND)).toEqual({
+      command: BUILDER_COMMAND,
+      title: 'Run Builder Workflow',
+      category: 'Nexus',
+      shortTitle: 'Run Builder Workflow',
     });
   });
 

@@ -1282,7 +1282,7 @@ Notes:
 
 # Milestone 6 — Multi-Provider Adapter Integration
 
-Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Implemented — Pending Reviewer Validation)
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005; Sprint 33 Approved with Findings — NEXUS-REV-2026-07-14-008, remediation verified NEXUS-REV-2026-07-14-009; Sprint 34 Approved — NEXUS-REV-2026-07-14-010; Sprint 35 Implemented — Pending Reviewer Validation)
 
 ## Sprint 31 — Codex CLI Adapter Runtime Integration
 
@@ -1417,7 +1417,7 @@ Notes:
 
 ## Sprint 34 — Developer Workflow UX Consolidation
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved (NEXUS-REV-2026-07-14-010)
 
 RFC Coverage:
 
@@ -1452,6 +1452,46 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolidation.md` for the complete Sprint Implementation Record.
 - This sprint introduces no new bounded context and does not modify any RFC or the Kernel Canon.
 - Re-scopes the originally candidate "Unified Developer Workflow" objective, which `/nexus-plan` governance analysis found already satisfied architecturally by Sprint 33; true command consolidation remains deferred per `NEXUS-RAT-2026-07-14-009`.
+- Sprint 34's disposition is Approved with zero findings (`NEXUS-REV-2026-07-14-010`).
+
+---
+
+## Sprint 35 — Builder Workflow Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- No Primary RFC — Host-layer additive command, reusing existing certified contracts.
+- Referenced: RFC-0004 — Execution Model (`builder` Execution Role, already registered by Sprint 8), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-010` — governs this Sprint's entire scope: title, authorized command addition, Host/Kernel responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-005` — named the original three Milestone 6 candidate directions; `NEXUS-RAT-2026-07-14-010` selects a fourth direction instead for Sprint 35.
+
+Implemented Concepts:
+
+- A new, additive Host command (e.g. `nexus.runBuilderMissionWorkflow`) constructing the existing `HostMissionWorkflow`/`HostConfiguredMissionWorkflow` machinery with an explicit `roleId: 'builder'`, reusing Host Adapter Configuration resolution (Sprint 33) and the certified Execution Pipeline (Sprints 25–27) verbatim.
+- `package.json` command contribution registration mirroring the existing pattern.
+- Host presentation/result formatting labeling the new command's output as Builder-specific, without introducing new Kernel data or a new Domain Event.
+- Unit/integration test coverage for the new command, using existing deterministic test-doubles exclusively.
+
+Deferred Concepts:
+
+- Reviewer Workflow, Planner Workflow, or any other role-scoped workflow beyond Builder.
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing.
+- Execution Model expansion, a fourth production Adapter, Adapter Selection Policy, Marketplace publication.
+- Any `src/kernel` or `src/adapters` change.
+
+Critical Boundary:
+
+- This sprint introduces exactly one architectural variable — an additive Builder Workflow command reusing the certified pipeline with explicit `roleId: 'builder'` — while every other component remains unchanged. No `src/kernel` or `src/adapters` file may be modified; all existing Developer Workflow commands and their test coverage remain frozen.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0035-builder-workflow-foundation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify any RFC or the Kernel Canon; it reuses the `builder` Execution Role already registered by Sprint 8.
 
 ---
 

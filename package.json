@@ -27,6 +27,7 @@
     "onCommand:nexus.runDeveloperMissionWorkflowWithGeminiCli",
     "onCommand:nexus.runDeveloperMissionWorkflowWithCodexCli",
     "onCommand:nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
+    "onCommand:nexus.runBuilderMissionWorkflow",
     "onCommand:nexus.showMissionWorkflowHistory"
   ],
   "contributes": {
@@ -52,6 +53,12 @@
         "title": "Run Developer Workflow",
         "category": "Nexus",
         "shortTitle": "Run Developer Workflow"
+      },
+      {
+        "command": "nexus.runBuilderMissionWorkflow",
+        "title": "Run Builder Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Builder Workflow"
       },
       {
         "command": "nexus.runDeveloperMissionWorkflow",

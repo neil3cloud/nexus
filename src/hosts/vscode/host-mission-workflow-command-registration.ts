@@ -20,12 +20,14 @@ export const HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_CODEX_CLI_COMMAND =
   'nexus.runDeveloperMissionWorkflowWithCodexCli';
 export const HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_CONFIGURED_ADAPTER_COMMAND =
   'nexus.runDeveloperMissionWorkflowWithConfiguredAdapter';
+export const HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND = 'nexus.runBuilderMissionWorkflow';
 export const HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND = 'nexus.showMissionWorkflowHistory';
 
 export interface HostMissionWorkflowCommandRegistrationOptions {
   readonly geminiCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly codexCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly configuredAdapterWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+  readonly builderWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
 }
 
 export class HostMissionWorkflowCommandRegistration implements HostDisposable {
@@ -83,6 +85,16 @@ export class HostMissionWorkflowCommandRegistration implements HostDisposable {
             configuredAdapterWorkflow.runDeveloperMissionWorkflow(
               await this.normalizeWorkflowInput(input),
             ),
+        ),
+      );
+    }
+
+    const builderWorkflow = options.builderWorkflow;
+
+    if (builderWorkflow !== undefined) {
+      registrations.push(
+        commandRegistry.registerCommand(HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND, async (input) =>
+          builderWorkflow.runDeveloperMissionWorkflow(await this.normalizeWorkflowInput(input)),
         ),
       );
     }

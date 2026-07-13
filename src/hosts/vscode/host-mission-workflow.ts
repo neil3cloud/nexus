@@ -38,6 +38,8 @@ export interface HostMissionWorkflowHistoryEntry {
   readonly missionId: string;
   readonly objective: string;
   readonly finalStatus: MissionStatus;
+  readonly assignedRoleId?: string;
+  readonly assignedRoleName?: string;
   readonly adapterId?: string;
   readonly adapterDispatchStatus?: AdapterResponseSnapshot['status'];
   readonly reviewOutcome?: ReviewOutcomeValue;
@@ -51,6 +53,8 @@ export interface HostMissionWorkflowResult {
   readonly finalStatus: MissionStatus;
   readonly missionPlanRevision: number;
   readonly taskStatus: TaskStatus;
+  readonly assignedRoleId?: string;
+  readonly assignedRoleName?: string;
   readonly adapterId: string;
   readonly adapterDispatchStatus: AdapterResponseSnapshot['status'];
   readonly reviewOutcome: ReviewOutcomeValue;
@@ -111,10 +115,23 @@ export interface MissionWorkflowCompletionServices {
   readonly reviewOutcome?: ReviewOutcomeValue;
 }
 
+export interface HostMissionWorkflowPresentationOptions {
+  readonly workflowLabel?: string;
+  readonly completionMessageLabel?: string;
+  readonly includeAssignedRole?: boolean;
+}
+
+interface HostMissionWorkflowInternalResult extends HostMissionWorkflowResult {
+  readonly readyTaskStatus: TaskStatus;
+}
+
 export class HostMissionWorkflow {
   private readonly history: HostMissionWorkflowHistoryEntry[] = [];
   private readonly roleId: string;
   private readonly completionReviewOutcome: ReviewOutcomeValue;
+  private readonly workflowLabel: string;
+  private readonly completionMessageLabel: string;
+  private readonly includeAssignedRole: boolean;
 
   public constructor(
     private readonly missionService: MissionWorkflowMissionService,
@@ -125,9 +142,13 @@ export class HostMissionWorkflow {
     private readonly presentation: HostPresentationSurface,
     private readonly workspaceTrust: HostWorkspaceTrustSurface,
     private readonly createIdentity: () => string = randomUUID,
+    presentationOptions: HostMissionWorkflowPresentationOptions = {},
   ) {
     this.roleId = pipeline.roleId ?? 'builder';
     this.completionReviewOutcome = completion.reviewOutcome ?? 'Accepted';
+    this.workflowLabel = presentationOptions.workflowLabel ?? 'Mission Workflow';
+    this.completionMessageLabel = presentationOptions.completionMessageLabel ?? 'Mission workflow';
+    this.includeAssignedRole = presentationOptions.includeAssignedRole ?? false;
   }
 
   public async runDeveloperMissionWorkflow(
@@ -150,11 +171,11 @@ export class HostMissionWorkflow {
     let reviewOutcome: ReviewOutcomeValue | undefined;
     let knowledgeCaptureStatus: KnowledgeSnapshot['status'] | undefined;
 
-    this.presentation.appendLine(`Mission Workflow Progress: started ${missionId}`);
+    this.presentation.appendLine(`${this.workflowLabel} Progress: started ${missionId}`);
 
     try {
-      const result = await this.presentation.withProgress(
-        { title: `Nexus Mission workflow: ${missionId}` },
+      const result: HostMissionWorkflowInternalResult = await this.presentation.withProgress(
+        { title: `Nexus ${this.completionMessageLabel}: ${missionId}` },
         async () => {
           const mission = await this.missionService.createMission({
             id: missionId,
@@ -261,6 +282,7 @@ export class HostMissionWorkflow {
             knowledgeCaptureStatus: completionResult.knowledge.status,
             knowledge: completionResult.knowledge,
             readyTaskStatus: readyTask.status,
+            ...this.assignedRoleResult(role),
           });
         },
       );
@@ -269,21 +291,29 @@ export class HostMissionWorkflow {
         objective: input.objective,
         missionId,
         finalStatus: result.finalStatus,
+        ...this.assignedRoleHistory(result),
         adapterId: result.adapterId,
         adapterDispatchStatus: result.adapterDispatchStatus,
         reviewOutcome: result.reviewOutcome,
         knowledgeCaptureStatus: result.knowledgeCaptureStatus,
       });
-      this.presentation.appendLine(`Nexus Mission Workflow: ${missionId}`);
+      this.presentation.appendLine(`Nexus ${this.workflowLabel}: ${missionId}`);
       this.presentation.appendLine(`Mission Status: ${result.finalStatus}`);
       this.presentation.appendLine(`MissionPlan Revision: ${String(result.missionPlanRevision)}`);
       this.presentation.appendLine(`Task Status: ${result.taskStatus}`);
+      if (result.assignedRoleName !== undefined && result.assignedRoleId !== undefined) {
+        this.presentation.appendLine(
+          `Assigned Role: ${result.assignedRoleName} (${result.assignedRoleId})`,
+        );
+      }
       this.presentation.appendLine(`Adapter Dispatch Status: ${result.adapterDispatchStatus}`);
       this.presentation.appendLine(`Review Outcome: ${result.reviewOutcome}`);
       this.presentation.appendLine(`Knowledge Capture Status: ${result.knowledgeCaptureStatus}`);
       this.presentation.appendLine(`Knowledge Captured: ${result.knowledge.id}`);
-      this.presentation.appendLine(`Mission Workflow Progress: completed ${missionId}`);
-      await this.presentation.showInformationMessage(`Nexus Mission workflow '${missionId}' completed.`);
+      this.presentation.appendLine(`${this.workflowLabel} Progress: completed ${missionId}`);
+      await this.presentation.showInformationMessage(
+        `Nexus ${this.completionMessageLabel} '${missionId}' completed.`,
+      );
 
       return Object.freeze({
         missionId: result.missionId,
@@ -292,6 +322,7 @@ export class HostMissionWorkflow {
         finalStatus: result.finalStatus,
         missionPlanRevision: result.missionPlanRevision,
         taskStatus: result.taskStatus,
+        ...this.assignedRoleHistory(result),
         adapterId: result.adapterId,
         adapterDispatchStatus: result.adapterDispatchStatus,
         reviewOutcome: result.reviewOutcome,
@@ -312,9 +343,9 @@ export class HostMissionWorkflow {
       }
 
       const message = error instanceof Error ? error.message : 'Unknown Mission workflow failure.';
-      this.presentation.appendLine(`Mission Workflow Progress: failed ${missionId}`);
+      this.presentation.appendLine(`${this.workflowLabel} Progress: failed ${missionId}`);
       this.presentation.appendLine(`Host Diagnostic host-mission-workflow.kernel-rejected: ${message}`);
-      await this.presentation.showErrorMessage(`Nexus Mission workflow failed: ${message}`);
+      await this.presentation.showErrorMessage(`Nexus ${this.completionMessageLabel} failed: ${message}`);
       throw error;
     }
   }
@@ -322,8 +353,12 @@ export class HostMissionWorkflow {
   public showMissionWorkflowHistory(): readonly HostMissionWorkflowHistoryEntry[] {
     const entries = this.history.map((entry) => Object.freeze({ ...entry }));
 
-    this.presentation.appendLine('Nexus Mission Workflow History');
+    this.presentation.appendLine(`Nexus ${this.workflowLabel} History`);
     for (const entry of entries) {
+      const roleSummary =
+        entry.assignedRoleName === undefined || entry.assignedRoleId === undefined
+          ? ''
+          : ` | ${entry.assignedRoleName} (${entry.assignedRoleId})`;
       const adapterSummary =
         entry.adapterId === undefined || entry.adapterDispatchStatus === undefined
           ? ''
@@ -333,11 +368,38 @@ export class HostMissionWorkflow {
           ? ''
           : ` | ${entry.reviewOutcome} | ${entry.knowledgeCaptureStatus}`;
       this.presentation.appendLine(
-        `Mission History Entry: ${entry.missionId} | ${entry.finalStatus}${adapterSummary}${completionSummary} | ${entry.objective}`,
+        `Mission History Entry: ${entry.missionId} | ${entry.finalStatus}${roleSummary}${adapterSummary}${completionSummary} | ${entry.objective}`,
       );
     }
 
     return Object.freeze(entries);
+  }
+
+  private assignedRoleResult(role: ExecutionRole): Pick<
+    HostMissionWorkflowResult,
+    'assignedRoleId' | 'assignedRoleName'
+  > {
+    if (!this.includeAssignedRole) {
+      return {};
+    }
+
+    return {
+      assignedRoleId: role.id.toString(),
+      assignedRoleName: role.name,
+    };
+  }
+
+  private assignedRoleHistory(
+    result: Pick<HostMissionWorkflowResult, 'assignedRoleId' | 'assignedRoleName'>,
+  ): Pick<HostMissionWorkflowHistoryEntry, 'assignedRoleId' | 'assignedRoleName'> {
+    if (result.assignedRoleId === undefined || result.assignedRoleName === undefined) {
+      return {};
+    }
+
+    return {
+      assignedRoleId: result.assignedRoleId,
+      assignedRoleName: result.assignedRoleName,
+    };
   }
 
   private appendHistory(entry: HostMissionWorkflowHistoryEntry): void {

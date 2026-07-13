@@ -16,11 +16,13 @@ import type {
   HostMissionWorkflowResult,
 } from '../../../src/hosts/vscode/host-mission-workflow';
 import {
+  HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND,
   HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND,
   HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_CONFIGURED_ADAPTER_COMMAND,
   HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND,
   HostMissionWorkflowCommandRegistration,
 } from '../../../src/hosts/vscode/host-mission-workflow-command-registration';
+import { HostMissionWorkflowError } from '../../../src/hosts/vscode/host-mission-workflow.errors';
 
 describe('HostMissionWorkflowCommandRegistration configured adapter command', () => {
   it('registers an additive configured-adapter command without changing the MockAdapter command', async () => {
@@ -72,12 +74,86 @@ describe('HostMissionWorkflowCommandRegistration configured adapter command', ()
       },
     ]);
   });
+
+  it('registers the additive Builder Workflow command through configured adapter resolution', async () => {
+    const registry = new RecordingCommandRegistry();
+    const mockWorkflow = new RecordingWorkflow(MOCK_ADAPTER_ID);
+    const configuredWorkflow = new RecordingWorkflow(GEMINI_CLI_ADAPTER_ID);
+    const builderWorkflow = new RecordingWorkflow(GEMINI_CLI_ADAPTER_ID, {
+      assignedRoleId: 'builder',
+      assignedRoleName: 'Builder',
+    });
+
+    new HostMissionWorkflowCommandRegistration(
+      registry,
+      mockWorkflow,
+      new EmptyInputSurface(),
+      new SilentPresentationSurface(),
+      { configuredAdapterWorkflow: configuredWorkflow, builderWorkflow },
+    );
+
+    expect(registry.commands).toEqual([
+      HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND,
+      HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND,
+      HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_CONFIGURED_ADAPTER_COMMAND,
+      HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND,
+    ]);
+
+    await expect(
+      registry.invoke(HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND, {
+        objective: 'Run the Builder Workflow.',
+        taskTitle: 'Builder task',
+        taskDescription: 'Exercise the additive Builder Workflow path.',
+      }),
+    ).resolves.toMatchObject({
+      adapterId: GEMINI_CLI_ADAPTER_ID,
+      assignedRoleId: 'builder',
+      assignedRoleName: 'Builder',
+    });
+    expect(mockWorkflow.inputs).toEqual([]);
+    expect(configuredWorkflow.inputs).toEqual([]);
+    expect(builderWorkflow.inputs).toEqual([
+      {
+        objective: 'Run the Builder Workflow.',
+        taskTitle: 'Builder task',
+        taskDescription: 'Exercise the additive Builder Workflow path.',
+      },
+    ]);
+  });
+
+  it('aborts the Builder Workflow command deterministically on input cancellation', async () => {
+    const registry = new RecordingCommandRegistry();
+    const builderWorkflow = new RecordingWorkflow(GEMINI_CLI_ADAPTER_ID);
+    const presentation = new RecordingPresentationSurface();
+
+    new HostMissionWorkflowCommandRegistration(
+      registry,
+      new RecordingWorkflow(MOCK_ADAPTER_ID),
+      new EmptyInputSurface(),
+      presentation,
+      { builderWorkflow },
+    );
+
+    await expect(registry.invoke(HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND)).rejects.toMatchObject({
+      code: 'host-mission-workflow.input-cancelled',
+    } satisfies Partial<HostMissionWorkflowError>);
+    expect(builderWorkflow.inputs).toEqual([]);
+    expect(presentation.lines).toContain(
+      'Host Diagnostic host-mission-workflow.input-cancelled: Mission workflow input cancelled while reading Mission Objective.',
+    );
+  });
 });
 
 class RecordingWorkflow {
   public readonly inputs: HostMissionWorkflowInput[] = [];
 
-  public constructor(private readonly adapterId: string) {}
+  public constructor(
+    private readonly adapterId: string,
+    private readonly roleAssignment: Pick<
+      HostMissionWorkflowResult,
+      'assignedRoleId' | 'assignedRoleName'
+    > = {},
+  ) {}
 
   public async runDeveloperMissionWorkflow(
     input: HostMissionWorkflowInput,
@@ -91,6 +167,7 @@ class RecordingWorkflow {
       finalStatus: 'Completed',
       missionPlanRevision: 3,
       taskStatus: 'Completed',
+      ...this.roleAssignment,
       adapterId: this.adapterId,
       adapterDispatchStatus: 'Completed',
       reviewOutcome: 'Accepted',
@@ -146,7 +223,7 @@ class RecordingCommandRegistry implements HostCommandRegistry {
     };
   }
 
-  public async invoke(command: string, input: unknown): Promise<unknown> {
+  public async invoke(command: string, input?: unknown): Promise<unknown> {
     const handler = this.handlers.get(command);
 
     if (handler === undefined) {
@@ -165,6 +242,22 @@ class EmptyInputSurface implements HostInputSurface {
 
 class SilentPresentationSurface implements HostPresentationSurface {
   public appendLine(): void {}
+
+  public async showInformationMessage(): Promise<void> {}
+
+  public async showErrorMessage(): Promise<void> {}
+
+  public async withProgress<T>(_: HostProgressOptions, operation: () => Promise<T>): Promise<T> {
+    return operation();
+  }
+}
+
+class RecordingPresentationSurface implements HostPresentationSurface {
+  public readonly lines: string[] = [];
+
+  public appendLine(message: string): void {
+    this.lines.push(message);
+  }
 
   public async showInformationMessage(): Promise<void> {}
 

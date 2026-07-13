@@ -132,6 +132,70 @@ describe('HostMissionWorkflow', () => {
     ]);
   });
 
+  it('labels Builder Workflow results with the assigned Execution Role', async () => {
+    const recorder = new ServiceCallRecorder();
+    const presentation = new RecordingPresentationSurface();
+    const workflow = new HostMissionWorkflow(
+      new RecordingMissionService(recorder),
+      new RecordingPlanningService(recorder),
+      new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder),
+      createRecordingCompletion(recorder),
+      presentation,
+      new StaticWorkspaceTrustSurface(true),
+      createDeterministicIdentity([
+        'builder-mission',
+        'builder-plan',
+        'builder-task',
+        'builder-strategy',
+        'builder-evidence',
+        'builder-review',
+        'builder-finding',
+        'builder-knowledge',
+      ]),
+      {
+        workflowLabel: 'Builder Workflow',
+        completionMessageLabel: 'Builder workflow',
+        includeAssignedRole: true,
+      },
+    );
+
+    const result = await workflow.runDeveloperMissionWorkflow({
+      objective: 'Run a Sprint 35 Builder Workflow.',
+      taskTitle: 'Execute builder task',
+      taskDescription: 'Complete the single Builder Workflow task.',
+    });
+
+    expect(result).toMatchObject({
+      missionId: 'mission-builder-mission',
+      assignedRoleId: 'builder',
+      assignedRoleName: 'Builder',
+      finalStatus: 'Completed',
+      adapterId: MOCK_ADAPTER_ID,
+    });
+    expect(presentation.lines).toContain('Builder Workflow Progress: started mission-builder-mission');
+    expect(presentation.lines).toContain('Nexus Builder Workflow: mission-builder-mission');
+    expect(presentation.lines).toContain('Assigned Role: Builder (builder)');
+    expect(presentation.lines).toContain('Builder Workflow Progress: completed mission-builder-mission');
+    expect(workflow.showMissionWorkflowHistory()).toEqual([
+      {
+        missionId: 'mission-builder-mission',
+        objective: 'Run a Sprint 35 Builder Workflow.',
+        finalStatus: 'Completed',
+        assignedRoleId: 'builder',
+        assignedRoleName: 'Builder',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Completed',
+        reviewOutcome: 'Accepted',
+        knowledgeCaptureStatus: 'Candidate',
+      },
+    ]);
+    expect(presentation.lines).toContain('Nexus Builder Workflow History');
+    expect(presentation.lines).toContain(
+      'Mission History Entry: mission-builder-mission | Completed | Builder (builder) | mock-adapter | Completed | Accepted | Candidate | Run a Sprint 35 Builder Workflow.',
+    );
+  });
+
   it('refuses before any Kernel service call when workspace trust is not granted', async () => {
     const recorder = new ServiceCallRecorder();
     const presentation = new RecordingPresentationSurface();

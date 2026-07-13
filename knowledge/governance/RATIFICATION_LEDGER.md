@@ -2178,3 +2178,80 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-010
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-010
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 35 Scope Ratification — Builder Workflow Foundation. Resolves the `nexus-plan` governance question raised after Sprint 34's completion (`NEXUS-REV-2026-07-14-010`): which of Milestone 6's remaining candidate directions (a fourth production Adapter, Marketplace publication, or Execution Model deepening, per `NEXUS-RAT-2026-07-14-005`'s Governance Note) Sprint 35 should pursue. The Sprint Owner selected a fourth, previously unnamed direction instead: introducing a dedicated Builder Workflow as the first of a family of role-scoped AI Engineering Workflows.
+
+## Originating Review Finding(s)
+
+None. Originated as a direct Sprint Owner scope decision (2026-07-14) during `/nexus-plan`, superseding the three candidate directions `nexus-plan` had proposed for Sprint Owner selection.
+
+## Governance Decision
+
+Sprint 35 SHALL be titled **Builder Workflow Foundation**. The Sprint Owner directs introduction of the first AI Engineering Workflow: a dedicated Builder Workflow entry point that reuses the certified Host, Configuration, Execution Pipeline, and Adapter architecture verbatim, differing from the existing Developer Workflow only in explicit Role framing and Builder-specific result presentation.
+
+`/nexus-plan` verified this decision does not require any Kernel, Adapter, or RFC change before ratifying it: `builder` and `reviewer` are already registered default Execution Roles (Sprint 8, `src/kernel/execution/default-kernel-roles.ts`), and the existing `HostMissionWorkflow` pipeline (Sprint 25) already defaults its `roleId` constructor option to `'builder'` (`src/hosts/vscode/host-mission-workflow.ts:129`) for every existing Developer Workflow command. "Developer Workflow" itself is a Sprint-25-invented Host-layer term not defined by RFC-0009; "Builder Workflow" is the same category of Host-layer naming and introduces no RFC-0009 concept. Sprint 35 therefore reuses an already-exercised Kernel Role and an already-parameterized Host pipeline option; it does not introduce Role-based adapter assignment, automatic routing, or any new Execution Model concept.
+
+## Architectural Responsibilities (binding)
+
+- The Host MAY expose a second, additive Developer/Builder-Workflow-style command that constructs the existing `HostMissionWorkflow` (or an equivalent thin Host wrapper) with an explicit `roleId: 'builder'`, reusing the identical certified Execution Pipeline, Host Adapter Configuration resolution, and explicit-`adapterId` dispatch established through Sprints 25–34.
+- The Kernel SHALL remain unaware of "Builder Workflow" as a concept; it continues to receive only Role identifiers and Adapter identifiers it already understands (`builder`, explicit `adapterId`).
+- Presentation of Builder-specific execution results (e.g., labeling output/history entries with the assigned Role) is a Host presentation-layer concern only.
+- The existing Developer Workflow commands (Mock/Gemini/Codex/Configured-Adapter) SHALL remain available, unmodified, exactly as certified in Sprints 25, 30, 32, and 33.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Add a new, additive Host command (e.g. `nexus.runBuilderMissionWorkflow`) constructing the existing `HostMissionWorkflow`/`HostConfiguredMissionWorkflow` machinery with an explicit `roleId: 'builder'` and Host Adapter Configuration resolution reused verbatim from Sprint 33.
+- Register the new command's contribution point (`package.json` `contributes.commands`/`activationEvents`), following the existing registration pattern.
+- Extend Host presentation/result formatting to label the new command's output as Builder-specific (e.g., surfacing the assigned Role name), without introducing new Kernel data or a new Domain Event.
+- Add unit/integration test coverage for the new command's success and failure paths, reusing existing deterministic test-doubles exclusively.
+
+The Builder SHALL NOT:
+
+- introduce a Reviewer Workflow, Planner Workflow, or any other role-scoped workflow beyond Builder — these remain explicitly deferred;
+- introduce role-based adapter assignment, automatic routing, workflow chaining, or multi-agent coordination;
+- introduce any new RFC-0004 Execution Model concept (Execution State expansion, Execution Session, Review-gated progression);
+- introduce a fourth production Adapter or any Adapter Selection Policy;
+- modify the behavior, dispatch target, or test coverage of any existing Developer Workflow command;
+- modify `src/kernel` behavior (only Host-layer construction/wiring using existing Kernel contracts is authorized) or `src/adapters`.
+
+## Scope Restrictions
+
+- No Reviewer Workflow, Planner Workflow, role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing, Execution Model expansion, or additional production Adapters — each explicitly and entirely deferred by this ratification, not merely event-silent.
+- No modification to `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`, or any existing command's registration/dispatch logic.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass unmodified.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+- This ratification does not authorize any change to the Sprint 8-approved `ExecutionRole`/`RoleAssignment` model; the Builder role is consumed exactly as already registered.
+
+## Related Sprint(s)
+
+- Sprint 8 — Execution Roles (the approved baseline defining the `builder`/`reviewer` roles this Sprint consumes unmodified).
+- Sprint 25/26/27 — Developer Workflow Foundation/Adapter Integration/Completion (the certified pipeline and `roleId` parameterization this Sprint reuses).
+- Sprint 33 — Adapter Configuration Foundation (the Host Adapter Configuration resolution this Sprint reuses unmodified).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-14-010` (Sprint 34 approval, the baseline this Sprint builds on).
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 35 as Builder Workflow Foundation: introduction of the first AI Engineering Workflow by implementing a dedicated Builder Workflow that reuses the certified Host, Configuration, Execution Pipeline, and Adapter architecture. Authorized scope: add a Builder Workflow entry point; reuse Host-owned adapter configuration; reuse explicit adapterId dispatch; reuse the certified Execution Pipeline; present Builder-specific execution results; preserve existing Developer Workflow behavior. Explicitly deferred: Reviewer Workflow; Planner Workflow; role-based adapter assignment; workflow chaining; multi-agent coordination; automatic routing; Execution Model expansion; additional production adapters. Expected outcome: Nexus evolves from a generic Developer Workflow into the first dedicated AI Engineering Workflow while preserving the certified execution architecture. `/nexus-plan` verified before ratifying that `builder` is already a registered default Execution Role (Sprint 8) and that the existing Developer Workflow pipeline already defaults to it, so this Sprint introduces no new Kernel Role, Kernel behavior, or RFC concept — only an additive Host-layer command and presentation change.
+
+## Current Status
+
+Active
+
+---
