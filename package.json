@@ -17,6 +17,18 @@
       {
         "command": "nexus.initializeWorkspace",
         "title": "Nexus: Initialize Workspace"
+      },
+      {
+        "command": "nexus.discoverAdapters",
+        "title": "Nexus: Discover Adapters"
+      },
+      {
+        "command": "nexus.dispatchAdapterRequest",
+        "title": "Nexus: Dispatch Adapter Request"
+      },
+      {
+        "command": "nexus.showHostCapabilities",
+        "title": "Nexus: Show Host Capabilities"
       }
     ]
   },

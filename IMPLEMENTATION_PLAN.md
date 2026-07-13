@@ -924,7 +924,7 @@ Sprint 18's review cycle is complete with no open findings, and with it, Milesto
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved; Sprint 23 Approved with Findings; Sprint 24 Approved)
 
 Objective
 
@@ -1155,8 +1155,123 @@ See `knowledge/implementation/sprints/sprint-0022-adapter-runtime-operational-me
 
 ---
 
+## Sprint 23 — Host Ingress Foundation
+
+Status: ✅ Approved with Findings (NEXUS-REV-2026-07-13-023)
+
+Objective
+
+Implement the Host Ingress Layer defined by RFC-0009: establish the first production entry point from the VS Code extension into the certified Nexus Kernel, exposing deterministic command surfaces that invoke only public Kernel service contracts. Validates the complete Host → Kernel → Adapter execution path using only previously certified, provider-independent runtime capabilities (`MockAdapter`, the Sprint 21 runtime validation Adapter). No live AI provider execution is authorized.
+
+RFC Coverage
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred until the first live provider is integrated and exercised from within the completed Host runtime; not this sprint.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; Host dispatch SHALL use explicit `adapterId` or a fails-closed single-match lookup only.
+
+Sprint 23's scope was approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13), refining the planner's proposal; no new governance ambiguity required a new Ratification.
+
+Authorized Vertical Slice
+
+- Host command registration, Host ingress routing, and Host capability declaration (RFC-0009 § Host Capabilities).
+- Adapter discovery through `AdapterService.enumerateAdapters` and deterministic dispatch through `AdapterService.dispatch` (explicit `adapterId` or fails-closed single-match lookup only — no Adapter Selection Policy).
+- Presentation of Sprint 22's Adapter operational metadata (installation status, health status, runtime diagnostics) via VS Code Output Channel / notifications.
+- Host diagnostics for ingress-layer failures.
+- Exercised only against the existing certified `MockAdapter` and the Sprint 21 runtime-validation test Adapter.
+
+Deferred Concepts
+
+- Any live AI provider (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI, Azure OpenAI), authentication, provider protocol translation, prompt execution, response parsing, streaming.
+- Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing.
+- Mission UI, Review UI, Knowledge UI, workflow visualization.
+- The broader Host Ingress Contract (`submitMission`, `publishHostObservation`, `submitApproval`, `queryWorkflowStatus`) — this sprint implements Adapter-facing ingress only.
+- `COPILOT_INSTRUCTIONS.md`.
+- Any modification to `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`'s existing fields, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, or Role Assignment.
+
+Definition of Done
+
+- Host invokes only public Kernel service contracts; no direct aggregate, repository, registry, runtime, or Adapter access from the Host.
+- Deterministic Adapter discovery and dispatch (explicit `adapterId` or fails-closed single-match lookup only).
+- Sprint 18's `src/kernel` import-graph boundary test passes unmodified.
+- No live provider execution; no new Kernel concept; no architectural ownership change.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Added Host command registration for Adapter discovery, Adapter dispatch, and Host capability declaration.
+- Added Host ingress routing through `AdapterService.enumerateAdapters` and `AdapterService.dispatch` only.
+- Added provider-independent Adapter operational metadata presentation and Host diagnostics.
+- Added deterministic dispatch with explicit `adapterId` or fails-closed single-match lookup only.
+- Added unit and integration coverage for the Host → Kernel → AdapterService → MockAdapter path.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 242 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 24 — Host Runtime Completion
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-025)
+
+Objective
+
+Complete the provider-independent Host runtime defined by RFC-0009, closing three gaps found by repository-state assessment in the already-approved Sprint 23 code: no interactive request input (dispatch always used a hardcoded default request), incomplete response presentation (`producedArtifacts`/`findings` silently discarded), and no Workspace Trust enforcement before dispatch (RFC-0009 § Security Responsibilities). Treated as a single architectural concern so that the first live Adapter (a future sprint) changes exactly one variable: replacing `MockAdapter` with a production Adapter implementation.
+
+RFC Coverage
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification References
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is provider-independent.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; interactive input MAY collect an explicit `adapterId`/`requiredCapability` but introduces no automatic selection logic.
+
+Sprint 24's scope was approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13), following a Sprint-Owner-directed repository-state assessment in place of naming a live provider; no new governance ambiguity required a new Ratification.
+
+Authorized Vertical Slice
+
+- Interactive request input (VS Code `showInputBox`/`showQuickPick` behind an injectable `HostInputSurface`) for `nexus.dispatchAdapterRequest` when invoked without a pre-built argument; the existing Sprint 23 programmatic path is unchanged.
+- Structured response presentation: surface `producedArtifacts`, `findings`, and `executionMetadata` alongside existing `status`/`diagnostics`, plus a deterministic dispatch progress indicator.
+- Workspace Trust enforcement (`vscode.workspace.isTrusted` behind an injectable `HostWorkspaceTrustSurface`) gating dispatch only; discovery/capability commands remain ungated.
+- Exercised only against the existing certified `MockAdapter` and the Sprint 21 runtime-validation test Adapter.
+
+Deferred Concepts
+
+- Any live AI provider, authentication, provider protocol translation.
+- Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing.
+- Persisted VS Code Configuration surface for Adapter settings.
+- Mission UI, Review UI, Knowledge UI, workflow visualization; the broader Host Ingress Contract; `COPILOT_INSTRUCTIONS.md`.
+- Any modification to `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `AdapterRequest`/`AdapterResponse` shape, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, or Role Assignment.
+
+Definition of Done
+
+- Interactive dispatch prompts for and uses real input; cancellation aborts deterministically without dispatching; the existing programmatic path and its tests are unaffected.
+- Dispatch presentation surfaces the full `AdapterResponseSnapshot` (status, diagnostics, producedArtifacts, findings, executionMetadata) plus progress.
+- Dispatch is refused deterministically when the workspace is untrusted, before any Adapter/process interaction.
+- Sprint 18's `src/kernel` import-graph boundary test passes unmodified; zero `src/kernel`/`src/adapters/mock`/`src/adapters/runtime` changes.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Added injectable Host input and workspace-trust surfaces, backed by VS Code `showInputBox` and `workspace.isTrusted`.
+- Added interactive command-palette dispatch input for engineering role, task identifier, context package reference, optional adapter identifier, and optional required capability.
+- Added deterministic cancellation diagnostics with no dispatch attempt.
+- Preserved Sprint 23 programmatic dispatch behavior for pre-built command arguments.
+- Added full `AdapterResponseSnapshot` presentation with progress start/completion markers.
+- Added unit and integration coverage for interactive input, cancellation, trust gating, full response presentation, progress, and the Host → Kernel → AdapterService → MockAdapter path.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 246 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md` for the complete Sprint Implementation Record.
+
+---
+
 ## Future Sprint Planning (Milestone 4)
 
-Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022)
+Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020); Sprint 21 Approved (NEXUS-REV-2026-07-13-021); Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Approved (NEXUS-REV-2026-07-13-025)
 
-Sprint 22's review cycle is complete with no open findings. No Sprint 23 exists in this Implementation Plan. Sequencing beyond Sprint 22 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.
+Sprint 24's review cycle is complete: one Informational, non-blocking Observation was recorded (`NEXUS-REV-2026-07-13-025-F-001`). No Sprint 25 exists in this Implementation Plan. The Host runtime is now certified complete; live provider selection may be revisited. Sequencing beyond Sprint 24 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.

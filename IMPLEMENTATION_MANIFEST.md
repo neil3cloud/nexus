@@ -790,7 +790,7 @@ Notes:
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Current)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved; Sprint 21 Approved; Sprint 22 Approved (NEXUS-REV-2026-07-13-022); Sprint 23 Approved with Findings (NEXUS-REV-2026-07-13-023, remediated NEXUS-REV-2026-07-13-024); Sprint 24 Implemented — Pending Reviewer Validation)
 
 ## Sprint 19 — Mock Adapter Runtime Integration
 
@@ -918,7 +918,7 @@ Notes:
 
 ## Sprint 22 — Adapter Runtime Operational Metadata
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved (NEXUS-REV-2026-07-13-022)
 
 RFC Coverage:
 
@@ -952,6 +952,92 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0022-adapter-runtime-operational-metadata.md` for the complete Sprint Implementation Record.
 - This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon beyond the single authorized additive `AdapterCapability` extension.
 - Repository-wide validation passed: TypeScript compile, ESLint, Vitest 42 files / 236 tests, esbuild.
+
+---
+
+## Sprint 23 — Host Ingress Foundation
+
+Status: Approved with Findings (NEXUS-REV-2026-07-13-023; remediated NEXUS-REV-2026-07-13-024)
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred until the first live provider is integrated and exercised from within the completed Host runtime; not this sprint.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; Host dispatch SHALL use explicit `adapterId` or a fails-closed single-match lookup only.
+
+Implemented Concepts:
+
+- Host command registration, Host ingress routing, Host capability declaration (RFC-0009 § Host Capabilities).
+- Adapter discovery through `AdapterService.enumerateAdapters` and deterministic dispatch through `AdapterService.dispatch`, exercised against the certified `MockAdapter` only.
+- Presentation of Sprint 22's Adapter operational metadata via VS Code Output Channel / notifications.
+- Host diagnostics for ingress-layer failures.
+- VS Code command contributions for Adapter discovery, Adapter dispatch, and Host capability display.
+- Unit and integration coverage for command registration, Host ingress routing, provider-independent presentation, fails-closed dispatch, and the Host → Kernel → AdapterService → MockAdapter path.
+
+Critical Boundary:
+
+- The Host SHALL invoke only public Kernel service contracts — no direct aggregate, repository, `AdapterRegistry`, `LocalProcessRuntime`, or Adapter access. Adapter dispatch SHALL use explicit `adapterId` or a fails-closed single-match lookup only; no Adapter Selection Policy is authorized.
+
+Deferred Concepts:
+
+- Live AI provider integration (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI, Azure OpenAI), authentication, provider protocol translation.
+- Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing.
+- Mission UI, Review UI, Knowledge UI, workflow visualization.
+- The broader Host Ingress Contract (`submitMission`, `publishHostObservation`, `submitApproval`, `queryWorkflowStatus`).
+- `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 242 tests, esbuild.
+
+---
+
+## Sprint 24 — Host Runtime Completion
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-010` — `COPILOT_INSTRUCTIONS.md` remains deferred; this sprint is provider-independent.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; interactive input MAY collect an explicit `adapterId`/`requiredCapability` but introduces no automatic selection logic.
+
+Implemented Concepts:
+
+- Interactive request input (`HostInputSurface`) for `nexus.dispatchAdapterRequest` when invoked without a pre-built argument; the existing Sprint 23 programmatic path is unchanged.
+- Structured response presentation surfacing `producedArtifacts`, `findings`, and `executionMetadata` alongside existing `status`/`diagnostics`, plus a deterministic dispatch progress indicator.
+- Workspace Trust enforcement (`HostWorkspaceTrustSurface`) gating dispatch only; discovery/capability commands remain ungated.
+- Exercised against the certified `MockAdapter` only.
+- Deterministic cancellation diagnostics for interactive input cancellation before dispatch.
+- Unit and integration coverage for interactive input, cancellation, programmatic dispatch preservation, full response presentation, progress, trust gating, and the Host → Kernel → AdapterService → MockAdapter path.
+
+Critical Boundary:
+
+- These three capabilities are a single architectural concern (Host runtime completion), not independent features. They SHALL NOT introduce provider protocol logic, Adapter behavior changes, authentication, provider selection, or live provider execution. No `src/kernel`, `src/adapters/mock/`, or `src/adapters/runtime/` file may change.
+
+Deferred Concepts:
+
+- Live AI provider integration, authentication, provider protocol translation.
+- Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing.
+- Persisted VS Code Configuration surface for Adapter settings.
+- Mission UI, Review UI, Knowledge UI, workflow visualization; the broader Host Ingress Contract; `COPILOT_INSTRUCTIONS.md`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0008, RFC-0004, RFC-0010, or the Kernel Canon.
+- Identified by repository-state assessment during `/nexus-plan`: all three gaps were found in the already-approved Sprint 23 code via direct grep evidence, not speculative future-proofing.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 45 files / 246 tests, esbuild.
 
 ---
 

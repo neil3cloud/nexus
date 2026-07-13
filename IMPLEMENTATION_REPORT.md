@@ -1,5 +1,196 @@
 # Nexus Implementation Report
 
+## Sprint 24 — Host Runtime Completion
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 24 Host Runtime Completion vertical slice. This sprint completes the provider-independent Host runtime by adding interactive dispatch input, full Adapter response presentation with progress, and Workspace Trust enforcement before dispatch.
+
+Implemented scope:
+
+- Added `HostInputSurface` and VS Code-backed input prompts for command-palette dispatch invocation without a pre-built argument.
+- Added deterministic cancellation handling for interactive input; cancellation emits a Host diagnostic and aborts without dispatch.
+- Preserved Sprint 23's programmatic dispatch path for pre-built command arguments without prompting.
+- Extended `HostPresentationSurface` with deterministic progress support and wired it to VS Code `window.withProgress`.
+- Extended `HostIngressLayer.dispatchAdapterRequest` presentation to surface the full `AdapterResponseSnapshot`: `status`, `diagnostics`, `producedArtifacts`, `findings`, and sorted `executionMetadata`.
+- Added `HostWorkspaceTrustSurface` and VS Code-backed `workspace.isTrusted` enforcement, gating dispatch only while leaving discovery and capability commands ungated.
+- Added unit coverage for interactive input, cancellation, preserved programmatic dispatch, full response/progress presentation, and untrusted-workspace refusal before Adapter execution.
+
+Out of scope and not implemented:
+
+- Live AI provider integration, authentication, provider protocol translation, prompt execution, response parsing, or streaming.
+- Adapter Selection Policy, routing, capability scoring, provider preference, fallback, priority ordering, or load balancing.
+- Persisted VS Code configuration for Adapter settings.
+- Mission UI, Review UI, Knowledge UI, workflow visualization, broader Host Ingress Contract operations, or `COPILOT_INSTRUCTIONS.md`.
+- Modifications to `src/kernel`, `src/adapters/mock`, `src/adapters/runtime`, `AdapterRequest`/`AdapterResponse` shape, `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, or Role Assignment.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Host user interaction for Adapter dispatch input.
+- Host structured presentation of Adapter responses.
+- Host progress indication for Adapter dispatch.
+- Host Workspace Trust enforcement before dispatch.
+- Provider-independent preservation of explicit `adapterId` / fails-closed single-match dispatch.
+
+Deferred Concepts:
+
+- Live provider execution and provider protocol behavior.
+- Adapter Selection Policy and routing/fallback behavior.
+- Persisted Host configuration surface.
+- Workflow UI and broader Mission/Review/Knowledge Host ingress.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0024-host-runtime-completion.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Interactive input is Host-owned user interaction under RFC-0009 and does not change Adapter Request/Response contracts.
+- Presenting Adapter response fields verbatim is Host presentation, not provider protocol interpretation.
+- Workspace Trust is a Host security responsibility and gates dispatch because future Adapters may execute local processes.
+- User-supplied `adapterId`/`requiredCapability` remains explicit dispatch input and does not introduce Adapter Selection Policy.
+
+### Known Limitations
+
+- Input is per-invocation only; no persisted VS Code configuration surface is introduced.
+- Workspace Trust enforcement covers Adapter dispatch only in this sprint.
+- The completed Host runtime still exercises only certified provider-independent Adapters; no production provider exists yet.
+
+### Validation Summary
+
+- Targeted Sprint 24 validation passed: 3 files, 10 tests.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 45 files, 246 tests.
+- `git diff --stat -- src/kernel src/adapters/mock src/adapters/runtime` is empty.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 23 — Host Ingress Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 23 Host Ingress Foundation vertical slice. This sprint establishes the first VS Code Host entry point into the certified Kernel Adapter path without introducing live provider execution.
+
+Implemented scope:
+
+- Added Host command registration for Adapter discovery, Adapter dispatch, and Host capability declaration.
+- Added `HostIngressLayer` as the Host-layer coordination component for invoking `AdapterService.enumerateAdapters` and `AdapterService.dispatch` through public Kernel service contracts only.
+- Added deterministic Host capability declaration for RFC-0009 platform services: Command Registration, Notifications, Diagnostics, and User Interface.
+- Added deterministic Adapter discovery presentation including Adapter metadata, Sprint 22 operational metadata, runtime diagnostics, and Host diagnostics.
+- Added deterministic Adapter dispatch using explicit `adapterId` or fails-closed single-match lookup only.
+- Wired the extension activation composition root to register the certified `MockAdapter`, present provider-independent operational metadata, and expose the new commands through `package.json`.
+- Added unit and integration coverage for Host command registration, Host ingress behavior, metadata presentation, fails-closed dispatch, and the Host → Kernel → AdapterService → MockAdapter path.
+
+Out of scope and not implemented:
+
+- Live AI provider integration, authentication, provider protocol translation, prompt execution, response parsing, or streaming.
+- Adapter Selection Policy, routing, capability scoring, provider preference, fallback, priority ordering, or load balancing.
+- Mission UI, Review UI, Knowledge UI, workflow visualization, or the broader Host Ingress Contract operations.
+- `COPILOT_INSTRUCTIONS.md`.
+- Modifications to `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, Role Assignment, Kernel Canon, or RFCs.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Host command registration.
+- Host ingress routing.
+- Host capability declaration.
+- Adapter discovery through public Kernel service contracts.
+- Deterministic Adapter dispatch through public Kernel service contracts.
+- Host diagnostics and provider-independent output/notification presentation.
+- Runtime operational metadata presentation.
+
+Deferred Concepts:
+
+- Live AI provider execution and provider protocol behavior.
+- Adapter Selection Policy and routing/fallback behavior.
+- Workflow UI and broader Mission/Review/Knowledge Host ingress.
+- `COPILOT_INSTRUCTIONS.md`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0021-local-process-runtime-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0022-adapter-runtime-operational-metadata.md`.
+- `knowledge/implementation/sprints/sprint-0023-host-ingress-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `AdapterService` is the public Kernel service contract for Adapter discovery and dispatch.
+- A Host-layer static operational metadata provider may present already-certified Sprint 22 metadata without making the Host an Adapter owner.
+- Fails-closed single-match lookup is permitted only when exactly one registered Adapter matches; multiple matches require explicit `adapterId`.
+- Registering the certified `MockAdapter` at the extension activation composition root is the provider-independent exercise path authorized by Sprint 23.
+
+### Known Limitations
+
+- The VS Code Host exercises only the certified deterministic `MockAdapter`; no production provider Adapter exists yet.
+- Operational metadata presentation is provider-independent and static for the current Mock Adapter composition.
+- The broader Host Ingress Contract operations remain deferred.
+
+### Validation Summary
+
+- Targeted Sprint 23 validation passed: 3 files, 6 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 45 files, 242 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 22 — Adapter Runtime Operational Metadata
 
 ### Implemented Slice

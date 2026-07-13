@@ -2,6 +2,203 @@
 
 ---
 
+## NEXUS-REV-2026-07-13-025 — Sprint 24 — Host Runtime Completion
+
+- **Reviewed Sprint:** Sprint 24 — Host Runtime Completion
+- **Reviewed Vertical Slice:** `HostInputSurface`/`VscodeInputSurface`, `HostWorkspaceTrustSurface`/`VscodeWorkspaceTrustSurface`/`TrustedHostWorkspaceTrustSurface`, `HostProgressOptions` and `withProgress` on `HostPresentationSurface` (`src/hosts/vscode/host.contract.ts`); interactive-input and full-response-presentation changes to `HostCommandRegistration` and `HostIngressLayer` (`src/hosts/vscode/host-command-registration.ts`, `host-ingress.ts`); composition-root wiring in `vscode-host.ts`; associated unit tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Partial, Primary). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 24 closes all three gaps identified by the `/nexus-plan` repository-state assessment, honoring the Sprint Owner Directive that all three be treated as a single architectural concern. `git diff --stat HEAD -- src/kernel/ src/adapters/mock/ src/adapters/runtime/` confirms **zero** changes to the Kernel or any existing Adapter/runtime implementation; all changes are additive within `src/hosts/vscode/`.
+
+**Interactive input:** `HostCommandRegistration.normalizeDispatchInput` now branches on whether a pre-built object argument was supplied. When absent (the Command Palette path), `readInteractiveDispatchInput` prompts via the new `HostInputSurface` for `engineeringRole`, `taskId`, `contextPackageReference`, and optional `adapterId`/`requiredCapability`; any cancelled prompt aborts deterministically with `host-ingress.input-cancelled` and dispatches nothing (`test/hosts/vscode/host-command-registration.test.ts` verifies zero dispatch calls on cancellation). The pre-existing programmatic path (object argument supplied) is provably unchanged — a dedicated test confirms zero prompts are shown and the exact input is forwarded.
+
+**Response presentation:** `HostIngressLayer.dispatchAdapterRequest` now presents `producedArtifacts`, `findings`, and sorted `executionMetadata` in addition to the existing `status`/`diagnostics`, wrapped in deterministic `Dispatch Progress: started/completed` markers and a `withProgress`-backed notification, verified by `host-ingress.test.ts`'s assertions on `presentation.lines` and `presentation.progressTitles`.
+
+**Workspace Trust:** dispatch now checks `HostWorkspaceTrustSurface.isWorkspaceTrusted()` before calling `AdapterService.dispatch`, refusing deterministically with `host-ingress.workspace-not-trusted` when untrusted. A dedicated test (`DispatchRecordingAdapter`) proves `dispatchCount` remains `0` when trust is denied — the gate sits strictly before any Adapter execution, satisfying the Sprint record's ordering requirement. `discoverAdapters`/`declareCapabilities` remain correctly ungated (read-only, no process execution). The real composition root (`vscode-host.ts:187`) wires the genuine `VscodeWorkspaceTrustSurface` (backed by `vscode.workspace.isTrusted`), not the permissive `TrustedHostWorkspaceTrustSurface` default — trust enforcement is live in the actual extension, not merely testable in isolation.
+
+`grep -rniE "copilot|claude|gemini|codex|openai|Provider[A-Z]"` across all new/changed Host code returns zero matches — fully provider-independent, as directed. Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **45 files / 246 tests**, esbuild build. `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` § Sprint 24 are mutually consistent and accurately scoped — the Manifest correctly states "Exercised against the certified `MockAdapter` only" this time, avoiding the Sprint 23 overstatement pattern. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-025-F-001 — Permissive default `HostWorkspaceTrustSurface` fallback
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation ("avoid hidden behavior"); precedent `NEXUS-REV-2026-07-12-008-F-006` (Sprint 5 — default-constructed repository parameter)
+- **Summary:** `HostIngressLayer`'s constructor defaults `workspaceTrust` to `new TrustedHostWorkspaceTrustSurface()` (always returns `true`) when the fourth argument is omitted (`host-ingress.ts:47`). The real composition root correctly supplies the genuine VS Code-backed surface, so this is inert today. But this repository has a direct, on-point precedent (`NEXUS-REV-2026-07-12-008-F-006`) for flagging exactly this pattern: a silent, permissive default that would mask a future wiring mistake (e.g., a new composition path that forgets to pass `workspaceTrust`) by silently behaving as "always trusted" rather than failing fast.
+- **Impact:** Low today; the same class of risk the Sprint 5 precedent identified — a future composition-root change could silently disable Workspace Trust enforcement rather than erroring.
+- **Required Disposition:** No action required this sprint; recommend removing the default parameter (making `workspaceTrust` required) in a future slice, consistent with the Sprint 5 precedent's disposition.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 (1 Informational) |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 45 files / 246 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: live AI provider integration, authentication, provider protocol translation, prompt execution, response parsing, streaming; Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing (per `NEXUS-RAT-2026-07-13-011` — user-supplied `adapterId`/`requiredCapability` via prompt remains the same explicit-dispatch mechanism, not a selection algorithm); persisted VS Code Configuration surface; Mission/Review/Knowledge UI; the broader Host Ingress Contract; `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`); any modification to `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `AdapterRequest`/`AdapterResponse` shape, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, or Role Assignment.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single architectural concern (Host runtime completion) as directed; no unrelated functionality.
+- Gate 2 (Architectural Authority): PASS — RFC-0009 User Interaction and Security Responsibilities sections correctly cited; no reinterpretation.
+- Gate 3 (Terminology): PASS — no "Provider" vocabulary; consistent `Host*` naming for new abstractions.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; all new types are Host-layer abstractions.
+- Gate 5 (Data Model): PASS — `AdapterRequest`/`AdapterResponse` shapes unchanged; Host presents existing fields verbatim.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — zero `src/kernel`/`src/adapters/mock`/`src/adapters/runtime` changes independently re-verified; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new code correctly placed under `src/hosts/vscode/`.
+- Gate 10 (Code Quality): PASS WITH OBSERVATION — deterministic, fails-closed trust gating verified by dispatch-count assertion; one Informational default-parameter observation (F-001).
+- Gate 11 (Testing): PASS — unit tests cover interactive input, cancellation (both required and optional fields), preserved programmatic path, full response/progress presentation, and untrusted-workspace refusal with proof of zero Adapter execution; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 24 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 24 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0024-host-runtime-completion.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 24 status set to **Approved** (`NEXUS-REV-2026-07-13-025`). No Sprint 25 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The single recorded finding is a Category 6 Observation requiring no Builder Task. The Sprint 24 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan` — the Host runtime is now complete, so provider selection for the first live Adapter may be revisited.
+
+---
+
+## NEXUS-REV-2026-07-13-024 — Sprint 23 — Host Ingress Foundation (Remediation)
+
+- **Reviewed Sprint:** Sprint 23 — Host Ingress Foundation
+- **Reviewed Change:** `builder-task.md` TASK-001 remediation of `NEXUS-REV-2026-07-13-023-F-001`.
+- **RFC Coverage:** None — documentation-only remediation. Referenced: RFC-0009 (unchanged).
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 (from `builder-task.md`, sourced from `NEXUS-REV-2026-07-13-023-F-001`) is verified complete. `IMPLEMENTATION_MANIFEST.md` § Sprint 23 § Implemented Concepts now reads "...exercised against the certified `MockAdapter` only," correcting the prior overstatement that the Sprint 21 runtime-validation test Adapter was also exercised. `git diff -- IMPLEMENTATION_MANIFEST.md` confirms this is the only line-level change to the file relative to the pre-remediation state reviewed under `NEXUS-REV-2026-07-13-023`: no other bullet, section, or sprint entry was touched. `git diff --stat -- src/ test/ IMPLEMENTATION_PLAN.md IMPLEMENTATION_REPORT.md` confirms zero source, test, Plan, or Report changes — remediation was documentation-only, exactly as `TASK-001`'s Required Changes and "Out of scope" clause required. Independent re-validation confirms `npm run validate` continues to pass: TypeScript compile, ESLint, Vitest 45 files / 242 tests, esbuild build. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (F-001 of NEXUS-REV-2026-07-13-023) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 45 files / 242 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 23 Deferred Concepts (live AI provider integration, Adapter Selection Policy, workflow UI, broader Host Ingress Contract, `COPILOT_INSTRUCTIONS.md`) remain correctly unimplemented, unchanged from `NEXUS-REV-2026-07-13-023`.
+
+### Architectural Compliance Summary
+
+No architectural surface was touched by this remediation. `NEXUS-REV-2026-07-13-023`'s full Architectural Compliance Summary (Gates 1–13) stands unchanged; Gate 12 (Documentation) now reads PASS without qualification, since the sole Manifest inaccuracy it identified is corrected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0023-host-ingress-foundation.md`) — Status remains **Approved with Findings**; TASK-001 remediation noted below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 23 remains **Approved with Findings**; no status change required (the finding was non-blocking and did not gate progression).
+- `builder-task.md` — TASK-001 verified Completed; document may be superseded upon the next `/nexus-sprint` cycle.
+
+### Builder Task Recommendation
+
+None. TASK-001 is Completed and verified. Sprint 23's review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-023 — Sprint 23 — Host Ingress Foundation
+
+- **Reviewed Sprint:** Sprint 23 — Host Ingress Foundation
+- **Reviewed Vertical Slice:** `HostIngressLayer`, `HostCommandRegistration`, `HostIngressError`, `StaticHostAdapterOperationalMetadataProvider` (`src/hosts/vscode/`); `VscodeHost`/`createVscodeHost` composition changes; `extension.ts` activation wiring registering the certified `MockAdapter`; `package.json` command contributions; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Partial, Primary). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 23 delivers the first production entry point from the VS Code extension into the certified Nexus Kernel, honoring every Sprint Owner Directive written into its Sprint Implementation Record. `git diff --stat HEAD -- src/kernel/ src/adapters/mock/ src/adapters/runtime/` confirms **zero** changes to the Kernel or to any existing Adapter/runtime implementation; all new code is additive, under `src/hosts/vscode/` and `src/extension.ts`. The Host Boundary directive is honored precisely: `HostIngressLayer` calls only `AdapterService.enumerateAdapters()` and `AdapterService.dispatch()` — `grep` confirms no `src/hosts` file imports `AdapterRegistry`, `LocalProcessRuntime`, or a concrete Adapter implementation's internals; the only Adapter implementation referenced is `MockAdapter`, and only at the extension composition root (`extension.ts`), mirroring the Sprint 19 composition-root precedent rather than the Host invoking it directly.
+
+Adapter dispatch (`host-ingress.ts` `resolveAdapterId`) implements exactly the two mechanisms `NEXUS-RAT-2026-07-13-011` authorizes — explicit `adapterId`, or a fails-closed lookup that succeeds only when exactly one registered Adapter (optionally filtered by `requiredCapability`) matches — and rejects deterministically with `host-ingress.no-adapter-found` / `host-ingress.ambiguous-adapter-match` otherwise. No routing, scoring, preference, or fallback logic exists. `grep -rniE "copilot|claude|gemini|codex|openai|Provider[A-Z]"` across the new Host code returns zero matches: Sprint 23 is completely provider-independent, as directed. `AdapterCapability`, `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, and Role Assignment are all confirmed untouched.
+
+Host Capability declaration (`Command Registration`, `Notifications`, `Diagnostics`, `User Interface`) draws only from RFC-0009's own illustrative capability list — no invented capability. Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **45 files / 242 tests**, esbuild build. `IMPLEMENTATION_REPORT.md` § Sprint 23, `IMPLEMENTATION_PLAN.md`, and the Sprint 23 record are mutually consistent and accurately scoped. One Minor documentation-drift finding was identified in `IMPLEMENTATION_MANIFEST.md`'s phrasing (see Findings). **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-023-F-001 — Manifest overstates which Adapter was exercised
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Implementation Manifest ("SHALL exist solely to describe implementation progress")
+- **Summary:** `IMPLEMENTATION_MANIFEST.md` § Sprint 23 § Implemented Concepts states Adapter discovery/dispatch was "exercised only against the certified `MockAdapter` and the Sprint 21 runtime-validation test Adapter." In fact, Sprint 23's implementation (`extension.ts`, `test/hosts/vscode/*.test.ts`, `test/integration/host-ingress-foundation.integration.test.ts`) exercises only `MockAdapter`; the Sprint 21 runtime-validation test Adapter is never referenced anywhere in Sprint 23's source or tests. The Sprint 23 record's "Authorized Vertical Slice" section correctly uses permissive language ("...may be exercised" — an authorization ceiling, not a requirement that both be used), but the Manifest's "Implemented Concepts" section restates this as if it were an accomplished fact.
+- **Evidence:** `grep -rn "LocalProcessTestAdapter\|runtime-validation" src/hosts/ src/extension.ts test/hosts/ test/integration/host-ingress-foundation.integration.test.ts` returns no matches; `IMPLEMENTATION_MANIFEST.md` line 975; contrast with `IMPLEMENTATION_REPORT.md` § Sprint 23, which correctly scopes the exercised path to `MockAdapter` only.
+- **Impact:** Low — the Manifest is the authoritative record of implementation progress; a reader could believe both Adapters were demonstrated in Sprint 23 when only one was.
+- **Required Disposition:** Documentation Task — reword the Manifest's "Implemented Concepts" bullet to state the exercised path was `MockAdapter` only, consistent with `IMPLEMENTATION_REPORT.md`.
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 45 files / 242 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: live AI provider integration (GitHub Copilot/Claude/Gemini/Codex CLI, OpenAI, Azure OpenAI), authentication, provider protocol translation, prompt execution, response parsing, streaming; Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing (per `NEXUS-RAT-2026-07-13-011`); Mission UI, Review UI, Knowledge UI, workflow visualization; the broader Host Ingress Contract (`submitMission`, `publishHostObservation`, `submitApproval`, `queryWorkflowStatus`); `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`); any modification to `AdapterLifecycle`, `AdapterRegistry`, `AdapterMetadata`, `MockAdapter`, `LocalProcessRuntime`, Execution Strategy, or Role Assignment.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Host ingress); no unrelated functionality.
+- Gate 2 (Architectural Authority): PASS — RFC-0009's Host Capability, Command Registration, and User Interaction sections correctly cited; no reinterpretation.
+- Gate 3 (Terminology): PASS — no "Provider" vocabulary; no renamed Kernel/Adapter concept; new types use consistent `Host*` naming.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate instantiated or touched by the Host; all interaction through `AdapterService`.
+- Gate 5 (Data Model): PASS — no Kernel or Adapter data model changed; new Host types are independent, immutable-shaped value objects.
+- Gate 6 (State Machine): PASS — `AdapterLifecycle` and all existing state machines untouched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — RFC-0010's Dependency Rule independently re-verified: zero `src/kernel` changes; Host depends on Kernel public contracts only, the correct direction; `src/hosts` never imports `AdapterRegistry` or `LocalProcessRuntime` directly.
+- Gate 9 (Technology Compliance): PASS — new code correctly placed under `src/hosts/vscode/`, consistent with the existing Host module.
+- Gate 10 (Code Quality): PASS — deterministic; fails-closed dispatch; no dead code; no speculative abstraction; `resolveAdapterService`'s array-scan-by-`instanceof` composition helper is a minor but acceptable pattern consistent with the Kernel's service-composition style.
+- Gate 11 (Testing): PASS — unit tests cover capability declaration, discovery with metadata presentation, explicit-id dispatch, fails-closed single-match dispatch, ambiguous-match rejection, and command registration/disposal; one integration test proves the full Host → Kernel → AdapterService → MockAdapter path; full suite passes.
+- Gate 12 (Documentation): PASS WITH FINDING — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 23 record are mutually consistent and accurately scoped; `IMPLEMENTATION_MANIFEST.md` overstates the exercised Adapter set (F-001, Minor).
+- Gate 13 (Implementation Report): PASS — Sprint 23 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0023-host-ingress-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 23 status set to **Approved with Findings** (`NEXUS-REV-2026-07-13-023`). No Sprint 24 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+Generate one Documentation Task via `nexus-sprint` for F-001 (Minor, non-blocking). The Sprint 23 review cycle finding does not require remediation before progression — Approved findings SHALL NOT block progression to the next planned sprint. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`.
+
+---
+
 ## NEXUS-REV-2026-07-13-022 — Sprint 22 — Adapter Runtime Operational Metadata
 
 - **Reviewed Sprint:** Sprint 22 — Adapter Runtime Operational Metadata
