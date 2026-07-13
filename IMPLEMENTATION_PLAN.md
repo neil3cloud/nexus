@@ -924,7 +924,7 @@ Sprint 18's review cycle is complete with no open findings, and with it, Milesto
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Current)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Approved)
 
 Objective
 
@@ -948,7 +948,7 @@ Expected Outcomes
 
 ## Sprint 19 — Mock Adapter Runtime Integration
 
-Status: Current
+Status: ✅ Approved (NEXUS-REV-2026-07-13-019)
 
 Objective
 
@@ -980,14 +980,70 @@ Definition of Done
 - Adapter registration, capability discovery, deterministic request/response handling, and runtime dispatch through Kernel services all succeed.
 - RFC-0008 Adapter Contract and RFC-0010 Kernel boundaries are preserved.
 - No production provider behavior is introduced.
-- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Implemented `MockAdapter` as a deterministic, stateless, in-process Adapter implementation.
+- Added composition-time Adapter registration through `createKernelServices` while preserving the RFC-0010 Kernel dependency boundary: `src/kernel` depends only on Adapter contracts, not Adapter implementations.
+- Added Adapter discovery through `AdapterService.enumerateAdapters`.
+- Added unit and integration coverage for Mock Adapter metadata, deterministic responses, failure diagnostics, registry-backed discovery, and runtime dispatch.
 
 See `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
 
 ---
 
+## Sprint 20 — Execution Pipeline Integration
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-020)
+
+Objective
+
+Validate the complete execution pipeline by integrating the existing Execution Strategy (Sprint 10), Execution Roles / Role Assignment (Sprint 8), Adapter Registry (Sprint 7), and Mock Adapter (Sprint 19) into a single deterministic execution flow: Task → Execution Strategy readiness evaluation → Role Assignment → Adapter Registry lookup → Mock Adapter dispatch → Adapter Response → Execution Result. No new architectural concepts and no production AI provider integration are authorized.
+
+RFC Coverage
+
+- RFC-0004 — Execution Model (Primary)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries
+
+Authorized Scope
+
+- Integration test(s) exercising the full pipeline through existing public service contracts (`RoleService`, `ExecutionStrategyService`, `AdapterService`) composed via `createKernelServices`.
+- At most one narrow, additive coordination method in `ExecutionStrategyService`, only if pure test-level composition cannot express the pipeline — no new aggregate, business rule, or RFC-0004 state.
+- Deterministic diagnostics reusing existing error types for: no Adapter available, unsupported capability, missing Role Assignment, execution failure.
+
+Critical Guardrail (Ratified: NEXUS-RAT-2026-07-13-011)
+
+Adapter Selection Policy (deferred since Sprint 7/8/10) SHALL NOT be resolved or approximated by a general routing/priority algorithm this sprint — dispatch SHALL use an explicit `adapterId` or a fails-closed single-match lookup only. This guardrail was elevated from planning guidance to binding repository law by `NEXUS-RAT-2026-07-13-011`, written in direct response to Sprint 17's unauthorized business rule under similar ambiguity (`NEXUS-REV-2026-07-13-015-F-001`).
+
+Deferred Concepts
+
+- Production provider integrations, process execution, authentication, network communication, streaming, retry/timeout policies, telemetry/metrics/observability, VS Code Host integration, `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`).
+- Adapter Selection Policy / routing / prioritization; full RFC-0004 Execution State set; Execution Session; Review-gated execution progression.
+
+Definition of Done
+
+- Complete execution pipeline integration succeeds deterministically through public service contracts only.
+- RFC-0010 Kernel boundaries preserved; Sprint 18's `src/kernel` import-graph boundary test continues to pass unmodified.
+- `ExecutionStrategy` remains advisory/evaluative; `MissionExecutionService` remains the sole Task execution entry point, ungated by this sprint's work.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+Implementation Progress
+
+- Added `test/integration/execution-pipeline-integration.integration.test.ts`.
+- Certified the full Task → Execution Strategy readiness evaluation → Role Assignment → Adapter Registry lookup → explicit Mock Adapter dispatch → Adapter Response flow through existing public service contracts.
+- Resolved assigned Roles through the existing `RoleService` without modifying the Sprint 8 Role Assignment model.
+- Exercised Adapter dispatch through explicit `adapterId` only; no Adapter selection, routing, prioritization, capability scoring, provider preference, or fallback policy was introduced.
+- Validated deterministic successful execution, missing Role Assignment, missing Adapter, unsupported capability, and deterministic Mock Adapter execution failure diagnostics.
+- No new coordination method was added because pure public-service composition of `RoleService`, `ExecutionStrategyService`, and `AdapterService` already expressed the authorized pipeline.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 38 files / 220 tests, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration.md` for the complete Sprint Implementation Record.
+
+---
+
 ## Future Sprint Planning (Milestone 4)
 
-Status: Sprint 19 Current
+Status: Sprint 19 Approved (NEXUS-REV-2026-07-13-019); Sprint 20 Approved (NEXUS-REV-2026-07-13-020)
 
-Sprint 19 is the active Builder implementation contract. Sequencing beyond Sprint 19 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan` after Sprint 19 is reviewed.
+Sprint 20's review cycle is complete with no open findings. No Sprint 21 exists in this Implementation Plan. Sequencing beyond Sprint 20 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan`.

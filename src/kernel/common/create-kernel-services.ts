@@ -1,4 +1,5 @@
 import type { EventBusContract } from './event-bus-contract';
+import type { Adapter } from '../adapter/adapter.contract';
 import { AdapterService } from '../adapter/adapter.service';
 import { InMemoryAdapterRegistry } from '../adapter/adapter-registry';
 import { ProtocolVersion } from '../adapter/protocol-version';
@@ -21,8 +22,15 @@ import { ReviewService } from '../review/review.service';
 import { ProjectionService } from '../shared-reality/projection.service';
 import type { IKernelService } from './kernel-service';
 
-export function createKernelServices(eventBus: EventBusContract): readonly IKernelService[] {
-  const adapterRegistry = new InMemoryAdapterRegistry();
+export interface KernelServiceCompositionOptions {
+  readonly adapters?: readonly Adapter[];
+}
+
+export function createKernelServices(
+  eventBus: EventBusContract,
+  options: KernelServiceCompositionOptions = {},
+): readonly IKernelService[] {
+  const adapterRegistry = new InMemoryAdapterRegistry(options.adapters ?? []);
   const missionRepository = new InMemoryMissionRepository();
   const evidenceRepository = new InMemoryEvidenceRepository();
   const reviewRepository = new InMemoryReviewRepository();

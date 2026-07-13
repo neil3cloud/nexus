@@ -790,11 +790,11 @@ Notes:
 
 # Milestone 4 — External Integration
 
-Status: In Progress (Sprint 19 Current)
+Status: In Progress (Sprint 19 Approved; Sprint 20 Implemented — Pending Reviewer Validation)
 
 ## Sprint 19 — Mock Adapter Runtime Integration
 
-Status: Current
+Status: Approved (NEXUS-REV-2026-07-13-019)
 
 RFC Coverage:
 
@@ -806,7 +806,7 @@ Ratification:
 - `NEXUS-RAT-2026-07-13-010` — establishes `COPILOT_INSTRUCTIONS.md` as a planned, optional, future Provider Integration artifact, deferred until the repository's first production AI provider integration sprint.
 - Sprint 19's scope, including the Milestone 3 → Milestone 4 transition, was otherwise approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13); no other governance ambiguity required a Sprint Owner Ratification.
 
-Planned Concepts:
+Implemented Concepts:
 
 - `MockAdapter` implementing the existing (Sprint 7) Adapter Contract; stateless; deterministic.
 - Registration with the existing `AdapterRegistry`; discovery through the existing `AdapterService`.
@@ -827,6 +827,47 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
 - The Sprint Owner's scope draft named `COPILOT_INSTRUCTIONS.md` as required Builder reading; per `NEXUS-RAT-2026-07-13-010`, that file is a planned, optional, future Provider Integration artifact deferred until the first production AI provider integration sprint, and is correctly omitted from Sprint 19's required reading.
 - This sprint introduces the Kernel's first concrete Adapter implementation. It does not introduce any new bounded context — Adapter has been an approved bounded context since Sprint 7.
+- `createKernelServices` accepts Adapter contract implementations at composition time so Kernel source remains independent of concrete Adapter implementations.
+
+---
+
+## Sprint 20 — Execution Pipeline Integration
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Primary)
+- Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-13-011` — ratifies as binding that Sprint 20 authorizes Adapter dispatch only, never Adapter selection; no routing, prioritization, capability-scoring, or provider-preference policy is authorized.
+- Sprint 20's remaining scope was otherwise approved directly by Sprint Owner decision during `/nexus-plan` (2026-07-13); no other governance ambiguity required a Sprint Owner Ratification.
+
+Implemented Concepts:
+
+- Integration test coverage exercising the full pipeline (Task → Execution Strategy readiness evaluation → Role Assignment → Adapter Registry lookup → explicit Mock Adapter dispatch → Adapter Response → Execution Result) through existing public service contracts composed via `createKernelServices`.
+- Role resolution through the existing, unmodified `RoleService` and Sprint 8 Role Assignment model.
+- Adapter dispatch through explicit `adapterId` only, preserving `NEXUS-RAT-2026-07-13-011`; no Adapter selection or routing policy was introduced.
+- Deterministic diagnostics reusing existing error types for: no Adapter available, unsupported capability, missing Role Assignment, and deterministic Mock Adapter execution failure.
+- No additive `ExecutionStrategyService` coordination method was required because public-service composition already expresses the authorized pipeline.
+
+Critical Guardrail (Ratified: NEXUS-RAT-2026-07-13-011):
+
+- Adapter Selection Policy (deferred since Sprint 7/8/10) SHALL NOT be resolved or approximated by a general routing/priority algorithm this sprint — dispatch SHALL use an explicit `adapterId` or a fails-closed single-match lookup only. This guardrail was elevated from planning guidance to binding repository law specifically because Sprint 17 previously introduced an unauthorized business rule under similar ambiguity (`NEXUS-REV-2026-07-13-015-F-001`).
+
+Deferred Concepts:
+
+- Production provider integrations, process execution, authentication, network communication, streaming, retry/timeout policies, telemetry/metrics/observability, VS Code Host integration, `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`).
+- Adapter Selection Policy / routing / prioritization; full RFC-0004 Execution State set; Execution Session; Review-gated execution progression.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context; it composes Sprint 8, Sprint 10, and Sprint 19's already-approved capabilities.
+- `ExecutionStrategy` remains advisory/evaluative; `MissionExecutionService` remains the sole Task execution entry point, ungated by this sprint's work — mirroring the Sprint 10 Note this sprint does not reopen.
+- Repository-wide validation passed: TypeScript compile, ESLint, Vitest 38 files / 220 tests, esbuild.
 
 ---
 

@@ -2,6 +2,138 @@
 
 ---
 
+## NEXUS-REV-2026-07-13-020 — Sprint 20 — Execution Pipeline Integration
+
+- **Reviewed Sprint:** Sprint 20 — Execution Pipeline Integration
+- **Reviewed Vertical Slice:** `test/integration/execution-pipeline-integration.integration.test.ts` — end-to-end Task → Execution Strategy readiness → Role Assignment → Adapter Registry lookup → Mock Adapter dispatch → Execution Result pipeline through public Kernel service contracts.
+- **RFC Coverage:** RFC-0004 — Execution Model (Primary). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 20 is a pure integration-test composition of already-approved public service contracts — the lowest-risk of the paths its own Sprint Implementation Record authorized. `git diff --stat HEAD -- src/kernel/` confirms `src/kernel/adapter/adapter-registry.ts`, `adapter.service.ts`, and `src/kernel/common/create-kernel-services.ts` are byte-identical to the state already reviewed and approved in `NEXUS-REV-2026-07-13-019` (Sprint 19) — no further change was made to them this sprint, and critically, `src/kernel/execution/` (`execution-strategy.service.ts`, `role.service.ts`, and all other execution-domain files) shows zero diff against `HEAD`. The Builder determined that pure test-level composition of `RoleService`, `ExecutionStrategyService.evaluateAssignmentReadiness`, and `AdapterService.dispatch` was sufficient to express the authorized pipeline, and therefore added no new `ExecutionStrategyService` coordination method at all — `IMPLEMENTATION_REPORT.md` explicitly discloses this decision under "Out of scope and not implemented."
+
+Compliance with the Sprint 20 Critical Guardrail (`NEXUS-RAT-2026-07-13-011`: Adapter dispatch only, never Adapter selection) is verified directly in the test: every `AdapterService.dispatch` call in `execution-pipeline-integration.integration.test.ts` supplies an explicit `adapterId` (`MOCK_ADAPTER_ID` or `LIMITED_ADAPTER_ID`) — no routing, capability-scoring, or "pick a matching adapter" logic exists anywhere in the diff. The three tests exercise: (1) the full nominal pipeline (Task → `evaluateAssignmentReadiness` → `RoleService.retrieveRole` → `AdapterService.enumerateAdapters`/`dispatch` → successful `AdapterResponse`, with `readiness.roleId`/`taskId`/`missionId`/`missionPlanId` correctly threading into the dispatched request's `requestMetadata` — a pre-existing Sprint 7 `AdapterRequest` field, confirmed unmodified); (2) deterministic diagnostics for a missing Role Assignment (`RoleAssignmentNotFoundError`, pre-existing) and a missing Adapter (`AdapterNotFoundError`, pre-existing); (3) deterministic diagnostics for an unsupported-capability dispatch (`UnsupportedAdapterCapabilityError`, pre-existing) against a test-only `LimitedCapabilityAdapter`, and the Mock Adapter's own pre-existing deterministic `Failed` response path. `ExecutionStrategy` remains advisory/evaluative — `MissionExecutionService` is exercised as the sole Task execution entry point in the workflow setup, unchanged and ungated by this sprint, consistent with the Sprint 10 baseline this sprint does not reopen.
+
+Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **38 files / 220 tests**, esbuild build. `IMPLEMENTATION_REPORT.md` § Sprint 20 and `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` § Sprint 20 accurately describe implemented and deferred scope, correctly cite `NEXUS-RAT-2026-07-13-011`, and are mutually consistent with the Sprint 20 record. All declared Deferred Concepts (production providers, Adapter Selection Policy, full RFC-0004 Execution State set, Execution Session, Host integration) remain correctly unimplemented and unapproximated. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 38 files / 220 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: production provider integrations (GitHub Copilot/Claude/Gemini/Codex CLI), process execution, authentication, network communication, streaming, retry/timeout policies, telemetry/metrics/observability, VS Code Host integration, `COPILOT_INSTRUCTIONS.md` (per `NEXUS-RAT-2026-07-13-010`); Adapter Selection Policy / routing / prioritization / capability scoring / provider preference / fallback adapters (per `NEXUS-RAT-2026-07-13-011` — zero occurrence of any such logic anywhere in the diff); full RFC-0004 Execution State set, Execution Session, Review-gated execution progression; any new aggregate, repository, business rule, lifecycle transition, or Domain Event.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice; zero `src/kernel` files changed beyond the already-approved Sprint 19 state.
+- Gate 2 (Architectural Authority): PASS — RFC-0004, RFC-0008, RFC-0010, and `NEXUS-RAT-2026-07-13-011` all followed; no reinterpretation.
+- Gate 3 (Terminology): PASS — no renamed concepts; all exercised names are pre-existing.
+- Gate 4 (Aggregate Ownership): PASS — the test interacts exclusively through public service contracts; no foreign aggregate internals accessed.
+- Gate 5 (Data Model): PASS — no data model change; `AdapterRequest`'s `requestMetadata` field is confirmed pre-existing (Sprint 7), not new.
+- Gate 6 (State Machine): PASS — no state or transition change.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `NEXUS-RAT-2026-07-13-011`'s explicit-dispatch-only guardrail independently re-verified: every dispatch call in the new test supplies an explicit `adapterId`.
+- Gate 9 (Technology Compliance): PASS — new test correctly placed under `test/integration/`, consistent with Sprint 16–19 convention.
+- Gate 10 (Code Quality): PASS — deterministic; no dead code; no speculative abstraction; the Builder correctly declined to add unnecessary production coordination code once test-level composition proved sufficient.
+- Gate 11 (Testing): PASS — 3 new tests covering the nominal pipeline and two distinct deterministic-failure classes; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 20 record are mutually consistent and correctly cite `NEXUS-RAT-2026-07-13-011`.
+- Gate 13 (Implementation Report): PASS — Sprint 20 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0020-execution-pipeline-integration.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 20 status set to **Approved** (`NEXUS-REV-2026-07-13-020`). No Sprint 21 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 20 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-019 — Sprint 19 — Mock Adapter Runtime Integration
+
+- **Reviewed Sprint:** Sprint 19 — Mock Adapter Runtime Integration
+- **Reviewed Vertical Slice:** `MockAdapter` (`src/adapters/mock/mock-adapter.ts`), composition-time Adapter registration through `createKernelServices`, `AdapterService.enumerateAdapters`, and associated unit/integration tests.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Primary). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 19 implements the Kernel's first concrete Adapter — `MockAdapter` — within the scope authorized by its Sprint Implementation Record and `NEXUS-RAT-2026-07-13-010`. `MockAdapter` lives at `src/adapters/mock/mock-adapter.ts`, outside `src/kernel`, and implements only the pre-existing RFC-0008 `Adapter` interface (`metadata`, `execute(request)`); its declared capabilities (`CodeGeneration`, `CodeModification`, `DocumentationGeneration`, `StaticAnalysis`, `TestGeneration`) are exactly Sprint 7's existing `AdapterCapability` vocabulary — no new capability, role enumeration, or metadata field was introduced.
+
+`git diff --stat HEAD -- src/kernel/` confirms exactly two `src/kernel` files changed, both narrow and additive: (1) `adapter-registry.ts` — `InMemoryAdapterRegistry` gains an optional constructor parameter (`adapters: readonly Adapter[] = []`) that seeds the registry via a new private `registerSync` helper refactored out of the existing `register()` method's unchanged duplicate-detection logic; the zero-arg `new InMemoryAdapterRegistry()` construction path used by every prior sprint is untouched. (2) `adapter.service.ts` — a new `enumerateAdapters()` method delegating to the existing `registry.enumerate()`; `dispatch()` is unmodified. `create-kernel-services.ts` gains an optional second `options: { adapters？}` parameter (default `{}`), so `createKernelServices(eventBus)` — the exact call every Sprint 16/17/18 test uses — is unaffected. This is the correct composition-root pattern for RFC-0010: the Kernel still imports only its own `Adapter` *contract* type (`import type { Adapter } from '../adapter/adapter.contract'`), never a concrete Adapter implementation; the caller (test/future Host) supplies concrete Adapter instances at composition time. Sprint 18's own boundary-certification test (`src/kernel` import-graph scan) still passes unmodified, independently re-confirming the Dependency Rule holds.
+
+These two files were the minimum necessary to close the gap Sprint 7 explicitly left open (an always-empty registry with no way to seed a concrete Adapter at Kernel composition time) — which is precisely Sprint 19's stated purpose. Neither change redefines Sprint 7's approved registration/dispatch behavior; both are backward-compatible, additive extensions consistent with the Approved Vertical Slice Immutability rule's allowance for extending approved capabilities within the same governing RFC (RFC-0008) and authorized Sprint Implementation Record.
+
+The Mock Adapter itself is stateless and deterministic: identical requests produce identical responses (verified by a dedicated determinism test comparing two independently-constructed `AdapterRequest`s), unsupported Engineering Roles and a deterministic-failure execution constraint both produce correctly attributed `Failed` `AdapterResponse`s via the existing, unmodified `AdapterResponse` contract, and a new integration test proves the full path — `createKernelServices({ adapters: [new MockAdapter()] })` → `AdapterService.enumerateAdapters()` → `AdapterService.dispatch(...)` — succeeds through public contracts only.
+
+Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **37 files / 217 tests**, esbuild build. `IMPLEMENTATION_REPORT.md` § Sprint 19 and `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` § Sprint 19 accurately describe implemented and deferred scope, correctly cite `NEXUS-RAT-2026-07-13-010` for the `COPILOT_INSTRUCTIONS.md` question, and are mutually consistent with the Sprint 19 record. All declared Deferred Concepts (production provider integrations, process execution, authentication, retry/timeout/streaming, telemetry, event consumers, Context Package expansion, VS Code Host integration, adapter lifecycle management beyond the existing value object) remain correctly unimplemented and unapproximated. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 37 files / 217 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: GitHub Copilot/Claude/Gemini/Codex/OpenAI or any production provider integration; process execution, CLI invocation, network communication, authentication; streaming responses, retry/timeout policies, resource management, telemetry/metrics/observability; adapter lifecycle management beyond the existing `AdapterLifecycle` value object, dynamic capability negotiation, multi-adapter routing, prioritization, load balancing, fallback adapters; event subscribers/consumers; Context Package production/consumption beyond the existing reference-only `contextPackageReference` field; VS Code Host integration; any new aggregate, repository, business rule, lifecycle transition, or Domain Event outside the Adapter domain.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice; the two `src/kernel` changes are the minimum necessary to fulfill Sprint 19's explicit registration/dispatch objective, not unrelated functionality.
+- Gate 2 (Architectural Authority): PASS — RFC-0008 and RFC-0010 followed; no RFC reinterpretation.
+- Gate 3 (Terminology): PASS — no renamed concepts; `MockAdapter` uses only pre-existing RFC-0008 capability/role vocabulary.
+- Gate 4 (Aggregate Ownership): PASS — `MockAdapter` is stateless per RFC-0008 and owns no Mission/Evidence/Shared Reality/Domain Event/Assessment/Memory state; all interaction is through the public `Adapter`/`AdapterService`/`AdapterRegistry` contracts.
+- Gate 5 (Data Model): PASS — no data model change; `AdapterMetadata`, `AdapterRequest`, `AdapterResponse` are byte-for-byte unmodified (confirmed by `git diff --stat`).
+- Gate 6 (State Machine): PASS — no state or transition change; `AdapterLifecycle` untouched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — RFC-0010's Dependency Rule independently re-verified via Sprint 18's unmodified `src/kernel` import-graph boundary test, which still passes.
+- Gate 9 (Technology Compliance): PASS — new Adapter implementation correctly placed under `src/adapters/`, outside `src/kernel`, consistent with RFC-0010.
+- Gate 10 (Code Quality): PASS — deterministic, no dead code, no speculative abstraction; the registry refactor (`registerSync`) eliminates duplication rather than introducing it.
+- Gate 11 (Testing): PASS — 4 new test files / 9 tests covering metadata immutability, determinism, failure diagnostics, and end-to-end Kernel runtime dispatch; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 19 record are mutually consistent and correctly cite `NEXUS-RAT-2026-07-13-010`.
+- Gate 13 (Implementation Report): PASS — Sprint 19 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0019-mock-adapter-runtime-integration.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 19 status set to **Approved** (`NEXUS-REV-2026-07-13-019`). No Sprint 20 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 19 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`.
+
+---
+
 ## NEXUS-REV-2026-07-13-018 — Sprint 18 — RFC-0010 Kernel Boundary Certification
 
 - **Reviewed Sprint:** Sprint 18 — RFC-0010 Kernel Boundary Certification

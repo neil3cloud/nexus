@@ -1228,3 +1228,71 @@ None. No Review finding originated this ratification.
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-13-011
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-011
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Confirms and elevates to permanent repository law the Sprint 20 (Execution Pipeline Integration) planning-time Critical Guardrail: Sprint 20 authorizes Adapter **dispatch** only, never Adapter **selection**. Adapter Selection Policy remains explicitly out of scope and undefined.
+
+## Originating Review Finding(s)
+
+None. Originated as a planning-time architectural guardrail during `/nexus-plan`'s Sprint 20 (Execution Pipeline Integration) planning, itself written in direct response to the precedent of `NEXUS-REV-2026-07-13-015-F-001` (the Sprint 17 unauthorized `ReviewService` precondition, corrected by `NEXUS-RAT-2026-07-13-009`).
+
+## Governance Decision
+
+The Sprint Owner ratifies the planning-time Critical Guardrail as binding, not merely advisory. Sprint 20 authorizes only Adapter **dispatch**, not Adapter **selection**. The Kernel SHALL NOT introduce routing, prioritization, capability scoring, provider preference, or any other Adapter-selection policy.
+
+Execution Strategy SHALL invoke an Adapter only through one of the following deterministic mechanisms:
+
+1. an explicitly supplied `adapterId`; or
+2. a fails-closed lookup that succeeds only when exactly one registered Adapter satisfies the request.
+
+If zero or multiple matching Adapters exist, execution SHALL fail with a deterministic diagnostic. No automatic selection algorithm is authorized.
+
+Sprint 20 validates the execution pipeline; it does not define runtime Adapter selection policy. Adapter Selection remains a future architectural capability — future production provider integration may introduce Adapter-selection semantics only under a dedicated vertical slice and appropriate RFC authority (RFC-0004 and/or RFC-0008 amendment, or a new RFC), never by implementation assumption inside Sprint 20 or any sprint that has not been explicitly authorized to resolve it.
+
+## Authorized Builder Scope
+
+The Builder MAY introduce a minimal coordination method in `ExecutionStrategyService` if required solely to connect already-approved services (`RoleService`, `ExecutionStrategyService`, `AdapterService`) into the Sprint 20 pipeline. That coordination:
+
+- SHALL contain no business rules;
+- SHALL introduce no routing, prioritization, capability-scoring, or provider-preference policy;
+- SHALL preserve RFC-0010 dependency boundaries (no `src/kernel` file may import a concrete Adapter implementation);
+- SHALL remain deterministic;
+- SHALL exist only to exercise the already-certified execution pipeline (Sprint 8, Sprint 10, Sprint 19), not to extend it with new business behavior.
+
+## Scope Restrictions
+
+- No automatic Adapter-selection algorithm, routing table, priority ranking, or capability-scoring mechanism is authorized under this ratification or under Sprint 20.
+- Adapter dispatch SHALL use only an explicit `adapterId` or a fails-closed single-match lookup; any other match count SHALL fail deterministically rather than fall back to a default or "best" choice.
+- This ratification does not modify RFC-0004, RFC-0008, RFC-0010, or the Kernel Canon.
+- This ratification does not reopen or redesign Sprint 7, Sprint 8, Sprint 10, or Sprint 19's approved baselines.
+- Future Adapter Selection Policy work requires its own dedicated vertical slice and RFC authority; it SHALL NOT be introduced incrementally through subsequent sprints without that explicit authorization.
+
+## Related Sprint(s)
+
+- Sprint 20 — Execution Pipeline Integration (Milestone 4 — External Integration) — the originating and governed sprint.
+- Sprint 7 — Adapter Framework; Sprint 8 — Execution Roles; Sprint 10 — Execution Strategy (each of which previously and consistently deferred Adapter/Provider selection).
+
+## Related Review(s)
+
+- NEXUS-REV-2026-07-13-015 — Sprint 17 — Cross-Domain Failure-Path Integration Validation; the precedent (unauthorized business rule under similar ambiguity) this guardrail is designed to prevent from recurring.
+
+## Full Ratification Text
+
+> The Sprint Owner accepts the planning clarification. Sprint 20 authorizes only Adapter dispatch, not Adapter selection. The Kernel SHALL NOT introduce routing, prioritization, capability scoring, provider preference, or any other Adapter-selection policy. Execution Strategy SHALL invoke an Adapter only through one of the following deterministic mechanisms: (1) an explicitly supplied `adapterId`; or (2) a fails-closed lookup that succeeds only when exactly one registered Adapter satisfies the request. If zero or multiple matching Adapters exist, execution SHALL fail with a deterministic diagnostic. No automatic selection algorithm is authorized. Sprint 20 validates the execution pipeline; it does not define runtime Adapter selection policy. Adapter Selection remains a future architectural capability. Future production provider integration may introduce Adapter-selection semantics under a dedicated vertical slice and appropriate RFC authority. The Builder MAY introduce a minimal coordination method if required solely to connect already-approved services. That coordination SHALL contain no business rules; SHALL introduce no routing policy; SHALL preserve RFC-0010 dependency boundaries; SHALL remain deterministic. This coordination exists only to exercise the already-certified execution pipeline.
+
+## Current Status
+
+Active

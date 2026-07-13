@@ -1,5 +1,186 @@
 # Nexus Implementation Report
 
+## Sprint 20 — Execution Pipeline Integration
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 20 Execution Pipeline Integration vertical slice. This sprint certifies the complete execution pipeline using existing public Kernel service contracts and the deterministic Mock Adapter from Sprint 19.
+
+Implemented scope:
+
+- Added `test/integration/execution-pipeline-integration.integration.test.ts`.
+- Certified Task readiness through `ExecutionStrategyService.evaluateAssignmentReadiness`.
+- Certified Role Assignment integration and Role resolution through the existing `RoleService`.
+- Certified Adapter Registry lookup and explicit Mock Adapter dispatch through `AdapterService`.
+- Certified successful `AdapterResponse` handling, deterministic Mock Adapter execution failure handling, attribution metadata, and diagnostics.
+- Reused existing diagnostics for missing Role Assignment, missing Adapter, and unsupported Adapter capability.
+
+Out of scope and not implemented:
+
+- Production provider integrations, process execution, authentication, network communication, streaming, retry/timeout policies, telemetry, metrics, observability, VS Code Host integration, and `COPILOT_INSTRUCTIONS.md`.
+- Adapter selection, routing, prioritization, capability scoring, provider preference, fallback adapters, or any automatic selection policy.
+- New Execution State, Execution Session, RoleAssignment business rules, MissionPlan/Task lifecycle changes, aggregates, repositories, Domain Events, or production Adapter implementations.
+- A new `ExecutionStrategyService` coordination method; public-service composition was sufficient to express the authorized pipeline.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model.
+
+Referenced RFCs:
+
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Complete execution pipeline integration through public service contracts.
+- Execution Strategy readiness evaluation as advisory/evaluative coordination.
+- Role Assignment resolution without modifying the Sprint 8 model.
+- Explicit Adapter dispatch through the existing Adapter Registry and Mock Adapter.
+- Successful and failed execution-result handling using the existing `AdapterResponse` contract.
+- Deterministic pipeline diagnostics.
+
+Deferred Concepts:
+
+- Production provider integrations and runtime infrastructure.
+- Adapter Selection Policy / routing / prioritization.
+- Full RFC-0004 Execution State set, Execution Session, and Review-gated execution progression.
+- Host integration, Builder Runtime, and live provider execution.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0010-execution-strategy.md`.
+- `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0020-execution-pipeline-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Public-service composition is the correct Sprint 20 implementation because existing `RoleService`, `ExecutionStrategyService`, and `AdapterService` contracts already express the authorized pipeline.
+- Explicit `adapterId` dispatch satisfies the Sprint 20 Critical Guardrail without introducing Adapter selection policy.
+- A test-only limited-capability Adapter used to exercise an existing unsupported-capability diagnostic does not introduce a production Adapter or new runtime capability.
+
+### Known Limitations
+
+- The certified pipeline executes only against deterministic in-process Adapter behavior.
+- Adapter Registry and dispatch remain in-memory and process-local.
+- Context Package handling remains reference-only.
+- Execution Strategy remains advisory/evaluative and does not gate `MissionExecutionService`.
+
+### Validation Summary
+
+- Targeted Sprint 20 validation passed: 1 file, 3 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 38 files, 220 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 19 — Mock Adapter Runtime Integration
+
+### Implemented Slice
+
+Implemented the Milestone 4 Sprint 19 Mock Adapter Runtime Integration vertical slice. This sprint introduces the first concrete Adapter implementation while preserving the RFC-0008 Adapter Contract and RFC-0010 Kernel boundaries.
+
+Implemented scope:
+
+- Added `src/adapters/mock/mock-adapter.ts`.
+- Implemented `MockAdapter` as a deterministic, stateless, in-process Adapter implementation.
+- Declared static Adapter capabilities using the existing Adapter Framework vocabulary.
+- Added deterministic request handling and immutable `AdapterResponse` generation with diagnostics and attribution metadata.
+- Added composition-time Adapter registration through `createKernelServices` using Adapter contracts, without introducing a Kernel dependency on concrete Adapter implementations.
+- Added Adapter discovery through `AdapterService.enumerateAdapters`.
+- Added unit and integration tests covering Mock Adapter metadata, deterministic responses, failure diagnostics, registry discovery, and runtime dispatch through Kernel service composition.
+
+Out of scope and not implemented:
+
+- GitHub Copilot, Claude, Gemini, Codex, OpenAI, or any production provider integration.
+- Process execution, CLI invocation, network communication, authentication, streaming, retry policies, timeout policies, resource management, telemetry, metrics, or observability.
+- Adapter lifecycle management beyond the existing value object, dynamic capability negotiation, multi-adapter routing, adapter prioritization, load balancing, or fallback adapters.
+- Event subscribers/consumers, Shared Reality expansion, Review Engine enhancements, Knowledge enhancements, Context Package production/consumption beyond the existing reference-only field, VS Code Host integration, new aggregates, repositories, business rules, lifecycle transitions, or Domain Events outside the Adapter domain.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0008 — Kernel Adapter Contract.
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Mock Adapter contract implementation.
+- Adapter registration with the existing `AdapterRegistry`.
+- Adapter discovery through `AdapterService`.
+- Static Adapter capability declaration.
+- Deterministic Adapter request handling.
+- Immutable Adapter response generation.
+- Deterministic Adapter diagnostics.
+- Runtime dispatch through `AdapterService.dispatch` and Kernel service composition.
+
+Deferred Concepts:
+
+- Production provider integrations.
+- Runtime features including process execution, authentication, retry logic, streaming responses, timeout policies, resource management, telemetry, metrics, and observability.
+- Adapter evolution features including dynamic capability negotiation, multi-adapter routing, prioritization, load balancing, fallback adapters, and lifecycle management beyond the existing value object.
+- Host integration, event subscribers/consumers, and Context Package production/consumption beyond the existing reference-only field.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0007-adapter-framework.md`.
+- `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- A concrete Adapter implementation belongs outside `src/kernel`; Kernel composition may receive Adapter contract implementations without importing concrete Adapter implementation modules.
+- The Mock Adapter validates runtime integration through deterministic simulation only and does not establish production provider behavior.
+- Context Package handling remains the existing Sprint 7 reference-only field.
+
+### Known Limitations
+
+- The Mock Adapter is an in-process simulation and does not execute external tools or contact AI providers.
+- Adapter registration remains in-memory and process-local.
+- Failure diagnostics are deterministic Adapter responses for Mock Adapter-owned request handling failures; existing registry and service diagnostics remain responsible for missing adapters, duplicate registration, unsupported capabilities, and incompatible protocol versions.
+
+### Validation Summary
+
+- Targeted Sprint 19 validation passed: 4 files, 9 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 37 files, 217 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 18 — RFC-0010 Kernel Boundary Certification
 
 ### Implemented Slice

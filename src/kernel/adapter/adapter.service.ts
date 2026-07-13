@@ -1,6 +1,7 @@
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import { AdapterCapability } from './adapter-capability';
 import { AdapterId } from './adapter-id';
+import type { AdapterMetadata } from './adapter-metadata';
 import type { AdapterRequest } from './adapter-request';
 import type { AdapterResponse } from './adapter-response';
 import type { AdapterRegistry } from './adapter-registry';
@@ -23,6 +24,10 @@ export class AdapterService extends ServiceLifecycle {
     private readonly protocolVersion: ProtocolVersion,
   ) {
     super('AdapterService');
+  }
+
+  public async enumerateAdapters(): Promise<readonly AdapterMetadata[]> {
+    return this.registry.enumerate();
   }
 
   public async dispatch(input: AdapterDispatchRequest): Promise<AdapterResponse> {

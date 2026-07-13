@@ -14,16 +14,16 @@ export interface AdapterRegistry {
 export class InMemoryAdapterRegistry implements AdapterRegistry {
   private readonly adaptersById = new Map<string, Adapter>();
   private operationQueue: Promise<unknown> = Promise.resolve();
+ 
+  public constructor(adapters: readonly Adapter[] = []) {
+    for (const adapter of adapters) {
+      this.registerSync(adapter);
+    }
+  }
 
   public async register(adapter: Adapter): Promise<void> {
     await this.runExclusive(() => {
-      const adapterId = adapter.metadata.id.toString();
-
-      if (this.adaptersById.has(adapterId)) {
-        throw new DuplicateAdapterRegistrationError(adapterId);
-      }
-
-      this.adaptersById.set(adapterId, adapter);
+      this.registerSync(adapter);
     });
   }
 
@@ -63,6 +63,16 @@ export class InMemoryAdapterRegistry implements AdapterRegistry {
     );
 
     return run;
+  }
+
+  private registerSync(adapter: Adapter): void {
+    const adapterId = adapter.metadata.id.toString();
+
+    if (this.adaptersById.has(adapterId)) {
+      throw new DuplicateAdapterRegistrationError(adapterId);
+    }
+
+    this.adaptersById.set(adapterId, adapter);
   }
 }
 
