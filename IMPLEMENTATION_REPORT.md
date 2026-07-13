@@ -1,5 +1,202 @@
 # Nexus Implementation Report
 
+## Sprint 18 — RFC-0010 Kernel Boundary Certification
+
+### Implemented Slice
+
+Implemented the Milestone 3 Sprint 18 RFC-0010 Kernel Boundary Certification validation-only slice. This sprint certifies architectural boundary conformance for the composed Kernel baseline implemented through Sprints 1–17; it introduces no new normative concepts, production capabilities, runtime behavior, lifecycle semantics, repositories, aggregate responsibilities, or Domain Events.
+
+Implemented scope:
+
+- Added `test/integration/kernel-boundary-certification.integration.test.ts`.
+- Certified `createKernelServices` composes every currently implemented Kernel bounded-context service and initializes them through the Kernel lifecycle.
+- Certified successful composed-Kernel behavior through public service contracts across Mission, Mission Planning, Task execution, Evidence, Shared Reality projection, Review, Knowledge, Role assignment, Execution Strategy readiness, Domain Event publication, repository coordination, and dependency injection.
+- Certified deterministic rejection of invalid cross-boundary interactions: cross-Mission Execution Strategy evaluation, missing Adapter dispatch targets, and mismatched Domain Event Mission attribution.
+- Certified rejected boundary interactions publish no unintended Domain Events and preserve observable repository state.
+- Certified Kernel source dependency boundaries with a static integration assertion that `src/kernel` source files do not import outside `src/kernel`.
+
+Out of scope and not implemented:
+
+- Event subscribers, event handlers, event orchestration, and event consumers.
+- Adapter runtime implementations, Mock Adapter, AI provider integrations, and VS Code host integration.
+- Workflow automation, Context Package, Policy Engine, Durable Event Streams, persistent infrastructure, new aggregates, new repositories, new business rules, new lifecycle transitions, new Domain Events, RFC amendments, or Kernel Canon amendments.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0010 — Kernel Boundaries.
+
+Referenced RFCs:
+
+- RFC-0001 — Mission Model.
+- RFC-0002 — Evidence Model.
+- RFC-0003 — Shared Reality Projection Model.
+- RFC-0004 — Execution Model.
+- RFC-0005 — Domain Event Model.
+- RFC-0006 — Engineering Assessment Model.
+- RFC-0007 — Knowledge Model.
+- RFC-0008 — Kernel Adapter Contract (contract validation only).
+- RFC-0009 — Host Contract (boundary validation only).
+
+Implemented Concepts:
+
+- RFC-0010 boundary certification for currently implemented Kernel bounded contexts.
+- Successful composed-Kernel public-contract validation.
+- Deterministic boundary-violation rejection with no unintended EventBus or repository side effects.
+- Kernel source dependency boundary validation.
+
+Deferred Concepts:
+
+- Event subscribers, event handlers, event orchestration, and event consumers.
+- Adapter implementations, Mock Adapter, AI provider integrations, VS Code host integration, workflow automation, Context Package, Policy Engine, Durable Event Streams, and persistent infrastructure.
+- New aggregates, repositories, business rules, lifecycle transitions, Domain Events, RFC amendments, and Kernel Canon amendments.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/specifications/rfc-0003-shared-reality-projection-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0007-knowledge-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md`.
+- `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md`.
+- `knowledge/implementation/sprints/sprint-0018-rfc-0010-kernel-boundary-certification.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Sprint 18 certifies existing approved behavior only; it does not expand RFC semantics or introduce new enforcement mechanisms.
+- Repository contracts and the Kernel-owned EventBus are approved public contracts for validating composed behavior and rejected side effects.
+- Static dependency validation is limited to currently implemented Kernel TypeScript source files.
+
+### Known Limitations
+
+- Repository and EventBus persistence remain in-memory and process-local.
+- Certification is limited to currently implemented bounded contexts and does not certify deferred runtime capabilities.
+- No event consumer is introduced; tests observe the EventBus and public repository-backed service results directly.
+- Event publication remains save-then-publish and non-atomic, consistent with prior approved slices.
+
+### Validation Summary
+
+- Targeted Sprint 18 boundary certification tests passed: 1 file, 4 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 35 files, 212 tests.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
+## Sprint 17 — Cross-Domain Failure-Path Integration Validation
+
+### Implemented Slice
+
+Implemented the Milestone 3 Sprint 17 failure-path integration-validation slice. This sprint validates previously implemented Kernel bounded contexts using the actual composed services from `createKernelServices`; it introduces no new normative concepts.
+
+Implemented scope:
+
+- Added `test/integration/kernel-failure-paths.integration.test.ts`.
+- Exercised all eight authorized rejection scenarios through `Kernel` + `createKernelServices` and public service contracts.
+- Validated deterministic rejection for Task dependency violation, premature Mission completion, duplicate MissionPlan registration, duplicate Review registration, invalid Knowledge capture, missing Evidence, invalid Review completion, and terminal Mission planning.
+- Validated side-effect behavior: rejected operations do not publish unintended Domain Events and preserve observable aggregate/repository state.
+- Validated subsequent valid operations continue to succeed after each rejection path.
+- Remediated `NEXUS-REV-2026-07-13-015-F-001` per `NEXUS-RAT-2026-07-13-009`: restored the Sprint 9 `ReviewService` orchestration-only baseline and replaced Scenario 4 with duplicate Review registration, an already-approved Review repository rejection path.
+
+Out of scope and not implemented:
+
+- New bounded contexts, provider integrations, adapter runtimes, VS Code host integration, Context Package, Policy Engine, durable Event Streams, event subscriptions, persistent storage, production infrastructure, observability/telemetry, retry policies, or distributed execution.
+- Exhaustive combinatorial failure-path coverage beyond the eight authorized scenarios.
+
+### RFC Coverage
+
+Primary RFC:
+
+- None. Sprint 17 introduces no new normative concepts.
+
+Referenced RFCs:
+
+- RFC-0001 — Mission Model.
+- RFC-0002 — Evidence Model.
+- RFC-0004 — Execution Model.
+- RFC-0005 — Domain Event Model.
+- RFC-0006 — Engineering Assessment Model.
+- RFC-0007 — Knowledge Model.
+
+Implemented Concepts:
+
+- Cross-domain failure-path integration validation.
+- Side-effect verification for rejected operations.
+- Public-contract validation through composed Kernel services.
+- Duplicate Review registration rejection through approved Sprint 9 Review repository behavior.
+
+Deferred Concepts:
+
+- AI Providers, Adapter runtime implementations, VS Code host integration.
+- Context Package and Policy Engine.
+- Durable Event Streams and event subscriptions.
+- Persistent storage, production infrastructure, observability/telemetry, retry policies, and distributed execution.
+- Exhaustive combinatorial failure-path coverage beyond the authorized eight scenarios.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0007-knowledge-model.md`.
+- `knowledge/reference/kernel-state-machine.md`.
+- `knowledge/reference/kernel-event-catalog.md`.
+- `knowledge/reference/interface-contracts/review-service-contract.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` entry NEXUS-RAT-2026-07-13-009.
+- `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-integration-validation.md`.
+- `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Sprint 17 validates rejection behavior and approved contracts only; it does not expand RFC semantics.
+- `ReviewService` remains orchestration-only and has no Mission repository dependency or Mission lifecycle precondition.
+- Scenario 4's replacement exercises only approved Sprint 9 Review-domain behavior.
+
+### Known Limitations
+
+- Repository and EventBus persistence remain in-memory and process-local.
+- Failure-path coverage is limited to the eight authorized scenarios.
+- No event consumer is introduced; tests observe the EventBus directly.
+- Event publication remains save-then-publish and non-atomic, consistent with prior approved slices.
+
+### Validation Summary
+
+- Targeted Sprint 17 integration and related regression tests passed: 3 files, 14 tests.
+- Full repository validation passed: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 34 files, 208 tests.
+
+### Deviations
+
+Initial Sprint 17 delivery introduced an unauthorized Mission-Completed precondition on `ReviewService.startReview` (`NEXUS-REV-2026-07-13-015-F-001`), exceeding the sprint's validation-only scope and creating a Critical Architectural Violation. That deviation was corrected within Sprint 17 per `NEXUS-RAT-2026-07-13-009` by restoring the Sprint 9 `ReviewService` baseline and replacing Scenario 4 with duplicate Review registration; the correction was verified by `NEXUS-REV-2026-07-13-016`.
+
+---
+
 ## Sprint 16 — End-to-End Mission Workflow Integration Validation
 
 ### Implemented Slice

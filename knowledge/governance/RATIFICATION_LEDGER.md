@@ -1102,3 +1102,129 @@ Documentation only, confined to governance-status bookkeeping:
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-13-009
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-009
+
+**Identifier note:** The Sprint Owner's decision text originally cited `NEXUS-RAT-2026-07-13-006`, which is already assigned to the Sprint 15 Task Lifecycle three-way naming reconciliation ratification (`knowledge/governance/RATIFICATION_LEDGER.md:868`). Per the Ledger Rules ("If an identifier collision is discovered, the existing assignment remains unchanged and the new ratification receives the next available sequence number unless the Sprint Owner explicitly directs another unused identifier"), this ratification is recorded as `NEXUS-RAT-2026-07-13-009`, the next unused identifier at the time of recording. The substance of the decision is unchanged; only the identifier differs from the Sprint Owner's original text.
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Resolution of the unauthorized `ReviewService.startReview` Mission-Completed precondition introduced during Sprint 17 implementation (Scenario 4). Selects Option A from Builder Task TASK-001 (`builder-task.md`, sourced from `NEXUS-REV-2026-07-13-015-F-001`): revert the precondition and replace Scenario 4 with an already-approved Review-domain rejection path.
+
+## Originating Review Finding(s)
+
+- NEXUS-REV-2026-07-13-015-F-001 — Sprint 17 — Cross-Domain Failure-Path Integration Validation; Critical, Category 2 — Architectural Violation.
+
+## Governance Decision
+
+The Sprint Owner determines that the implementation introduced in `ReviewService.startReview()` during Sprint 17 exceeds Sprint 17's authorized scope. Sprint 17 was approved exclusively as a Cross-Domain Failure-Path Integration Validation sprint, limited to validating already-approved composed-Kernel behavior; it was not authorized to introduce new architectural behavior, business rules, lifecycle semantics, cross-domain dependencies, or aggregate preconditions.
+
+**Option A is RATIFIED.** The newly introduced Mission-lifecycle validation (`ReviewService` querying `IMissionRepository` and requiring Mission status `'Completed'` before `startReview` succeeds) SHALL NOT be retained. The Builder is authorized to restore the approved Sprint 9 Review Foundation architectural baseline and replace Scenario 4 ("Invalid Review Registration") with an integration scenario that exercises only previously approved Review-domain behavior.
+
+The introduced execution path (`ReviewService → MissionRepository → Mission Status == Completed → Review.create()`) constitutes a new architectural behavior not authorized by RFC-0006, Sprint 9, Sprint 16, or any prior Ratification. Whether such a constraint is architecturally desirable is an open question the Sprint Owner explicitly declines to resolve through Sprint 17; it remains available for future consideration only through the established governance workflow (Repository Analysis → `/nexus-plan` → Governance Assessment → Sprint Owner Ratification → RFC Assessment → a dedicated vertical slice), never by implementation assumption.
+
+This ratification does not modify RFC-0006, RFC-0001, or the Kernel Canon. It does not reopen or redesign Sprint 9's approved Review Foundation baseline — it restores it. It does not modify any other Sprint 17 scenario (1, 2, 3, 5, 6, 7, 8), which remain approved and require no rework.
+
+## Authorized Builder Scope
+
+- **TASK-001 (restore baseline):** Remove `assertMissionIsReviewable()`, the `missionRepository` constructor dependency, and the Mission-lifecycle validation from `src/kernel/review/review.service.ts`; remove the corresponding `missionRepository` wiring from `src/kernel/common/create-kernel-services.ts`'s `ReviewService` construction. `ReviewService` SHALL return to orchestration-only responsibilities matching the Sprint 9/11 baseline.
+- **TASK-002 (replace scenario):** Replace the "Invalid Review Registration" scenario in `test/integration/kernel-failure-paths.integration.test.ts` with a rejection path exercising only already-approved Review-domain behavior owned by the `Review` aggregate or `IReviewRepository` since Sprint 9 (e.g., duplicate Review registration for the same `ReviewId`, or `ReviewCriteria`/evidence-reference validation already enforced by `Review.create`). No new validation logic may be introduced.
+- **TASK-003 (documentation correction):** Correct `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md`'s Builder Results, Test Summary, and any architectural notes to remove the unsupported claim that Sprint 17 "preserved" an existing Mission-completed assessment boundary, and to accurately describe the replaced Scenario 4 as exercising only approved Sprint 9 Review behavior.
+- Reference this ratification from the revised Sprint 17 Sprint Implementation Record and from `builder-task.md`.
+
+## Scope Restrictions
+
+- The Builder SHALL NOT modify RFC-0006, RFC-0001, or the Kernel Canon.
+- The Builder SHALL NOT introduce any Mission lifecycle requirement, Review lifecycle requirement, new repository dependency, or new aggregate business rule under this ratification.
+- The Builder SHALL NOT reinterpret or modify Scenarios 1, 2, 3, 5, 6, 7, or 8.
+- Sprint 9's approved Review Foundation baseline is restored, not reopened or redesigned, by this ratification.
+- This ratification does not authorize implementing a Mission-Completed precondition for Review under any framing; that question remains open and unresolved, reserved for a future dedicated vertical slice if ever pursued.
+- No source code or test change beyond TASK-001/TASK-002/TASK-003's explicit scope is authorized.
+
+## Related Sprint(s)
+
+- Sprint 9 — Review Foundation (approved baseline being restored, not reopened).
+- Sprint 17 — Cross-Domain Failure-Path Integration Validation (remediation of the reviewed slice).
+
+## Related Review(s)
+
+- NEXUS-REV-2026-07-13-015 — Sprint 17 — Cross-Domain Failure-Path Integration Validation; originating finding F-001.
+
+## Full Ratification Text
+
+> The Sprint Owner selects Option A for `builder-task.md` TASK-001 (sourced from NEXUS-REV-2026-07-13-015-F-001): the unauthorized Mission-completed precondition introduced into `ReviewService.startReview()` during Sprint 17 SHALL be removed, and the approved Sprint 9 Review Foundation baseline SHALL be restored. Scenario 4 SHALL be replaced with an integration scenario exercising only already-approved Review-domain behavior. No RFC, Kernel Canon, or other aggregate's business rules may be modified. Whether Review should require a particular Mission lifecycle state remains an open architectural question, explicitly not resolved by this ratification, reserved for a future dedicated vertical slice pursued only through the established governance workflow. Sprint 17's remaining scenarios (1, 2, 3, 5, 6, 7, 8) are unaffected and require no rework.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-13-010
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-13-010
+
+## Date
+
+2026-07-13
+
+## Subject
+
+Status of `COPILOT_INSTRUCTIONS.md`: establishes it as a planned, optional, future Provider Integration artifact rather than a required Builder-governance document, resolving the gap flagged by `/nexus-plan` during Sprint 19 (Mock Adapter Runtime Integration) planning.
+
+## Originating Review Finding(s)
+
+None. Originated as a planning-time documentation-gap note (not a Review finding) during `/nexus-plan`'s Sprint 19 Repository Readiness assessment: the Sprint Owner's Sprint 19 scope draft cited `COPILOT_INSTRUCTIONS.md` as required Builder reading, but the file does not exist anywhere in the repository.
+
+## Governance Decision
+
+The Sprint Owner determines that `COPILOT_INSTRUCTIONS.md`'s absence is a repository workflow evolution, not a documentation defect. The Builder's authoritative implementation contract is derived from the repository's governance artifacts (`IMPLEMENTATION_CONSTITUTION.md`, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, the Current Sprint Implementation Record, and the approved Specification-First workflow), not a dedicated instruction file.
+
+`COPILOT_INSTRUCTIONS.md` is established as a **planned Provider Integration artifact**: its eventual purpose is to provide runtime execution guidance to a production Builder implementation once one exists. It SHALL NOT become a governance artifact and SHALL NOT replace `IMPLEMENTATION_CONSTITUTION.md`, Sprint Implementation Records, `IMPLEMENTATION_PLAN.md`, or `IMPLEMENTATION_MANIFEST.md` — it SHALL only complement those artifacts during live provider execution.
+
+Its creation is intentionally deferred until the repository's first production AI provider integration sprint (expected: a future Milestone 4 slice such as GitHub Copilot CLI Integration, following Sprint 19's Mock Adapter). Creating a provider-specific instruction document before a concrete provider exists would introduce unnecessary duplication and speculative guidance.
+
+Until that sprint, the file's absence SHALL NOT be treated as a documentation defect, a governance deviation, a repository readiness blocker, or a Sprint implementation task.
+
+## Authorized Builder Scope
+
+None. This ratification authorizes no source code, architecture, or RFC changes, and no Sprint 19 scope expansion. It authorizes only the planning-documentation updates described under Related Sprint(s) below (Sprint 19 record and `IMPLEMENTATION_MANIFEST.md` Sprint 19 notes, to cite this ratification in place of the prior "documentation gap" framing).
+
+## Scope Restrictions
+
+- No Builder work is authorized by this ratification.
+- `COPILOT_INSTRUCTIONS.md` SHALL NOT be created as part of Sprint 19 or any sprint prior to the first production AI provider integration sprint.
+- When eventually created, `COPILOT_INSTRUCTIONS.md` SHALL focus exclusively on runtime Builder execution guidance and SHALL NOT duplicate repository governance already defined elsewhere.
+- Future `/nexus-plan` cycles SHALL treat `COPILOT_INSTRUCTIONS.md` as an optional future artifact prior to that sprint and SHALL NOT report its absence as a repository readiness issue.
+- If `COPILOT_INSTRUCTIONS.md` exists at some future planning cycle, it MAY be included as supplemental Builder guidance, but SHALL NOT be treated as mandatory unless `IMPLEMENTATION_CONSTITUTION.md` is amended to require it.
+
+## Related Sprint(s)
+
+- Sprint 19 — Mock Adapter Runtime Integration (Milestone 4 — External Integration) — the originating planning cycle.
+- A future, not-yet-planned Milestone 4 slice introducing the first production AI provider Adapter — the expected activation point for `COPILOT_INSTRUCTIONS.md`'s creation.
+
+## Related Review(s)
+
+None. No Review finding originated this ratification.
+
+## Full Ratification Text
+
+> The Sprint Owner agrees that a dedicated `COPILOT_INSTRUCTIONS.md` SHALL eventually exist. However, its creation is intentionally deferred until the repository enters the first production AI provider integration phase. At the current stage, the Builder is governed by the Specification-First implementation model and the existing governance artifacts. Creating a provider-specific instruction document before a concrete provider exists would introduce unnecessary duplication and speculative guidance. `COPILOT_INSTRUCTIONS.md` is hereby established as a planned Provider Integration artifact, whose purpose SHALL be to provide runtime execution guidance to a production Builder implementation. It SHALL NOT become a governance artifact and SHALL NOT replace `IMPLEMENTATION_CONSTITUTION.md`, Sprint Implementation Records, `IMPLEMENTATION_PLAN.md`, or `IMPLEMENTATION_MANIFEST.md`; instead it SHALL complement those artifacts during live provider execution. The creation of `COPILOT_INSTRUCTIONS.md` is deferred until the first production provider integration sprint (expected Milestone 4 — External Integration, expected implementation slice: GitHub Copilot CLI Integration or the first production Builder Adapter). Prior to that sprint, `nexus-plan` SHALL recognize the file as an optional future artifact and SHALL NOT report its absence as a repository readiness issue. No Builder work is authorized by this decision; no architectural changes are authorized; this decision records future repository intent only. The repository remains READY for Sprint 19 implementation.
+
+**Superseding note:** An earlier, broader draft of this decision (proposing to treat `COPILOT_INSTRUCTIONS.md` as permanently optional and never require it) was presented to the Sprint Owner and interrupted before being ratified. It was never recorded in this Ledger and carries no governance effect. This entry (NEXUS-RAT-2026-07-13-010) records only the Sprint Owner's final, narrower decision: `COPILOT_INSTRUCTIONS.md` SHALL eventually exist, with its creation deferred to the first production provider integration sprint.
+
+## Current Status
+
+Active

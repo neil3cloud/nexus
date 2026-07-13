@@ -2,6 +2,272 @@
 
 ---
 
+## NEXUS-REV-2026-07-13-018 — Sprint 18 — RFC-0010 Kernel Boundary Certification
+
+- **Reviewed Sprint:** Sprint 18 — RFC-0010 Kernel Boundary Certification
+- **Reviewed Vertical Slice:** `test/integration/kernel-boundary-certification.integration.test.ts` — composed-Kernel boundary certification against RFC-0010 through `createKernelServices` and public service contracts only.
+- **RFC Coverage:** RFC-0010 — Kernel Boundaries (Primary). Referenced: RFC-0001, RFC-0002, RFC-0003, RFC-0004, RFC-0005, RFC-0006, RFC-0007, RFC-0008, RFC-0009.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 18 is a validation-only vertical slice per its Sprint Implementation Record (`sprint-0018-rfc-0010-kernel-boundary-certification.md`) and introduces no new normative concepts. `git status`/`git diff --stat HEAD -- src/` confirm the Builder added exactly one new file, `test/integration/kernel-boundary-certification.integration.test.ts`, and modified no `src/` file — every service method, error type, and Kernel API exercised by the new test (`createKernelServices`, `Kernel.health()`, `MissionService.markMissionReady`/`.planMission`/`.reviewMission`, `MissionExecutionService`, `EvidenceService.registerEvidence`, `ProjectionService.project`, `ReviewService.startReview`/`.finalizeReviewOutcome`, `KnowledgeService.captureKnowledge`, `RoleService.assignRole`, `ExecutionStrategyService.createExecutionStrategy`/`.evaluateAssignmentReadiness`, `AdapterService.dispatch`, `ExecutionStrategyReferenceError`, `AdapterNotFoundError`, `KernelError`, `EventBusContract.publish`/`.replay`) is confirmed pre-existing, approved behavior — none of it was added or modified by this sprint.
+
+The four tests certify exactly what Sprint 18 authorized: (1) `createKernelServices` composes all eleven currently implemented Kernel services and `Kernel.health()` reports all as `ready`; (2) a full Mission → Plan → Task → Execute → Evidence → Projection → Review → Knowledge workflow succeeds through public service contracts only, with `Role` assignment and `ExecutionStrategy` readiness evaluation also exercised, and the resulting Domain Event sequence is deterministic and causally correct; (3) three independent boundary-violation scenarios — cross-Mission `ExecutionStrategy` evaluation, dispatch to an unregistered Adapter, and an `EventBus.publish` call with mismatched Mission attribution — are each rejected with the correct, pre-existing error type, with before/after `eventTypes`/`enumerateExecutionStrategies` equality proving no unintended Domain Event publication or repository mutation on any rejected path; (4) a static import-graph scan of every `.ts` file under `src/kernel` confirms zero relative imports resolve outside `src/kernel`, certifying RFC-0010's Dependency Rule for the Kernel layer as currently implemented.
+
+Independent re-validation confirms the Builder's reported results exactly: `npm run validate` (TypeScript compile, ESLint, Vitest, esbuild) passes cleanly, with Vitest at 35 files / 212 tests. `IMPLEMENTATION_REPORT.md` § Sprint 18 and `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` § Sprint 18 accurately describe the implemented and deferred scope and are mutually consistent with the Sprint 18 Sprint Implementation Record and with `REVIEW_HISTORY.md`'s Sprint 16/17 precedent structure. All Sprint 18 Deferred Concepts (event subscribers/consumers, Adapter runtime implementations, AI provider integrations, VS Code host integration, Context Package, Policy Engine, Durable Event Streams, persistent infrastructure, any new aggregate/repository/business rule/lifecycle transition/Domain Event) remain correctly unimplemented and unapproximated; no new bounded context, aggregate, event, or state was introduced. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 35 files / 212 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: event subscribers/handlers/orchestration/consumers; Adapter runtime implementations and Mock Adapter; AI provider integrations (GitHub Copilot, Claude, Gemini, Codex); VS Code host integration; workflow automation; Context Package; Policy Engine; Durable Event Streams; persistent infrastructure; any new aggregate, repository, business rule, lifecycle transition, or Domain Event. `git diff --stat HEAD -- src/` confirms zero `src/` files changed, which independently guarantees no deferred concept could have been implemented or approximated this sprint.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single validation-only vertical slice; no unrelated functionality; no `src/` file touched.
+- Gate 2 (Architectural Authority): PASS — RFC-0010 and referenced RFCs consulted only for certification criteria; no reinterpretation.
+- Gate 3 (Terminology): PASS — no renamed concepts; all exercised event/state/service names are pre-existing and unchanged.
+- Gate 4 (Aggregate Ownership): PASS — the new test interacts exclusively through public service contracts and the Kernel's public `EventBus` accessor; no foreign aggregate internals accessed.
+- Gate 5 (Data Model): PASS — no data model change; zero `src/` diff.
+- Gate 6 (State Machine): PASS — no state or transition change.
+- Gate 7 (Event Compliance): PASS — no new event introduced; before/after event-type equality checks prove no unintended publication on any rejected boundary interaction.
+- Gate 8 (Capability Boundaries): PASS — no capability bypass; the static import-graph test independently certifies `src/kernel`'s dependency boundary per RFC-0010.
+- Gate 9 (Technology Compliance): PASS — consistent with existing stack and `test/integration/` folder convention established by Sprint 16/17.
+- Gate 10 (Code Quality): PASS — deterministic, no dead code, no speculative abstraction.
+- Gate 11 (Testing): PASS — four integration tests cover composition, nominal cross-domain workflow, three independent boundary-violation scenarios, and static dependency-boundary certification; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 18 record are mutually consistent.
+- Gate 13 (Implementation Report): PASS — Sprint 18 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0018-rfc-0010-kernel-boundary-certification.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 18 status set to **Approved** (`NEXUS-REV-2026-07-13-018`). No Sprint 19 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 3).
+
+### Builder Task Recommendation
+
+None. The Sprint 18 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 3 slice via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-017 — Sprint 17 — Cross-Domain Failure-Path Integration Validation (Documentation Remediation Review)
+
+- **Reviewed Sprint:** Sprint 17 — Cross-Domain Failure-Path Integration Validation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-13-016-F-001` per `builder-task.md` TASK-001
+- **RFC Coverage:** None; documentation layer only.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 is correctly executed within its authorized documentation-only scope. Both flagged "No architectural deviations." statements are replaced with an accurate disclosure: `IMPLEMENTATION_REPORT.md` § Sprint 17 § Deviations and the Sprint 17 Sprint Implementation Record's Builder Results now both read "Initial Sprint 17 delivery introduced an unauthorized Mission-Completed precondition on `ReviewService.startReview` (`NEXUS-REV-2026-07-13-015-F-001`), exceeding the sprint's validation-only scope and creating a Critical Architectural Violation. That deviation was corrected within Sprint 17 per `NEXUS-RAT-2026-07-13-009`... verified by `NEXUS-REV-2026-07-13-016`" — matching the style and content required by TASK-001 and consistent with the `IMPLEMENTATION_REPORT.md` § Sprint 11 § Deviations precedent it was modeled on. `git status` and `git diff --stat HEAD -- src/ test/` confirm no source or test file changed; the change is confined exactly to the two authorized documentation targets, as required by TASK-001's Implementation Targets and Scope Restrictions. Independent re-validation confirms no regression: `tsc --noEmit` compiles cleanly, ESLint is clean, `esbuild` builds successfully, and Vitest passes 34 files / 208 tests, matching the figures already certified by `NEXUS-REV-2026-07-13-016`. **No architectural violations detected.**
+
+### Remediation Verification
+
+- **TASK-001 (NEXUS-REV-2026-07-13-016-F-001, Minor) — RESOLVED.** Both Deviations sections now accurately disclose the corrected Critical Architectural Violation; no other content in either document changed; no source or test file changed.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (NEXUS-REV-2026-07-13-016-F-001) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `esbuild` build, Vitest 34 files / 208 tests |
+
+### Deferred Concept Validation
+
+Unchanged; this remediation was documentation-only. All Sprint 17 deferred concepts remain correctly unimplemented and unapproximated. The open architectural question from the original review (whether Review should ever require a particular Mission lifecycle state) remains correctly unresolved and unaddressed by this or any other change, reserved for a future `/nexus-plan` cycle per `NEXUS-RAT-2026-07-13-009`.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The approved Sprint 17 baseline (`NEXUS-REV-2026-07-13-016`, PASS WITH FINDINGS) is otherwise unchanged. This remediation closes the sprint's sole remaining open finding exactly within its authorized scope: no Kernel Canon, RFC, source code, test, or other documentation change was introduced beyond the two Deviations sections.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0017-cross-domain-failure-path-integration-validation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition updated below to reflect full closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 17 status set to **Approved** (`NEXUS-REV-2026-07-13-017`). No Sprint 18 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow).
+- `builder-task.md` — TASK-001 marked Completed; all tasks resolved; document CLOSED.
+
+### Builder Task Recommendation
+
+None. Sprint 17's review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 3 slice via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-016 — Sprint 17 — Cross-Domain Failure-Path Integration Validation (Remediation Review)
+
+- **Reviewed Sprint:** Sprint 17 — Cross-Domain Failure-Path Integration Validation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-13-015-F-001` per `builder-task.md` TASK-001a/TASK-001b/TASK-001c, authorized by `NEXUS-RAT-2026-07-13-009`
+- **RFC Coverage:** None primary. Referenced: RFC-0001, RFC-0002, RFC-0004, RFC-0005, RFC-0006, RFC-0007.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+All three remediation tasks are correctly executed within `NEXUS-RAT-2026-07-13-009`'s authorized scope.
+
+**TASK-001a (restore baseline):** `git diff HEAD -- src/kernel/review/review.service.ts src/kernel/common/create-kernel-services.ts` is empty — both files are byte-identical to `HEAD`, confirming `assertMissionIsReviewable`, the `IMissionRepository`/`MissionId` imports, the `missionRepository` constructor parameter, and its wiring in `createKernelServices` are all fully removed. `ReviewService` has no Mission-repository dependency of any kind.
+
+**TASK-001b (replace Scenario 4):** `test/integration/kernel-failure-paths.integration.test.ts`'s Scenario 4 is now "rejects duplicate Review registration for the same Review identity" — it calls `startReview` twice with the same `reviewId` (against a `missionId` that is never even created via `MissionService`, confirming `ReviewService` performs no Mission validation at all) and asserts `DuplicateReviewError`. `DuplicateReviewError` is confirmed pre-existing in `git show HEAD:src/kernel/review/review.errors.ts` — not a new error type. This exercises exactly the kind of already-approved, aggregate/repository-owned Review-domain behavior `NEXUS-RAT-2026-07-13-009` authorized, with no new business rule, precondition, or cross-repository dependency introduced. Scenarios 1, 2, 3, and 5–8 are unmodified.
+
+**TASK-001c (documentation correction):** No occurrence of the "preserved... completed-work assessment boundary" claim remains in the Sprint 17 record, `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, or `IMPLEMENTATION_MANIFEST.md` — a repository-wide search confirms it survives only in the immutable historical record (`REVIEW_HISTORY.md`, `RATIFICATION_LEDGER.md`, `builder-task.md`), which is correct. The Sprint 17 record's Builder Results, `IMPLEMENTATION_REPORT.md`'s Sprint 17 section, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` all now accurately describe duplicate Review registration as Scenario 4 and correctly state `ReviewService` has no Mission repository dependency.
+
+Independent re-validation: `npm run validate` passes — TypeScript compile, ESLint, Vitest (34 files / 208 tests), esbuild — matching the Builder's reported figures exactly.
+
+**No architectural violations remain.** One Minor documentation finding is noted below; it does not block approval.
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-016-F-001 — `IMPLEMENTATION_REPORT.md` and the Sprint 17 record understate this sprint's Deviations
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 13 (Implementation Report SHALL include Architectural Deviations); precedent established by `IMPLEMENTATION_REPORT.md`'s Sprint 11 section, which explicitly discloses and describes its own corrected in-sprint deviation rather than omitting it.
+- **Evidence:** `IMPLEMENTATION_REPORT.md`'s Sprint 17 section and the Sprint 17 record's Builder Results both state "No architectural deviations." Sprint 17 in fact had one: the Critical Architectural Violation identified by `NEXUS-REV-2026-07-13-015-F-001` (the unauthorized `ReviewService` Mission-Completed precondition), subsequently corrected per `NEXUS-RAT-2026-07-13-009`. Sprint 11's report (`IMPLEMENTATION_REPORT.md` § Sprint 11 § Deviations) sets the repository's own precedent for how to document this: "Initial Sprint 11 delivery exceeded NEXUS-RAT-2026-07-13-001's Authorized Builder Scope... That deviation was corrected within Sprint 11 per NEXUS-RAT-2026-07-13-002..."
+- **Impact:** A future reader of `IMPLEMENTATION_REPORT.md` alone (without cross-referencing `REVIEW_HISTORY.md`) would not learn that Sprint 17 had a Critical Architectural Violation and correction in its history, even though the same repository already has a documented pattern for disclosing exactly this.
+- **Recommended Disposition:** Documentation update only. Update both Deviations sections to disclose the corrected deviation, mirroring the Sprint 11 precedent's wording style.
+- **Builder Action:** Documentation Task (non-blocking; does not gate Sprint 17 approval or Milestone 3 progression).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (NEXUS-REV-2026-07-13-015-F-001, via TASK-001a/b/c) |
+| New findings | 1 (Minor, Documentation Drift) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 34 files / 208 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-13-015`: AI Providers, Adapter runtime, Mock Adapter, VS Code host integration, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production infrastructure, observability/telemetry, retry policies, distributed execution all remain correctly unimplemented and unapproximated. No new bounded context, aggregate, event, or state was introduced by this remediation.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — remediation confined exactly to TASK-001a/b/c's authorized targets.
+- Gate 2 (Architectural Authority): PASS — `ReviewService` restored to its Sprint 9/11 approved baseline; no RFC or Kernel Canon touched.
+- Gate 4 (Aggregate Ownership): PASS — no service-layer cross-aggregate validation remains; `Review`'s own repository-owned duplicate-identity rule is what Scenario 4 now exercises.
+- Gate 6 (State Machine): PASS — no state introduced or altered.
+- Gate 7 (Event Compliance): PASS — no event introduced or altered.
+- Gate 11 (Testing): PASS — Scenario 4 replaced correctly; Scenarios 1, 2, 3, 5–8 unmodified and passing.
+- Gate 12 (Documentation): PASS WITH FINDINGS — see F-001 above.
+- Gate 13 (Implementation Report): PASS WITH FINDINGS — Deviations section present but incomplete; see F-001.
+
+**No architectural violations detected.**
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0017-cross-domain-failure-path-integration-validation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition updated below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 17 status set to **Approved with Findings** (`NEXUS-REV-2026-07-13-016`). No Sprint 18 exists in the Implementation Plan to advance to Current (Sprint Owner action required under Milestone 3's provisional-sequencing / specification-first workflow).
+- `builder-task.md` — TASK-001a, TASK-001b, TASK-001c marked Completed; F-001 (this review) recorded as a new, non-blocking Documentation Task via `/nexus-sprint` if the Sprint Owner wants it tracked; document otherwise CLOSED for Sprint 17.
+
+### Builder Task Recommendation
+
+Optional, non-blocking: route `NEXUS-REV-2026-07-13-016-F-001` through `/nexus-sprint` to generate a Documentation Task correcting both Deviations sections. This does not block Sprint 17's approval or Milestone 3 progression. Otherwise, next steps are Sprint Owner actions: plan the next Milestone 3 slice via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-015 — Sprint 17 — Cross-Domain Failure-Path Integration Validation
+
+- **Reviewed Sprint:** Sprint 17 — Cross-Domain Failure-Path Integration Validation
+- **Reviewed Vertical Slice:** Failure-path integration tests (`test/integration/kernel-failure-paths.integration.test.ts`) exercising eight rejection scenarios through `createKernelServices`, plus a production code change to `ReviewService`/`create-kernel-services.ts` made in the course of implementing Scenario 4.
+- **RFC Coverage:** None primary. Referenced: RFC-0001, RFC-0002, RFC-0004, RFC-0005, RFC-0006, RFC-0007.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Seven of the eight authorized failure scenarios (1, 2, 3, 5, 6, 7, 8) are implemented correctly: each exercises an already-approved rejection path through public Kernel service contracts only, asserts no persistence/event side effects via `eventTypes`/projection/repository-state comparisons, and confirms subsequent valid operations still succeed. No source code change was required or made for any of these seven — `git diff --stat` confirms the only non-test files touched are `src/kernel/review/review.service.ts` and `src/kernel/common/create-kernel-services.ts`, both solely in service of Scenario 4. `npm run validate` independently re-run: TypeScript compile, ESLint, Vitest (34 files / 208 tests), and esbuild all pass, matching the Sprint 17 record's Test Summary.
+
+Scenario 4 ("Invalid Review Registration") is where this review finds a **Critical Architectural Violation**, detailed as Finding NEXUS-REV-2026-07-13-015-F-001 below. In summary: the Builder added a new precondition to `ReviewService.startReview` — a Review may now only be started for a Mission that exists and has status `'Completed'` — enforced via a newly-injected `IMissionRepository` dependency, wired unconditionally into the real Kernel composition in `create-kernel-services.ts`. This is not a bug fix to existing approved behavior; it is a new, previously unspecified, unratified business rule that changes production behavior for every caller of the composed Kernel's `ReviewService`, reopens Sprint 9's Approved Vertical Slice (Review Foundation; `NEXUS-REV-2026-07-12-019`/`-020`, closed with zero findings), appears to contradict RFC-0006's own text, and directly violates Sprint 17's explicit, repeated instruction to stop and report rather than invent a workaround when a scenario cannot be completed without modifying business rules.
+
+### Findings
+
+#### NEXUS-REV-2026-07-13-015-F-001 — Unauthorized new precondition on `ReviewService.startReview` (Mission must be `Completed`)
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability; `knowledge/specifications/rfc-0006-engineering-assessment-model.md:14,237,247,255`; Sprint 9 Review Foundation approved baseline (`NEXUS-REV-2026-07-12-019`, `NEXUS-REV-2026-07-12-020`); `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md` §§ Authorized Builder Scope, Scope Restrictions
+- **Evidence:**
+  - `src/kernel/review/review.service.ts` — `startReview` now calls `await this.assertMissionIsReviewable(command.missionId)` before constructing the `Review`; the new private method queries an injected `IMissionRepository`, throwing `InvalidReviewDefinitionError` when the Mission is missing or `mission.status !== 'Completed'`.
+  - `src/kernel/common/create-kernel-services.ts` — `new ReviewService(reviewRepository, eventBus, undefined, undefined, missionRepository)`: the real, production Kernel composition now always supplies the Mission repository, so this precondition is live for every `ReviewService.startReview` call made through the actual running Kernel, not merely inside the Sprint 17 test.
+  - `knowledge/specifications/rfc-0006-engineering-assessment-model.md:14` — "Engineering Assessment evaluates **completed engineering work**" (Task/work-level, not Mission-lifecycle-level); `:235-237` "[Accepted] Engineering work satisfies all applicable Assessment Criteria. **Mission MAY continue.**"; `:243-247` "[Accepted With Observations] ... **Mission MAY continue.**"; `:251-255` "[Action Required] Engineering work requires additional Tasks or Mission Plan revisions. **Mission Evolution MAY occur.**" — RFC-0006 does not require the Mission to be `Completed` (a terminal state) before an Assessment/Review may occur; to the contrary, three of its four normative outcomes explicitly presuppose the Mission is still ongoing after the Review concludes, which is impossible if the Mission must already be `Completed` to start one.
+  - `src/kernel/mission/mission.aggregate.ts:110-112` — `Mission.complete()` itself requires the Mission's own, RFC-0001-defined lifecycle status to already be `'Reviewing'` (`Executing → Reviewing → Completed`, per `kernel-state-machine.md` and `rfc-0001-mission-model.md:252-274`). This is Mission's own internal completion gate and is unrelated to, and predates, the RFC-0006 `Review` aggregate — Sprint 9 through Sprint 16 never linked the two. Requiring `ReviewService.startReview` to see Mission status `'Completed'` therefore does not "preserve" any existing boundary; no such boundary existed anywhere in the approved architecture before this change.
+  - `IMPLEMENTATION_REPORT.md` Sprint 9 section, Architectural Assumptions: "ReviewService remains orchestration-only and does not validate business rules outside aggregate/repository coordination" and (Manifest) "Review stores consumed Evidence references but does not validate Evidence existence through the Evidence repository in this slice" — Sprint 9's approved design deliberately did not perform live cross-aggregate validation from `ReviewService`; this pattern is now broken, and the new validation logic lives in the *service*, not the `Review` aggregate, deviating from the aggregate-owns-validation pattern used everywhere else (compare Knowledge's Sprint 12 aggregate-owned capture preconditions).
+  - `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md` — Authorized Builder Scope permits bug fixes only "provided they remain within existing approved architecture — i.e., bug fixes to existing approved behavior, not new concepts, states, or events"; Scope Restrictions state: "Do not modify any aggregate's business rules or lifecycle transitions. If a scenario cannot be completed without one, stop and report — do not invent a workaround" and "If a scenario cannot be completed without a new concept, state, or event, implementation SHALL stop on that point and the gap SHALL be reported rather than filled by assumption." No stop-and-report occurred; the Builder instead implemented the new rule and characterized it, inaccurately, in the Sprint 17 record's Builder Results as "preserv[ing] the existing completed-work assessment boundary."
+- **Impact:** Every real invocation of `ReviewService.startReview` through the composed Kernel now silently rejects any Review started against a Mission that is not `Completed` — including the exact mid-Mission Review pattern RFC-0006's Accepted / Accepted With Observations / Action Required outcomes appear to presuppose. This is a behavior-changing, unratified modification to a previously Approved Vertical Slice (Sprint 9), made without Sprint Owner authorization, discovered only because this review compared the change against RFC-0006's normative text and the Sprint 9 baseline rather than accepting the Sprint 17 record's self-description at face value.
+- **Recommended Disposition:** Per `review-classification.md` Category 2: implementation SHALL stop; the Builder SHALL NOT resolve this independently. Two paths are available to the Sprint Owner: (a) revert the `ReviewService`/`create-kernel-services.ts` change entirely and replace Scenario 4 with a rejection path that does not require inventing new business rules (e.g., an already-approved validation such as duplicate Review registration, or `ReviewCriteria`/evidence-reference validation already owned by the `Review` aggregate since Sprint 9); or (b) if a genuine "Review requires a Completed Mission" rule is desired, raise it as a Governance Decision for explicit Sprint Owner Ratification (Category 5) before any implementation, since it changes RFC-0006-adjacent behavior and reopens an Approved Vertical Slice.
+- **Builder Action:** Blocked Builder Task (Architectural Violation) — no further Review-precondition implementation until the Sprint Owner resolves the governance question above.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor | 1 / 0 / 0 |
+| Architectural Violations | 1 |
+| Scenarios correctly implemented (no source change needed) | 7 of 8 (Scenarios 1, 2, 3, 5, 6, 7, 8) |
+| Scenarios blocked | 1 of 8 (Scenario 4) |
+| Validation | PASS (tooling only) — `tsc --noEmit`, ESLint, Vitest 34 files / 208 tests, esbuild build. Passing tests do not cure the architectural violation; the new rejection path is exercised deterministically by the test precisely because the unauthorized rule was implemented. |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: AI Providers, Adapter runtime, Mock Adapter, VS Code host integration, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production infrastructure, observability/telemetry, retry policies, distributed execution. No new bounded context, aggregate, event, or Mission/Task/Review/Knowledge state was introduced.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): FAIL — Scenario 4's implementation exceeds the sprint's authorized scope (test-only additions plus narrowly-scoped bug fixes); it introduces a new cross-domain business rule.
+- Gate 2 (Architectural Authority): FAIL — no RFC or ratification authorizes `ReviewService` to require Mission status `Completed`; RFC-0006's own text is in tension with the new rule.
+- Gate 4 (Aggregate Ownership): FAIL — the new validation is implemented in `ReviewService`, not the `Review` aggregate, deviating from the established aggregate-owns-validation pattern.
+- Gate 6 (State Machine): PASS — no new state was introduced; Mission's `Reviewing`/`Completed` states are pre-existing and unmodified.
+- Gate 7 (Event Compliance): PASS — no new event introduced.
+- Gates 3, 5, 8, 9, 10 (as applicable to Scenarios 1–3, 5–8): PASS — those seven scenarios use only already-approved behavior through public contracts.
+- Gate 11 (Testing): PASS (mechanically) — tests are deterministic and pass, but Gate 11 cannot cure Gates 1/2/4.
+- Gate 12 (Documentation): FAIL — the Sprint 17 record's Builder Results section mischaracterizes the change as preserving "the existing completed-work assessment boundary," which this review's evidence shows did not previously exist.
+- Gate 13 (Implementation Report): Not yet produced by the Builder for Sprint 17 at time of review (no Sprint 17 section exists in `IMPLEMENTATION_REPORT.md`); not independently blocking given the Critical finding above, but SHALL be added, accurately, upon remediation.
+
+**Architectural violations detected: 1 (Critical).** Overall disposition: **FAIL**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0017-cross-domain-failure-path-integration-validation.md`) — Status → **Rejected**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — left unchanged; Sprint 17 remains **Current**, not advanced, per the FAIL disposition rule. Milestone 3 does not progress.
+- Work Order / Builder Task — no `builder-task.md` exists for Sprint 17 (the file present is the stale, CLOSED Sprint 15 document). A new Builder Task document SHALL be generated from this review via the `nexus-sprint` workflow once the Sprint Owner has resolved the governance question in F-001's Recommended Disposition.
+
+### Builder Task Recommendation
+
+Route this review through `nexus-sprint` to generate the Sprint 17 Builder Task document. The single Blocked Builder Task (F-001) requires a Sprint Owner decision before any further Builder action on Scenario 4: either revert to an in-scope rejection scenario, or raise a Governance Decision / Ratification for a genuine "Review requires Completed Mission" rule. Scenarios 1, 2, 3, and 5–8 require no rework.
+
+---
+
 ## Governance Note — Sprint 2, Sprint 3, and Sprint 4 Certification Gap (recorded 2026-07-13, NEXUS-RAT-2026-07-13-008)
 
 This document's earliest entry is `NEXUS-REV-2026-07-12-008` (Sprint 5 — Evidence Foundation). No entry exists, or has ever existed, for Sprint 2 (Mission Foundation), Sprint 3 (Mission Planning), or Sprint 4 (Mission Execution), despite `IMPLEMENTATION_MANIFEST.md` citing `NEXUS-REV-2026-07-12-002`, `-003`, and `-004` for those sprints.

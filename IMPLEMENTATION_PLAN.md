@@ -764,7 +764,7 @@ See `knowledge/implementation/sprints/sprint-0015-mission-plan-task-event-public
 
 # Milestone 3 — Kernel Integration & Composition
 
-Status: In Progress (Sprint 16 Approved)
+Status: ✅ COMPLETE (Sprint 16 Approved; Sprint 17 Approved; Sprint 18 Approved)
 
 Objective
 
@@ -835,12 +835,159 @@ See `knowledge/implementation/sprints/sprint-0016-end-to-end-mission-workflow-in
 
 ---
 
-## Future Sprint Planning
+## Sprint 17 — Cross-Domain Failure-Path Integration Validation
 
-Status: Milestone 2 Complete; Sprint 16 Approved (NEXUS-REV-2026-07-13-014)
+Status: ✅ Approved (NEXUS-REV-2026-07-13-017; remediation of NEXUS-REV-2026-07-13-015-F-001 authorized by NEXUS-RAT-2026-07-13-009 and verified by NEXUS-REV-2026-07-13-016; documentation finding NEXUS-REV-2026-07-13-016-F-001 closed by NEXUS-REV-2026-07-13-017 — review cycle complete with no open findings)
+
+Objective
+
+Extend the Sprint 16 integration validation by exercising the composed Nexus Kernel through deterministic failure-path integration scenarios, complementing Sprint 16's validated nominal ("happy path") workflow. This sprint introduces no new architectural concepts, domain behavior, or business rules; it validates only behavior already authorized by the implemented RFCs and approved vertical slices.
+
+RFC Coverage
+
+- None primary — this sprint introduces no new normative concepts.
+- Referenced: RFC-0001, RFC-0002, RFC-0004, RFC-0005, RFC-0006, RFC-0007.
+
+Authorized Concepts
+
+- Failure-path integration tests under `test/integration/`, exercising eight rejection scenarios (Task dependency violation, premature Mission completion, duplicate MissionPlan, duplicate Review registration, invalid Knowledge capture, missing Evidence, invalid Review completion, terminal Mission planning) through public Kernel service contracts only.
+- Side-effect verification: no partial persistence, no unintended Domain Event publication, deterministic rejection.
+- Bug fixes to existing approved behavior discovered during testing, within existing approved architecture only (mirroring Sprint 16's Authorized Builder Scope).
+
+Deferred Concepts
+
+- AI Providers, Adapter runtime implementations, VS Code host integration, Context Package, Policy Engine, Durable Event Streams, event subscriptions, persistent storage, production infrastructure, observability/telemetry, retry policies, distributed execution.
+- Exhaustive combinatorial failure-path coverage beyond the eight authorized scenarios.
+
+Definition of Done
+
+- All eight authorized rejection scenarios execute through public Kernel service contracts and fail deterministically with the correct, already-cataloged error/exception.
+- No partial persistence or unintended Domain Event publication occurs on any rejected operation.
+- Subsequent valid operations continue to succeed after each rejection is exercised.
+- No architectural regressions; no new concept, state, or event is introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0017-cross-domain-failure-path-integration-validation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 18 — RFC-0010 Kernel Boundary Certification
+
+Status: ✅ Approved (NEXUS-REV-2026-07-13-018)
+
+Objective
+
+Certify that the composed Nexus Kernel conforms to the architectural boundaries defined by RFC-0010 — Kernel Boundaries: architectural ownership, bounded-context isolation, service contract integrity, dependency correctness, repository isolation, successful composition, and deterministic rejection of invalid cross-boundary interactions. This is a validation-only vertical slice; it introduces no new domain concepts, production capabilities, runtime behavior, lifecycle semantics, repositories, or aggregate responsibilities. Sprint 18 concludes the Internal Kernel Certification phase of Milestone 3, begun by Sprint 16 (nominal composition) and Sprint 17 (failure-path composition).
+
+RFC Coverage
+
+- RFC-0010 — Kernel Boundaries (Primary)
+- Referenced: RFC-0001, RFC-0002, RFC-0003, RFC-0004, RFC-0005, RFC-0006, RFC-0007, RFC-0008 (contract validation only), RFC-0009 (boundary validation only)
+
+Authorized Scope
+
+- Integration Validation Scenarios demonstrating successful composed-Kernel behavior across Mission, Mission Planning, Task execution, Review, Knowledge, Domain Event publication, repository coordination, and dependency injection, exercised through `createKernelServices` and public service contracts only.
+- Boundary Violation Scenarios intentionally attempting invalid cross-domain interactions (unauthorized cross-domain access, invalid service composition, invalid repository usage, invalid aggregate ownership assumptions, invalid dependency paths, bypassing public service contracts) to prove deterministic rejection with no aggregate/repository corruption, no partial persistence, and no unintended Domain Event publication.
+- Documentation reconciliation arising directly from validated observations.
+
+Deferred Concepts
+
+- Event subscribers/consumers/handlers/orchestration
+- Adapter implementations, Mock Adapter, AI provider integration
+- VS Code host integration, workflow automation
+- Context Package, Policy Engine, Durable Event Streams, persistent infrastructure
+- Any new aggregate, repository, business rule, lifecycle transition, or Domain Event
+
+Definition of Done
+
+- RFC-0010 boundary rules are satisfied by every implemented bounded context.
+- All cross-domain interaction occurs exclusively through approved public service contracts.
+- No architectural boundary violations are detected; no unauthorized runtime dependencies exist.
+- Successful execution validation and failure-path validation both pass.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0018-rfc-0010-kernel-boundary-certification.md` for the complete Sprint Implementation Record.
+
+---
+
+## Future Sprint Planning (Milestone 3)
+
+Status: Milestone 2 Complete; Milestone 3 Complete (Sprint 16 Approved — NEXUS-REV-2026-07-13-014; Sprint 17 Approved — NEXUS-REV-2026-07-13-017; Sprint 18 Approved — NEXUS-REV-2026-07-13-018)
 
 Milestone 2 completion assessed: see `knowledge/implementation/milestone-2-completion-report.md`.
 
 Repository readiness evaluated: see `knowledge/implementation/repository-readiness-assessment.md`.
 
-Sprint 16 is approved with no open findings. No Sprint 17 exists in this Implementation Plan. Sequencing beyond Sprint 16 within Milestone 3 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 3 slice via `/nexus-plan`.
+Sprint 18's review cycle is complete with no open findings, and with it, Milestone 3 — Kernel Integration & Composition is Complete. The Sprint Owner has opened Milestone 4 — External Integration; see below.
+
+---
+
+# Milestone 4 — External Integration
+
+Status: In Progress (Sprint 19 Current)
+
+Objective
+
+Transition the certified Kernel from internal composition/boundary validation (Milestone 3) to external extensibility, beginning with a deterministic Mock Adapter that proves the existing Adapter Framework (RFC-0008, Sprint 7) end-to-end, ahead of any future production provider Adapter.
+
+Governance Note
+
+Milestone 3's Engineering Principle constrained that milestone to validating already-implemented behavior with no new foundational domains. A concrete Adapter implementation is a new runtime capability rather than composed-behavior validation, so the Sprint Owner opened Milestone 4 to house it rather than stretching Milestone 3's validation-only scope. This is a Sprint Owner planning decision, not a Ratification — Adapter is an existing bounded context (RFC-0008, approved since Sprint 7); Milestone 4 introduces no new bounded context.
+
+Planning Principle
+
+Sprint sequencing within this milestone is intentionally provisional. Following each approved Sprint, `nexus-plan` SHALL assess the repository state and determine the next implementation slice based on implementation experience, repository readiness, governance decisions, and approved ratifications. Approved vertical slices remain immutable.
+
+Expected Outcomes
+
+- Adapter runtime integration (first concrete Adapter implementation)
+- Builder/Reviewer workflow integration (future slice)
+- Production provider Adapter integration (future slice, out of scope for Sprint 19)
+
+---
+
+## Sprint 19 — Mock Adapter Runtime Integration
+
+Status: Current
+
+Objective
+
+Implement the first concrete Adapter — a deterministic Mock Adapter — conforming to the certified Adapter Contract (RFC-0008), integrated into the composed Kernel via the existing `AdapterRegistry`/`AdapterService` (Sprint 7). This sprint validates the Adapter runtime lifecycle using a deterministic, in-process implementation; it does not introduce AI providers.
+
+RFC Coverage
+
+- RFC-0008 — Kernel Adapter Contract (Primary)
+- Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries
+
+Authorized Scope
+
+- `MockAdapter` implementing the existing Adapter Contract; stateless; deterministic.
+- Registration with the existing `AdapterRegistry`; discovery through the existing `AdapterService`.
+- Static capability declaration using RFC-0008's existing capability vocabulary.
+- Deterministic `AdapterRequest` validation/handling and immutable `AdapterResponse` generation using the existing contracts.
+- Runtime dispatch through `AdapterService.dispatch` and `createKernelServices`.
+- Deterministic diagnostics, reusing existing Sprint 7 diagnostics where applicable.
+
+Deferred Concepts
+
+- Provider integrations (GitHub Copilot CLI, Claude CLI, Gemini CLI, Codex CLI, OpenAI APIs), process execution, authentication, retry/timeout policies, streaming responses, telemetry/metrics/observability.
+- Adapter lifecycle management beyond the existing value object, dynamic capability negotiation, multi-adapter routing, prioritization, load balancing, fallback adapters.
+- Event subscribers/consumers, Context Package production/consumption beyond the existing reference-only field, VS Code host integration.
+- Any new aggregate, repository, business rule, lifecycle transition, or Domain Event outside the Adapter domain.
+
+Definition of Done
+
+- Adapter registration, capability discovery, deterministic request/response handling, and runtime dispatch through Kernel services all succeed.
+- RFC-0008 Adapter Contract and RFC-0010 Kernel boundaries are preserved.
+- No production provider behavior is introduced.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0019-mock-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
+
+---
+
+## Future Sprint Planning (Milestone 4)
+
+Status: Sprint 19 Current
+
+Sprint 19 is the active Builder implementation contract. Sequencing beyond Sprint 19 within Milestone 4 remains intentionally provisional, per this milestone's Planning Principle; the Sprint Owner SHALL plan the next Milestone 4 slice via `/nexus-plan` after Sprint 19 is reviewed.
