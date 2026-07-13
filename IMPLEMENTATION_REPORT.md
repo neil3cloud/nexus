@@ -1,5 +1,105 @@
 # Nexus Implementation Report
 
+## Sprint 32 — Production Workflow Parity
+
+### Implemented Slice
+
+Implemented the Milestone 6 Sprint 32 Production Workflow Parity vertical slice. This sprint integrates the Sprint 31-certified `CodexCliAdapter` into the Developer Workflow through a third dedicated Host command, mirroring the Sprint 30 `GeminiCliAdapter` pattern while preserving the existing Mock and Gemini workflow commands.
+
+Implemented scope:
+
+- Added `nexus.runDeveloperMissionWorkflowWithCodexCli` as a third Developer Workflow Host command.
+- Preserved `nexus.runDeveloperMissionWorkflow` and `nexus.runDeveloperMissionWorkflowWithGeminiCli` and their explicit adapter dispatch paths.
+- Added the new command contribution and activation event in `package.json`.
+- Registered `CodexCliAdapter` at the VS Code extension composition root alongside `MockAdapter` and `GeminiCliAdapter`.
+- Composed a separate `HostMissionWorkflow` instance with explicit `adapterId: CODEX_CLI_ADAPTER_ID`.
+- Reused the existing certified Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge workflow sequence without changing `HostMissionWorkflow` behavior.
+- Added deterministic command-registration coverage and end-to-end Developer Workflow success/failure coverage using the Sprint 31 Codex CLI test-double.
+
+Out of scope and not implemented:
+
+- Adapter Selection Policy, provider routing, fallback, persisted adapter preferences, workspace/user adapter settings, or runtime provider ambiguity.
+- Kernel behavior changes or any `src/kernel` file modifications.
+- Execution Model deepening, Execution Session, full RFC-0004 Execution State set, or review-gated execution progression.
+- Authentication management, credential storage, OAuth, `SecretStorage`, streaming responses, background execution, or multi-provider coordination.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0009 — Host Contract (Partial).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model.
+- RFC-0008 — Kernel Adapter Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Dedicated Host command entry point for `CodexCliAdapter` Developer Workflow execution.
+- VS Code command contribution and activation event for the Codex CLI workflow command.
+- Extension composition-root registration of `CodexCliAdapter`.
+- Explicit `adapterId` dispatch to `CODEX_CLI_ADAPTER_ID` through the existing Adapter Service dispatch contract.
+- Deterministic Host command and workflow validation using the Sprint 31 Codex CLI test-double.
+
+Deferred Concepts:
+
+- Adapter Selection Policy, automatic routing, capability scoring, fallback, persisted preferences, and multi-adapter coordination.
+- Execution Model deepening and Execution Session behavior.
+- Authentication management and Nexus-managed credentials.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter.
+- Streaming responses, background execution, and multi-provider coordination.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-006`, `NEXUS-RAT-2026-07-14-005`, `NEXUS-RAT-2026-07-14-004`, `NEXUS-RAT-2026-07-13-011`).
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0025-developer-workflow-foundation.md`.
+- `knowledge/implementation/sprints/sprint-0026-developer-workflow-adapter-integration.md`.
+- `knowledge/implementation/sprints/sprint-0027-developer-workflow-completion.md`.
+- `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-integration.md`.
+- `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md`.
+- `knowledge/implementation/sprints/sprint-0032-production-workflow-parity.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Multiple Host command entry points may target independently composed workflow instances as long as each dispatches through an explicit adapter identifier and the Kernel remains unaware of which command initiated execution.
+- `CodexCliAdapter` remains certified by Sprint 31 and may be reused without changing its RFC-0008 Adapter behavior.
+- The Sprint 30 `GeminiCliAdapter` Developer Workflow command pattern is the binding implementation precedent for Sprint 32 per `NEXUS-RAT-2026-07-14-006`.
+
+### Known Limitations
+
+- Developers must invoke the provider-specific command for the desired Adapter; no Adapter Selection or persisted provider preference exists.
+- Automated validation uses only the deterministic Codex CLI test-double, never a live `codex` CLI.
+- Workflow history remains session-only and non-durable, preserving the Sprint 25 Host constraint.
+
+### Validation Summary
+
+- Targeted Sprint 32 workflow validation passed: 4 files, 6 tests.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 56 files, 275 tests.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Sprint 18 Kernel boundary certification passed unmodified.
+- `git diff --stat -- src\kernel` is empty.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 31 — Codex CLI Adapter Runtime Integration
 
 ### Implemented Slice

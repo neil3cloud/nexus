@@ -1625,7 +1625,7 @@ See `knowledge/implementation/sprints/sprint-0030-developer-workflow-gemini-cli-
 
 # Milestone 6 — Multi-Provider Adapter Integration
 
-Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004)
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Approved with Findings — NEXUS-REV-2026-07-14-005)
 
 Objective
 
@@ -1691,3 +1691,51 @@ Definition of Done
 - Repository-wide automated validation passes: TypeScript compile, ESLint, Vitest, esbuild — Manual Production Verification excluded from this automated gate by design.
 
 See `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 32 — Production Workflow Parity
+
+Status: ✅ Approved with Findings (NEXUS-REV-2026-07-14-005)
+
+Objective
+
+Complete the production workflow matrix by integrating `CodexCliAdapter` (certified in isolation by Sprint 31, `NEXUS-REV-2026-07-14-004`) into the Developer Workflow, mirroring the exact architectural pattern `NEXUS-RAT-2026-07-14-004` established for `GeminiCliAdapter` in Sprint 30. Introduces exactly one architectural variable: a third Developer Workflow command targeting `CodexCliAdapter` via an explicit `adapterId`, reusing the existing certified execution pipeline verbatim.
+
+RFC Coverage
+
+- RFC-0009 — Host Contract (Primary, Partial).
+- Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-006` — governs this sprint's entire scope: title, authorized command addition, Host/Kernel responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-005` — named the three candidate directions for Milestone 6 following Sprint 31; `NEXUS-RAT-2026-07-14-006` selects Developer Workflow integration.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; the new command dispatches via explicit `adapterId` only.
+
+Authorized Vertical Slice
+
+- A new Host command (e.g. `nexus.runDeveloperMissionWorkflowWithCodexCli`) sequencing the identical, already-certified workflow steps (Sprint 25/26/27's Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge sequence), with the Adapter dispatch step's explicit `adapterId` set to the `CodexCliAdapter` identifier instead of `MOCK_ADAPTER_ID`/`GEMINI_CLI_ADAPTER_ID`.
+- Registration of `CodexCliAdapter` at the `extension.ts` composition root alongside the existing, unmodified `MockAdapter` and `GeminiCliAdapter` registrations.
+- New command contribution point (`package.json` `contributes.commands` / `activationEvents`) mirroring the existing commands' registration pattern.
+- Unit/integration test coverage for the new command's success and failure paths, using the existing deterministic Codex CLI test-double (Sprint 31) exclusively — never a live `codex` CLI.
+
+Deferred Concepts
+
+- Persisted adapter preferences, Workspace/User adapter settings, or any configuration subsystem for Adapter selection.
+- Adapter Selection Policy, automatic provider routing, capability scoring, fallback, or multi-adapter coordination.
+- Execution Model deepening (full RFC-0004 Execution State set, Execution Session, Review-gated execution progression).
+- Authentication management, credential storage, OAuth, `SecretStorage` integration.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter.
+- Streaming responses, multi-provider coordination, background execution.
+
+Definition of Done
+
+- The existing `nexus.runDeveloperMissionWorkflow` and `nexus.runDeveloperMissionWorkflowWithGeminiCli` commands, and every Sprint 25–31 test asserting their behavior, pass unmodified.
+- The new command executes the identical certified workflow sequence through `CodexCliAdapter` via explicit `adapterId`, with no Adapter Selection, routing, or persisted configuration introduced.
+- The new command's automated test coverage remains fully deterministic and CI-safe, using only the Sprint 31 test-double executable.
+- No `src/kernel` file changes.
+- Sprint 18's `src/kernel` import-graph boundary test passes unmodified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
+
+See `knowledge/implementation/sprints/sprint-0032-production-workflow-parity.md` for the complete Sprint Implementation Record.

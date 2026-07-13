@@ -9,6 +9,8 @@ const COMMANDS = [
   'nexus.dispatchAdapterRequest',
   'nexus.showHostCapabilities',
   'nexus.runDeveloperMissionWorkflow',
+  'nexus.runDeveloperMissionWorkflowWithGeminiCli',
+  'nexus.runDeveloperMissionWorkflowWithCodexCli',
   'nexus.showMissionWorkflowHistory',
 ] as const;
 

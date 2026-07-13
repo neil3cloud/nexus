@@ -2,6 +2,140 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-006 — Sprint 32 — Production Workflow Parity (DOC-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 32 — Production Workflow Parity
+- **Reviewed Vertical Slice:** `test/extension-host/suite/extension-host.test.ts` `COMMANDS` array only — remediation of `NEXUS-REV-2026-07-14-005-F-001` per `builder-task.md` `DOC-001`.
+- **RFC Coverage:** None — documentation/test-list correction only; no RFC governs this test file.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verifies the Builder's remediation of `NEXUS-REV-2026-07-14-005-F-001` (`DOC-001` in `builder-task.md`). The Builder added `'nexus.runDeveloperMissionWorkflowWithGeminiCli'` to the Extension Host activation test's `COMMANDS` array, immediately preceding `'nexus.runDeveloperMissionWorkflowWithCodexCli'`, matching `DOC-001`'s Required Changes exactly.
+
+Independent re-verification: `git status --short` confirmed `test/extension-host/suite/extension-host.test.ts` is the only file with new changes since `NEXUS-REV-2026-07-14-005`; `git diff` confirmed the change is exactly a two-line addition (`nexus.runDeveloperMissionWorkflowWithGeminiCli`, `nexus.runDeveloperMissionWorkflowWithCodexCli`) with no other line touched. Diffed the resulting `COMMANDS` array against `package.json`'s `contributes.commands` list: all 8 entries now present, in identical order. No other source, test, or governance file was modified as part of this remediation — `IMPLEMENTATION_REPORT.md` does not carry a dedicated remediation note for this single-line fix, which is proportionate to the finding's Minor severity and narrow scope; this is not itself a new finding.
+
+I independently re-ran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (56 files / 275 tests), and `esbuild` all passed, identical to the pre-remediation run — confirming the fix is test-list-only with zero behavioral impact. I also independently ran `npm run test:extension-host:build`, which succeeded, confirming the extension-host test bundle (including the corrected `COMMANDS` array) continues to build.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 56 files / 275 tests, esbuild build, extension-host test bundle build (all independently reproduced) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation touches only a test assertion list; no Deferred Concept from Sprint 32 or any prior sprint is implicated.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — remediation is scoped to exactly the `DOC-001` Required Changes; no other file modified.
+- Gate 8 (Capability Boundaries): PASS — `git status --short` independently confirmed zero additional file changes beyond the one test file.
+- Gate 11 (Testing): PASS — `COMMANDS` now enumerates all 8 registered commands in the correct order; repository-wide validation and the extension-host test bundle build both pass.
+- Gate 12 (Documentation): PASS — `builder-task.md` `DOC-001`'s Acceptance Criteria are fully satisfied.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- `builder-task.md` — `DOC-001` Status → **Completed** (acceptance criteria independently verified satisfied).
+- Sprint Implementation Record (`sprint-0032-production-workflow-parity.md`) — remains **Approved with Findings** (`NEXUS-REV-2026-07-14-005`); this entry records the finding's remediation without altering the Sprint's original disposition.
+- `IMPLEMENTATION_PLAN.md` — no change; Sprint 32 remains **Approved with Findings**. This remediation does not reopen or re-disposition the Sprint.
+
+### Builder Task Recommendation
+
+None. `DOC-001` is Completed; `builder-task.md` has zero remaining Open or Blocked tasks.
+
+---
+
+## NEXUS-REV-2026-07-14-005 — Sprint 32 — Production Workflow Parity
+
+- **Reviewed Sprint:** Sprint 32 — Production Workflow Parity
+- **Reviewed Vertical Slice:** New `nexus.runDeveloperMissionWorkflowWithCodexCli` command (`src/hosts/vscode/host-mission-workflow-command-registration.ts`); third `HostMissionWorkflow` instance and `CodexCliAdapter` composition (`src/hosts/vscode/vscode-host.ts`, `src/extension.ts`); `package.json` command contribution/activation event; associated unit and integration tests (`test/hosts/vscode/host-mission-workflow-codex-command-registration.test.ts`, `test/integration/host-mission-workflow-codex-cli.integration.test.ts`).
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 32 integrates the Sprint 31-certified `CodexCliAdapter` into the Developer Workflow through a third, dedicated Host command, exactly as scoped by `NEXUS-RAT-2026-07-14-006`. This introduces exactly one architectural variable — `nexus.runDeveloperMissionWorkflowWithCodexCli` dispatching via explicit `adapterId` — mirroring Sprint 30's `GeminiCliAdapter` integration precedent provider-for-provider, while leaving `nexus.runDeveloperMissionWorkflow` (MockAdapter) and `nexus.runDeveloperMissionWorkflowWithGeminiCli` (GeminiCliAdapter) untouched.
+
+Independent re-verification: `git diff --name-only` confirmed the working-tree change set touches only `src/extension.ts`, `src/hosts/vscode/vscode-host.ts`, `src/hosts/vscode/host-mission-workflow-command-registration.ts`, `package.json`, `test/extension-host/suite/extension-host.test.ts`, plus two new test files and the governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, the Sprint 32 record). Critically, `src/hosts/vscode/host-mission-workflow.ts`, `src/adapters/codex/**` (frozen since Sprint 31), `src/adapters/gemini/**`, `src/adapters/mock/**`, and every file under `src/kernel/**` are confirmed absent from the diff — the certified Sprint 25–31 baseline is untouched.
+
+`knowledge/governance/RATIFICATION_LEDGER.md`'s diff was independently confirmed to be exactly the `NEXUS-RAT-2026-07-14-006` entry added during the prior `/nexus-plan` cycle (82 added lines, matching the ratification's own length), not a Builder modification — consistent with the Constitution's rule that the Builder SHALL modify the Ratification Ledger only when explicitly authorized by a Sprint Owner Ratification.
+
+Read `src/extension.ts` and `src/hosts/vscode/vscode-host.ts` diffs in full: `CodexCliAdapter` is registered at the composition root alongside `MockAdapter`/`GeminiCliAdapter`, and a third `HostMissionWorkflow` instance is composed only when `codexCliMissionWorkflowAdapterId` is supplied, dispatching with explicit `adapterId`/`requiredCapability: 'CodeModification'` — structurally identical to the Gemini CLI wiring. `createMissionWorkflowCommandOptions` was refactored from an inline ternary to a small pure function to accommodate a third optional workflow; behavior for the two existing options is unchanged (verified: the function reduces to the prior ternary's output when `codexCliWorkflow` is `undefined`).
+
+I independently ran the targeted Sprint 32 test files (`test/hosts/vscode/host-mission-workflow-codex-command-registration.test.ts`, `test/integration/host-mission-workflow-codex-cli.integration.test.ts`): both use only the Sprint 31 deterministic test-double (`test/adapters/codex/codex-cli-test-double.cjs`), never a live `codex` CLI, and assert the full Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge event sequence plus deterministic failure-stop behavior without fabricating Task completion. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**56 files / 275 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test included and passing unmodified within that run.
+
+One documentation/test-coverage gap was identified: the Extension Host activation smoke test's command-discoverability list (`test/extension-host/suite/extension-host.test.ts`) omits `nexus.runDeveloperMissionWorkflowWithGeminiCli` even though 8 commands are now registered in `package.json`. This gap predates Sprint 32 (traced to Sprint 30, confirmed absent from the Sprint 30 review's reviewed vertical slice and never remediated since), and Sprint 32 — while touching this exact file to add the Codex entry — did not close it. It does not indicate any runtime defect: the Gemini CLI command is independently validated by its own Sprint 30 unit/integration tests, which are unaffected and still passing. Classified Category 4 (Documentation Drift), Minor, per `knowledge/implementation/review-classification.md`.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-005-F-001 — Extension Host activation test omits the Gemini CLI command from its discoverability list
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `knowledge/implementation/sprints/sprint-0028-vs-code-extension-installability.md` (Extension Host Validation Boundary: "validate installation, activation, command execution... only"); Sprint 28 Definition of Done ("All ... currently-implemented commands register and are discoverable after activation").
+- **Summary:** `test/extension-host/suite/extension-host.test.ts`'s `COMMANDS` array lists 7 command IDs but omits `nexus.runDeveloperMissionWorkflowWithGeminiCli`, even though `package.json` registers 8 commands (`git diff` confirms this file's only change in Sprint 32 was appending the new Codex CLI entry; the Gemini CLI entry was never present, including at Sprint 30/31 HEAD).
+- **Impact:** The Extension Host activation smoke test — whose documented purpose is validating that "all... currently-implemented commands register and are discoverable after activation" — would not detect a regression that silently de-registered the Gemini CLI Developer Workflow command (e.g. a future composition-root wiring defect omitting `geminiCliMissionWorkflowAdapterId`). No current functional defect exists; the command is registered and independently covered by Sprint 30's own unit/integration tests.
+- **Required Disposition:** Documentation Task — add `nexus.runDeveloperMissionWorkflowWithGeminiCli` to the `COMMANDS` array in `test/extension-host/suite/extension-host.test.ts`. Test-list correction only; no behavior change.
+- **Builder Action:** Update documentation/test coverage only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor / Informational | 0 / 0 / 1 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 56 files / 275 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: persisted adapter preferences, Workspace/User adapter settings, or any configuration subsystem for Adapter selection; Adapter Selection Policy, automatic provider routing, capability scoring, fallback, or multi-adapter coordination; Execution Model deepening (full RFC-0004 Execution State set, Execution Session, Review-gated execution progression); authentication management, credential storage, OAuth, `SecretStorage` integration; GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter; streaming responses, multi-provider coordination, background execution. No `src/kernel` file was modified.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (third Developer Workflow command); no Adapter Selection Policy, persisted configuration, or Execution Model change introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/RFC-0008/RFC-0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-006`'s Architectural Responsibilities followed exactly, mirroring `NEXUS-RAT-2026-07-14-004`'s Gemini CLI precedent provider-for-provider.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `HostMissionWorkflow`/`AdapterService`/`adapterId` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched; Host remains a thin orchestrator dispatching via explicit `adapterId`.
+- Gate 5 (Data Model): PASS — no data model changed; `HostMissionWorkflowInput`/`HostMissionWorkflowResult` shapes reused unchanged.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched; the reused workflow sequence publishes the identical, already-certified event set.
+- Gate 8 (Capability Boundaries): PASS — `git diff --name-only` independently confirmed zero `src/kernel`, `src/adapters/codex`, `src/adapters/gemini`, `src/adapters/mock`, or `host-mission-workflow.ts` changes; Sprint 18's boundary test unaffected and passing within the independently reproduced `npm run validate` run.
+- Gate 9 (Technology Compliance): PASS — new command and test files placed consistently with the Sprint 30 Gemini CLI precedent (`test/hosts/vscode/host-mission-workflow-codex-command-registration.test.ts`, `test/integration/host-mission-workflow-codex-cli.integration.test.ts`).
+- Gate 10 (Code Quality): PASS — `createMissionWorkflowCommandOptions` extraction is a minimal, deterministic refactor with no hidden behavior; verified equivalent to the prior inline ternary for the two pre-existing options.
+- Gate 11 (Testing): PASS — new command's automated coverage is fully deterministic and CI-safe, using only the Sprint 31 test-double; existing Sprint 25–31 tests pass unmodified.
+- Gate 12 (Documentation): PASS WITH FINDING — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 32 record are mutually consistent and accurately scoped; see F-001 for the pre-existing Extension Host test-list gap.
+- Gate 13 (Implementation Report): PASS — Sprint 32 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0032-production-workflow-parity.md`) — Status → **Approved with Findings**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 32 status set to **Approved with Findings** (`NEXUS-REV-2026-07-14-005`); Milestone 6 status line updated accordingly. No Sprint 33 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+Generate one Documentation Task via `nexus-sprint` for F-001 (add the missing `nexus.runDeveloperMissionWorkflowWithGeminiCli` entry to the Extension Host activation test's command list). This finding does not block Sprint 32's approval or progression to the next Sprint Owner planning cycle.
+
+---
+
 ## NEXUS-REV-2026-07-14-004 — Sprint 31 — Codex CLI Adapter Runtime Integration
 
 - **Reviewed Sprint:** Sprint 31 — Codex CLI Adapter Runtime Integration

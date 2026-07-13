@@ -1283,7 +1283,7 @@ Notes:
 
 # Milestone 6 — Multi-Provider Adapter Integration
 
-Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004)
+Status: In Progress (Sprint 31 Approved — NEXUS-REV-2026-07-14-004; Sprint 32 Implemented — Pending Reviewer Validation)
 
 ## Sprint 31 — Codex CLI Adapter Runtime Integration
 
@@ -1326,6 +1326,50 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md` for the complete Sprint Implementation Record.
 - This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0010, or the Kernel Canon.
 - Only after this sprint's independent certification SHALL a future Sprint authorize Developer Workflow integration of `CodexCliAdapter`.
+
+---
+
+## Sprint 32 — Production Workflow Parity
+
+Status: Implemented — Pending Reviewer Validation.
+
+RFC Coverage:
+
+- RFC-0009 — Host Contract (Primary, Partial)
+- Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-006` — governs this sprint's entire scope: title, authorized command addition, Host/Kernel responsibility split, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-005` — named the three candidate directions for Milestone 6 following Sprint 31; `NEXUS-RAT-2026-07-14-006` selects Developer Workflow integration.
+- `NEXUS-RAT-2026-07-14-004` — the Sprint 30 scope ratification this sprint mirrors provider-for-provider.
+- `NEXUS-RAT-2026-07-13-011` — Adapter Selection Policy remains deferred and unaffected; the new command dispatches via explicit `adapterId` only.
+
+Implemented Concepts:
+
+- A new Host command (e.g. `nexus.runDeveloperMissionWorkflowWithCodexCli`) sequencing the identical, already-certified workflow steps (Sprint 25/26/27's Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge sequence), with the Adapter dispatch step's explicit `adapterId` set to the `CodexCliAdapter` identifier instead of `MOCK_ADAPTER_ID`/`GEMINI_CLI_ADAPTER_ID`.
+- Registration of `CodexCliAdapter` at the `extension.ts` composition root alongside the existing, unmodified `MockAdapter` and `GeminiCliAdapter` registrations.
+- New command contribution point (`package.json` `contributes.commands` / `activationEvents`) mirroring the existing commands' registration pattern.
+- Unit/integration test coverage for the new command's success and failure paths, using the existing deterministic Codex CLI test-double (Sprint 31) exclusively.
+
+Deferred Concepts:
+
+- Persisted adapter preferences, Workspace/User adapter settings, or any configuration subsystem for Adapter selection.
+- Adapter Selection Policy, automatic provider routing, capability scoring, fallback, or multi-adapter coordination.
+- Execution Model deepening (full RFC-0004 Execution State set, Execution Session, Review-gated execution progression).
+- Authentication management, credential storage, OAuth, `SecretStorage` integration.
+- GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter.
+- Streaming responses, multi-provider coordination, background execution.
+
+Critical Boundary:
+
+- This sprint introduces exactly one architectural variable — a third Developer Workflow command targeting `CodexCliAdapter` — while every other component remains unchanged. No `src/kernel` file may be modified; the existing `nexus.runDeveloperMissionWorkflow` and `nexus.runDeveloperMissionWorkflowWithGeminiCli` commands and their test coverage remain frozen.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0032-production-workflow-parity.md` for the complete Sprint Implementation Record.
+- This sprint introduces no new bounded context and does not modify RFC-0004, RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+- Upon completion, every certified production Adapter (`MockAdapter`, `GeminiCliAdapter`, `CodexCliAdapter`) SHALL have a corresponding, independently dispatched Developer Workflow command.
 
 ---
 

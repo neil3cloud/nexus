@@ -37,6 +37,7 @@ export interface VscodeHostOptions {
   readonly adapters?: readonly Adapter[];
   readonly missionWorkflowAdapterId?: string;
   readonly geminiCliMissionWorkflowAdapterId?: string;
+  readonly codexCliMissionWorkflowAdapterId?: string;
   readonly operationalMetadataProvider?: HostAdapterOperationalMetadataProvider;
 }
 
@@ -127,6 +128,7 @@ export class VscodeHost implements vscode.Disposable {
   private readonly ingress: HostIngressLayer;
   private readonly missionWorkflow: HostMissionWorkflow;
   private readonly geminiCliMissionWorkflow: HostMissionWorkflow | undefined;
+  private readonly codexCliMissionWorkflow: HostMissionWorkflow | undefined;
   private commandRegistrations: HostDisposable[] = [];
 
   public constructor(
@@ -136,6 +138,7 @@ export class VscodeHost implements vscode.Disposable {
     ingress: HostIngressLayer,
     missionWorkflow: HostMissionWorkflow,
     geminiCliMissionWorkflow?: HostMissionWorkflow,
+    codexCliMissionWorkflow?: HostMissionWorkflow,
   ) {
     this.outputChannel = outputChannel;
     this.kernel = kernel;
@@ -143,6 +146,7 @@ export class VscodeHost implements vscode.Disposable {
     this.ingress = ingress;
     this.missionWorkflow = missionWorkflow;
     this.geminiCliMissionWorkflow = geminiCliMissionWorkflow;
+    this.codexCliMissionWorkflow = codexCliMissionWorkflow;
   }
 
   public async initialize(): Promise<void> {
@@ -159,9 +163,10 @@ export class VscodeHost implements vscode.Disposable {
         this.missionWorkflow,
         inputSurface,
         presentation,
-        this.geminiCliMissionWorkflow === undefined
-          ? {}
-          : { geminiCliWorkflow: this.geminiCliMissionWorkflow },
+        createMissionWorkflowCommandOptions(
+          this.geminiCliMissionWorkflow,
+          this.codexCliMissionWorkflow,
+        ),
       ),
     ];
 
@@ -297,8 +302,51 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
           presentation,
           workspaceTrust,
         );
+  const codexCliMissionWorkflow =
+    options.codexCliMissionWorkflowAdapterId === undefined
+      ? undefined
+      : new HostMissionWorkflow(
+         missionService,
+         planningService,
+         executionService,
+         {
+           roleService,
+           executionStrategyService,
+           adapterService,
+           adapterId: options.codexCliMissionWorkflowAdapterId,
+           requiredCapability: 'CodeModification',
+         },
+         {
+           evidenceService,
+           reviewService,
+           knowledgeService,
+         },
+         presentation,
+         workspaceTrust,
+        );
 
-  return new VscodeHost(outputChannel, kernel, logger, ingress, missionWorkflow, geminiCliMissionWorkflow);
+  return new VscodeHost(
+    outputChannel,
+    kernel,
+    logger,
+    ingress,
+    missionWorkflow,
+    geminiCliMissionWorkflow,
+    codexCliMissionWorkflow,
+  );
+}
+
+function createMissionWorkflowCommandOptions(
+  geminiCliWorkflow: HostMissionWorkflow | undefined,
+  codexCliWorkflow: HostMissionWorkflow | undefined,
+): {
+  readonly geminiCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+  readonly codexCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+} {
+  return {
+    ...(geminiCliWorkflow === undefined ? {} : { geminiCliWorkflow }),
+    ...(codexCliWorkflow === undefined ? {} : { codexCliWorkflow }),
+  };
 }
 
 function resolveAdapterService(services: readonly IKernelService[]): AdapterService {

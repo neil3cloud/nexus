@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { createCodexCliAdapter, CODEX_CLI_ADAPTER_ID, CODEX_CLI_ADAPTER_VERSION } from './adapters/codex/codex-cli-adapter';
 import { createGeminiCliAdapter, GEMINI_CLI_ADAPTER_ID, GEMINI_CLI_ADAPTER_VERSION } from './adapters/gemini/gemini-cli-adapter';
 import { createMockAdapter, MOCK_ADAPTER_ID, MOCK_ADAPTER_VERSION } from './adapters/mock/mock-adapter';
 import { LocalProcessRuntime } from './adapters/runtime/local-process-runtime';
@@ -24,10 +25,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       attribution: GEMINI_CLI_ADAPTER_ID,
     },
   ]);
+  const codexDiagnostics = AdapterRuntimeDiagnostics.create([
+    {
+      code: 'adapter-runtime.discovered',
+      message: 'Codex CLI Adapter is registered for explicit Developer Workflow validation.',
+      attribution: CODEX_CLI_ADAPTER_ID,
+    },
+  ]);
   const host = createVscodeHost({
-    adapters: [createMockAdapter(), createGeminiCliAdapter(new LocalProcessRuntime())],
+    adapters: [
+      createMockAdapter(),
+      createGeminiCliAdapter(new LocalProcessRuntime()),
+      createCodexCliAdapter(new LocalProcessRuntime()),
+    ],
     missionWorkflowAdapterId: MOCK_ADAPTER_ID,
     geminiCliMissionWorkflowAdapterId: GEMINI_CLI_ADAPTER_ID,
+    codexCliMissionWorkflowAdapterId: CODEX_CLI_ADAPTER_ID,
     operationalMetadataProvider: new StaticHostAdapterOperationalMetadataProvider({
       [MOCK_ADAPTER_ID]: {
         installationStatus: AdapterInstallationStatus.create({
@@ -54,6 +67,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           diagnostics: geminiDiagnostics,
         }).toSnapshot(),
         runtimeDiagnostics: geminiDiagnostics.toSnapshot(),
+      },
+      [CODEX_CLI_ADAPTER_ID]: {
+        installationStatus: AdapterInstallationStatus.create({
+          state: 'Discovered',
+          version: CODEX_CLI_ADAPTER_VERSION,
+          diagnostics: codexDiagnostics,
+        }).toSnapshot(),
+        healthStatus: AdapterHealthStatus.create({
+          state: 'Ready',
+          checkedAt: '1970-01-01T00:00:00.000Z',
+          diagnostics: codexDiagnostics,
+        }).toSnapshot(),
+        runtimeDiagnostics: codexDiagnostics.toSnapshot(),
       },
     }),
   });
