@@ -26,7 +26,7 @@ export class EngineeringSession {
     private readonly engineeringRuntimeContextReferenceValue: string,
     private readonly activeEngineeringWorkflowReferenceValue: string,
     private readonly workflowChainIdValue: WorkflowChainId,
-    private readonly currentWorkflowStepIdValue: string,
+    private currentWorkflowStepIdValue: string,
     private readonly participatingRoleIdValues: readonly RoleId[],
     private readonly workflowStateValue: string,
     private timelineValue: EngineeringSessionTimelineSnapshot,
@@ -194,6 +194,32 @@ export class EngineeringSession {
     });
   }
 
+  public advanceWorkflow(workflowChain: WorkflowChain | undefined): void {
+    const workflowPosition = validateWorkflowPosition(
+      this.workflowChainIdValue,
+      this.currentWorkflowStepIdValue,
+      workflowChain,
+    );
+
+    if (workflowPosition.position === workflowPosition.terminalPosition) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        `EngineeringSession currentWorkflowStepId '${this.currentWorkflowStepIdValue}' is already at the terminal WorkflowStep for WorkflowChain '${this.workflowChainIdValue.toString()}'.`,
+      );
+    }
+
+    this.currentWorkflowStepIdValue = (workflowPosition.position + 1).toString();
+  }
+
+  public isWorkflowComplete(workflowChain: WorkflowChain | undefined): boolean {
+    const workflowPosition = validateWorkflowPosition(
+      this.workflowChainIdValue,
+      this.currentWorkflowStepIdValue,
+      workflowChain,
+    );
+
+    return workflowPosition.position === workflowPosition.terminalPosition;
+  }
+
   public equals(other: EngineeringSession): boolean {
     return snapshotsEqual(this.toSnapshot(), other.toSnapshot());
   }
@@ -226,19 +252,38 @@ function normalizeWorkflowBinding(
   readonly workflowChainId: WorkflowChainId;
   readonly currentWorkflowStepId: string;
 } {
+  const workflowChainId = WorkflowChainId.fromString(
+    normalizeNonEmptyString(input.workflowChainId, 'EngineeringSession workflowChainId'),
+  );
+  const currentWorkflowStepId = normalizeNonEmptyString(
+    input.currentWorkflowStepId,
+    'EngineeringSession currentWorkflowStepId',
+  );
+  const currentWorkflowStepPosition = validateWorkflowPosition(
+    workflowChainId,
+    currentWorkflowStepId,
+    workflowChain,
+  );
+
+  return Object.freeze({
+    workflowChainId,
+    currentWorkflowStepId: currentWorkflowStepPosition.position.toString(),
+  });
+}
+
+function validateWorkflowPosition(
+  workflowChainId: WorkflowChainId,
+  currentWorkflowStepId: string,
+  workflowChain: WorkflowChain | undefined,
+): {
+  readonly position: number;
+  readonly terminalPosition: number;
+} {
   if (workflowChain === undefined) {
     throw new InvalidEngineeringSessionDefinitionError(
       'EngineeringSession workflowChainId must reference an existing WorkflowChain.',
     );
   }
-
-  const workflowChainId = WorkflowChainId.fromString(
-    normalizeNonEmptyString(input.workflowChainId, 'EngineeringSession workflowChainId'),
-  );
-  const currentWorkflowStepPosition = normalizeWorkflowStepPosition(
-    input.currentWorkflowStepId,
-    'EngineeringSession currentWorkflowStepId',
-  );
 
   if (!workflowChain.id.equals(workflowChainId)) {
     throw new InvalidEngineeringSessionDefinitionError(
@@ -246,17 +291,21 @@ function normalizeWorkflowBinding(
     );
   }
 
-  const workflowStepCount = workflowChain.steps.length;
+  const position = normalizeWorkflowStepPosition(
+    currentWorkflowStepId,
+    'EngineeringSession currentWorkflowStepId',
+  );
+  const terminalPosition = workflowChain.steps.length - 1;
 
-  if (currentWorkflowStepPosition >= workflowStepCount) {
+  if (position > terminalPosition) {
     throw new InvalidEngineeringSessionDefinitionError(
-      `EngineeringSession currentWorkflowStepId '${currentWorkflowStepPosition.toString()}' is outside WorkflowChain '${workflowChainId.toString()}' step range.`,
+      `EngineeringSession currentWorkflowStepId '${position.toString()}' is outside WorkflowChain '${workflowChainId.toString()}' step range.`,
     );
   }
 
   return Object.freeze({
-    workflowChainId,
-    currentWorkflowStepId: currentWorkflowStepPosition.toString(),
+    position,
+    terminalPosition,
   });
 }
 

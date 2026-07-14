@@ -2074,9 +2074,9 @@ Implementation Result
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Current remaining candidate scope after Sprint 42: Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Remaining candidate scope after Sprint 43: Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session coordination.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) that introduced `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Sprint 39 — Engineering Sessions Foundation is Milestone 8's opening Sprint, implementing `EngineeringSession`/`EngineeringSessionId`/`EngineeringSessionStatus`/`EngineeringSessionService` as a foundation-only vertical slice.
 
@@ -2304,3 +2304,90 @@ Implementation Result
 - Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-14-021`). One Major finding (F-001, `currentWorkflowStepId`'s role-based representation cannot address a repeated-role `WorkflowChain` position) was recorded; it generated a non-blocking Builder Task via `nexus-sprint` and did not require Sprint Owner ratification to correct.
 - TASK-001 remediated `currentWorkflowStepId` to a validated, canonical zero-based position string (bounds-checked against the bound `WorkflowChain`'s step count), resolving the repeated-role ambiguity without modifying `WorkflowChain` or `WorkflowStep`. Completed and independently verified (`NEXUS-REV-2026-07-14-022`). Sprint 42 is fully closed with zero open findings.
 - No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, or automatic workflow advancement) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## Sprint 43 — Engineering Session Manual Workflow Advancement
+
+Status: ✅ Approved — NEXUS-REV-2026-07-14-023
+
+Objective
+
+Introduce deterministic manual workflow progression within an already-bound `EngineeringSession`, extending the runtime model established in Sprint 42 by allowing explicit advancement from the current `WorkflowStep` to the next `WorkflowStep` in the bound `WorkflowChain`. Progression SHALL remain explicit, deterministic, and caller-invoked. No orchestration behavior is introduced.
+
+RFC Coverage
+
+Primary
+
+- RFC-0004 v1.3 — Execution Model (`EngineeringSession`, `WorkflowChain`, `WorkflowStep` — existing, unmodified)
+
+Referenced
+
+- RFC-0010 — Kernel Boundaries
+
+No RFC ownership changes are authorized.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-023` — governs this Sprint's entire scope: Authorized Builder Scope, five Sprint Owner Refinements, Explicitly Deferred list, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-022` — Sprint 42's ratification; establishes the `workflowChainId`/`currentWorkflowStepId` binding this Sprint advances.
+- `NEXUS-RAT-2026-07-14-021` / `NEXUS-RAT-2026-07-14-020` — establish `WorkflowChain`/`WorkflowStep` and the RFC-0004 v1.3 amendment; both unmodified by this Sprint.
+
+Architectural Responsibilities (binding, from `NEXUS-RAT-2026-07-14-023`)
+
+| Concern | Owner |
+| --- | --- |
+| Current `WorkflowStep`, validation of workflow progression, transition to the next `WorkflowStep`, workflow completion detection | `EngineeringSession` (this Sprint) |
+| Immutable workflow definition, workflow topology, ordered `WorkflowStep`s | `WorkflowChain` (Sprint 41, unmodified) |
+| Workflow identity, execution ordering, associated `ExecutionRole` | `WorkflowStep` (Sprint 41, unmodified) |
+| Orchestration, repository interaction, persistence for `advanceWorkflow()` | `EngineeringSessionService` (extended this Sprint; no Assignment Policy, Review Gate, or orchestration-rule evaluation) |
+| Assignment Policy, Review-Gated Progression, Adapter dispatch, `ExecutionStrategy` invocation, orchestration events triggered by completion | Future, separately-ratified Milestone 8 Sprints |
+
+Authorized Vertical Slice
+
+- An explicit `advanceWorkflow()` operation on `EngineeringSession` (and its orchestration counterpart on `EngineeringSessionService`) that deterministically advances `currentWorkflowStepId` to exactly the next `WorkflowStep` in the bound `WorkflowChain`'s ordered steps — exactly one step per invocation; no multi-step, skip, or batch advancement.
+- Workflow completion detection: a read-only signal indicating the `EngineeringSession` has reached the bound `WorkflowChain`'s terminal `WorkflowStep`. Completion is state only — it SHALL NOT complete the `EngineeringSession`, trigger Assignment Policy, trigger Review-Gated Progression, dispatch Adapters, invoke `ExecutionStrategy`, or publish orchestration events.
+- Validation rejecting: advancement with no bound `WorkflowChain`; advancement from an invalid current `WorkflowStep`; advancement beyond the terminal `WorkflowStep`; a `WorkflowStep` reference not belonging to the bound `WorkflowChain`.
+- `IEngineeringSessionRepository` / `InMemoryEngineeringSessionRepository` persistence updated to carry the advanced position through snapshot/reconstitution, mirroring the existing pattern.
+- `createKernelServices` composition updated only as strictly required to support the above.
+- Unit tests:
+  - valid single-step advancement;
+  - rejection of advancement beyond the terminal `WorkflowStep`;
+  - rejection of advancement from an invalid current `WorkflowStep`;
+  - rejection of advancement with no bound `WorkflowChain`;
+  - workflow completion detection at the terminal step;
+  - deterministic construction (equivalent inputs produce equivalent outcomes);
+  - repository persistence/reconstitution of the advanced position;
+  - service orchestration of the validated advancement path (success and each rejection case);
+  - a composition assertion that `createKernelServices()` continues to compose all existing services without alteration beyond what this Sprint authorizes.
+
+Deferred Concepts
+
+- Automatic workflow advancement.
+- Event-driven advancement.
+- Assignment Policy.
+- Review-Gated Progression.
+- Workflow branching, restart, or replacement.
+- Concurrent workflow execution.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing.
+- Any `src/hosts` or `src/adapters` change.
+- Any modification to `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionSession`, `ExecutionSessionId`, `ExecutionSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy`.
+
+Definition of Done
+
+- `advanceWorkflow()` is the only new normative capability introduced by Sprint 43, advancing exactly one `WorkflowStep` per invocation.
+- `EngineeringSession` owns progression, its validation, and workflow completion detection; `WorkflowChain`/`WorkflowStep` remain immutable, read-only, and unmodified.
+- Workflow completion is state only; no Assignment Policy, Review-Gated Progression, Adapter dispatch, `ExecutionStrategy` invocation, or orchestration event is triggered by reaching the terminal step.
+- Construction/advancement deterministically rejects each invalid case; equivalent inputs produce equivalent outcomes.
+- No existing Kernel Execution/Mission-domain file is modified beyond `EngineeringSession`'s own files and the one authorized `createKernelServices` composition touch point.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0043-engineering-session-manual-workflow-advancement.md` for the complete Sprint Implementation Record.
+
+Implementation Result
+
+- Builder implementation completed the authorized Engineering Session Manual Workflow Advancement vertical slice.
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-14-023`). Zero findings requiring Builder action; two non-blocking Category 6 Observations recorded (service-level exposure of `isWorkflowComplete()`; reuse of the existing `InvalidEngineeringSessionDefinitionError` for advancement-time rejections). Sprint 43 is fully closed with zero open findings.
+- No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, or automatic/event-driven workflow advancement) requires its own future Sprint Owner scope ratification via `nexus-plan`.

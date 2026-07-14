@@ -139,6 +139,66 @@ describe('EngineeringSession domain', () => {
     );
   });
 
+  it('advances exactly one WorkflowStep per invocation and detects terminal completion', () => {
+    const session = createSession();
+
+    expect(session.isWorkflowComplete(workflowChain)).toBe(false);
+
+    session.advanceWorkflow(workflowChain);
+
+    expect(session.currentWorkflowStepId).toBe('1');
+    expect(session.toSnapshot()).toMatchObject({
+      currentWorkflowStepId: '1',
+      status: 'Open',
+    });
+    expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+  });
+
+  it('rejects advancement beyond the terminal WorkflowStep', () => {
+    const session = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+
+    expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+    expect(() => session.advanceWorkflow(workflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(session.currentWorkflowStepId).toBe('1');
+  });
+
+  it('rejects advancement from invalid or unbound workflow positions', () => {
+    const invalidCurrentStepSession = EngineeringSession.fromSnapshot({
+      ...createSession().toSnapshot(),
+      currentWorkflowStepId: '2',
+    });
+    const mismatchedWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-2',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+
+    expect(() => createSession().advanceWorkflow(undefined)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() => invalidCurrentStepSession.advanceWorkflow(workflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() => createSession().advanceWorkflow(mismatchedWorkflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+  });
+
+  it('advances deterministically for equivalent workflow inputs', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+
+    left.advanceWorkflow(workflowChain);
+    right.advanceWorkflow(workflowChain);
+
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+    expect(left.equals(right)).toBe(true);
+  });
+
   it('rejects invalid session definitions deterministically', () => {
     expect(() =>
       EngineeringSession.create(createSessionInput({ id: '' }), workflowChain),

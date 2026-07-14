@@ -1,5 +1,94 @@
 # Nexus Implementation Report
 
+## Sprint 43 — Engineering Session Manual Workflow Advancement
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 43 Engineering Session Manual Workflow Advancement vertical slice. This sprint introduces deterministic, caller-invoked, single-step manual workflow advancement within an already-bound `EngineeringSession`.
+
+Implemented scope:
+
+- Added `EngineeringSession.advanceWorkflow()` to advance `currentWorkflowStepId` by exactly one zero-based workflow position per invocation.
+- Added `EngineeringSession.isWorkflowComplete()` as a read-only terminal-step completion signal.
+- Kept progression validation inside `EngineeringSession`, rejecting missing bound chains, mismatched chains, invalid current positions, and advancement beyond the terminal `WorkflowStep`.
+- Extended `EngineeringSessionService` with `advanceWorkflow()` orchestration over repository lookup, read-only `WorkflowChain` retrieval, aggregate invocation, and persistence only.
+- Preserved `IEngineeringSessionRepository` / `InMemoryEngineeringSessionRepository` snapshot reconstitution so the advanced position persists through save and retrieval.
+- Added deterministic unit coverage for aggregate advancement, terminal detection, invalid advancement cases, repository persistence/reconstitution, service success and rejection paths, and equivalent-input determinism.
+
+Out of scope and not implemented:
+
+- Automatic or event-driven workflow advancement.
+- Assignment Policy, Review-Gated Progression, Adapter dispatch, `ExecutionStrategy` invocation, orchestration events, or behavior triggered by workflow completion.
+- Workflow branching, restart, replacement, concurrent workflow execution, Multi-Agent Engineering Orchestration, or session recovery/checkpointing.
+- Any change to `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionSession`, `ExecutionSessionId`, `ExecutionSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy`.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.3 (`EngineeringSession` current workflow position and workflow state ownership; existing `WorkflowChain`/`WorkflowStep` consumed read-only).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `EngineeringSession.advanceWorkflow()`.
+- `EngineeringSession.isWorkflowComplete()`.
+- Deterministic single-step advancement validation owned by `EngineeringSession`.
+- Repository persistence of advanced `currentWorkflowStepId` through existing snapshot reconstitution.
+- `EngineeringSessionService.advanceWorkflow()` repository orchestration and persistence only.
+
+Deferred Concepts:
+
+- Automatic workflow advancement, event-driven advancement.
+- Assignment Policy, Review-Gated Progression.
+- Adapter dispatch, `ExecutionStrategy` invocation, orchestration events, or completion-triggered behavior.
+- Workflow branching, restart, replacement, concurrent execution, Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing.
+- Host or Adapter consumption of workflow advancement.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-023`, `NEXUS-RAT-2026-07-14-022`, `NEXUS-RAT-2026-07-14-021`, `NEXUS-RAT-2026-07-14-020`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0043-engineering-session-manual-workflow-advancement.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `currentWorkflowStepId` remains the Sprint 42 canonical zero-based workflow position string; Sprint 43 advances that existing positional representation without changing the snapshot field name.
+- Workflow completion is computed from the bound `WorkflowChain`'s terminal ordered step and remains a read-only state signal only.
+
+### Known Limitations
+
+- Advancement is manual and caller-invoked only.
+- Workflow completion does not complete the `EngineeringSession` and triggers no additional behavior.
+- Sessions and workflow chains remain in-memory only; no durable persistence, recovery, checkpointing, or concurrent coordination is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 43 validation passed: `npm exec vitest run test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.repository.test.ts test/kernel/execution/engineering-session.service.test.ts`.
+- TypeScript compile passed: `npm run compile -- --pretty false`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (71 files / 337 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 43.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 42 — Engineering Session Workflow Chain Wiring
 
 ### Implemented Slice

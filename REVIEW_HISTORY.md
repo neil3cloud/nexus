@@ -2,6 +2,69 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-023 — Sprint 43 — Engineering Session Manual Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 43 — Engineering Session Manual Workflow Advancement
+- **Reviewed Change:** `EngineeringSession.advanceWorkflow()`, `EngineeringSession.isWorkflowComplete()`, `EngineeringSessionService.advanceWorkflow()`, and associated aggregate/repository/service tests.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (`EngineeringSession`, `WorkflowChain`, `WorkflowStep` — all existing, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently read `engineering-session.ts`, `engineering-session.contract.ts`, `engineering-session.service.ts`, and the three associated test files in full, and compared the implementation against `NEXUS-RAT-2026-07-14-023`'s Authorized Builder Scope and its five Sprint Owner Refinements. `EngineeringSession.advanceWorkflow()` deterministically advances `currentWorkflowStepId` to exactly the next ordered position in the bound `WorkflowChain` per invocation, delegating to the existing `validateWorkflowPosition` helper (refactored out of Sprint 42's `normalizeWorkflowBinding` without behavior change to the construction-time path) to re-derive and bounds-check the current position before advancing (Refinement 1, 2). `EngineeringSession.isWorkflowComplete()` is a pure, read-only terminal-position check with no side effect (Refinement 4). `EngineeringSessionService.advanceWorkflow()` performs only a repository lookup, a read-only `WorkflowChainRepository.getById()` call, aggregate delegation, and `repository.save()` — no `EventBusContract`, Assignment Policy, Review Gate, or orchestration-rule evaluation is present anywhere in the changed files (Refinement 5). Advancement deterministically rejects: no bound `WorkflowChain` (`session-missing-chain` test case), an invalid current `WorkflowStep` (`session-invalid-current-step` test case), and advancement beyond the terminal step (`session-terminal` test case and the aggregate-level terminal test), all raising `InvalidEngineeringSessionDefinitionError` (Refinement 3).
+
+`git diff HEAD --stat` confirms the only files touched are `engineering-session.contract.ts`, `engineering-session.service.ts`, `engineering-session.ts`, and their three test files, plus the governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `RATIFICATION_LEDGER.md`). `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionSession`, `ExecutionSessionId`, `ExecutionSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `create-kernel-services.ts`, `src/hosts`, and `src/adapters` are all confirmed unmodified — no composition change was needed since `EngineeringSessionService` already held a `WorkflowChainRepository` reference from Sprint 42. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (71 files / 337 tests, matching the Builder's reported count) all pass cleanly. Overall disposition: **PASS**.
+
+### Findings
+
+None blocking. Two non-blocking Observations recorded (Category 6):
+
+- **O-001 (Informational):** `EngineeringSession.isWorkflowComplete()` is not exposed on `EngineeringSessionServiceContract`; a caller must independently obtain the bound `WorkflowChain` to query completion, unlike `advanceWorkflow()` which is fully orchestrated by the service. This is consistent with the Authorized Vertical Slice, which requires only that the detection capability exist and be tested (satisfied at the aggregate level in `engineering-session.test.ts` and `engineering-session.repository.test.ts`), not that it be service-exposed. No Builder Task generated.
+- **O-002 (Informational):** Advancement-time rejections (terminal-step, invalid-position, missing-chain) reuse the existing `InvalidEngineeringSessionDefinitionError`, the same error type used for construction-time definition violations, rather than a distinct operation-time error class. `NEXUS-RAT-2026-07-14-023` does not name a required error type, and reusing the established error taxonomy avoids introducing a new architectural concept. No Builder Task generated.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Observations | 2 (Informational, non-blocking) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 337 tests |
+
+### Deferred Concept Validation
+
+Confirmed absent from the diff: automatic/event-driven advancement, Assignment Policy, Review-Gated Progression, workflow branching/restart/replacement, concurrent workflow execution, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and any `src/hosts`/`src/adapters` change. No `EventBusContract` injection or event publication was introduced for workflow advancement or completion.
+
+### Architectural Compliance Summary
+
+- **Single-step advancement:** `advanceWorkflow()` advances `currentWorkflowStepIdValue` by exactly one position (`workflowPosition.position + 1`) per invocation; no loop, batch, or multi-step path exists. Compliant with Refinement 2.
+- **Ownership:** `EngineeringSession` owns progression, its validation, and completion detection; `WorkflowChain`/`WorkflowStep` remain immutable, read-only, and byte-for-byte unmodified (confirmed by `git diff`). Compliant with Refinement 1.
+- **Deterministic rejection:** All four required rejection cases (no bound chain, invalid current step, terminal-step over-advancement, chain/step mismatch — the last inherited unchanged from Sprint 42's `validateWorkflowPosition`) are covered by dedicated tests at both the aggregate and service layers, including a determinism test confirming equivalent inputs produce equivalent outcomes. Compliant with Refinement 3.
+- **Completion is state-only:** `isWorkflowComplete()` has no side effects and is called from no orchestration path; no Assignment Policy, Review Gate, Adapter dispatch, `ExecutionStrategy` invocation, or event publication exists anywhere in the changed files. Compliant with Refinement 4.
+- **Service remains orchestration-only:** `EngineeringSessionService.advanceWorkflow()` performs repository lookup, read-only `WorkflowChain` retrieval, aggregate delegation, and persistence only. Compliant with Refinement 5.
+- **Tests:** Aggregate tests cover valid advancement, terminal rejection, invalid/missing-chain rejection, and determinism; repository test covers persistence/reconstitution of the advanced position and confirms `isWorkflowComplete()` post-reconstitution; service tests cover the full success path and all rejection cases (not-found, terminal, invalid-position, missing-chain) through orchestration. Full suite 337/337 passing.
+
+### Builder Task Recommendation
+
+None. No Category 1 Implementation Defects, Category 2 Architectural Violations, Category 3 Specification Conflicts, Category 4 Documentation Drift, or Category 5 Governance Decisions were identified. The two Category 6 Observations require no Builder action.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0043-engineering-session-manual-workflow-advancement.md`) — Status updated to Approved; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 43 marked Approved. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 43: Status → **Approved** (`NEXUS-REV-2026-07-14-023`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated this review.
+
+---
+
 ## NEXUS-REV-2026-07-14-022 — Sprint 42 — Engineering Session Workflow Chain Wiring (TASK-001 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 42 — Engineering Session Workflow Chain Wiring

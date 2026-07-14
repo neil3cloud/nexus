@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import { EngineeringSession } from './engineering-session';
 import type {
+  AdvanceEngineeringSessionWorkflowCommand,
   CloseEngineeringSessionCommand,
   CreateEngineeringSessionCommand,
   EngineeringSessionServiceContract,
@@ -78,6 +79,18 @@ export class EngineeringSessionService
     const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
 
     engineeringSession.close(this.createTimestamp());
+    await this.repository.save(engineeringSession);
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflow(
+    command: AdvanceEngineeringSessionWorkflowCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+
+    engineeringSession.advanceWorkflow(workflowChain);
     await this.repository.save(engineeringSession);
 
     return engineeringSession.toSnapshot();

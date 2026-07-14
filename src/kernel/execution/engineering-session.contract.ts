@@ -20,9 +20,14 @@ export interface CloseEngineeringSessionCommand {
   readonly engineeringSessionId: string;
 }
 
+export interface AdvanceEngineeringSessionWorkflowCommand {
+  readonly engineeringSessionId: string;
+}
+
 export interface EngineeringSessionServiceContract {
   createEngineeringSession(command: CreateEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   closeEngineeringSession(command: CloseEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
+  advanceWorkflow(command: AdvanceEngineeringSessionWorkflowCommand): Promise<EngineeringSessionSnapshot>;
   getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot>;
   enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;
 }

@@ -5,6 +5,7 @@ import {
   InvalidEngineeringSessionDefinitionError,
   InvalidEngineeringSessionLifecycleTransitionError,
 } from '../../../src/kernel/execution/engineering-session.errors';
+import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
 import { InMemoryEngineeringSessionRepository } from '../../../src/kernel/execution/engineering-session.repository';
 import { EngineeringSessionService } from '../../../src/kernel/execution/engineering-session.service';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
@@ -212,5 +213,81 @@ describe('EngineeringSessionService', () => {
         currentWorkflowStepId: position,
       });
     }
+  });
+
+  it('orchestrates validated single-step workflow advancement and persistence', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'session-1',
+      () => '2026-07-14T00:00:00.000Z',
+    );
+
+    const created = await service.createEngineeringSession({
+      engineeringRuntimeContextReference: 'runtime-context-1',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+    });
+    const advanced = await service.advanceWorkflow({ engineeringSessionId: created.id });
+
+    expect(advanced).toMatchObject({
+      id: 'session-1',
+      status: 'Open',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '1',
+    });
+    await expect(service.getEngineeringSession('session-1')).resolves.toEqual(advanced);
+  });
+
+  it('orchestrates deterministic workflow advancement rejection cases', async () => {
+    const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+    const workflowChainRepository = await createWorkflowChainRepository();
+    const service = new EngineeringSessionService(
+      engineeringSessionRepository,
+      workflowChainRepository,
+      () => 'unused-generated-session-id',
+      () => '2026-07-14T00:00:00.000Z',
+    );
+    const terminalSession = await service.createEngineeringSession({
+      id: 'session-terminal',
+      engineeringRuntimeContextReference: 'runtime-context-terminal',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '1',
+      participatingRoleIds: ['reviewer'],
+      workflowState: 'active',
+    });
+
+    await engineeringSessionRepository.create(
+      EngineeringSession.fromSnapshot({
+        ...terminalSession,
+        id: 'session-invalid-current-step',
+        currentWorkflowStepId: '2',
+      }),
+    );
+    await engineeringSessionRepository.create(
+      EngineeringSession.fromSnapshot({
+        ...terminalSession,
+        id: 'session-missing-chain',
+        workflowChainId: 'missing-chain',
+        currentWorkflowStepId: '0',
+      }),
+    );
+
+    await expect(
+      service.advanceWorkflow({ engineeringSessionId: 'missing-session' }),
+    ).rejects.toThrow(EngineeringSessionNotFoundError);
+    await expect(
+      service.advanceWorkflow({ engineeringSessionId: 'session-terminal' }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(
+      service.advanceWorkflow({ engineeringSessionId: 'session-invalid-current-step' }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(
+      service.advanceWorkflow({ engineeringSessionId: 'session-missing-chain' }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
   });
 });

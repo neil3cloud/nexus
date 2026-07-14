@@ -9,7 +9,7 @@ import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 
 const workflowChain = WorkflowChain.create({
   id: 'workflow-chain-1',
-  steps: [{ roleId: 'builder' }],
+  steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
 });
 
 function createSession(id: string): EngineeringSession {
@@ -58,5 +58,21 @@ describe('InMemoryEngineeringSessionRepository', () => {
     await expect(repository.create(createSession('session-1'))).rejects.toThrow(
       DuplicateEngineeringSessionError,
     );
+  });
+
+  it('persists and reconstitutes advanced workflow position deterministically', async () => {
+    const repository = new InMemoryEngineeringSessionRepository();
+    const session = createSession('session-1');
+
+    await repository.create(session);
+
+    session.advanceWorkflow(workflowChain);
+    await repository.save(session);
+
+    const reconstituted = await repository.getById('session-1');
+
+    expect(reconstituted?.toSnapshot()).toEqual(session.toSnapshot());
+    expect(reconstituted?.currentWorkflowStepId).toBe('1');
+    expect(reconstituted?.isWorkflowComplete(workflowChain)).toBe(true);
   });
 });
