@@ -16,6 +16,8 @@ import {
   InvalidEngineeringSessionLifecycleTransitionError,
 } from './engineering-session.errors';
 import { RoleId } from './role-id';
+import { WorkflowChain } from './workflow-chain';
+import { WorkflowChainId } from './workflow-chain-id';
 
 export class EngineeringSession {
   private constructor(
@@ -23,6 +25,8 @@ export class EngineeringSession {
     private statusValue: EngineeringSessionStatus,
     private readonly engineeringRuntimeContextReferenceValue: string,
     private readonly activeEngineeringWorkflowReferenceValue: string,
+    private readonly workflowChainIdValue: WorkflowChainId,
+    private readonly currentWorkflowStepIdValue: string,
     private readonly participatingRoleIdValues: readonly RoleId[],
     private readonly workflowStateValue: string,
     private timelineValue: EngineeringSessionTimelineSnapshot,
@@ -30,7 +34,10 @@ export class EngineeringSession {
     private readonly collaborationMetadataValue: EngineeringSessionMetadata,
   ) {}
 
-  public static create(input: EngineeringSessionInput): EngineeringSession {
+  public static create(
+    input: EngineeringSessionInput,
+    workflowChain: WorkflowChain | undefined,
+  ): EngineeringSession {
     const statusTransitions = normalizeStatusTransitions(
       input.timeline.statusTransitions ?? [
         {
@@ -49,6 +56,7 @@ export class EngineeringSession {
 
     const status = EngineeringSessionStatus.fromString(currentStatus);
     const timeline = normalizeTimeline(input.timeline, statusTransitions, status);
+    const workflowBinding = normalizeWorkflowBinding(input, workflowChain);
 
     return new EngineeringSession(
       EngineeringSessionId.fromString(input.id),
@@ -61,6 +69,8 @@ export class EngineeringSession {
         input.activeEngineeringWorkflowReference,
         'EngineeringSession activeEngineeringWorkflowReference',
       ),
+      workflowBinding.workflowChainId,
+      workflowBinding.currentWorkflowStepId,
       normalizeParticipatingRoleIds(input.participatingRoleIds),
       normalizeNonEmptyString(input.workflowState, 'EngineeringSession workflowState'),
       timeline,
@@ -70,16 +80,41 @@ export class EngineeringSession {
   }
 
   public static fromSnapshot(snapshot: EngineeringSessionSnapshot): EngineeringSession {
-    const engineeringSession = EngineeringSession.create({
-      id: snapshot.id,
-      engineeringRuntimeContextReference: snapshot.engineeringRuntimeContextReference,
-      activeEngineeringWorkflowReference: snapshot.activeEngineeringWorkflowReference,
-      participatingRoleIds: snapshot.participatingRoleIds,
-      workflowState: snapshot.workflowState,
-      timeline: snapshot.timeline,
-      diagnostics: snapshot.diagnostics,
-      collaborationMetadata: snapshot.collaborationMetadata,
-    });
+    const statusTransitions = normalizeStatusTransitions(snapshot.timeline.statusTransitions);
+    const currentStatus = statusTransitions[statusTransitions.length - 1]?.status;
+
+    if (currentStatus === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession timeline requires at least one status transition.',
+      );
+    }
+
+    const status = EngineeringSessionStatus.fromString(currentStatus);
+    const timeline = normalizeTimeline(snapshot.timeline, statusTransitions, status);
+    const engineeringSession = new EngineeringSession(
+      EngineeringSessionId.fromString(snapshot.id),
+      status,
+      normalizeNonEmptyString(
+        snapshot.engineeringRuntimeContextReference,
+        'EngineeringSession engineeringRuntimeContextReference',
+      ),
+      normalizeNonEmptyString(
+        snapshot.activeEngineeringWorkflowReference,
+        'EngineeringSession activeEngineeringWorkflowReference',
+      ),
+      WorkflowChainId.fromString(
+        normalizeNonEmptyString(snapshot.workflowChainId, 'EngineeringSession workflowChainId'),
+      ),
+      normalizeNonEmptyString(
+        snapshot.currentWorkflowStepId,
+        'EngineeringSession currentWorkflowStepId',
+      ),
+      normalizeParticipatingRoleIds(snapshot.participatingRoleIds),
+      normalizeNonEmptyString(snapshot.workflowState, 'EngineeringSession workflowState'),
+      timeline,
+      normalizeDiagnostics(snapshot.diagnostics),
+      copyMetadata(snapshot.collaborationMetadata, 'EngineeringSession collaborationMetadata'),
+    );
 
     if (snapshot.status !== engineeringSession.status.toString()) {
       throw new InvalidEngineeringSessionDefinitionError(
@@ -104,6 +139,14 @@ export class EngineeringSession {
 
   public get activeEngineeringWorkflowReference(): string {
     return this.activeEngineeringWorkflowReferenceValue;
+  }
+
+  public get workflowChainId(): WorkflowChainId {
+    return this.workflowChainIdValue;
+  }
+
+  public get currentWorkflowStepId(): string {
+    return this.currentWorkflowStepIdValue;
   }
 
   public get participatingRoleIds(): readonly RoleId[] {
@@ -161,6 +204,8 @@ export class EngineeringSession {
       status: this.statusValue.toString(),
       engineeringRuntimeContextReference: this.engineeringRuntimeContextReferenceValue,
       activeEngineeringWorkflowReference: this.activeEngineeringWorkflowReferenceValue,
+      workflowChainId: this.workflowChainIdValue.toString(),
+      currentWorkflowStepId: this.currentWorkflowStepIdValue,
       participatingRoleIds: Object.freeze(
         this.participatingRoleIdValues.map((roleId) => roleId.toString()),
       ),
@@ -172,6 +217,67 @@ export class EngineeringSession {
       collaborationMetadata: this.collaborationMetadataValue,
     });
   }
+}
+
+function normalizeWorkflowBinding(
+  input: EngineeringSessionInput,
+  workflowChain: WorkflowChain | undefined,
+): {
+  readonly workflowChainId: WorkflowChainId;
+  readonly currentWorkflowStepId: string;
+} {
+  if (workflowChain === undefined) {
+    throw new InvalidEngineeringSessionDefinitionError(
+      'EngineeringSession workflowChainId must reference an existing WorkflowChain.',
+    );
+  }
+
+  const workflowChainId = WorkflowChainId.fromString(
+    normalizeNonEmptyString(input.workflowChainId, 'EngineeringSession workflowChainId'),
+  );
+  const currentWorkflowStepPosition = normalizeWorkflowStepPosition(
+    input.currentWorkflowStepId,
+    'EngineeringSession currentWorkflowStepId',
+  );
+
+  if (!workflowChain.id.equals(workflowChainId)) {
+    throw new InvalidEngineeringSessionDefinitionError(
+      `EngineeringSession workflowChainId '${workflowChainId.toString()}' does not match the supplied WorkflowChain '${workflowChain.id.toString()}'.`,
+    );
+  }
+
+  const workflowStepCount = workflowChain.steps.length;
+
+  if (currentWorkflowStepPosition >= workflowStepCount) {
+    throw new InvalidEngineeringSessionDefinitionError(
+      `EngineeringSession currentWorkflowStepId '${currentWorkflowStepPosition.toString()}' is outside WorkflowChain '${workflowChainId.toString()}' step range.`,
+    );
+  }
+
+  return Object.freeze({
+    workflowChainId,
+    currentWorkflowStepId: currentWorkflowStepPosition.toString(),
+  });
+}
+
+function normalizeWorkflowStepPosition(value: unknown, label: string): number {
+  const normalized = normalizeNonEmptyString(value, label);
+
+  if (!/^(0|[1-9]\d*)$/.test(normalized)) {
+    throw new InvalidEngineeringSessionDefinitionError(
+      `${label} must be a zero-based WorkflowStep position.`,
+    );
+  }
+
+  const position = Number(normalized);
+
+  if (!Number.isSafeInteger(position)) {
+    throw new InvalidEngineeringSessionDefinitionError(
+      `${label} must be a safe zero-based WorkflowStep position.`,
+    );
+  }
+
+  return position;
 }
 
 function normalizeParticipatingRoleIds(roleIds: readonly string[]): readonly RoleId[] {
@@ -345,7 +451,11 @@ function snapshotsEqual(
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-function normalizeNonEmptyString(value: string, label: string): string {
+function normalizeNonEmptyString(value: unknown, label: string): string {
+  if (typeof value !== 'string') {
+    throw new InvalidEngineeringSessionDefinitionError(`${label} must be a non-empty string.`);
+  }
+
   const normalized = value.trim();
 
   if (normalized.length === 0) {

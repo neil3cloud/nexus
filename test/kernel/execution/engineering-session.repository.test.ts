@@ -5,18 +5,26 @@ import {
   DuplicateEngineeringSessionError,
 } from '../../../src/kernel/execution/engineering-session.errors';
 import { InMemoryEngineeringSessionRepository } from '../../../src/kernel/execution/engineering-session.repository';
+import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
+
+const workflowChain = WorkflowChain.create({
+  id: 'workflow-chain-1',
+  steps: [{ roleId: 'builder' }],
+});
 
 function createSession(id: string): EngineeringSession {
   return EngineeringSession.create({
     id,
     engineeringRuntimeContextReference: `runtime-context-${id}`,
     activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
     participatingRoleIds: ['builder'],
     workflowState: 'active',
     timeline: {
       createdAt: '2026-07-14T00:00:00.000Z',
     },
-  });
+  }, workflowChain);
 }
 
 describe('InMemoryEngineeringSessionRepository', () => {
@@ -32,6 +40,10 @@ describe('InMemoryEngineeringSessionRepository', () => {
 
     expect(await repository.exists('session-a')).toBe(true);
     expect((await repository.getById('session-a'))?.toSnapshot()).toEqual(sessionA.toSnapshot());
+    expect((await repository.getById('session-b'))?.toSnapshot()).toMatchObject({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+    });
     expect((await repository.enumerate()).map((session) => session.id.toString())).toEqual([
       'session-a',
       'session-b',

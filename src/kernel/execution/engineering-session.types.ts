@@ -40,6 +40,8 @@ export interface EngineeringSessionInput {
   readonly id: string;
   readonly engineeringRuntimeContextReference: string;
   readonly activeEngineeringWorkflowReference: string;
+  readonly workflowChainId: string;
+  readonly currentWorkflowStepId: string;
   readonly participatingRoleIds: readonly string[];
   readonly workflowState: string;
   readonly timeline: EngineeringSessionTimelineInput;
@@ -52,6 +54,8 @@ export interface EngineeringSessionSnapshot {
   readonly status: EngineeringSessionState;
   readonly engineeringRuntimeContextReference: string;
   readonly activeEngineeringWorkflowReference: string;
+  readonly workflowChainId: string;
+  readonly currentWorkflowStepId: string;
   readonly participatingRoleIds: readonly string[];
   readonly workflowState: string;
   readonly timeline: EngineeringSessionTimelineSnapshot;

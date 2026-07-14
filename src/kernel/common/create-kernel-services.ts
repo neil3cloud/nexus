@@ -63,7 +63,7 @@ export function createKernelServices(
     new ProjectionService(missionRepository, evidenceRepository),
     new RoleService(roleRegistry, roleAssignmentRepository),
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
-    new EngineeringSessionService(engineeringSessionRepository),
+    new EngineeringSessionService(engineeringSessionRepository, workflowChainRepository),
     new ExecutionSessionService(executionSessionRepository),
     new WorkflowChainService(workflowChainRepository),
     new ExecutionStrategyService(

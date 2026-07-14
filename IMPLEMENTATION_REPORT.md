@@ -1,5 +1,95 @@
 # Nexus Implementation Report
 
+## Sprint 42 — Engineering Session Workflow Chain Wiring
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 42 Engineering Session Workflow Chain Wiring vertical slice. This sprint introduces RFC-0004 v1.3's creation-time-only structural runtime binding from `EngineeringSession` to exactly one active `WorkflowChain` and exactly one current workflow position reference.
+
+Implemented scope:
+
+- Added required immutable `workflowChainId` and `currentWorkflowStepId` fields to `EngineeringSession` input and snapshot structures.
+- Extended `EngineeringSession` construction to validate an existing `WorkflowChain` reference and verify that the current workflow position points to an existing step in the bound chain.
+- Preserved `EngineeringSession` lifecycle behavior; no operation changes `workflowChainId` or `currentWorkflowStepId` after creation.
+- Extended `IEngineeringSessionRepository` / `InMemoryEngineeringSessionRepository` persistence through existing snapshot reconstitution to carry the new binding fields.
+- Extended `EngineeringSessionService` creation orchestration to consult `IWorkflowChainRepository` read-only, pass the binding into `EngineeringSession`, and persist only validated sessions.
+- Updated `createKernelServices()` to pass the existing composed `WorkflowChain` repository into `EngineeringSessionService`.
+- Added deterministic unit and integration coverage for valid binding, null/nonexistent chain and step rejection, out-of-range step-position rejection, repeated-role step positions, deterministic construction, repository reconstitution, service orchestration, and Kernel composition.
+- Remediated `NEXUS-REV-2026-07-14-021-F-001` / `TASK-001` by representing `currentWorkflowStepId` as a canonical zero-based position string instead of matching against `WorkflowStep.roleId`.
+
+Out of scope and not implemented:
+
+- Workflow advancement, event-driven advancement, Review-Gated Progression, Assignment Policy, workflow completion, branching, restart, or replacement.
+- `EngineeringSession` orchestration behavior beyond validated creation.
+- Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session coordination.
+- Any change to `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy`.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.3 (Engineering Session active Workflow Chain reference and current workflow position).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `EngineeringSession.workflowChainId`.
+- `EngineeringSession.currentWorkflowStepId`.
+- Creation-time binding validation owned by `EngineeringSession`.
+- Read-only `IWorkflowChainRepository` lookup during `EngineeringSessionService` creation orchestration.
+- Kernel composition wiring between the existing workflow-chain repository and `EngineeringSessionService`.
+
+Deferred Concepts:
+
+- Workflow advancement, event-driven advancement, Review-Gated Progression, Assignment Policy.
+- Workflow completion, branching, restart, or replacement.
+- `EngineeringSession` orchestration behavior beyond validated creation.
+- Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination.
+- Host or Adapter consumption of workflow-chain-bound Engineering Sessions.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-022`, `NEXUS-RAT-2026-07-14-021`, `NEXUS-RAT-2026-07-14-020`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0042-engineering-session-workflow-chain-wiring.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `currentWorkflowStepId` preserves the Sprint 42 snapshot field name while using a canonical zero-based position string. This satisfies RFC-0004's ordinal "current workflow position" requirement without modifying Sprint 41's frozen `WorkflowChain` or `WorkflowStep` shapes.
+- `activeEngineeringWorkflowReference` remains unchanged from Sprint 39 while `workflowChainId` provides the new RFC-0004 v1.3 active `WorkflowChain` reference; this Sprint does not rename or remove pre-existing fields.
+
+### Known Limitations
+
+- Binding is validated at creation only; no revalidation or mutation operation exists after persistence.
+- Sessions and workflow chains remain in-memory only; no durable persistence, recovery, checkpointing, or concurrent coordination is implemented.
+- No workflow progression semantics exist; the current workflow step reference is fixed for the lifetime of the `EngineeringSession` in this sprint.
+
+### Validation Summary
+
+- Targeted Sprint 42 validation passed: `npx vitest run test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.repository.test.ts test/kernel/execution/engineering-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- Targeted Sprint 42 recovery validation passed after `TASK-001` remediation: `npm run compile -- --pretty false` followed by `npx vitest run test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.repository.test.ts test/kernel/execution/engineering-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- Repository validation passed after `TASK-001` remediation with `npm run validate`: TypeScript compile, ESLint, Vitest (71 files / 330 tests), and esbuild.
+- Extension-host test bundle build passed after `TASK-001` remediation with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 42.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 41 — Workflow Chaining Foundation
 
 ### Implemented Slice

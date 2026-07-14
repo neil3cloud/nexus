@@ -10,12 +10,17 @@ import type {
 import { EngineeringSessionId } from './engineering-session-id';
 import {
   EngineeringSessionNotFoundError,
+  InvalidEngineeringSessionDefinitionError,
 } from './engineering-session.errors';
 import {
   InMemoryEngineeringSessionRepository,
   type IEngineeringSessionRepository,
 } from './engineering-session.repository';
 import type { EngineeringSessionSnapshot } from './engineering-session.types';
+import {
+  InMemoryWorkflowChainRepository,
+  type IWorkflowChainRepository,
+} from './workflow-chain.repository';
 
 export class EngineeringSessionService
   extends ServiceLifecycle
@@ -23,6 +28,7 @@ export class EngineeringSessionService
 {
   public constructor(
     private readonly repository: IEngineeringSessionRepository = new InMemoryEngineeringSessionRepository(),
+    private readonly workflowChainRepository: IWorkflowChainRepository = new InMemoryWorkflowChainRepository(),
     private readonly createIdentity: () => string = randomUUID,
     private readonly createTimestamp: () => string = () => new Date().toISOString(),
   ) {
@@ -33,18 +39,33 @@ export class EngineeringSessionService
     command: CreateEngineeringSessionCommand,
   ): Promise<EngineeringSessionSnapshot> {
     const createdAt = this.createTimestamp();
-    const engineeringSession = EngineeringSession.create({
-      id: command.id ?? this.createIdentity(),
-      engineeringRuntimeContextReference: command.engineeringRuntimeContextReference,
-      activeEngineeringWorkflowReference: command.activeEngineeringWorkflowReference,
-      participatingRoleIds: command.participatingRoleIds,
-      workflowState: command.workflowState,
-      timeline: {
-        createdAt,
+    const workflowChainId = normalizeCreationReference(
+      command.workflowChainId,
+      'EngineeringSession workflowChainId',
+    );
+    const currentWorkflowStepId = normalizeCreationReference(
+      command.currentWorkflowStepId,
+      'EngineeringSession currentWorkflowStepId',
+    );
+    const workflowChain = await this.workflowChainRepository.getById(workflowChainId);
+
+    const engineeringSession = EngineeringSession.create(
+      {
+        id: command.id ?? this.createIdentity(),
+        engineeringRuntimeContextReference: command.engineeringRuntimeContextReference,
+        activeEngineeringWorkflowReference: command.activeEngineeringWorkflowReference,
+        workflowChainId,
+        currentWorkflowStepId,
+        participatingRoleIds: command.participatingRoleIds,
+        workflowState: command.workflowState,
+        timeline: {
+          createdAt,
+        },
+        diagnostics: command.diagnostics ?? [],
+        collaborationMetadata: command.collaborationMetadata ?? {},
       },
-      diagnostics: command.diagnostics ?? [],
-      collaborationMetadata: command.collaborationMetadata ?? {},
-    });
+      workflowChain,
+    );
 
     await this.repository.create(engineeringSession);
 
@@ -89,4 +110,18 @@ export class EngineeringSessionService
 
     return engineeringSession;
   }
+}
+
+function normalizeCreationReference(value: unknown, label: string): string {
+  if (typeof value !== 'string') {
+    throw new InvalidEngineeringSessionDefinitionError(`${label} must be a non-empty string.`);
+  }
+
+  const normalized = value.trim();
+
+  if (normalized.length === 0) {
+    throw new InvalidEngineeringSessionDefinitionError(`${label} must be a non-empty string.`);
+  }
+
+  return normalized;
 }

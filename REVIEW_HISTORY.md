@@ -2,6 +2,136 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-022 — Sprint 42 — Engineering Session Workflow Chain Wiring (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 42 — Engineering Session Workflow Chain Wiring
+- **Reviewed Change:** `builder-task.md` TASK-001 remediation of `NEXUS-REV-2026-07-14-021-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (Engineering Session § Architectural Responsibilities, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-14-021-F-001`. `EngineeringSession`'s `normalizeWorkflowBinding` (`src/kernel/execution/engineering-session.ts:222-281`) no longer matches `currentWorkflowStepId` against `WorkflowStep.roleId`; it now validates and stores a canonical zero-based position string (`normalizeWorkflowStepPosition`, rejecting non-numeric, negative, and out-of-range values) and checks that position against `workflowChain.steps.length`. This directly satisfies RFC-0004's ordinal "current workflow position" framing and resolves the ambiguity gap without modifying `WorkflowChain` or `WorkflowStep` in any way (both confirmed unmodified). A new domain test, `'binds repeated-role WorkflowChain positions independently'` (`engineering-session.test.ts:213-243`), and a new service test, `'orchestrates binding to each repeated-role WorkflowChain position independently'` (`engineering-session.service.test.ts:182-215`), both construct a chain shaped `[builder, reviewer, builder]` — the exact scenario the finding identified — and confirm an `EngineeringSession` can bind to each of the three positions (`'0'`, `'1'`, `'2'`) independently. Existing validation paths (null/missing chain, null/missing/out-of-range position, mismatched step/chain) remain covered and passing, now expressed positionally (e.g., `currentWorkflowStepId: '2'` for missing-step, `'-1'` for out-of-range rejection) rather than by role name.
+
+No new architectural concept, workflow progression behavior, or scope expansion was introduced by this remediation; it is a pure identity-representation fix confined to `EngineeringSession`'s own files, exactly as `NEXUS-RAT-2026-07-14-022` already authorized ("an equivalent `WorkflowStep` identity reference"). `git diff` against `HEAD` confirms no file outside the already-authorized Sprint 42 footprint was touched by this remediation (`workflow-chain.*`, `execution-session.*`, `execution-role.*`, `role-registry.*`, `engineering-role-profile.*`, `execution-strategy.*`, `src/hosts`, `src/adapters` all remain absent from the diff). Independent re-validation: `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly; full Vitest suite now **71 files / 330 tests** (two new tests added by the remediation).
+
+### Findings
+
+None. `NEXUS-REV-2026-07-14-021-F-001` is fully resolved.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings remediated | 1 of 1 (F-001) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 330 tests |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-14-021`: all Sprint 42 Deferred Concepts remain unimplemented; no deferred concept was introduced by this remediation.
+
+### Architectural Compliance Summary
+
+- **Positional identity:** `currentWorkflowStepId` is now a validated, canonical zero-based position string, independently addressing every step in a bound `WorkflowChain` regardless of repeated `roleId` values. Compliant with RFC-0004's "current workflow position" framing.
+- **No scope expansion:** The remediation touches only `EngineeringSession`'s own construction/validation logic and its tests; `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `src/hosts`, and `src/adapters` remain unmodified.
+- **Tests:** Two new tests directly reproduce the finding's scenario (a `[builder, reviewer, builder]` chain) and confirm all three positions are independently bindable; existing rejection-path tests continue to pass, now expressed positionally. Full suite 330/330 passing.
+
+### Builder Task Recommendation
+
+None further. `TASK-001` is Completed and independently verified. Sprint 42 is fully closed with zero open findings.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0042-engineering-session-workflow-chain-wiring.md`) — Reviewer Notes updated to record remediation verification; Final Disposition updated to reflect zero open findings.
+- `IMPLEMENTATION_PLAN.md` — Sprint 42's Implementation Result updated to record `TASK-001`'s completion and independent verification.
+- `builder-task.md` — TASK-001 → Status **Completed**; Document Status → **CLOSED**.
+
+### Work Item State Reconciliation
+
+- Sprint 42: Status remains **Approved with Findings** (historical record of `NEXUS-REV-2026-07-14-021`); zero findings remain open.
+- Work Order: Status → **Completed**.
+- Builder Tasks: TASK-001 → **Completed** (verified by this review).
+
+---
+
+## NEXUS-REV-2026-07-14-021 — Sprint 42 — Engineering Session Workflow Chain Wiring
+
+- **Reviewed Sprint:** Sprint 42 — Engineering Session Workflow Chain Wiring
+- **Reviewed Vertical Slice:** `EngineeringSession.workflowChainId`/`currentWorkflowStepId` creation-time binding, binding validation, `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository` persistence extension, `EngineeringSessionService` creation-path extension, and `createKernelServices` composition wiring, per `NEXUS-RAT-2026-07-14-022`'s Authorized Builder Scope and four Sprint Owner Refinements.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (Primary; existing "Engineering Session" § Architectural Responsibilities, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 42 — Engineering Session Workflow Chain Wiring largely conforms to RFC-0004 v1.3 and `NEXUS-RAT-2026-07-14-022`'s Authorized Builder Scope. `EngineeringSession` now carries an immutable `workflowChainId` and `currentWorkflowStepId`, both populated only at construction (confirmed: no method on `EngineeringSession` or `EngineeringSessionService` changes either field after creation) (Refinement 1). Binding validation and cross-reference validation (the bound step must belong to the bound chain) are correctly owned by `EngineeringSession` itself, in `normalizeWorkflowBinding`, consulting an injected `WorkflowChain` instance read-only; `WorkflowChainService`'s creation path resolves that instance from `IWorkflowChainRepository` in `EngineeringSessionService`, with no mutation of `WorkflowChain`/`WorkflowStep` anywhere (Refinement 2). No workflow advancement, event-driven advancement, Review-Gated Progression, Assignment Policy, completion/branching/restart/replacement, or orchestration behavior of any kind was introduced (Refinement 3). Construction deterministically rejects null `WorkflowChain` references, nonexistent `WorkflowChain` references, null `WorkflowStep` references, and nonexistent `WorkflowStep` references (Refinement 4, partially — see Finding F-001). `git diff` confirms `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, and `ExecutionStrategy` are all byte-for-byte unmodified; the only existing-file changes beyond `EngineeringSession`'s own files are `create-kernel-services.ts` (the one authorized composition touch point, wiring the shared `InMemoryWorkflowChainRepository` instance into both `WorkflowChainService` and `EngineeringSessionService`). No `src/hosts` or `src/adapters` file was touched. Independent re-validation confirms `tsc --noEmit`, ESLint (`npm run lint`), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes **71 files / 328 tests**.
+
+One finding was recorded: the chosen representation of RFC-0004's "current workflow position" — reusing `WorkflowStep.roleId` as `currentWorkflowStepId`'s identity, since Sprint 41's approved `WorkflowStep` carries no independent identifier — makes it impossible to construct an `EngineeringSession` bound to any `WorkflowChain` containing two or more `WorkflowStep`s with the same `roleId`, even though nothing in RFC-0004, Sprint 41, or `NEXUS-RAT-2026-07-14-021` forbids a `WorkflowChain` from repeating a role at different steps (e.g., a Builder → Reviewer → Builder revision loop — the exact shape this repository's own review/remediation cycles already follow). Overall disposition: **PASS WITH FINDINGS**. The core creation-time binding capability is correctly and safely implemented for the (currently exclusive, since all existing default `WorkflowChain` test fixtures use distinct roles) common case; the finding identifies a real, narrow, and independently fixable robustness gap rather than an architectural violation.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-021-F-001 — `currentWorkflowStepId` cannot represent a repeated-role `WorkflowChain` position
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Major
+- **Authority:** `knowledge/specifications/rfc-0004-execution-model.md` — "Engineering Session" § Architectural Responsibilities ("the current workflow **position** within that Workflow Chain"); IMPLEMENTATION_GATE.md Gate 10 (Code Quality — deterministic, no hidden behavior)
+- **Summary:** RFC-0004 defines Engineering Session's runtime-progression concern as "the current workflow **position**" — an ordinal concept over the Workflow Chain's ordered step sequence. `engineering-session.ts`'s `normalizeWorkflowBinding` (lines 222-269) instead identifies the current step by `RoleId` value (`currentWorkflowStepId` is populated from, and matched against, each `WorkflowStep.roleId`). Because Sprint 41's approved `WorkflowChain`/`WorkflowStep` places no uniqueness constraint on `roleId` across a chain's steps, a chain such as `[{ roleId: 'builder' }, { roleId: 'builder' }]` is entirely valid to construct (confirmed: `WorkflowChain.create` imposes no such check), but `EngineeringSession.create` deterministically rejects *every* attempt to bind to such a chain with `InvalidEngineeringSessionDefinitionError` ("does not uniquely identify one WorkflowStep"), regardless of which occurrence of the role was intended. This is confirmed as deliberate, tested behavior, not an oversight: `test/kernel/execution/engineering-session.test.ts:205-213` explicitly asserts that a two-`builder`-step chain throws, and `IMPLEMENTATION_REPORT.md`'s Sprint 42 Architectural Assumptions section documents the rejection as an intentional design choice.
+- **Evidence:** `src/kernel/execution/engineering-session.ts:249-263` (`matchingSteps` role-based lookup and ambiguity rejection); `src/kernel/execution/workflow-chain.ts:95-103` (`normalizeWorkflowSteps` — no duplicate-`roleId` check); `test/kernel/execution/engineering-session.test.ts:205-213`; `IMPLEMENTATION_REPORT.md` Sprint 42 § Architectural Assumptions.
+- **Impact:** Any future `WorkflowChain` that legitimately repeats a role at two different steps (a common workflow shape — this repository's own Builder → Reviewer → Builder-remediation cycle is exactly such a shape) can never have an `EngineeringSession` constructed against any of its repeated-role steps. This is not a corner case invented by the Reviewer; it is the natural shape of an iterative review workflow, and the rejection is silent at the `WorkflowChain` layer (a chain author has no signal, at chain-creation time, that the chain they just built is unusable for certain step bindings). This is a narrower and more easily fixable gap than an architectural violation: it does not corrupt state, breach an aggregate boundary, or exceed `NEXUS-RAT-2026-07-14-022`'s Authorized Builder Scope (which explicitly permitted "an equivalent `WorkflowStep` identity reference" without mandating role-based identity), so no Sprint Owner ratification is required to correct it.
+- **Required Disposition:** Builder Task — represent "current workflow position" positionally (e.g., a validated index into the existing, already-exposed `WorkflowChain.steps` readonly array, or an equivalent ordinal) rather than by `RoleId` value, so that every position in a `WorkflowChain` — including repeated-role positions — is independently and unambiguously bindable. This requires no change to `WorkflowChain` or `WorkflowStep` (their existing `steps` array already exposes ordinal position) and remains within Sprint 42's already-authorized `EngineeringSession`-only scope.
+- **Builder Action:** Fix.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 1 (F-001) |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint (`npm run lint`), `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 328 tests |
+
+### Deferred Concept Validation
+
+All Sprint 42 Deferred Concepts remain unimplemented: workflow advancement (manual or automatic), event-driven advancement, Review-Gated Progression, Assignment Policy, workflow completion/branching/restart/replacement, `EngineeringSession` orchestration behavior beyond validated creation, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and concurrent session coordination. No deferred concept was silently introduced. `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, and `ExecutionStrategy` are confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `EngineeringSession` owns the active `WorkflowChain` reference, the current position reference, and their validation; `WorkflowChain`/`WorkflowStep` gain no new owned concern or runtime state. Compliant with RFC-0004 v1.3 and Refinement 2.
+- **Immutability of binding:** Both `workflowChainId` and `currentWorkflowStepId` are set only in the private constructor, populated only via `create`/`fromSnapshot`; no setter or mutation path exists. Compliant with Refinement 1.
+- **No progression semantics:** No advancement, event-driven advancement, Review-Gated Progression, Assignment Policy, completion, branching, restart, replacement, or orchestration method exists on `EngineeringSession` or `EngineeringSessionService`. Compliant with Refinement 3.
+- **Deterministic validation:** Null/nonexistent `WorkflowChain` and `WorkflowStep` references are deterministically rejected with `InvalidEngineeringSessionDefinitionError`; equivalent inputs produce equivalent snapshots (confirmed via the `equals`/`fromSnapshot` round-trip test). The mismatched-step-to-chain case is also correctly rejected. The one gap (repeated-role ambiguity) is captured as F-001 rather than treated as a Refinement 4 violation, since Refinement 4 only required rejecting null/nonexistent/mismatched references — which the implementation does — not resolving the ambiguity case, which was not explicitly anticipated by the ratification.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution/Mission-domain file modified beyond `EngineeringSession`'s own files and the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Tests:** 3 modified test files covering construction/validation/equality/immutability of the new binding, rejection of each invalid-binding case, repository persistence/reconstitution of the new fields, and service-level orchestration of the validated creation path (success and every rejection case). Full suite 328/328 passing.
+
+### Builder Task Recommendation
+
+Generate a Builder Task via `nexus-sprint` for F-001 (Major, Category 1 — Implementation Defect). No Category 2–5 findings were recorded; Sprint 42 does not require a Sprint Owner ratification to correct F-001, since `NEXUS-RAT-2026-07-14-022` already permits an equivalent `WorkflowStep` identity representation. Recommend the Sprint Owner treat Sprint 42 as **Approved with Findings**; the finding does not block progression to a future Milestone 8 Sprint.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0042-engineering-session-workflow-chain-wiring.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 42 marked **Approved with Findings**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction requires its own future Sprint Owner scope ratification via `nexus-plan`, and F-001's remediation should be completed first via `nexus-sprint`.
+
+### Work Item State Reconciliation
+
+- Sprint 42: Status → **Approved with Findings**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: One generated for F-001 (Major, Category 1) via `nexus-sprint`; not yet completed.
+
+---
+
 ## NEXUS-REV-2026-07-14-020 — Sprint 41 — Workflow Chaining Foundation
 
 - **Reviewed Sprint:** Sprint 41 — Workflow Chaining Foundation

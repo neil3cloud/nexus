@@ -3134,3 +3134,96 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-022
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-022
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 42 Scope Ratification — Engineering Session Workflow Chain Wiring. Resolves the `nexus-plan` Sprint Proposal presented after Sprint 41 (`NEXUS-RAT-2026-07-14-021`) introduced `WorkflowChain` as a standalone, unreferenced Kernel concept, deferring `EngineeringSession` wiring to a future Sprint. This ratification authorizes that wiring as a bounded, creation-time-only structural binding, per RFC-0004 v1.3's existing "Engineering Session" § Architectural Responsibilities (already amended by `NEXUS-RAT-2026-07-14-020`, unmodified by this ratification).
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Sprint Proposal (Sprint 42 — Engineering Session Workflow Chain Wiring). Approved by the Sprint Owner with a comprehensive set of binding architectural refinements narrowing the Sprint to structural runtime binding only (2026-07-14).
+
+## Governance Decision
+
+**Sprint 42 — Engineering Session Workflow Chain Wiring is authorized as Milestone 8's next Sprint.** Sprint 42 introduces immutable `WorkflowChain` binding into `EngineeringSession`: an `EngineeringSession` SHALL reference exactly one active `WorkflowChain` and exactly one current `WorkflowStep`, established at `EngineeringSession` creation only. This Sprint introduces **structural runtime binding only** — no workflow progression semantics of any kind.
+
+### Sprint Owner Refinements (binding)
+
+**Refinement 1 — Binding is creation-time-only.** `WorkflowChain` binding SHALL occur only during `EngineeringSession` creation. After binding, the `WorkflowChain` reference SHALL NOT change, and `WorkflowChain` itself SHALL remain immutable (unmodified from Sprint 41). Workflow replacement is explicitly deferred.
+
+**Refinement 2 — `EngineeringSession` owns the binding and its validation.** `EngineeringSession` owns the active `WorkflowChainId` reference, the current `WorkflowStepId` reference, validation of the `WorkflowChain` binding (existence), and validation that the referenced `WorkflowStep` belongs to the referenced `WorkflowChain`. `EngineeringSession` remains the authoritative owner of its own runtime workflow context; `WorkflowChain` and `WorkflowStep` gain no new owned concern and no runtime state.
+
+**Refinement 3 — No progression semantics of any kind.** This Sprint SHALL NOT implement workflow advancement (manual or automatic), event-driven advancement, review-gated progression, Assignment Policy, workflow completion, workflow branching, workflow restart, workflow replacement, `EngineeringSession` orchestration, Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session coordination. The current `WorkflowStep` reference is fixed at creation and SHALL NOT change during this Sprint's scope — there is no operation, on `EngineeringSession` or `EngineeringSessionService`, that changes it after construction.
+
+**Refinement 4 — Deterministic validation.** `EngineeringSession` construction SHALL reject: a null `WorkflowChain` reference; a nonexistent `WorkflowChain` reference; a null `WorkflowStep` reference; a nonexistent `WorkflowStep` reference; and a `WorkflowStep` that does not belong to the referenced `WorkflowChain`. Equivalent inputs SHALL always produce equivalent runtime state.
+
+## Explicitly Deferred (this Sprint and this ratification)
+
+- Workflow advancement — manual or automatic
+- Event-driven advancement
+- Review-Gated Progression
+- Assignment Policy
+- Workflow completion, branching, restart, or replacement
+- `EngineeringSession` orchestration behavior
+- Multi-Agent Engineering Orchestration
+- Session recovery/checkpointing
+- Concurrent session coordination
+- Any `src/hosts` or `src/adapters` change
+
+Each remains a separate future Milestone 8 Sprint requiring its own scope ratification.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Add `workflowChainId: WorkflowChainId` and `currentWorkflowStepId` (or equivalent `WorkflowStep` identity reference) to `EngineeringSession`, populated only at construction.
+- Implement binding validation within `EngineeringSession`'s construction path: reject null/nonexistent `WorkflowChain` references, null/nonexistent `WorkflowStep` references, and `WorkflowStep`s that do not belong to the bound `WorkflowChain` — consulting `IWorkflowChainRepository` read-only, with no mutation of `WorkflowChain` or `WorkflowStep`.
+- Update `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository` persistence to carry the new fields through snapshot/reconstitution, mirroring the existing `EngineeringSession` persistence pattern.
+- Update `EngineeringSessionService`'s creation path (and constructor injection, if a `WorkflowChain` repository dependency is required) to pass through and validate the binding — no new operation that changes the binding after creation, and no advancement, dispatch, or orchestration behavior.
+- Update `createKernelServices` composition only as strictly required to wire the `WorkflowChain` repository into `EngineeringSessionService`'s construction.
+- Add unit tests covering: valid binding at construction; rejection of null/nonexistent `WorkflowChain`; rejection of null/nonexistent `WorkflowStep`; rejection of a `WorkflowStep` not belonging to the bound `WorkflowChain`; deterministic/equivalent construction; repository persistence of the new fields; service orchestration of the validated creation path.
+
+The Builder SHALL NOT:
+
+- Modify `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, or `WorkflowChainService` in any way — `WorkflowChain` remains exactly as approved in Sprint 41, fully immutable, with no new owned runtime state.
+- Modify `ExecutionSession`, `ExecutionSessionId`, `ExecutionSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy`.
+- Introduce any operation, on `EngineeringSession` or `EngineeringSessionService`, that changes the bound `WorkflowChain` or the current `WorkflowStep` reference after construction — including as an unused/stubbed method.
+- Introduce any Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination concept, in any form, including as an unused stub.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- No `src/hosts` or `src/adapters` change.
+- No new execution, dispatch, assignment, orchestration, or workflow-progression concept beyond the one immutable, creation-time-only binding.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass unmodified unless they enumerate Kernel-composed services or `EngineeringSession`'s snapshot shape, mirroring the Sprint 37/38/39/40/41 precedent for such updates.
+- This ratification does not modify RFC-0004 (Engineering Session's Architectural Responsibilities were already amended to include this ownership by `NEXUS-RAT-2026-07-14-020` / RFC-0004 v1.3), any other RFC, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (establishes `EngineeringSession`, extended by this Sprint).
+- Sprint 40 — Execution Session Foundation (unmodified by this Sprint).
+- Sprint 41 — Workflow Chaining Foundation (establishes `WorkflowChain`/`WorkflowStep`, consumed read-only and unmodified by this Sprint).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 42 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 42 — Engineering Session Workflow Chain Wiring as Milestone 8's next Sprint, introducing immutable `WorkflowChain` binding into `EngineeringSession`: an `EngineeringSession` SHALL reference exactly one active `WorkflowChain` (via `workflowChainId`) and exactly one current `WorkflowStep` (via a `WorkflowStep` identity reference), established only at `EngineeringSession` creation (Refinement 1). `EngineeringSession` owns the active `WorkflowChain` reference, the current `WorkflowStep` reference, validation of the binding, and validation that the referenced `WorkflowStep` belongs to the referenced `WorkflowChain`; `WorkflowChain` and `WorkflowStep` gain no new owned concern and remain exactly as approved in Sprint 41 (Refinement 2). This Sprint introduces no workflow progression semantics of any kind — no manual or automatic advancement, no event-driven advancement, no review-gated progression, no Assignment Policy, no workflow completion, branching, restart, or replacement, and no `EngineeringSession` orchestration or Multi-Agent Engineering Orchestration behavior; the current `WorkflowStep` reference is fixed at construction and no operation changes it after creation within this Sprint's scope (Refinement 3). `EngineeringSession` construction SHALL deterministically reject null or nonexistent `WorkflowChain` references, null or nonexistent `WorkflowStep` references, and `WorkflowStep`s that do not belong to the referenced `WorkflowChain`, with equivalent inputs always producing equivalent runtime state (Refinement 4). No modification to `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` is authorized. Workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination, and Host/Adapter integration all remain explicitly deferred to future, separately-ratified Milestone 8 Sprints. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 42, and to generate Sprint 42's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

@@ -7,12 +7,22 @@ import {
 } from '../../../src/kernel/execution/engineering-session.errors';
 import { EngineeringSessionId } from '../../../src/kernel/execution/engineering-session-id';
 import { EngineeringSessionStatus } from '../../../src/kernel/execution/engineering-session-status';
+import type { EngineeringSessionInput } from '../../../src/kernel/execution/engineering-session.types';
+import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
+import { WorkflowChainId } from '../../../src/kernel/execution/workflow-chain-id';
+
+const workflowChain = WorkflowChain.create({
+  id: 'workflow-chain-1',
+  steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+});
 
 function createSession(): EngineeringSession {
   return EngineeringSession.create({
     id: ' session-1 ',
     engineeringRuntimeContextReference: ' runtime-context-1 ',
     activeEngineeringWorkflowReference: ' builder-workflow ',
+    workflowChainId: ' workflow-chain-1 ',
+    currentWorkflowStepId: ' 0 ',
     participatingRoleIds: ['reviewer', 'builder'],
     workflowState: 'active',
     timeline: {
@@ -28,7 +38,25 @@ function createSession(): EngineeringSession {
     collaborationMetadata: {
       pair: 'human-builder',
     },
-  });
+  }, workflowChain);
+}
+
+function createSessionInput(
+  overrides: Partial<EngineeringSessionInput> = {},
+): EngineeringSessionInput {
+  return {
+    id: 'session-1',
+    engineeringRuntimeContextReference: 'runtime-context-1',
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
+    participatingRoleIds: ['builder'],
+    workflowState: 'active',
+    timeline: {
+      createdAt: '2026-07-14T00:00:00.000Z',
+    },
+    ...overrides,
+  };
 }
 
 describe('EngineeringSession domain', () => {
@@ -41,6 +69,8 @@ describe('EngineeringSession domain', () => {
       status: 'Open',
       engineeringRuntimeContextReference: 'runtime-context-1',
       activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
       participatingRoleIds: ['builder', 'reviewer'],
       workflowState: 'active',
       timeline: {
@@ -68,6 +98,8 @@ describe('EngineeringSession domain', () => {
     expect(EngineeringSessionStatus.open().equals(session.status)).toBe(true);
     expect(session.engineeringRuntimeContextReference).toBe('runtime-context-1');
     expect(session.activeEngineeringWorkflowReference).toBe('builder-workflow');
+    expect(WorkflowChainId.fromString('workflow-chain-1').equals(session.workflowChainId)).toBe(true);
+    expect(session.currentWorkflowStepId).toBe('0');
     expect(session.participatingRoleIds.map((roleId) => roleId.toString())).toEqual([
       'builder',
       'reviewer',
@@ -109,49 +141,21 @@ describe('EngineeringSession domain', () => {
 
   it('rejects invalid session definitions deterministically', () => {
     expect(() =>
-      EngineeringSession.create({
-        id: '',
-        engineeringRuntimeContextReference: 'runtime-context-1',
-        activeEngineeringWorkflowReference: 'builder-workflow',
-        participatingRoleIds: ['builder'],
-        workflowState: 'active',
-        timeline: {
-          createdAt: '2026-07-14T00:00:00.000Z',
-        },
-      }),
+      EngineeringSession.create(createSessionInput({ id: '' }), workflowChain),
     ).toThrow(InvalidEngineeringSessionDefinitionError);
     expect(() =>
-      EngineeringSession.create({
-        id: 'session-1',
-        engineeringRuntimeContextReference: 'runtime-context-1',
-        activeEngineeringWorkflowReference: 'builder-workflow',
-        participatingRoleIds: [],
-        workflowState: 'active',
-        timeline: {
-          createdAt: '2026-07-14T00:00:00.000Z',
-        },
-      }),
+      EngineeringSession.create(createSessionInput({ participatingRoleIds: [] }), workflowChain),
     ).toThrow(InvalidEngineeringSessionDefinitionError);
     expect(() =>
-      EngineeringSession.create({
-        id: 'session-1',
-        engineeringRuntimeContextReference: 'runtime-context-1',
-        activeEngineeringWorkflowReference: 'builder-workflow',
-        participatingRoleIds: ['builder', 'builder'],
-        workflowState: 'active',
-        timeline: {
-          createdAt: '2026-07-14T00:00:00.000Z',
-        },
-      }),
+      EngineeringSession.create(
+        createSessionInput({ participatingRoleIds: ['builder', 'builder'] }),
+        workflowChain,
+      ),
     ).toThrow(InvalidEngineeringSessionDefinitionError);
     expect(() =>
-      EngineeringSession.create({
-        id: 'session-1',
-        engineeringRuntimeContextReference: 'runtime-context-1',
-        activeEngineeringWorkflowReference: 'builder-workflow',
-        participatingRoleIds: ['builder'],
-        workflowState: 'active',
-        timeline: {
+      EngineeringSession.create(
+        createSessionInput({
+          timeline: {
           createdAt: '2026-07-14T00:00:00.000Z',
           statusTransitions: [
             {
@@ -161,7 +165,9 @@ describe('EngineeringSession domain', () => {
           ],
           closedAt: '2026-07-14T00:00:00.000Z',
         },
-      }),
+        }),
+        workflowChain,
+      ),
     ).toThrow(InvalidEngineeringSessionDefinitionError);
     expect(() =>
       EngineeringSession.fromSnapshot({
@@ -169,5 +175,70 @@ describe('EngineeringSession domain', () => {
         status: 'Closed',
       }),
     ).toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('validates WorkflowChain binding at construction', () => {
+    expect(createSession().toSnapshot()).toMatchObject({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+    });
+    expect(() =>
+      EngineeringSession.create(createSessionInput(), undefined),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ workflowChainId: 'missing-chain' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ currentWorkflowStepId: '2' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(
+        createSessionInput({
+          currentWorkflowStepId: '0',
+        }),
+        WorkflowChain.create({
+          id: 'workflow-chain-1',
+          steps: [{ roleId: 'documentation-reviewer' }, { roleId: 'reviewer' }],
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ currentWorkflowStepId: '-1' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ currentWorkflowStepId: 'builder' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('binds repeated-role WorkflowChain positions independently', () => {
+    const repeatedRoleWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-1',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }, { roleId: 'builder' }],
+    });
+
+    expect(
+      EngineeringSession.create(
+        createSessionInput({ id: 'session-position-0', currentWorkflowStepId: '0' }),
+        repeatedRoleWorkflowChain,
+      ).toSnapshot(),
+    ).toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+    expect(
+      EngineeringSession.create(
+        createSessionInput({ id: 'session-position-1', currentWorkflowStepId: '1' }),
+        repeatedRoleWorkflowChain,
+      ).toSnapshot(),
+    ).toMatchObject({
+      currentWorkflowStepId: '1',
+    });
+    expect(
+      EngineeringSession.create(
+        createSessionInput({ id: 'session-position-2', currentWorkflowStepId: '2' }),
+        repeatedRoleWorkflowChain,
+      ).toSnapshot(),
+    ).toMatchObject({
+      currentWorkflowStepId: '2',
+    });
   });
 });

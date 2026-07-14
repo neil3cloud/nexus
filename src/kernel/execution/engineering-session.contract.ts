@@ -8,6 +8,8 @@ export interface CreateEngineeringSessionCommand {
   readonly id?: string;
   readonly engineeringRuntimeContextReference: string;
   readonly activeEngineeringWorkflowReference: string;
+  readonly workflowChainId: string;
+  readonly currentWorkflowStepId: string;
   readonly participatingRoleIds: readonly string[];
   readonly workflowState: string;
   readonly collaborationMetadata?: EngineeringSessionMetadata;
