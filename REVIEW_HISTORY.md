@@ -2,6 +2,132 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-026 — Sprint 45 — Automatic/Event-Driven Workflow Advancement (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 45 — Automatic/Event-Driven Workflow Advancement
+- **Reviewed Change:** `builder-task.md` TASK-001 remediation of `NEXUS-REV-2026-07-14-025-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.4 ("Workflow Advancement" § Automatic/Event-Driven Advancement Strategy, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-14-025-F-001`. `EngineeringSession.advanceWorkflowOnTrigger()` (`src/kernel/execution/engineering-session.ts:214-217`) no longer calls `trigger.toSnapshot()` and discards the result; the dead statement is removed, and the parameter is renamed `_trigger` (the repository's established convention for an intentionally-unused parameter, satisfying the linter's unused-argument rule) while the method still accepts an `AdvancementTrigger` and delegates unchanged to `advanceWorkflow(workflowChain)`. `git diff --stat` confirms the remediation touches only `engineering-session.ts` (8 lines) — no other file in `src/` or `test/` was modified beyond the original Sprint 45 diff already reviewed under `NEXUS-REV-2026-07-14-025`; in particular, `AdvancementTrigger`, `advanceWorkflow()`, `isWorkflowComplete()`, `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, and all existing tests remain unmodified by this remediation, and all Sprint 45 tests continue to pass unchanged, confirming the removal had no observable behavioral effect (as the finding predicted). Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (75 files / 354 tests, unchanged from the pre-remediation count) all pass cleanly. Overall disposition: **PASS**.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-14-025-F-001` is fully resolved with no residual or newly introduced defect.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Findings resolved this review | 1 (F-001) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 75 files / 354 tests |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 45 deferred concepts (`ExecutionSession`-driven trigger producers, Event Bus integration, Review-Gated Advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, any `src/hosts`/`src/adapters` change) remain confirmed absent.
+
+### Architectural Compliance Summary
+
+- **Dead code removed:** The unused `trigger.toSnapshot()` statement is gone; `advanceWorkflowOnTrigger()` is now exactly two meaningful lines: accept the trigger, delegate to `advanceWorkflow()`.
+- **No behavioral change:** All Sprint 43 and Sprint 45 tests pass unmodified, confirming the fix is purely cosmetic as the finding predicted.
+- **Scope discipline:** No file beyond `engineering-session.ts` was touched; `AdvancementTrigger` and all Sprint 41/43 concepts remain byte-for-byte unmodified.
+
+### Builder Task Recommendation
+
+None. TASK-001 is fully closed with no residual finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0045-automatic-event-driven-workflow-advancement.md`) — Status updated to Approved; Reviewer Notes and Final Disposition updated to reflect F-001's closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 45 marked Approved (no open findings remain).
+
+### Work Item State Reconciliation
+
+- Sprint 45: Status → **Approved** (`NEXUS-REV-2026-07-14-026`; fully closed, zero open findings).
+- Work Order: Status → **Completed**.
+- Builder Tasks: `TASK-001` → **Completed** (acceptance criteria satisfied; verified above).
+
+---
+
+## NEXUS-REV-2026-07-14-025 — Sprint 45 — Automatic/Event-Driven Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 45 — Automatic/Event-Driven Workflow Advancement
+- **Reviewed Change:** New `AdvancementTrigger` value object (`advancement-trigger.ts`, `advancement-trigger.types.ts`, `advancement-trigger.errors.ts`) and its test file; `EngineeringSession.advanceWorkflowOnTrigger()`, `EngineeringSessionService.advanceWorkflowOnTrigger()`, `EngineeringSessionServiceContract`'s new command type, and associated aggregate/service test additions.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.4 ("Workflow Advancement" section, Automatic/Event-Driven Advancement Strategy). Referenced: RFC-0004 v1.4 "Engineering Session" (existing, unmodified); RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Independently read the three new `advancement-trigger*.ts` files, their test file, the `engineering-session.ts`/`.contract.ts`/`.service.ts` diffs, and both updated test files against `NEXUS-RAT-2026-07-14-026`'s Authorized Builder Scope and four Sprint Owner Refinements. `AdvancementTrigger` is an immutable value object (`Object.freeze`-protected, constructed only through `create`/`fromSnapshot`) exposing exactly one field, `fact`, with no "caller," "API," `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter, `RoleRegistry`, `EngineeringRoleProfile`, or `ExecutionStrategy` framing anywhere in its definition or `assignmentPolicyAllowedKeys`-style key enumeration (`advancementTriggerAllowedKeys = new Set(['fact'])`) — satisfying Refinement 1. `EngineeringSession.advanceWorkflowOnTrigger()` (`engineering-session.ts:214-220`) is a two-line method that discards the trigger's snapshot and delegates immediately to the existing, unmodified `advanceWorkflow()` — confirming Refinement 3 (verbatim reuse of Sprint 43's Advancement Eligibility/Result/Failure semantics, no second validation path) precisely, since there is literally only one validation path. `git diff` confirms `advanceWorkflow()` and `isWorkflowComplete()` are byte-for-byte unmodified. `EngineeringSessionService.advanceWorkflowOnTrigger()` performs only repository lookup, a read-only `WorkflowChainRepository.getById()` call (mirroring `advanceWorkflow()`'s existing pattern), `AdvancementTrigger.create()`, aggregate delegation, and `repository.save()` — entirely synchronous, with no `EventBusContract`, scheduling, `setTimeout`/`setInterval`, or subscription anywhere in the changed files (confirmed by repository-wide grep), satisfying Refinement 2. No reference from any new or changed file to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` exists, satisfying Refinement 4.
+
+`git diff --stat` confirms the changed/added file set is limited to the three new `AdvancementTrigger` files (plus one new test file), the three `EngineeringSession`-family files (additive changes only — new imports, new method, new contract type, new service method), two updated test files, and governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `RATIFICATION_LEDGER.md`, `rfc-0004-execution-model.md`, the Sprint 45 record). `create-kernel-services.ts` and the Sprint 18 Kernel Boundary Certification test are both confirmed unmodified — consistent with this Sprint introducing no new Kernel-composed service. `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, and every `src/hosts`/`src/adapters` file are confirmed unmodified. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (75 files / 354 tests, matching the Builder's reported count) all pass cleanly. Overall disposition: **PASS WITH FINDINGS** — one non-blocking Minor finding recorded below.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-025-F-001 — Dead code: discarded `trigger.toSnapshot()` call in `advanceWorkflowOnTrigger`
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 10 (No dead code introduced)
+- **Summary:** `EngineeringSession.advanceWorkflowOnTrigger()` (`engineering-session.ts:214-220`) calls `trigger.toSnapshot()` and discards the result before delegating to `advanceWorkflow()`. `AdvancementTrigger.toSnapshot()` (`advancement-trigger.ts:32-36`) has no side effects — it only returns a frozen copy of already-validated, already-frozen state — so the call accomplishes nothing observable: it does not validate, record, or use the trigger in any way.
+- **Impact:** The line reads as if it exists to validate or persist the trigger fact, misleading a future maintainer about what the method actually does; removing it would not change behavior in any way, which is the definition of dead code under Gate 10.
+- **Required Disposition:** Builder Task — remove the unused `trigger.toSnapshot()` statement (or, if the intent was to eventually record `AdvancementTrigger` provenance on the session, that would be new scope requiring its own future ratification — not implicitly stubbed here).
+- **Builder Action:** Fix.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 75 files / 354 tests |
+
+### Deferred Concept Validation
+
+Confirmed absent from the diff: `ExecutionSession`-completion-driven or other concrete trigger producers, Event Bus subscription for `EngineeringSession`, Review-Gated Advancement and its Review Outcome gating semantics, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, and any `src/hosts`/`src/adapters` change.
+
+### Architectural Compliance Summary
+
+- **Producer-independent trigger:** `AdvancementTrigger` carries exactly one field (`fact`); no producer/caller/API framing exists in its definition or key enumeration. Compliant with Refinement 1.
+- **Fully synchronous, no hidden behavior:** No Event Bus, scheduling, or asynchronous mechanism exists anywhere in the changed files; trigger submission and advancement occur within one synchronous call. Compliant with Refinement 2.
+- **Verbatim reuse of Sprint 43's validation:** `advanceWorkflowOnTrigger()` delegates directly to the unmodified `advanceWorkflow()`; no second, divergent Advancement Eligibility/Result/Failure path exists. Compliant with Refinement 3 (see F-001 for the cosmetic, non-behavioral dead-code line accompanying this delegation).
+- **No cross-domain wiring:** No reference to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` exists in any new or changed file. Compliant with Refinement 4.
+- **Kernel composition:** `create-kernel-services.ts` and the Sprint 18 Kernel Boundary Certification test are unmodified, consistent with no new Kernel-composed service being introduced this Sprint.
+- **Tests:** New test coverage spans `AdvancementTrigger` construction/validation, eligible-trigger advancement, ineligible-trigger rejection (missing session, terminal position, invalid current position, invalid trigger fact) with no position change on failure, determinism (equivalent trigger + equivalent session state), and service-level persistence/orchestration. Full suite 354/354 passing.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for F-001 (remove the dead `trigger.toSnapshot()` statement). This is a cosmetic, non-blocking fix; it does not affect Sprint 45's approval.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0045-automatic-event-driven-workflow-advancement.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — Sprint 45 marked Approved with Findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Review-Gated Advancement, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 45: Status → **Approved with Findings** (`NEXUS-REV-2026-07-14-025`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: One generated — F-001 (dead-code removal), Minor, non-blocking.
+
+---
+
 ## NEXUS-REV-2026-07-14-024 — Sprint 44 — Assignment Policy Foundation
 
 - **Reviewed Sprint:** Sprint 44 — Assignment Policy Foundation

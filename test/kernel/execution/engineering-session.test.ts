@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { AdvancementTrigger } from '../../../src/kernel/execution/advancement-trigger';
 import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
 import {
   InvalidEngineeringSessionDefinitionError,
@@ -14,6 +15,9 @@ import { WorkflowChainId } from '../../../src/kernel/execution/workflow-chain-id
 const workflowChain = WorkflowChain.create({
   id: 'workflow-chain-1',
   steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+});
+const advancementTrigger = AdvancementTrigger.create({
+  fact: 'workflow-position-eligible',
 });
 
 function createSession(): EngineeringSession {
@@ -154,6 +158,18 @@ describe('EngineeringSession domain', () => {
     expect(session.isWorkflowComplete(workflowChain)).toBe(true);
   });
 
+  it('advances on an AdvancementTrigger using existing Workflow Advancement semantics', () => {
+    const session = createSession();
+
+    session.advanceWorkflowOnTrigger(advancementTrigger, workflowChain);
+
+    expect(session.toSnapshot()).toMatchObject({
+      currentWorkflowStepId: '1',
+      status: 'Open',
+    });
+    expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+  });
+
   it('rejects advancement beyond the terminal WorkflowStep', () => {
     const session = EngineeringSession.create(
       createSessionInput({ currentWorkflowStepId: '1' }),
@@ -165,6 +181,36 @@ describe('EngineeringSession domain', () => {
       InvalidEngineeringSessionDefinitionError,
     );
     expect(session.currentWorkflowStepId).toBe('1');
+  });
+
+  it('rejects trigger advancement using the same ineligible Advancement Failure semantics', () => {
+    const terminalSession = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+    const invalidCurrentStepSession = EngineeringSession.fromSnapshot({
+      ...createSession().toSnapshot(),
+      currentWorkflowStepId: '2',
+    });
+    const mismatchedWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-2',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+
+    expect(() => createSession().advanceWorkflowOnTrigger(advancementTrigger, undefined)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() => terminalSession.advanceWorkflowOnTrigger(advancementTrigger, workflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() =>
+      invalidCurrentStepSession.advanceWorkflowOnTrigger(advancementTrigger, workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      createSession().advanceWorkflowOnTrigger(advancementTrigger, mismatchedWorkflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(terminalSession.currentWorkflowStepId).toBe('1');
+    expect(invalidCurrentStepSession.currentWorkflowStepId).toBe('2');
   });
 
   it('rejects advancement from invalid or unbound workflow positions', () => {
@@ -194,6 +240,21 @@ describe('EngineeringSession domain', () => {
 
     left.advanceWorkflow(workflowChain);
     right.advanceWorkflow(workflowChain);
+
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+    expect(left.equals(right)).toBe(true);
+  });
+
+  it('advances deterministically for equivalent trigger and EngineeringSession state', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+    const leftTrigger = AdvancementTrigger.create({
+      fact: 'workflow-position-eligible',
+    });
+    const rightTrigger = AdvancementTrigger.fromSnapshot(leftTrigger.toSnapshot());
+
+    left.advanceWorkflowOnTrigger(leftTrigger, workflowChain);
+    right.advanceWorkflowOnTrigger(rightTrigger, workflowChain);
 
     expect(left.toSnapshot()).toEqual(right.toSnapshot());
     expect(left.equals(right)).toBe(true);

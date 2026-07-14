@@ -1,3 +1,4 @@
+import type { AdvancementTriggerInput } from './advancement-trigger.types';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionMetadata,
@@ -24,10 +25,18 @@ export interface AdvanceEngineeringSessionWorkflowCommand {
   readonly engineeringSessionId: string;
 }
 
+export interface AdvanceEngineeringSessionWorkflowOnTriggerCommand {
+  readonly engineeringSessionId: string;
+  readonly trigger: AdvancementTriggerInput;
+}
+
 export interface EngineeringSessionServiceContract {
   createEngineeringSession(command: CreateEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   closeEngineeringSession(command: CloseEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   advanceWorkflow(command: AdvanceEngineeringSessionWorkflowCommand): Promise<EngineeringSessionSnapshot>;
+  advanceWorkflowOnTrigger(
+    command: AdvanceEngineeringSessionWorkflowOnTriggerCommand,
+  ): Promise<EngineeringSessionSnapshot>;
   getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot>;
   enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;
 }

@@ -1,5 +1,6 @@
 import { EngineeringSessionId } from './engineering-session-id';
 import { EngineeringSessionStatus } from './engineering-session-status';
+import { AdvancementTrigger } from './advancement-trigger';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionDiagnosticSnapshot,
@@ -208,6 +209,13 @@ export class EngineeringSession {
     }
 
     this.currentWorkflowStepIdValue = (workflowPosition.position + 1).toString();
+  }
+
+  public advanceWorkflowOnTrigger(
+    _trigger: AdvancementTrigger,
+    workflowChain: WorkflowChain | undefined,
+  ): void {
+    this.advanceWorkflow(workflowChain);
   }
 
   public isWorkflowComplete(workflowChain: WorkflowChain | undefined): boolean {

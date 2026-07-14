@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.3
+**Version:** 1.4
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -13,6 +13,7 @@
 - v1.1 — Adds Engineering Role Profile (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-014`). Engineering Role Profile is descriptive/presentational metadata only, one-to-one with Execution Role; Execution Role remains the sole authority for execution semantics, identity, and dispatch eligibility. No other section of this specification is modified.
 - v1.2 — Adds Engineering Session (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-017`). Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work and MAY contain zero or more Execution Sessions. Execution Session's existing definition, invariants, and immutability are unmodified by this amendment; it becomes one activity record capturable within an Engineering Session's timeline. No other section of this specification is modified.
 - v1.3 — Adds Workflow Chaining (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-020`). Workflow Chain is the Kernel-owned, immutable definition of an ordered engineering workflow (chain identity, ordered steps, topology); it owns no mutable runtime state. Engineering Session's existing Architectural Responsibilities are clarified, not expanded: it executes a Workflow Chain, owning the active Workflow Chain reference, current workflow position, workflow state, and workflow execution history as runtime progression through that Chain's immutable structure. Execution Session's existing definition, invariants, and immutability are unmodified. No other section of this specification is modified.
+- v1.4 — Adds Workflow Advancement (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-025`). Workflow Advancement is the generalized, normative model for how an Engineering Session's current workflow position moves forward within its bound Workflow Chain, organized around six concepts (Advancement Strategy, Advancement Trigger, Advancement Eligibility, Advancement Authority, Advancement Result, Advancement Failure) and exactly three named Advancement Strategies (Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement). Manual Advancement is the existing Sprint 43 capability, unmodified and unexpanded by this amendment. Automatic/Event-Driven Advancement and Review-Gated Advancement are named but not yet implemented; each requires its own future Sprint Owner scope ratification. Engineering Session's existing ownership of runtime progression (RFC-0004 v1.2/v1.3) is unmodified; this amendment organizes and names the strategies by which that progression occurs. No other section of this specification is modified.
 
 ---
 
@@ -100,6 +101,7 @@ RFC-0004 exclusively owns:
 - Execution Session
 - Engineering Session
 - Workflow Chaining
+- Workflow Advancement
 
 Other specifications MAY reference these concepts.
 
@@ -349,6 +351,45 @@ Execution Session owns:
 - produced artifacts
 
 Execution semantics, dispatch eligibility, and execution policies remain owned by this specification's Execution, Execution Strategy, Execution Role, Assignment, Assignment Policy, and Execution State sections. Engineering Session SHALL NOT redefine or duplicate Workflow Chain's structural definition or those execution responsibilities, and SHALL NOT itself define Assignment Policy or Multi-agent Orchestration.
+
+---
+
+# Workflow Advancement
+
+Workflow Advancement is the generalized model for how an Engineering Session's current workflow position moves forward within its bound Workflow Chain.
+
+## Architectural Responsibilities
+
+Workflow Advancement owns:
+
+- Advancement Strategy
+- Advancement Trigger
+- Advancement Eligibility
+- Advancement Authority
+- Advancement Result
+- Advancement Failure
+
+An **Advancement Strategy** is a named mechanism by which an Engineering Session's current workflow position advances. RFC-0004 defines exactly three Advancement Strategies:
+
+- **Manual Advancement** — an explicit, caller-invoked request to advance exactly one workflow position. Implemented by Sprint 43; unmodified and unexpanded by this amendment.
+- **Automatic/Event-Driven Advancement** — advancement evaluated deterministically in response to an Advancement Trigger, without the caller itself deciding or requesting the specific advancement. Not yet implemented; requires its own future Sprint Owner scope ratification.
+- **Review-Gated Advancement** — advancement contingent upon a Review Outcome (RFC-0006). Not yet implemented; requires its own future Sprint Owner scope ratification, including the gating semantics between Review Outcome and Advancement Eligibility.
+
+An **Advancement Trigger** is the deterministic condition or reported fact that causes an Advancement Strategy to evaluate Advancement Eligibility.
+
+**Advancement Eligibility** is the deterministic precondition set that SHALL be satisfied before any Advancement Strategy advances a workflow position, at minimum: a Workflow Chain is bound; the current workflow position is valid within that Chain; the current workflow position is not the Chain's terminal position.
+
+**Advancement Authority** is the entity or mechanism authorized to invoke or trigger a given Advancement Strategy. Each Advancement Strategy's own defining Sprint Owner ratification SHALL state its Advancement Authority.
+
+An **Advancement Result** is the deterministic outcome of a successful advancement: the new current workflow position.
+
+An **Advancement Failure** is the deterministic rejection of an ineligible advancement attempt. The current workflow position SHALL remain unchanged after an Advancement Failure.
+
+Workflow Advancement SHALL remain deterministic: equivalent Engineering Session state and equivalent Advancement Trigger input SHALL always produce equivalent Advancement Results or Advancement Failures.
+
+Workflow Advancement SHALL NOT define Assignment Policy evaluation, Review Outcome semantics, Multi-Agent Orchestration, Adapter dispatch, or Task lifecycle transition; those remain owned by their respective sections.
+
+This section does not modify Engineering Session's existing ownership of runtime progression (current workflow position, workflow state, workflow execution history), established by v1.2 and v1.3; it organizes and names the strategies by which that progression occurs.
 
 ---
 

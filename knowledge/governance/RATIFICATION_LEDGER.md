@@ -3413,3 +3413,175 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-025
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-025
+
+## Date
+
+2026-07-15
+
+## Subject
+
+RFC-0004 Amendment — Workflow Advancement. Authorizes the repository's fourth RFC-0004 amendment (Version 1.3 → 1.4), introducing a generalized `Workflow Advancement` model owning six concepts (Advancement Strategy, Advancement Trigger, Advancement Eligibility, Advancement Authority, Advancement Result, Advancement Failure) and naming exactly three Advancement Strategies (Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement). Resolves the `nexus-plan` governance report raised after Sprint 44's approval, when Milestone 8's five remaining candidates (Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session coordination) were found to have no normative RFC-0004 definition — mirroring the identical gap that blocked Sprint 41 until the v1.3 Workflow Chaining amendment.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Governance Report (post-Sprint-44 planning cycle) identifying that none of Milestone 8's remaining candidates had a normative RFC-0004 definition. The Sprint Owner selected Workflow Advancement as the next direction and directed that the amendment generalize beyond a single "Automatic/Event-Driven" section: it SHALL establish one shared model (Advancement Strategy, Trigger, Eligibility, Authority, Result, Failure) used by all three named strategies — Manual (Sprint 43, already implemented), Automatic/Event-Driven (Sprint 45, this ratification's companion Sprint scope ratification), and Review-Gated (future) — so that Review-Gated Advancement and Multi-Agent Engineering Orchestration, both named as future Milestone 8 directions, consume the same vocabulary rather than requiring a later refactor (2026-07-15).
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.3 to Version 1.4, adding `Workflow Advancement` to RFC-0004's Domain Ownership list and introducing a new "Workflow Advancement" section (placed after "Engineering Session" and before "Execution Session").
+
+The amendment is intentionally organizational and vocabulary-defining, not implementation-authorizing: it names and defines the six Workflow Advancement concepts and the three Advancement Strategies, but authorizes no implementation by itself. Manual Advancement's existing Sprint 43 implementation is explicitly unmodified and unexpanded. Automatic/Event-Driven Advancement and Review-Gated Advancement are named but remain unimplemented pending their own future Sprint Owner scope ratifications — this ratification's companion, `NEXUS-RAT-2026-07-14-026`, authorizes Sprint 45's implementation of Automatic/Event-Driven Advancement only.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Advancement Strategy, Advancement Trigger, Advancement Eligibility, Advancement Authority, Advancement Result, Advancement Failure (normative vocabulary) | RFC-0004 "Workflow Advancement" section (this amendment) |
+| Manual Advancement implementation | `EngineeringSession.advanceWorkflow()` (Sprint 43, unmodified by this amendment) |
+| Automatic/Event-Driven Advancement implementation | Sprint 45 (authorized separately by `NEXUS-RAT-2026-07-14-026`) |
+| Review-Gated Advancement implementation, its gating semantics against Review Outcome (RFC-0006) | Future, separately-ratified Sprint and/or RFC amendment |
+| Engineering Session's existing runtime-progression ownership (current workflow position, workflow state, workflow execution history) | `EngineeringSession` (RFC-0004 v1.2/v1.3, unmodified) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.3 → 1.4; Amendment History entry; `Workflow Advancement` added to the Domain Ownership list; new "Workflow Advancement" section added after "Engineering Session" and before "Execution Session".
+- Proceed to draft a Sprint 45 scope ratification and Sprint Implementation Record authorizing implementation of the Automatic/Event-Driven Advancement Strategy only.
+
+`nexus-plan` SHALL NOT:
+
+- Modify `Engineering Session`'s or `Execution Session`'s own section text, `Workflow Chain`'s section text, or any other RFC-0004 section, guarantee, or concept beyond the additive Domain Ownership entry and the new "Workflow Advancement" section.
+- Modify any other RFC, the Kernel Canon, or any prior Sprint's Implementation Record, `IMPLEMENTATION_REPORT.md` entry, or `REVIEW_HISTORY.md` entry.
+- Treat this ratification as authorizing implementation of Automatic/Event-Driven Advancement, Review-Gated Advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session coordination; each remains separately deferred pending its own ratification.
+- Treat this ratification as a general precedent permitting future RFC modification by ratification alone; each future RFC amendment requires its own explicit Sprint Owner authorization (per `NEXUS-RAT-2026-07-14-014`'s existing restriction).
+
+## Scope Restrictions
+
+- This is a documentation/specification change only; it introduces exactly one new RFC-0004-owned concept (`Workflow Advancement`) and its organizing vocabulary, and modifies no other RFC-0004 guarantee, section, or concept.
+- No Kernel Canon change.
+- No source code or test change is authorized by this ratification alone; Sprint 45's own Sprint Implementation Record separately governs implementation scope.
+- Review-Gated Advancement's gating semantics against Review Outcome (RFC-0006) remain undefined pending its own future amendment; this ratification names the strategy without defining that interaction.
+
+## Related Sprint(s)
+
+- Sprint 43 — Engineering Session Manual Workflow Advancement (the existing Manual Advancement Strategy this amendment names and organizes without modification).
+- Sprint 44 — Assignment Policy Foundation (most recently approved Milestone 8 Sprint; unmodified by this amendment).
+- Sprint 45 — Automatic/Event-Driven Workflow Advancement (planned; consumes this amendment; separately authorized by `NEXUS-RAT-2026-07-14-026`).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 45 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies an amendment to RFC-0004 — Execution Model, incrementing it to Version 1.4 and introducing `Workflow Advancement` as a new RFC-0004-owned architectural concept: the generalized model for how an Engineering Session's current workflow position advances within its bound Workflow Chain, organized around six concepts — Advancement Strategy, Advancement Trigger, Advancement Eligibility, Advancement Authority, Advancement Result, Advancement Failure — and naming exactly three Advancement Strategies: Manual Advancement (Sprint 43, existing, unmodified), Automatic/Event-Driven Advancement (unimplemented, authorized for Sprint 45 by the companion ratification `NEXUS-RAT-2026-07-14-026`), and Review-Gated Advancement (unimplemented, deferred pending its own future ratification defining its Review Outcome gating semantics). This amendment authorizes no implementation by itself; it supplies the shared vocabulary so that Automatic/Event-Driven Advancement, Review-Gated Advancement, and Multi-Agent Engineering Orchestration may each be implemented, in future separately-ratified Sprints, against one consistent model rather than requiring later reconciliation. Engineering Session's existing ownership of runtime progression (current workflow position, workflow state, workflow execution history), established by v1.2 and v1.3, is entirely unmodified. The Sprint Owner authorizes `nexus-plan` to apply this amendment's text directly to `rfc-0004-execution-model.md` as an explicitly authorized exception to `nexus-plan`'s ordinary prohibition on RFC modification, and to proceed to draft Sprint 45's scope ratification and Sprint Implementation Record for Automatic/Event-Driven Advancement.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-14-026
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-026
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 45 Scope Ratification — Automatic/Event-Driven Workflow Advancement. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-14-025` amended RFC-0004 to v1.4, introducing the Automatic/Event-Driven Advancement Strategy's concrete implementation, including the Sprint Owner's refinement of the `AdvancementTrigger` concept's semantics.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Sprint Proposal (Sprint 45 — Automatic/Event-Driven Workflow Advancement) presenting a caller-asserted trigger design for Sprint Owner confirmation, since RFC-0004 defines no Event Bus subscription path for `EngineeringSession` and the Implementation Constitution forbids hidden or scheduled behavior. Approved by the Sprint Owner with a refinement decoupling `AdvancementTrigger`'s domain semantics from "caller" framing: the trigger represents a deterministic fact that advancement has become eligible, independent of how it is produced; Sprint 45 supports exactly one trigger producer (synchronous API submission), leaving room for future trigger producers (`ExecutionSession` completion, Review approval, Event Bus notification) to be added later without modifying the `AdvancementTrigger` concept itself (2026-07-15).
+
+## Governance Decision
+
+**Sprint 45 — Automatic/Event-Driven Workflow Advancement is authorized as Milestone 8's next Sprint.** Sprint 45 implements RFC-0004 v1.4's Automatic/Event-Driven Advancement Strategy only, reusing Sprint 43's existing Manual Advancement validation logic and `WorkflowChain`/`EngineeringSession` boundaries without modification.
+
+### Sprint Owner Refinements (binding)
+
+**Refinement 1 — `AdvancementTrigger` is producer-independent.** `AdvancementTrigger` SHALL be an immutable domain concept representing a deterministic fact that Advancement Eligibility should be (re-)evaluated. `AdvancementTrigger`'s definition SHALL NOT encode or name "caller," "API," or any other producer mechanism as part of its domain semantics. Sprint 45 SHALL support exactly one trigger-submission path — a synchronous application-service/aggregate operation accepting an `AdvancementTrigger` — without foreclosing future trigger producers.
+
+**Refinement 2 — Fully synchronous, no hidden behavior.** Sprint 45 SHALL introduce no Event Bus subscription, scheduling, background processing, polling, or asynchronous execution of any kind. Trigger submission and advancement evaluation SHALL occur synchronously within one call.
+
+**Refinement 3 — Reuse Sprint 43's advancement rules verbatim.** The Automatic/Event-Driven Advancement Strategy SHALL apply the exact same Advancement Eligibility checks and Advancement Result/Failure semantics already implemented for Manual Advancement (bound `WorkflowChain` exists; current position valid; current position not terminal). Sprint 45 SHALL NOT introduce a second, divergent validation path.
+
+**Refinement 4 — No cross-domain wiring.** Sprint 45 SHALL NOT introduce any reference from `EngineeringSession`, `AdvancementTrigger`, or their supporting types to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, or the Event Bus. `ExecutionSession`-completion-driven triggering and Review-Gated Advancement remain explicitly deferred to future, separately-ratified Sprints.
+
+## Architectural Responsibilities (binding)
+
+| Concern | Owner |
+| --- | --- |
+| `AdvancementTrigger` value object, its validation | New (this Sprint), within `src/kernel/execution` |
+| Advancement Eligibility evaluation, Advancement Result/Failure | `EngineeringSession` (Sprint 43's existing validation logic, reused/extended, not duplicated) |
+| Trigger submission orchestration | `EngineeringSessionService` (existing service, thin orchestration only) |
+| `WorkflowChain`/`WorkflowStep` structural definition | Unmodified (Sprint 41, frozen) |
+| `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, Event Bus | Unmodified; not referenced by this Sprint |
+
+## Authorized Builder Scope
+
+The Builder MAY:
+
+- Introduce an immutable `AdvancementTrigger` value object satisfying Refinement 1.
+- Introduce a new `EngineeringSession` operation (e.g. `advanceWorkflowOnTrigger` or equivalent name) that accepts an `AdvancementTrigger`, evaluates Advancement Eligibility using Sprint 43's existing validated logic, and produces the same Advancement Result/Failure outcomes as `advanceWorkflow()`, differing only in accepting a trigger argument instead of an unconditional caller request.
+- Extend `EngineeringSessionService` with the corresponding thin orchestration operation (repository lookup, aggregate delegation, persistence only), mirroring `advanceWorkflow()`'s existing service method.
+- Add unit/integration tests covering: trigger validation; eligible-trigger advancement; ineligible-trigger rejection (no bound chain, invalid position, terminal position); determinism (equivalent trigger + equivalent state produce equivalent outcomes); and that Sprint 43's existing `advanceWorkflow()` behavior and tests remain unmodified and passing.
+
+The Builder SHALL NOT:
+
+- Introduce any Event Bus subscription, scheduling, background processing, or asynchronous behavior.
+- Introduce any reference from `AdvancementTrigger`, the new `EngineeringSession` operation, or `EngineeringSessionService` to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy`.
+- Modify `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, or Sprint 43's existing `advanceWorkflow()`/`isWorkflowComplete()` behavior.
+- Modify any `src/hosts` or `src/adapters` file.
+- Introduce Review-Gated Advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session/workflow coordination in any form, including as an unused/stubbed reference.
+
+## Explicitly Deferred (this Sprint and this ratification)
+
+- `ExecutionSession`-completion-driven (or any other concrete domain-event-driven) trigger producer.
+- Event Bus integration or subscription for `EngineeringSession`.
+- Review-Gated Advancement and its Review Outcome gating semantics.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing.
+- Concurrent session/workflow coordination.
+- Any `src/hosts` or `src/adapters` change.
+
+Each remains a separate future Milestone 8 Sprint requiring its own scope ratification.
+
+## Scope Restrictions
+
+- No `src/hosts` or `src/adapters` change.
+- No new execution, dispatch, orchestration, or workflow-progression concept beyond the Automatic/Event-Driven Advancement Strategy and its `AdvancementTrigger` value object.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass.
+- This ratification does not modify RFC-0004 beyond what `NEXUS-RAT-2026-07-14-025` already authorized; it selects and scopes one already-named Advancement Strategy for implementation.
+
+## Related Sprint(s)
+
+- Sprint 43 — Engineering Session Manual Workflow Advancement (the Advancement Eligibility/Result/Failure logic this Sprint reuses verbatim).
+- Sprint 44 — Assignment Policy Foundation (most recently approved Milestone 8 Sprint; unmodified and unreferenced by this Sprint).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 45 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 45 — Automatic/Event-Driven Workflow Advancement as Milestone 8's next Sprint, implementing RFC-0004 v1.4's Automatic/Event-Driven Advancement Strategy only. `AdvancementTrigger` SHALL be an immutable, producer-independent domain concept representing a deterministic fact that Advancement Eligibility should be evaluated, with no "caller"/"API"/producer framing in its domain semantics (Refinement 1). Sprint 45 SHALL introduce no Event Bus subscription, scheduling, background processing, or asynchronous behavior; trigger submission and evaluation SHALL occur synchronously within one call (Refinement 2). The Automatic/Event-Driven Strategy SHALL reuse Sprint 43's existing Advancement Eligibility checks and Advancement Result/Failure semantics verbatim, introducing no second validation path (Refinement 3). No reference from `AdvancementTrigger`, the new `EngineeringSession` operation, or `EngineeringSessionService` to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, or the Event Bus is authorized (Refinement 4). `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, and Sprint 43's existing `advanceWorkflow()`/`isWorkflowComplete()` remain unmodified. `ExecutionSession`-completion-driven triggering, Review-Gated Advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and concurrent session/workflow coordination all remain explicitly deferred to future, separately-ratified Milestone 8 Sprints. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 45, and to generate Sprint 45's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---
