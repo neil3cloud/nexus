@@ -3753,3 +3753,164 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-003
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-003
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Workflow Chain Execution — RFC-0004 v1.5 → v1.6 amendment defining the act of executing the Workflow Step at an Engineering Session's current workflow position, distinct from Workflow Advancement.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` governance scan: Milestone 8's remaining candidate scope (Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination) presupposes a capability RFC-0004 does not yet define — actually executing a bound Workflow Chain's steps, as opposed to only tracking/advancing a position within it. RFC-0004's existing "Workflow Chaining" § Architectural Responsibilities (line 303) and "Workflow Advancement" § Architectural Responsibilities (line 398) each explicitly reserve Adapter dispatch as "a separate, future orchestration capability requiring its own Sprint Owner ratification."
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.5 to Version 1.6, adding a new "Workflow Chain Execution" section between "Workflow Advancement" and "Execution Session."
+
+A Workflow Chain Execution is the act of executing the Workflow Step at an Engineering Session's current workflow position, distinct from Workflow Advancement, which only moves that position.
+
+Workflow Chain Execution owns: resolving the current Workflow Step's referenced Execution Role; invoking the existing Execution Strategy to evaluate execution readiness; dispatching through the existing Adapter contract (explicit `adapterId` only — no Adapter Selection); returning the execution outcome to the existing Workflow Advancement process. Execution is recorded through the existing Execution Session model without redefining Execution Session's own creation, update, completion, or persistence semantics — Execution Session remains the normative owner of its own lifecycle.
+
+Workflow Chain Execution SHALL NOT own Review evaluation or Review Outcome determination, Assignment Policy, Adapter Selection, Task lifecycle transition, Execution Session lifecycle, Multi-Agent Orchestration, or any Advancement Strategy — those remain owned by their respective sections, unmodified.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Workflow Chain structure, identity, topology | RFC-0004 "Workflow Chaining" (v1.3, unmodified) |
+| Current workflow position, workflow state, workflow execution history | RFC-0004 "Engineering Session" (v1.2/v1.3, unmodified) |
+| Advancement Strategy, Trigger, Eligibility, Authority, Result, Failure | RFC-0004 "Workflow Advancement" (v1.4/v1.5, unmodified) |
+| Resolving current Workflow Step's Execution Role; invoking Execution Strategy; Adapter dispatch (explicit `adapterId` only); returning outcome to Workflow Advancement | RFC-0004 "Workflow Chain Execution" (this amendment) |
+| Execution Session creation, update, completion, persistence | RFC-0004 "Execution Session" (unmodified) |
+| `ReviewOutcome` identity, values, lifecycle | RFC-0006 (unmodified) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge\specifications\rfc-0004-execution-model.md`: Version 1.5 → 1.6; Amendment History entry; new "Workflow Chain Execution" section.
+- Proceed to draft a Sprint 47 scope ratification authorizing implementation of Workflow Chain Execution, consuming this amendment.
+
+`nexus-plan` SHALL NOT:
+
+- Modify RFC-0006, Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, or Assignment Policy's own section text or semantics.
+- Modify any other RFC, the Kernel Canon, or any prior Sprint's Implementation Record, `IMPLEMENTATION_REPORT.md` entry, or `REVIEW_HISTORY.md` entry.
+- Treat this ratification as authorizing implementation of Workflow Chain Execution; implementation remains separately deferred pending its own Sprint scope ratification.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only.
+- No Kernel Canon change. No RFC-0006 change. No Assignment Policy, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination capability is introduced or implied.
+- No source code or test change is authorized by this ratification alone.
+
+## Related Sprint(s)
+
+- Sprint 20 — Execution Pipeline Integration (the certified explicit-`adapterId`-only dispatch pattern this amendment reuses).
+- Sprint 40 — Execution Session Foundation (the unmodified `ExecutionSession` model this amendment's execution is recorded through).
+- Sprint 42/43/45/46 — Workflow Chain binding and all three Advancement Strategies (unmodified and unaffected by this amendment).
+- Future Workflow Chain Execution implementation Sprint (not yet proposed; will consume this amendment).
+
+## Related Review(s)
+
+- None.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies that Workflow Chain Execution — the act of executing the Workflow Step at an Engineering Session's current workflow position — SHALL be defined by RFC-0004 as a new, separate architectural concern from Workflow Advancement. Workflow Chain Execution owns resolving the current Workflow Step's Execution Role, invoking the existing Execution Strategy, dispatching through the existing Adapter contract via explicit `adapterId` only, and returning the execution outcome to the existing Workflow Advancement process; it does not own Review evaluation, Review Outcome determination, Assignment Policy, Adapter Selection, Task lifecycle transition, Execution Session lifecycle, or Multi-Agent Orchestration, each of which remains owned by its respective existing section. Execution is recorded through the existing Execution Session model without redefining that model's own lifecycle. RFC-0004 SHALL be amended to Version 1.6 to add this "Workflow Chain Execution" section; RFC-0006, Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, and Assignment Policy are otherwise unmodified. This ratification authorizes the RFC-0004 amendment and its supporting documentation only; no implementation behavior change is authorized beyond this governance clarification, and Workflow Chain Execution implementation remains subject to its own future Sprint Owner scope ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-004
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-004
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 47 Scope Ratification — Workflow Chain Execution. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-15-003` amended RFC-0004 to v1.6, authorizing implementation of Workflow Chain Execution.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved by the Sprint Owner.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 47 — Workflow Chain Execution as Milestone 8's next Sprint, implementing RFC-0004 v1.6's Workflow Chain Execution section only.
+
+**Objective (binding):** Introduce a new `EngineeringSession` operation that, at the session's current workflow position, resolves the bound `WorkflowStep`'s `RoleId`, invokes the existing `ExecutionStrategyService` to evaluate execution readiness, dispatches through the existing `AdapterService` using an explicit, caller-supplied `adapterId` (no Adapter Selection), and returns the resulting execution outcome. A corresponding thin `EngineeringSessionService` orchestration operation SHALL mirror the existing Sprint 45/46 pattern. Execution SHALL be recorded through the existing, unmodified `ExecutionSession` model.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| `ReviewOutcome` determination, Review lifecycle | RFC-0006 / `ReviewService` (unmodified) |
+| Workflow Chain structure, `WorkflowStep` topology | `WorkflowChain`/`WorkflowChainService` (Sprint 41, unmodified) |
+| Current workflow position, workflow state | `EngineeringSession` (Sprint 39/42/43, unmodified except for this Sprint's new execution operation) |
+| Execution readiness evaluation | `ExecutionStrategyService.evaluateAssignmentReadiness` (Sprint 10/20, unmodified) |
+| Adapter dispatch | `AdapterService.dispatch` (Sprint 7/19/20, unmodified; explicit `adapterId` only) |
+| Execution attempt record | `ExecutionSession`/`ExecutionSessionService` (Sprint 40, unmodified — this Sprint constructs records through the existing service, does not redefine its lifecycle) |
+| Workflow position advancement (separate from execution) | Manual/Automatic/Review-Gated Advancement (Sprints 43/45/46, unmodified and unaffected) |
+
+## Ownership Model (ratified)
+
+Identical to `NEXUS-RAT-2026-07-15-003`'s Ownership Model table; this ratification authorizes implementation against it.
+
+## Authorized Scope
+
+The Builder MAY:
+
+- Introduce one new `EngineeringSession` operation (e.g. `executeCurrentWorkflowStep`) resolving the current `WorkflowStep`'s `RoleId`, invoking `ExecutionStrategyService`, dispatching via `AdapterService.dispatch` with a caller-supplied explicit `adapterId`, and constructing an `ExecutionSession` record through the existing `ExecutionSessionService` to capture the attempt.
+- Add a corresponding thin `EngineeringSessionService` orchestration operation, mirroring Sprint 45/46's pattern (repository lookup, delegation, persistence, snapshot return).
+- Extend `createKernelServices` composition only as strictly required to supply the additional repository/service contracts this operation reads.
+
+The Builder SHALL NOT:
+
+- Modify `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, or `Finding`.
+- Modify Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, or Sprint 46's `advanceWorkflowAfterReview()`.
+- Introduce Adapter Selection, Adapter routing, or any capability-scoring/fallback logic; dispatch SHALL use an explicit `adapterId` supplied by the caller.
+- Introduce Assignment Policy evaluation, Multi-Agent Orchestration, Task lifecycle transition, session recovery/checkpointing, or concurrent session coordination.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- Execution and Advancement remain separate operations; this Sprint SHALL NOT fold execution into any existing `advanceWorkflow*` method or cause execution to implicitly advance the workflow position.
+- `ReviewOutcome` remains untouched by this Sprint; Review-Gated Advancement (Sprint 46) is unaffected.
+- No Kernel Canon change; no RFC-0004 change beyond what `NEXUS-RAT-2026-07-15-003` already authorized; no RFC-0006 change.
+
+## Related Sprint(s)
+
+- Sprint 20 — Execution Pipeline Integration (certified explicit-`adapterId`-only dispatch pattern reused).
+- Sprint 40 — Execution Session Foundation (`ExecutionSession` model reused unmodified).
+- Sprint 41/42/43/45/46 — `WorkflowChain`, binding, and all three Advancement Strategies (unmodified and unaffected).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 47 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 47 — Workflow Chain Execution as Milestone 8's next Sprint, implementing RFC-0004 v1.6's Workflow Chain Execution section only. The Sprint introduces one new `EngineeringSession` operation that resolves the current workflow position's `WorkflowStep`/`RoleId`, invokes the existing `ExecutionStrategyService` for readiness evaluation, dispatches through the existing `AdapterService.dispatch` using an explicit, caller-supplied `adapterId` only (no Adapter Selection), and records the attempt through the existing, unmodified `ExecutionSessionService`/`ExecutionSession` model, together with a corresponding thin `EngineeringSessionService` orchestration operation mirroring Sprint 45/46's pattern. Execution and Advancement remain separate operations; this Sprint SHALL NOT fold execution into `advanceWorkflow()`, `advanceWorkflowOnTrigger()`, or `advanceWorkflowAfterReview()`, nor cause execution to implicitly advance the workflow position. `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, and `Finding` SHALL NOT be modified. No Adapter Selection, Assignment Policy evaluation, Multi-Agent Orchestration, Task lifecycle transition, session recovery/checkpointing, concurrent session coordination, or `src/hosts`/`src/adapters` change is authorized. With these refinements incorporated into the Sprint Implementation Record, Sprint 47 is authorized and may be activated.
+
+## Current Status
+
+Active
+
+---

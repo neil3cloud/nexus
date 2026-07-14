@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import type { Adapter } from '../../../src/kernel/adapter/adapter.contract';
+import { AdapterMetadata } from '../../../src/kernel/adapter/adapter-metadata';
+import type { AdapterRequest } from '../../../src/kernel/adapter/adapter-request';
+import { AdapterResponse } from '../../../src/kernel/adapter/adapter-response';
+import { InMemoryAdapterRegistry } from '../../../src/kernel/adapter/adapter-registry';
+import { AdapterService } from '../../../src/kernel/adapter/adapter.service';
+import type { EventBusContract, EventBusEvent, EventSubscriptionHandle } from '../../../src/kernel/common/event-bus-contract';
+import { ProtocolVersion } from '../../../src/kernel/adapter/protocol-version';
 import {
   EngineeringSessionNotFoundError,
   InvalidEngineeringSessionDefinitionError,
@@ -9,8 +17,84 @@ import { InvalidAdvancementTriggerDefinitionError } from '../../../src/kernel/ex
 import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
 import { InMemoryEngineeringSessionRepository } from '../../../src/kernel/execution/engineering-session.repository';
 import { EngineeringSessionService } from '../../../src/kernel/execution/engineering-session.service';
+import { ExecutionSessionService } from '../../../src/kernel/execution/execution-session.service';
+import { InMemoryExecutionSessionRepository } from '../../../src/kernel/execution/execution-session.repository';
+import { ExecutionStrategyService } from '../../../src/kernel/execution/execution-strategy.service';
+import { InMemoryExecutionStrategyRepository } from '../../../src/kernel/execution/execution-strategy.repository';
+import { InMemoryRoleAssignmentRepository } from '../../../src/kernel/execution/role-assignment.repository';
+import { InMemoryRoleRegistry } from '../../../src/kernel/execution/role-registry';
+import { RoleService } from '../../../src/kernel/execution/role.service';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { InMemoryWorkflowChainRepository } from '../../../src/kernel/execution/workflow-chain.repository';
+import { InMemoryMissionRepository } from '../../../src/kernel/mission/mission.repository';
+import { MissionPlanningService } from '../../../src/kernel/mission/mission-planning.service';
+import { MissionService } from '../../../src/kernel/mission/mission.service';
+
+class TestEventBus implements EventBusContract {
+  private readonly events: EventBusEvent[] = [];
+
+  public async publish(event: EventBusEvent): Promise<void> {
+    this.events.push(event);
+  }
+
+  public subscribe(): EventSubscriptionHandle {
+    return {
+      dispose(): void {},
+    };
+  }
+
+  public replay(): readonly EventBusEvent[] {
+    return Object.freeze([...this.events]);
+  }
+}
+
+class RecordingAdapter implements Adapter {
+  public readonly metadata = AdapterMetadata.create({
+    id: 'recording-adapter',
+    name: 'Recording Adapter',
+    version: '1.0.0',
+    protocolVersion: '1.0',
+    capabilities: ['CodeModification'],
+    supportedRoles: ['builder', 'reviewer'],
+  });
+
+  public readonly requests: AdapterRequest[] = [];
+
+  public constructor(private readonly status: 'Completed' | 'Failed' = 'Completed') {}
+
+  public async execute(request: AdapterRequest): Promise<AdapterResponse> {
+    this.requests.push(request);
+
+    return AdapterResponse.create({
+      status: this.status,
+      diagnostics: [
+        {
+          code: `recording-adapter.${this.status.toLowerCase()}`,
+          message: `Recording Adapter ${this.status}.`,
+        },
+      ],
+      producedArtifacts:
+        this.status === 'Completed'
+          ? [`recording-adapter:${request.engineeringRole}:${request.taskId}`]
+          : [],
+      executionMetadata: {
+        adapterId: 'recording-adapter',
+        engineeringRole: request.engineeringRole,
+        taskId: request.taskId,
+      },
+    });
+  }
+}
+
+interface WorkflowExecutionHarness {
+  readonly service: EngineeringSessionService;
+  readonly roleService: RoleService;
+  readonly executionSessionService: ExecutionSessionService;
+  readonly missionService: MissionService;
+  readonly planningService: MissionPlanningService;
+  readonly executionStrategyService: ExecutionStrategyService;
+  readonly adapter: RecordingAdapter;
+}
 
 async function createWorkflowChainRepository(): Promise<InMemoryWorkflowChainRepository> {
   const repository = new InMemoryWorkflowChainRepository();
@@ -514,4 +598,493 @@ describe('EngineeringSessionService', () => {
       currentWorkflowStepId: '1',
     });
   });
+
+  it('executes the current WorkflowStep through strategy readiness, explicit Adapter dispatch, and ExecutionSession recording', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'success');
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+    });
+    const executionSessions = await harness.executionSessionService.enumerateExecutionSessions(
+      workflow.engineeringSessionId,
+    );
+
+    expect(result).toMatchObject({
+      status: 'Completed',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      workflowStepRoleId: 'builder',
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      adapterResponse: {
+        status: 'Completed',
+        producedArtifacts: [`recording-adapter:builder:${workflow.taskId}`],
+      },
+      executionSession: {
+        engineeringSessionId: workflow.engineeringSessionId,
+        assignedRole: 'builder',
+        assignedAdapter: 'recording-adapter',
+        consumedProjectionVersion: 'projection-v1',
+        executionOutcome: 'Completed',
+      },
+    });
+    expect(result.engineeringSession.currentWorkflowStepId).toBe('0');
+    expect(executionSessions).toEqual([result.executionSession]);
+    expect(harness.adapter.requests[0]?.toSnapshot()).toMatchObject({
+      engineeringRole: 'builder',
+      taskId: workflow.taskId,
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      requestMetadata: {
+        executionStrategyId: workflow.executionStrategyId,
+        missionId: workflow.missionId,
+        missionPlanId: workflow.missionPlanId,
+        roleId: 'builder',
+        workflowChainId: 'workflow-chain-1',
+        currentWorkflowStepId: '0',
+      },
+    });
+    await expect(harness.service.getEngineeringSession(workflow.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('rejects execution readiness deterministically without creating an ExecutionSession', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'readiness-rejected', {
+      completePrerequisite: false,
+    });
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'ReadinessRejected',
+      currentWorkflowStepId: '0',
+      workflowStepRoleId: 'builder',
+      diagnostics: [
+        {
+          code: 'engineering-session.readiness-rejected',
+        },
+      ],
+    });
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([]);
+    expect(harness.adapter.requests).toEqual([]);
+  });
+
+  it('rejects execution readiness when the assigned Role differs from the current WorkflowStep Role', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createRoleMismatchWorkflowExecutionScenario(harness);
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'ReadinessRejected',
+      currentWorkflowStepId: '0',
+      workflowStepRoleId: 'builder',
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      diagnostics: [
+        {
+          code: 'engineering-session.workflow-step-role-mismatch',
+          message: "WorkflowStep Role 'builder' does not match Assignment Role 'reviewer'.",
+        },
+      ],
+    });
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([]);
+    expect(harness.adapter.requests).toEqual([]);
+  });
+
+  it('rejects WorkflowStep execution when ExecutionStrategyService is not supplied', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'engineering-session-generated',
+      () => '2026-07-15T00:00:00.000Z',
+      undefined,
+      createAdapterService(new RecordingAdapter()),
+      new ExecutionSessionService(new InMemoryExecutionSessionRepository()),
+    );
+
+    await expect(
+      service.executeCurrentWorkflowStep(createWorkflowExecutionCommand()),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('rejects WorkflowStep execution when AdapterService is not supplied', async () => {
+    const missionRepository = new InMemoryMissionRepository();
+    const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'engineering-session-generated',
+      () => '2026-07-15T00:00:00.000Z',
+      new ExecutionStrategyService(
+        new InMemoryExecutionStrategyRepository(),
+        roleAssignmentRepository,
+        missionRepository,
+      ),
+      undefined,
+      new ExecutionSessionService(new InMemoryExecutionSessionRepository()),
+    );
+
+    await expect(
+      service.executeCurrentWorkflowStep(createWorkflowExecutionCommand()),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('rejects WorkflowStep execution when ExecutionSessionService is not supplied', async () => {
+    const missionRepository = new InMemoryMissionRepository();
+    const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'engineering-session-generated',
+      () => '2026-07-15T00:00:00.000Z',
+      new ExecutionStrategyService(
+        new InMemoryExecutionStrategyRepository(),
+        roleAssignmentRepository,
+        missionRepository,
+      ),
+      createAdapterService(new RecordingAdapter()),
+      undefined,
+    );
+
+    await expect(
+      service.executeCurrentWorkflowStep(createWorkflowExecutionCommand()),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('records non-Completed Adapter responses as failed WorkflowStep execution attempts', async () => {
+    const harness = await createWorkflowExecutionHarness('Failed');
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'adapter-failed');
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+    });
+
+    expect(result).toMatchObject({
+      status: 'Failed',
+      adapterResponse: {
+        status: 'Failed',
+      },
+      executionSession: {
+        assignedRole: 'builder',
+        assignedAdapter: 'recording-adapter',
+        executionOutcome: 'Failed',
+      },
+    });
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([result.executionSession]);
+    await expect(harness.service.getEngineeringSession(workflow.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('executes WorkflowSteps deterministically for equivalent session state and Adapter responses', async () => {
+    const left = await createWorkflowExecutionHarness();
+    const right = await createWorkflowExecutionHarness();
+    const leftWorkflow = await createReadyWorkflowExecutionScenario(left, 'deterministic');
+    const rightWorkflow = await createReadyWorkflowExecutionScenario(right, 'deterministic');
+
+    const command = {
+      executionStrategyId: leftWorkflow.executionStrategyId,
+      missionPlanId: leftWorkflow.missionPlanId,
+      taskId: leftWorkflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${leftWorkflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+    };
+    const leftResult = await left.service.executeCurrentWorkflowStep({
+      engineeringSessionId: leftWorkflow.engineeringSessionId,
+      ...command,
+    });
+    const rightResult = await right.service.executeCurrentWorkflowStep({
+      engineeringSessionId: rightWorkflow.engineeringSessionId,
+      ...command,
+    });
+
+    expect(leftResult).toEqual(rightResult);
+  });
 });
+
+async function createWorkflowExecutionHarness(
+  adapterStatus: 'Completed' | 'Failed' = 'Completed',
+): Promise<WorkflowExecutionHarness> {
+  const eventBus = new TestEventBus();
+  const missionRepository = new InMemoryMissionRepository();
+  const workflowChainRepository = await createWorkflowChainRepository();
+  const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+  const executionSessionRepository = new InMemoryExecutionSessionRepository();
+  const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
+  const roleRegistry = new InMemoryRoleRegistry();
+  const adapter = new RecordingAdapter(adapterStatus);
+  const adapterService = new AdapterService(
+    new InMemoryAdapterRegistry([adapter]),
+    ProtocolVersion.fromString('1.0'),
+  );
+  const executionSessionService = new ExecutionSessionService(
+    executionSessionRepository,
+    () => 'execution-session-1',
+  );
+  const executionStrategyService = new ExecutionStrategyService(
+    new InMemoryExecutionStrategyRepository(),
+    roleAssignmentRepository,
+    missionRepository,
+    () => 'execution-strategy-generated',
+  );
+  const roleService = new RoleService(roleRegistry, roleAssignmentRepository);
+  const timestamps = [
+    '2026-07-15T00:00:00.000Z',
+    '2026-07-15T00:01:00.000Z',
+    '2026-07-15T00:02:00.000Z',
+    '2026-07-15T00:03:00.000Z',
+    '2026-07-15T00:04:00.000Z',
+    '2026-07-15T00:05:00.000Z',
+    '2026-07-15T00:06:00.000Z',
+    '2026-07-15T00:07:00.000Z',
+    '2026-07-15T00:08:00.000Z',
+    '2026-07-15T00:09:00.000Z',
+    '2026-07-15T00:10:00.000Z',
+    '2026-07-15T00:11:00.000Z',
+    '2026-07-15T00:12:00.000Z',
+    '2026-07-15T00:13:00.000Z',
+    '2026-07-15T00:14:00.000Z',
+    '2026-07-15T00:15:00.000Z',
+  ];
+  const createTimestamp = () => {
+    const timestamp = timestamps.shift();
+
+    if (timestamp === undefined) {
+      throw new Error('No timestamp available for test.');
+    }
+
+    return timestamp;
+  };
+
+  await roleService.initialize();
+
+  return {
+    service: new EngineeringSessionService(
+      engineeringSessionRepository,
+      workflowChainRepository,
+      () => 'engineering-session-generated',
+      createTimestamp,
+      executionStrategyService,
+      adapterService,
+      executionSessionService,
+    ),
+    roleService,
+    executionSessionService,
+    missionService: new MissionService(
+      missionRepository,
+      eventBus,
+      () => 'mission-generated',
+      createTimestamp,
+    ),
+    planningService: new MissionPlanningService(
+      missionRepository,
+      eventBus,
+      () => 'mission-plan-generated',
+      createTimestamp,
+    ),
+    executionStrategyService,
+    adapter,
+  };
+}
+
+function createAdapterService(adapter: RecordingAdapter): AdapterService {
+  return new AdapterService(
+    new InMemoryAdapterRegistry([adapter]),
+    ProtocolVersion.fromString('1.0'),
+  );
+}
+
+function createWorkflowExecutionCommand(): Parameters<
+  EngineeringSessionService['executeCurrentWorkflowStep']
+>[0] {
+  return {
+    engineeringSessionId: 'engineering-session-workflow-execution-guard',
+    executionStrategyId: 'execution-strategy-workflow-execution-guard',
+    missionPlanId: 'mission-plan-workflow-execution-guard',
+    taskId: 'task-workflow-execution-guard',
+    adapterId: 'recording-adapter',
+    contextPackageReference: 'context-package-workflow-execution-guard',
+    consumedProjectionVersion: 'projection-v1',
+  };
+}
+
+async function createReadyWorkflowExecutionScenario(
+  harness: WorkflowExecutionHarness,
+  suffix: string,
+  options: { readonly completePrerequisite?: boolean } = {},
+): Promise<{
+  readonly missionId: string;
+  readonly missionPlanId: string;
+  readonly prerequisiteTaskId: string;
+  readonly taskId: string;
+  readonly executionStrategyId: string;
+  readonly engineeringSessionId: string;
+}> {
+  const missionId = `mission-workflow-execution-${suffix}`;
+  const missionPlanId = `mission-plan-workflow-execution-${suffix}`;
+  const prerequisiteTaskId = `task-workflow-execution-${suffix}-prerequisite`;
+  const taskId = `task-workflow-execution-${suffix}`;
+  const executionStrategyId = `execution-strategy-workflow-execution-${suffix}`;
+  const engineeringSessionId = `engineering-session-workflow-execution-${suffix}`;
+
+  await harness.missionService.createMission({
+    id: missionId,
+    objective: `Validate Workflow Chain Execution ${suffix}.`,
+  });
+  await harness.planningService.createMissionPlan({
+    id: missionPlanId,
+    missionId,
+    revisionReason: 'Create Sprint 47 Workflow Chain Execution plan.',
+  });
+  await harness.planningService.addTask({
+    missionPlanId,
+    taskId: prerequisiteTaskId,
+    title: 'Prepare execution prerequisite',
+    description: 'Prerequisite for Workflow Chain Execution readiness.',
+  });
+  await harness.planningService.addTask({
+    missionPlanId,
+    taskId,
+    title: 'Execute current WorkflowStep',
+    description: 'Task assigned to the current WorkflowStep Role.',
+    dependencies: [prerequisiteTaskId],
+  });
+  if (options.completePrerequisite ?? true) {
+    await harness.planningService.updateTask({
+      missionPlanId,
+      taskId: prerequisiteTaskId,
+      status: 'Ready',
+    });
+    await harness.planningService.updateTask({
+      missionPlanId,
+      taskId: prerequisiteTaskId,
+      status: 'InProgress',
+    });
+    await harness.planningService.updateTask({
+      missionPlanId,
+      taskId: prerequisiteTaskId,
+      status: 'Completed',
+    });
+  }
+  await harness.roleService.assignRole({
+    taskId,
+    roleId: 'builder',
+  });
+  await harness.executionStrategyService.createExecutionStrategy({
+    id: executionStrategyId,
+    missionId,
+  });
+  await harness.service.createEngineeringSession({
+    id: engineeringSessionId,
+    engineeringRuntimeContextReference: `runtime-context-${suffix}`,
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
+    participatingRoleIds: ['builder', 'reviewer'],
+    workflowState: 'active',
+  });
+
+  return {
+    missionId,
+    missionPlanId,
+    prerequisiteTaskId,
+    taskId,
+    executionStrategyId,
+    engineeringSessionId,
+  };
+}
+
+async function createRoleMismatchWorkflowExecutionScenario(
+  harness: WorkflowExecutionHarness,
+): Promise<{
+  readonly missionId: string;
+  readonly missionPlanId: string;
+  readonly taskId: string;
+  readonly executionStrategyId: string;
+  readonly engineeringSessionId: string;
+}> {
+  const missionId = 'mission-workflow-execution-role-mismatch';
+  const missionPlanId = 'mission-plan-workflow-execution-role-mismatch';
+  const taskId = 'task-workflow-execution-role-mismatch';
+  const executionStrategyId = 'execution-strategy-workflow-execution-role-mismatch';
+  const engineeringSessionId = 'engineering-session-workflow-execution-role-mismatch';
+
+  await harness.missionService.createMission({
+    id: missionId,
+    objective: 'Validate Workflow Chain Execution role mismatch rejection.',
+  });
+  await harness.planningService.createMissionPlan({
+    id: missionPlanId,
+    missionId,
+    revisionReason: 'Create Sprint 47 role-mismatch plan.',
+  });
+  await harness.planningService.addTask({
+    missionPlanId,
+    taskId,
+    title: 'Execute mismatched current WorkflowStep',
+    description: 'Task assignment intentionally differs from the current WorkflowStep Role.',
+  });
+  await harness.roleService.assignRole({
+    taskId,
+    roleId: 'reviewer',
+  });
+  await harness.executionStrategyService.createExecutionStrategy({
+    id: executionStrategyId,
+    missionId,
+  });
+  await harness.service.createEngineeringSession({
+    id: engineeringSessionId,
+    engineeringRuntimeContextReference: 'runtime-context-role-mismatch',
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
+    participatingRoleIds: ['builder', 'reviewer'],
+    workflowState: 'active',
+  });
+
+  return {
+    missionId,
+    missionPlanId,
+    taskId,
+    executionStrategyId,
+    engineeringSessionId,
+  };
+}

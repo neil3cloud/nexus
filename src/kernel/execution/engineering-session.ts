@@ -5,6 +5,7 @@ import { ReviewOutcome } from '../review/review-values';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionDiagnosticSnapshot,
+  EngineeringSessionCurrentWorkflowStepExecutionTarget,
   EngineeringSessionInput,
   EngineeringSessionMetadata,
   EngineeringSessionSnapshot,
@@ -225,6 +226,29 @@ export class EngineeringSession {
   ): void {
     assertNonBlockingReviewOutcome(reviewOutcome);
     this.advanceWorkflow(workflowChain);
+  }
+
+  public executeCurrentWorkflowStep(
+    workflowChain: WorkflowChain | undefined,
+  ): EngineeringSessionCurrentWorkflowStepExecutionTarget {
+    const workflowPosition = validateWorkflowPosition(
+      this.workflowChainIdValue,
+      this.currentWorkflowStepIdValue,
+      workflowChain,
+    );
+    const workflowStep = workflowChain?.steps[workflowPosition.position];
+
+    if (workflowStep === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        `EngineeringSession currentWorkflowStepId '${this.currentWorkflowStepIdValue}' does not resolve to a WorkflowStep for WorkflowChain '${this.workflowChainIdValue.toString()}'.`,
+      );
+    }
+
+    return Object.freeze({
+      workflowChainId: this.workflowChainIdValue.toString(),
+      currentWorkflowStepId: this.currentWorkflowStepIdValue,
+      roleId: workflowStep.roleId.toString(),
+    });
   }
 
   public isWorkflowComplete(workflowChain: WorkflowChain | undefined): boolean {

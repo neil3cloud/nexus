@@ -1,5 +1,117 @@
 # Nexus Implementation Report
 
+## Sprint 47 — Workflow Chain Execution
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 47 Workflow Chain Execution vertical slice. This sprint introduces caller-invoked execution of the current `EngineeringSession` Workflow Step while preserving Workflow Advancement as a separate operation.
+
+Implemented scope:
+
+- Added `EngineeringSession.executeCurrentWorkflowStep()` to resolve the current workflow position's bound `WorkflowStep` RoleId without advancing workflow position.
+- Added `EngineeringSessionService.executeCurrentWorkflowStep()` to orchestrate current-step Role resolution, `ExecutionStrategyService.evaluateAssignmentReadiness`, explicit-`adapterId` `AdapterService.dispatch`, and `ExecutionSessionService.createExecutionSession` attempt recording.
+- Added deterministic execution result contracts covering completed Adapter responses, failed/non-`Completed` Adapter responses, and readiness rejection.
+- Updated `createKernelServices()` composition only to supply existing `ExecutionStrategyService`, `AdapterService`, and `ExecutionSessionService` instances to `EngineeringSessionService`.
+- Added tests for successful execution recording, readiness rejection with no `ExecutionSession`, non-`Completed` Adapter response recording, deterministic equivalent execution results, unchanged workflow position, existing advancement regression safety, and Kernel composition continuity.
+
+Out of scope and not implemented:
+
+- Adapter Selection, Adapter routing, capability scoring, or fallback logic.
+- Assignment Policy evaluation.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing or concurrent session/workflow coordination.
+- Review lifecycle, Review outcome determination, or ReviewService behavior.
+- Any execution-driven Workflow Advancement or combined execute-and-advance operation.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.6 (`Workflow Chain Execution`).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model v1.6 (`Engineering Session`, `Workflow Chaining`, `Workflow Advancement`, `Execution Strategy`, `Execution Session`; existing semantics reused).
+- RFC-0008 — Kernel Adapter Contract (`AdapterService.dispatch`, unmodified).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Current Workflow Step Role resolution from the bound `WorkflowChain`.
+- Caller-invoked current Workflow Step execution through existing readiness and Adapter dispatch contracts.
+- Execution attempt recording through the existing `ExecutionSessionService`.
+- Deterministic readiness rejection without creating an `ExecutionSession`.
+
+Deferred Concepts:
+
+- Adapter Selection, routing, capability scoring, and fallback logic.
+- Assignment Policy wiring into execution.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing and concurrent session coordination.
+- Execution-driven automatic advancement or any change to existing Advancement strategies.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-15-003`, `NEXUS-RAT-2026-07-15-004`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0047-workflow-chain-execution.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The caller supplies the explicit `adapterId`, `taskId`, `executionStrategyId`, `missionPlanId`, context package reference, and consumed projection version required to execute and record the current Workflow Step.
+- Existing `ExecutionStrategyService.evaluateAssignmentReadiness()` remains the readiness authority; readiness-domain failures are returned as deterministic `ReadinessRejected` results with no `ExecutionSession` record.
+- Adapter responses are authoritative for the execution attempt outcome recorded in `ExecutionSession.executionOutcome`.
+
+### Known Limitations
+
+- The operation executes exactly one current Workflow Step per invocation.
+- Execution does not advance the workflow position; callers must invoke existing Advancement operations separately.
+- Adapter selection remains entirely caller-supplied through explicit `adapterId`.
+- Sessions and execution sessions remain in-memory only; no durable persistence is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 47 validation passed: `npx vitest run test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (75 files / 366 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+
+### TASK-001 Remediation — NEXUS-REV-2026-07-15-002-F-001
+
+Implemented the test-only remediation for `TASK-001`.
+
+Remediation scope:
+
+- Added coverage for WorkflowStep Role / Assignment Role mismatch returning `ReadinessRejected` with diagnostic code `engineering-session.workflow-step-role-mismatch`, with no `ExecutionSession` created and no Adapter invocation.
+- Added coverage for `requireExecutionStrategyService()` rejecting `executeCurrentWorkflowStep()` when `executionStrategyService` is omitted.
+- Added coverage for `requireAdapterService()` rejecting `executeCurrentWorkflowStep()` when `adapterService` is omitted.
+- Added coverage for `requireExecutionSessionService()` rejecting `executeCurrentWorkflowStep()` when `executionSessionService` is omitted.
+
+No production source files were modified for this remediation.
+
+Validation:
+
+- Targeted remediation validation passed: `npm run compile` and `npx vitest run test/kernel/execution/engineering-session.service.test.ts` (19 tests).
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (75 files / 370 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 46 — Review-Gated Workflow Advancement
 
 ### Implemented Slice

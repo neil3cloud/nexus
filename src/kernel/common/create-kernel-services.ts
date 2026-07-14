@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import type { EventBusContract } from './event-bus-contract';
 import type { Adapter } from '../adapter/adapter.contract';
 import { AdapterService } from '../adapter/adapter.service';
@@ -56,9 +58,25 @@ export function createKernelServices(
   const workflowChainRepository = new InMemoryWorkflowChainRepository();
   const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
+  const adapterService = new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0'));
+  const executionSessionService = new ExecutionSessionService(executionSessionRepository);
+  const executionStrategyService = new ExecutionStrategyService(
+    executionStrategyRepository,
+    roleAssignmentRepository,
+    missionRepository,
+  );
+  const engineeringSessionService = new EngineeringSessionService(
+    engineeringSessionRepository,
+    workflowChainRepository,
+    randomUUID,
+    () => new Date().toISOString(),
+    executionStrategyService,
+    adapterService,
+    executionSessionService,
+  );
 
   return [
-    new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0')),
+    adapterService,
     new MissionService(missionRepository, eventBus),
     new MissionPlanningService(missionRepository, eventBus),
     new MissionExecutionService(missionRepository, eventBus),
@@ -66,15 +84,11 @@ export function createKernelServices(
     new ProjectionService(missionRepository, evidenceRepository),
     new RoleService(roleRegistry, roleAssignmentRepository),
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
-    new EngineeringSessionService(engineeringSessionRepository, workflowChainRepository),
-    new ExecutionSessionService(executionSessionRepository),
+    engineeringSessionService,
+    executionSessionService,
     new WorkflowChainService(workflowChainRepository),
     new AssignmentPolicyService(assignmentPolicyRepository),
-    new ExecutionStrategyService(
-      executionStrategyRepository,
-      roleAssignmentRepository,
-      missionRepository,
-    ),
+    executionStrategyService,
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),
     new KnowledgeService(

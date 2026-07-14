@@ -2,6 +2,140 @@
 
 ---
 
+## NEXUS-REV-2026-07-15-003 — Sprint 47 — Workflow Chain Execution (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 47 — Workflow Chain Execution
+- **Reviewed Change:** `builder-task.md` `TASK-001` remediation of `NEXUS-REV-2026-07-15-002-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.6 ("Workflow Chain Execution", unmodified by this remediation). Referenced: RFC-0008, RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-15-002-F-001`. The Builder added four test cases to `test/kernel/execution/engineering-session.service.test.ts`: (1) a genuine WorkflowStep-Role/Assignment-Role mismatch scenario (Task assigned to `reviewer` while the current WorkflowStep expects `builder`) asserting a `ReadinessRejected` result with diagnostic code `engineering-session.workflow-step-role-mismatch`, no `ExecutionSession` created, and no Adapter invocation; (2)–(4) three constructions of `EngineeringSessionService`, each omitting exactly one of `executionStrategyService`, `adapterService`, or `executionSessionService`, each asserting `executeCurrentWorkflowStep()` rejects with `InvalidEngineeringSessionDefinitionError`. `git diff --stat` confirms the remediation touches only `test/kernel/execution/engineering-session.service.test.ts` (purely additive; no existing test modified or removed) plus `IMPLEMENTATION_REPORT.md`. No production source file was modified — `engineering-session.ts`, `engineering-session.service.ts`, `engineering-session.contract.ts`, `engineering-session.types.ts`, `create-kernel-services.ts`, and every file confirmed unmodified by the original Sprint 47 review remain byte-for-byte unmodified by this remediation.
+
+Independent re-validation confirms `tsc --noEmit`, ESLint, the targeted test file in isolation (19/19 tests, matching the Builder's reported count), and `npm run test:extension-host:build` all pass cleanly. A full `npm run validate` run initially reported one failure in `test/integration/local-process-runtime.integration.test.ts` (Sprint 21, a real-process-execution integration test); this file has no diff (confirmed via `git diff --stat`), passes in isolation, and passes on a full-suite re-run (75 files / 370 tests, matching the Builder's reported count exactly) — confirming a one-off environmental flake unrelated to this remediation, not a regression.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-15-002-F-001` is fully resolved with no residual or newly introduced defect.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Findings resolved this review | 1 (F-001) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (19/19), `npm run validate` (Vitest 75 files / 370 tests, re-run after an unrelated one-off flake), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 47 deferred concepts (Adapter Selection, Assignment Policy evaluation, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination, any `src/hosts`/`src/adapters` change) remain confirmed absent.
+
+### Architectural Compliance Summary
+
+- **Test-only remediation:** Exactly the four branches identified by `NEXUS-REV-2026-07-15-002-F-001` are now covered; no production behavior changed.
+- **No regression:** All previously passing Sprint 47 tests continue to pass unmodified; the full repository suite passes at 75 files / 370 tests.
+- **Scope discipline:** No file beyond `test/kernel/execution/engineering-session.service.test.ts` and `IMPLEMENTATION_REPORT.md` was touched.
+
+### Builder Task Recommendation
+
+None. `TASK-001` is fully closed with no residual finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0047-workflow-chain-execution.md`) — Status updated to Approved; Reviewer Notes and Final Disposition updated to reflect `F-001`'s closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 47 marked Approved (no open findings remain).
+
+### Work Item State Reconciliation
+
+- Sprint 47: Status → **Approved** (`NEXUS-REV-2026-07-15-003`; fully closed, zero open findings).
+- Work Order: Status → **Completed**.
+- Builder Tasks: `TASK-001` → **Completed** (acceptance criteria satisfied; verified above).
+
+---
+
+## NEXUS-REV-2026-07-15-002 — Sprint 47 — Workflow Chain Execution
+
+- **Reviewed Sprint:** Sprint 47 — Workflow Chain Execution
+- **Reviewed Vertical Slice:** RFC-0004 v1.6 Workflow Chain Execution (`EngineeringSession.executeCurrentWorkflowStep()`, `EngineeringSessionService.executeCurrentWorkflowStep()`)
+- **RFC Coverage:** RFC-0004 — Execution Model v1.6 ("Workflow Chain Execution", Primary). Referenced: RFC-0004 v1.6 ("Engineering Session", "Workflow Chaining", "Workflow Advancement", "Execution Strategy", "Execution Session" — all existing, unmodified); RFC-0008 — Kernel Adapter Contract (`AdapterService.dispatch`, unmodified); RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 47 implements RFC-0004 v1.6's Workflow Chain Execution section exactly as authorized by `NEXUS-RAT-2026-07-15-004`. `EngineeringSession.executeCurrentWorkflowStep()` is a pure, read-only aggregate method that resolves the current workflow position's bound `WorkflowStep` and its `RoleId`, throwing `InvalidEngineeringSessionDefinitionError` if the position does not resolve; it does not mutate state and does not call `advanceWorkflow()`. `EngineeringSessionService.executeCurrentWorkflowStep()` is thin orchestration: repository lookup, read-only `WorkflowChain` lookup, aggregate delegation to resolve the target Role, `ExecutionStrategyService.evaluateAssignmentReadiness` invocation (existing, unmodified), explicit-`adapterId` `AdapterService.dispatch` (existing, unmodified — no Adapter Selection, routing, or capability scoring introduced), and `ExecutionSessionService.createExecutionSession` attempt recording (existing, unmodified). Readiness rejections are converted to a deterministic `ReadinessRejected` result with no `ExecutionSession` created, mirroring the repository's established result-based (non-exception) rejection pattern used by Advancement Failure.
+
+`git diff --stat` against the prior committed state confirms the change is confined to `create-kernel-services.ts`, `engineering-session.contract.ts`, `engineering-session.service.ts`, `engineering-session.ts`, `engineering-session.types.ts` (source), plus test files. Direct inspection confirms `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy` (aggregate and service), `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, and Sprint 43's/45's/46's `advanceWorkflow()`/`advanceWorkflowOnTrigger()`/`advanceWorkflowAfterReview()` are all byte-for-byte unmodified — none appear in the diff. No `src/hosts` or `src/adapters` file is modified. `createKernelServices()` composition reuses single shared `AdapterService`, `ExecutionSessionService`, and `ExecutionStrategyService` instances across both the returned service array and the new `EngineeringSessionService` constructor arguments — no duplicate registries or divergent state.
+
+Test coverage traces directly to the Sprint Implementation Record's Authorized Vertical Slice: successful execution producing an `ExecutionSession` record with correct assigned Role/Adapter/outcome and unchanged workflow position; execution readiness rejection (via a genuine unsatisfied-dependency-ordering scenario, not a contrived stub) producing a deterministic `ReadinessRejected` result with no `ExecutionSession` created and no Adapter invocation; non-`Completed` Adapter response recorded as a `Failed` execution attempt; determinism across two independently constructed harnesses with equivalent state; and a Kernel Boundary Certification assertion that `executeCurrentWorkflowStep` is composed and callable. Independent re-validation confirms `tsc --noEmit`, ESLint, the three targeted Vitest files (36/36 tests), `npm run validate` (TypeScript compile, ESLint, Vitest 75 files / 366 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly, matching the Builder's reported results exactly.
+
+One Minor, non-blocking finding is recorded concerning untested defensive branches (see below). Overall disposition: **PASS WITH FINDINGS**.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-002-F-001 — Four defensive branches in the new execution path have no test coverage
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 11 (Testing — "New behavior is covered")
+- **Summary:** `EngineeringSessionService.executeCurrentWorkflowStep()`'s new code introduces four deterministic rejection/guard branches with no exercising test: (1) the WorkflowStep-Role-vs-Assignment-Role mismatch check in `evaluateReadiness()` (`engineering-session.service.ts`, `'engineering-session.workflow-step-role-mismatch'` diagnostic code); (2) `requireExecutionStrategyService()`'s guard when `executionStrategyService` is not constructor-injected; (3) `requireAdapterService()`'s guard when `adapterService` is not constructor-injected; (4) `requireExecutionSessionService()`'s guard when `executionSessionService` is not constructor-injected.
+- **Evidence:** `src/kernel/execution/engineering-session.service.ts` (`evaluateReadiness`, `requireExecutionStrategyService`, `requireAdapterService`, `requireExecutionSessionService`); `test/kernel/execution/engineering-session.service.test.ts` (no test constructs a role-mismatched scenario or an `EngineeringSessionService` missing one of the three new optional dependencies while calling `executeCurrentWorkflowStep`).
+- **Impact:** Low today — the composed Kernel (`createKernelServices`) always supplies all three dependencies, so the three guard branches are unreachable in the certified composition, and the role-mismatch branch fails closed (rejects) rather than silently dispatching to the wrong Role. However, none of the four branches are verified by any test, so a future regression in any of them (e.g., the guard silently becoming a no-op, or the mismatch comparison being inverted) would not be caught by the test suite.
+- **Required Disposition:** Builder Task — add test coverage for the four branches identified above (a role-mismatch scenario producing `ReadinessRejected`; three constructions of `EngineeringSessionService` each omitting exactly one of `executionStrategyService`/`adapterService`/`executionSessionService` and asserting the corresponding `InvalidEngineeringSessionDefinitionError`).
+- **Builder Action:** Fix (add tests only; no production-code change is implied or required).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001, Implementation Defect — test coverage gap) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (3 files / 36 tests), `npm run validate` (Vitest 75 files / 366 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 47 deferred concepts confirmed absent from the diff: Adapter Selection/routing/capability scoring/fallback logic, Assignment Policy evaluation, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, and any modification to `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, or any existing Advancement method. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+- **RFC conformance:** `executeCurrentWorkflowStep()` implements exactly RFC-0004 v1.6's Workflow Chain Execution: Role resolution, existing Execution Strategy readiness evaluation, existing explicit-`adapterId` Adapter dispatch, and recording through the existing Execution Session model — matching the ratified amendment text.
+- **Aggregate ownership:** `EngineeringSession` owns resolving the current `WorkflowStep`'s Role only (pure, read-only); `EngineeringSessionService` owns orchestration; `ExecutionStrategyService`, `AdapterService`, and `ExecutionSessionService` retain their existing, unmodified ownership of readiness evaluation, dispatch, and execution-attempt recording respectively.
+- **Domain ownership / cross-domain access:** No foreign aggregate internals are accessed; `EngineeringSessionService` interacts with `ExecutionStrategyService`, `AdapterService`, and `ExecutionSessionService` exclusively through their existing public contracts.
+- **Determinism:** Equivalent `EngineeringSession` state and equivalent Adapter responses produce equivalent results, verified by a dedicated cross-harness determinism test.
+- **Terminology:** `Workflow Chain Execution`, `Execution Strategy`, `Execution Session`, `ReadinessRejected` used consistently with the RFC-0004 v1.6 vocabulary; no renamed or invented architectural terms.
+- **Scope discipline:** Execution and Advancement remain separate operations; no file outside the Authorized Vertical Slice was touched; `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `src/hosts`, `src/adapters` all confirmed unmodified by direct diff inspection.
+- **Tests:** Comprehensive coverage of the primary authorized paths (successful execution, readiness rejection, non-`Completed` Adapter response, determinism, Kernel composition continuity); one Minor gap in defensive-branch coverage recorded above.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-002-F-001` (add test coverage for the four untested defensive branches; no production-code change required). This finding does not block approval — recommend the Sprint Owner mark Sprint 47 **Approved with Findings**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0047-workflow-chain-execution.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 47 marked Approved with Findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 47: Status → **Approved with Findings** (`NEXUS-REV-2026-07-15-002`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: One Builder Task generated for `NEXUS-REV-2026-07-15-002-F-001` (test-coverage addition); non-blocking.
+
+---
+
 ## NEXUS-REV-2026-07-15-001 — Sprint 46 — Review-Gated Workflow Advancement
 
 - **Reviewed Sprint:** Sprint 46 — Review-Gated Workflow Advancement

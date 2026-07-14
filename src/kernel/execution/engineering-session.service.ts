@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import { ServiceLifecycle } from '../common/service-lifecycle';
+import { AdapterRequest } from '../adapter/adapter-request';
+import type { AdapterService } from '../adapter/adapter.service';
+import { KernelError } from '../common/kernel-error';
 import { AdvancementTrigger } from './advancement-trigger';
 import { EngineeringSession } from './engineering-session';
 import type {
@@ -10,6 +13,7 @@ import type {
   CloseEngineeringSessionCommand,
   CreateEngineeringSessionCommand,
   EngineeringSessionServiceContract,
+  ExecuteCurrentWorkflowStepCommand,
 } from './engineering-session.contract';
 import { EngineeringSessionId } from './engineering-session-id';
 import {
@@ -20,12 +24,29 @@ import {
   InMemoryEngineeringSessionRepository,
   type IEngineeringSessionRepository,
 } from './engineering-session.repository';
-import type { EngineeringSessionSnapshot } from './engineering-session.types';
+import type {
+  EngineeringSessionSnapshot,
+  EngineeringSessionWorkflowExecutionResult,
+} from './engineering-session.types';
+import type { ExecutionSessionService } from './execution-session.service';
+import type { ExecutionStrategyService } from './execution-strategy.service';
 import {
   InMemoryWorkflowChainRepository,
   type IWorkflowChainRepository,
 } from './workflow-chain.repository';
 import { ReviewOutcome } from '../review/review-values';
+import type { AssignmentReadinessResult } from './execution-strategy.types';
+
+type WorkflowExecutionReadinessEvaluation =
+  | {
+      readonly status: 'Ready';
+      readonly readiness: AssignmentReadinessResult;
+    }
+  | ReadinessRejectedWorkflowExecutionResult;
+
+type ReadinessRejectedWorkflowExecutionResult = EngineeringSessionWorkflowExecutionResult & {
+  readonly status: 'ReadinessRejected';
+};
 
 export class EngineeringSessionService
   extends ServiceLifecycle
@@ -36,6 +57,15 @@ export class EngineeringSessionService
     private readonly workflowChainRepository: IWorkflowChainRepository = new InMemoryWorkflowChainRepository(),
     private readonly createIdentity: () => string = randomUUID,
     private readonly createTimestamp: () => string = () => new Date().toISOString(),
+    private readonly executionStrategyService?: Pick<
+      ExecutionStrategyService,
+      'evaluateAssignmentReadiness'
+    >,
+    private readonly adapterService?: Pick<AdapterService, 'dispatch'>,
+    private readonly executionSessionService?: Pick<
+      ExecutionSessionService,
+      'createExecutionSession'
+    >,
   ) {
     super('EngineeringSessionService');
   }
@@ -126,6 +156,94 @@ export class EngineeringSessionService
     return engineeringSession.toSnapshot();
   }
 
+  public async executeCurrentWorkflowStep(
+    command: ExecuteCurrentWorkflowStepCommand,
+  ): Promise<EngineeringSessionWorkflowExecutionResult> {
+    const executionStrategyService = this.requireExecutionStrategyService();
+    const adapterService = this.requireAdapterService();
+    const executionSessionService = this.requireExecutionSessionService();
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const executionTarget = engineeringSession.executeCurrentWorkflowStep(workflowChain);
+    const workflowStepRoleId = executionTarget.roleId;
+    const adapterId = normalizeCreationReference(command.adapterId, 'EngineeringSession adapterId');
+    const taskId = normalizeCreationReference(command.taskId, 'EngineeringSession taskId');
+    const contextPackageReference = normalizeCreationReference(
+      command.contextPackageReference,
+      'EngineeringSession contextPackageReference',
+    );
+    const consumedProjectionVersion = normalizeCreationReference(
+      command.consumedProjectionVersion,
+      'EngineeringSession consumedProjectionVersion',
+    );
+    const readiness = await this.evaluateReadiness(
+      command,
+      taskId,
+      workflowStepRoleId,
+      engineeringSession.toSnapshot(),
+      adapterId,
+      executionStrategyService,
+    );
+
+    if (readiness.status === 'ReadinessRejected') {
+      return readiness;
+    }
+
+    const readinessResult = readiness.readiness;
+    const startedAt = this.createTimestamp();
+    const adapterResponse = await adapterService.dispatch({
+      adapterId,
+      request: AdapterRequest.create({
+        engineeringRole: workflowStepRoleId,
+        taskId,
+        contextPackageReference,
+        ...(command.executionConstraints === undefined
+          ? {}
+          : { executionConstraints: command.executionConstraints }),
+        requestMetadata: {
+          ...(command.requestMetadata ?? {}),
+          executionStrategyId: readinessResult.executionStrategyId,
+          missionId: readinessResult.missionId,
+          missionPlanId: readinessResult.missionPlanId,
+          roleId: workflowStepRoleId,
+          workflowChainId: executionTarget.workflowChainId,
+          currentWorkflowStepId: executionTarget.currentWorkflowStepId,
+        },
+      }),
+    });
+    const completedAt = this.createTimestamp();
+    const executionSession = await executionSessionService.createExecutionSession({
+      engineeringSessionId: engineeringSession.id.toString(),
+      assignedRole: workflowStepRoleId,
+      assignedAdapter: adapterId,
+      startedAt,
+      completedAt,
+      consumedProjectionVersion,
+      producedArtifacts: adapterResponse.producedArtifacts,
+      executionOutcome: adapterResponse.status,
+    });
+
+    return Object.freeze({
+      status: adapterResponse.status,
+      engineeringSession: engineeringSession.toSnapshot(),
+      workflowChainId: executionTarget.workflowChainId,
+      currentWorkflowStepId: executionTarget.currentWorkflowStepId,
+      workflowStepRoleId,
+      taskId,
+      adapterId,
+      readiness: readinessResult,
+      adapterResponse: adapterResponse.toSnapshot(),
+      executionSession,
+      diagnostics: adapterResponse.diagnostics.map((diagnostic) =>
+        Object.freeze({
+          code: diagnostic.code,
+          message: diagnostic.message,
+          recordedAt: completedAt,
+        }),
+      ),
+    });
+  }
+
   public async getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot> {
     return (await this.requireEngineeringSession(engineeringSessionId)).toSnapshot();
   }
@@ -152,6 +270,114 @@ export class EngineeringSessionService
     }
 
     return engineeringSession;
+  }
+
+  private async evaluateReadiness(
+    command: ExecuteCurrentWorkflowStepCommand,
+    taskId: string,
+    workflowStepRoleId: string,
+    engineeringSession: EngineeringSessionSnapshot,
+    adapterId: string,
+    executionStrategyService: Pick<ExecutionStrategyService, 'evaluateAssignmentReadiness'>,
+  ): Promise<WorkflowExecutionReadinessEvaluation> {
+    try {
+      const readiness = await executionStrategyService.evaluateAssignmentReadiness({
+        executionStrategyId: command.executionStrategyId,
+        missionPlanId: command.missionPlanId,
+        taskId,
+      });
+
+      if (readiness.roleId !== workflowStepRoleId) {
+        return this.createReadinessRejectedResult(
+          engineeringSession,
+          workflowStepRoleId,
+          taskId,
+          adapterId,
+          'engineering-session.workflow-step-role-mismatch',
+          `WorkflowStep Role '${workflowStepRoleId}' does not match Assignment Role '${readiness.roleId}'.`,
+        );
+      }
+
+      return Object.freeze({
+        status: 'Ready' as const,
+        readiness,
+      });
+    } catch (error) {
+      if (error instanceof KernelError) {
+        return this.createReadinessRejectedResult(
+          engineeringSession,
+          workflowStepRoleId,
+          taskId,
+          adapterId,
+          'engineering-session.readiness-rejected',
+          error.message,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  private createReadinessRejectedResult(
+    engineeringSession: EngineeringSessionSnapshot,
+    workflowStepRoleId: string,
+    taskId: string,
+    adapterId: string,
+    code: string,
+    message: string,
+  ): ReadinessRejectedWorkflowExecutionResult {
+    return Object.freeze({
+      status: 'ReadinessRejected',
+      engineeringSession,
+      workflowChainId: engineeringSession.workflowChainId,
+      currentWorkflowStepId: engineeringSession.currentWorkflowStepId,
+      workflowStepRoleId,
+      taskId,
+      adapterId,
+      diagnostics: Object.freeze([
+        Object.freeze({
+          code,
+          message,
+          recordedAt: this.createTimestamp(),
+        }),
+      ]),
+    });
+  }
+
+  private requireExecutionStrategyService(): Pick<
+    ExecutionStrategyService,
+    'evaluateAssignmentReadiness'
+  > {
+    if (this.executionStrategyService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution requires ExecutionStrategyService.',
+      );
+    }
+
+    return this.executionStrategyService;
+  }
+
+  private requireAdapterService(): Pick<AdapterService, 'dispatch'> {
+    if (this.adapterService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution requires AdapterService.',
+      );
+    }
+
+    return this.adapterService;
+  }
+
+  private requireExecutionSessionService(): Pick<
+    ExecutionSessionService,
+    'createExecutionSession'
+  > {
+    if (this.executionSessionService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution requires ExecutionSessionService.',
+      );
+    }
+
+    return this.executionSessionService;
   }
 }
 

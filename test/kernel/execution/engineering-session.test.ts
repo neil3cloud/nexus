@@ -147,11 +147,21 @@ describe('EngineeringSession domain', () => {
   it('advances exactly one WorkflowStep per invocation and detects terminal completion', () => {
     const session = createSession();
 
+    expect(session.executeCurrentWorkflowStep(workflowChain)).toEqual({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      roleId: 'builder',
+    });
     expect(session.isWorkflowComplete(workflowChain)).toBe(false);
 
     session.advanceWorkflow(workflowChain);
 
     expect(session.currentWorkflowStepId).toBe('1');
+    expect(session.executeCurrentWorkflowStep(workflowChain)).toEqual({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '1',
+      roleId: 'reviewer',
+    });
     expect(session.toSnapshot()).toMatchObject({
       currentWorkflowStepId: '1',
       status: 'Open',

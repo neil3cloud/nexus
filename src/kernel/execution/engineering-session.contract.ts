@@ -1,8 +1,10 @@
 import type { AdvancementTriggerInput } from './advancement-trigger.types';
+import type { AdapterExecutionConstraints, AdapterRequestMetadata } from '../adapter/adapter-request';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionMetadata,
   EngineeringSessionSnapshot,
+  EngineeringSessionWorkflowExecutionResult,
 } from './engineering-session.types';
 
 export interface CreateEngineeringSessionCommand {
@@ -35,6 +37,18 @@ export interface AdvanceEngineeringSessionWorkflowAfterReviewCommand {
   readonly reviewOutcome: string;
 }
 
+export interface ExecuteCurrentWorkflowStepCommand {
+  readonly engineeringSessionId: string;
+  readonly executionStrategyId: string;
+  readonly missionPlanId: string;
+  readonly taskId: string;
+  readonly adapterId: string;
+  readonly contextPackageReference: string;
+  readonly consumedProjectionVersion: string;
+  readonly executionConstraints?: AdapterExecutionConstraints;
+  readonly requestMetadata?: AdapterRequestMetadata;
+}
+
 export interface EngineeringSessionServiceContract {
   createEngineeringSession(command: CreateEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   closeEngineeringSession(command: CloseEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
@@ -45,6 +59,9 @@ export interface EngineeringSessionServiceContract {
   advanceWorkflowAfterReview(
     command: AdvanceEngineeringSessionWorkflowAfterReviewCommand,
   ): Promise<EngineeringSessionSnapshot>;
+  executeCurrentWorkflowStep(
+    command: ExecuteCurrentWorkflowStepCommand,
+  ): Promise<EngineeringSessionWorkflowExecutionResult>;
   getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot>;
   enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;
 }

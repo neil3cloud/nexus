@@ -92,6 +92,7 @@ describe('RFC-0010 Kernel boundary certification', () => {
       })),
     });
     expect(typeof harness.engineeringSessionService.advanceWorkflowAfterReview).toBe('function');
+    expect(typeof harness.engineeringSessionService.executeCurrentWorkflowStep).toBe('function');
     expect(harness.logger.errors).toEqual([]);
   });
 
