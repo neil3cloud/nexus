@@ -2,6 +2,66 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-024 — Sprint 44 — Assignment Policy Foundation
+
+- **Reviewed Sprint:** Sprint 44 — Assignment Policy Foundation
+- **Reviewed Change:** New `AssignmentPolicy` domain model (`assignment-policy.ts`, `assignment-policy-id.ts`, `assignment-policy.types.ts`, `assignment-policy.contract.ts`, `assignment-policy.errors.ts`, `assignment-policy.repository.ts`, `assignment-policy.service.ts`), their three test files, `create-kernel-services.ts`'s `AssignmentPolicyService`/`InMemoryAssignmentPolicyRepository` composition, and the Sprint 18 Kernel Boundary Certification test's composition-assertion update.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 ("Assignment" and "Assignment Policy" sections, existing, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently read all seven new `assignment-policy*.ts` source files, their three test files, and the `create-kernel-services.ts`/`kernel-boundary-certification.integration.test.ts` diffs in full, and compared the implementation against `NEXUS-RAT-2026-07-14-024`'s Authorized Builder Scope and its four Sprint Owner Refinements. `AssignmentPolicy` is an immutable, `Object.freeze`-protected aggregate constructed only through `AssignmentPolicy.create`/`fromSnapshot`, exposing exactly five immutable value objects — `AssignmentRequiredRole` (wrapping the existing, unmodified `RoleId`), `AssignmentAdapterExecutionCapability`, `AssignmentRepositoryConfiguration`, `AssignmentExecutionConstraints`, and `AssignmentHumanPreferences` — matching RFC-0004's "Assignment Policy" section's five named factors exactly, with no sixth factor (Refinement 2). `assignmentPolicyAllowedKeys`/`assignmentPolicyForbiddenKeys` in `assignment-policy.ts:11-41` explicitly enumerate and reject any `engineeringSession`, `executionSession`, `workflowChain`, `workflowStep`, `adapter`, `dispatch`, `reviewGate`, `orchestration`, or `automaticWorkflowAdvancement` key at both construction and evaluation time, and `assignment-policy.test.ts`'s `'rejects unsupported or deferred runtime fields'` test exercises this with `@ts-expect-error` compile-time and runtime rejection for an injected `adapterId`, `workflowChainId`, and an extra `costPreference` factor (Refinement 1, 2). `AssignmentPolicy.evaluate()` (`assignment-policy.ts:196-225`) is a pure function returning a frozen result computed only from its own immutable state and the supplied `AssignmentPolicyEvaluationInput` — no repository call, no Adapter reference, no Task/Execution State mutation, and no field beyond the five factors is read or written; the determinism test in `assignment-policy.test.ts:128-164` confirms two structurally-equivalent-but-differently-ordered/whitespaced inputs produce byte-identical outcomes (Refinement 3). `AssignmentPolicyService` (`assignment-policy.service.ts`) performs only `create`/`get`/`enumerate`/`evaluate` through a constructor-injected `IAssignmentPolicyRepository`, mirroring `WorkflowChainService`'s established thin-orchestration pattern; `assignment-policy.service.test.ts:95` explicitly asserts `'attachEngineeringSession' in service` is `false` (Refinement 4).
+
+`git status --porcelain` and `git diff --stat` confirm the changed/added file set is limited to the eight new `AssignmentPolicy` files (plus three new test files), one composition touch point in `create-kernel-services.ts` (two added lines: import + repository construction + service registration), one composition-assertion update in the Sprint 18 Kernel Boundary Certification test, and governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `RATIFICATION_LEDGER.md`, the Sprint 44 record). A repository-wide `grep` for `EngineeringSession|WorkflowChain|WorkflowStep|ExecutionSession` across all new `assignment-policy*` source and test files returns only the intentional forbidden-key literal strings inside `assignment-policy.ts`'s rejection set and test assertions confirming their rejection — no live reference, import, or type dependency on any of those concepts exists. `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, `WorkflowStep`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, and every `src/hosts`/`src/adapters` file are confirmed unmodified. Independent re-validation confirms `tsc --noEmit --pretty false`, `eslint` (targeted and full `npm run lint`), `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (74 files / 347 tests, matching the Builder's reported count) all pass cleanly. Overall disposition: **PASS**.
+
+### Findings
+
+None. No Category 1 Implementation Defects, Category 2 Architectural Violations, Category 3 Specification Conflicts, Category 4 Documentation Drift, Category 5 Governance Decisions, or Category 6 Observations were identified.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Observations | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 74 files / 347 tests |
+
+### Deferred Concept Validation
+
+Confirmed absent from the diff: `EngineeringSession`/`WorkflowChain`/`ExecutionSession` wiring, runtime dispatch, Adapter selection/invocation driven by policy evaluation, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session/workflow coordination, and any `src/hosts`/`src/adapters` change. No `EventBusContract` injection or event publication was introduced for `AssignmentPolicy`.
+
+### Architectural Compliance Summary
+
+- **Standalone, unwired foundation:** `AssignmentPolicy`/`AssignmentPolicyService` hold no reference, import, or field referencing `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, or `WorkflowStep`; those four concepts are confirmed byte-for-byte unmodified. Compliant with Refinement 1.
+- **Exactly five assignment-requirement factors:** `AssignmentPolicy` exposes exactly `requiredRole`, `adapterExecutionCapability`, `repositoryConfiguration`, `executionConstraints`, and `humanPreferences`; `assertAllowedKeys` deterministically rejects any additional or forbidden field at both construction and evaluation. Compliant with Refinement 2.
+- **Deterministic, side-effect-free evaluation:** `evaluate()` is a pure function of its own immutable state and its input, returning a frozen result; no dispatch, no Task/Execution State transition, no side effect. Compliant with Refinement 3.
+- **Thin service, existing repository pattern:** `AssignmentPolicyService` provides creation, lookup, enumeration, and evaluation only, through constructor injection; `IAssignmentPolicyRepository`/`InMemoryAssignmentPolicyRepository` mirror the existing Kernel repository pattern (serialized operation queue, snapshot storage, deterministic sorted enumeration). Compliant with Refinement 4.
+- **Kernel composition:** `createKernelServices()` gains only the two required construction/registration lines; the Sprint 18 Kernel Boundary Certification test's `expectedKernelServiceNames` and harness were updated consistently with the Sprint 37–43 precedent, and the full boundary-certification scenario suite (including the new `enumerateAssignmentPolicies()` empty-state assertion) passes.
+- **Tests:** Three new test files cover aggregate construction/immutability/snapshot-equality, all five value objects' validation, deterministic evaluation (including a determinism-equivalence assertion and unsatisfied-factor reporting), forbidden/unsupported-field rejection (compile-time `@ts-expect-error` and runtime), repository behavior (create/duplicate-rejection/lookup/enumeration ordering), and service orchestration (including the `attachEngineeringSession`-absence assertion). Full suite 347/347 passing.
+
+### Builder Task Recommendation
+
+None. No findings of any category were identified.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0044-assignment-policy-foundation.md`) — Status updated to Approved; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — Sprint 44 marked Approved. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Review-Gated Progression, Multi-Agent Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 44: Status → **Approved** (`NEXUS-REV-2026-07-14-024`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated this review.
+
+---
+
 ## NEXUS-REV-2026-07-14-023 — Sprint 43 — Engineering Session Manual Workflow Advancement
 
 - **Reviewed Sprint:** Sprint 43 — Engineering Session Manual Workflow Advancement

@@ -2074,9 +2074,9 @@ Implementation Result
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Remaining candidate scope after Sprint 43: Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session coordination.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. Remaining candidate scope after Sprint 44: Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session coordination.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) that introduced `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Sprint 39 — Engineering Sessions Foundation is Milestone 8's opening Sprint, implementing `EngineeringSession`/`EngineeringSessionId`/`EngineeringSessionStatus`/`EngineeringSessionService` as a foundation-only vertical slice.
 
@@ -2391,3 +2391,67 @@ Implementation Result
 - Builder implementation completed the authorized Engineering Session Manual Workflow Advancement vertical slice.
 - Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-14-023`). Zero findings requiring Builder action; two non-blocking Category 6 Observations recorded (service-level exposure of `isWorkflowComplete()`; reuse of the existing `InvalidEngineeringSessionDefinitionError` for advancement-time rejections). Sprint 43 is fully closed with zero open findings.
 - No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, or automatic/event-driven workflow advancement) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## Sprint 44 — Assignment Policy Foundation
+
+Status: Approved — NEXUS-REV-2026-07-14-024
+
+Objective
+
+Implement RFC-0004's existing "Assignment" and "Assignment Policy" sections as a standalone, deterministic Kernel domain concept: an `AssignmentPolicy` aggregate and supporting value objects representing assignment requirements (required role, Adapter/execution capability, repository configuration, execution constraints, and human preferences), with validation and deterministic policy evaluation. Establishes the canonical assignment model that future, separately-ratified Sprints may wire into workflow progression and multi-agent execution. No integration with `EngineeringSession`, `ExecutionSession`, or `WorkflowChain` is introduced.
+
+RFC Coverage
+
+Primary
+
+- RFC-0004 — Execution Model v1.3 (existing "Assignment" and "Assignment Policy" sections, unmodified by this Sprint)
+
+Referenced
+
+- RFC-0010 — Kernel Boundaries
+
+No RFC ownership changes are authorized.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-024` — governs this Sprint's entire scope: Authorized Builder Scope, four Sprint Owner Refinements, Explicitly Deferred list, and scope restrictions.
+
+Authorized Vertical Slice
+
+- `AssignmentPolicy` immutable Kernel domain concept with `AssignmentPolicyId` and immutable value objects for exactly the five RFC-0004-named assignment-requirement factors: required role (via the existing `RoleId`), Adapter/execution capability, repository configuration, execution constraints, and human preferences.
+- A deterministic policy-evaluation operation on `AssignmentPolicy` that is a pure function of its stated inputs; equivalent inputs produce equivalent outcomes; no dispatch or side effect.
+- `IAssignmentPolicyRepository` contract and in-memory implementation for creation, lookup, and enumeration only, mirroring existing Kernel repository patterns.
+- Thin `AssignmentPolicyService` for creation, lookup, enumeration, and policy evaluation only, through constructor-injected repository contracts — no dispatch, no wiring, no orchestration.
+- `createKernelServices` composition updated only as strictly required to construct and register the `AssignmentPolicy` repository and service.
+- Unit tests covering: aggregate construction and immutability; each assignment-requirement value object's validation; deterministic policy evaluation for equivalent inputs; the repository; and the service.
+
+Deferred Concepts
+
+- `EngineeringSession` / `WorkflowChain` / `ExecutionSession` wiring of `AssignmentPolicy`.
+- Runtime dispatch, Adapter selection, or Adapter invocation driven by policy evaluation.
+- Review-Gated Progression.
+- Multi-Agent Engineering Orchestration.
+- Automatic or event-driven workflow advancement.
+- Session recovery/checkpointing.
+- Concurrent session/workflow coordination.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- `AssignmentPolicy` is the only new normative architectural concept introduced by Sprint 44.
+- `AssignmentPolicy` is wholly independent of `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, and `WorkflowStep`; none of them are modified or referenced.
+- `AssignmentPolicy` represents exactly the five RFC-0004-named assignment-requirement factors, no more.
+- Policy evaluation is a pure, deterministic function of its inputs; equivalent inputs always produce equivalent outcomes; no dispatch or side effect is introduced.
+- `AssignmentPolicyService` remains thin orchestration; implements no dispatch, wiring, or orchestration behavior.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0044-assignment-policy-foundation.md` for the complete Sprint Implementation Record.
+
+Implementation Result
+
+- Builder implementation completed the authorized Assignment Policy Foundation vertical slice.
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-14-024`). Zero findings of any category; full Vitest suite (74 files / 347 tests), `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly. Sprint 44 is fully closed with zero open findings.
+- No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Review-Gated Progression, Multi-Agent Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.

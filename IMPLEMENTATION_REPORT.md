@@ -1,5 +1,100 @@
 # Nexus Implementation Report
 
+## Sprint 44 — Assignment Policy Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 44 Assignment Policy Foundation vertical slice. This sprint introduces RFC-0004's standalone, deterministic `AssignmentPolicy` domain model without runtime wiring.
+
+Implemented scope:
+
+- Added `AssignmentPolicyId`.
+- Added exactly five immutable assignment-requirement value objects: required role via the existing `RoleId`, Adapter/execution capability, repository configuration, execution constraints, and human preferences.
+- Added immutable `AssignmentPolicy` construction and snapshot reconstitution.
+- Added deterministic `AssignmentPolicy.evaluate()` as a pure comparison of the five stated assignment factors, producing equivalent outcomes for equivalent inputs and no side effects.
+- Added `IAssignmentPolicyRepository` and `InMemoryAssignmentPolicyRepository` for creation, lookup, and enumeration only.
+- Added thin `AssignmentPolicyService` for creation, lookup, enumeration, and policy evaluation only.
+- Updated `createKernelServices()` only to compose `AssignmentPolicyService` and its repository.
+- Updated the Kernel boundary certification composition assertion to include `AssignmentPolicyService` while preserving existing `WorkflowChainService` and `EngineeringSessionService` composition.
+- Added deterministic unit coverage for aggregate construction and immutability, all five assignment-requirement value objects, evaluation, repository behavior, service behavior, and composition.
+
+Out of scope and not implemented:
+
+- `EngineeringSession` / `WorkflowChain` / `ExecutionSession` wiring of `AssignmentPolicy`.
+- Runtime dispatch, Adapter selection, or Adapter invocation driven by policy evaluation.
+- Review-Gated Progression.
+- Multi-Agent Engineering Orchestration.
+- Automatic or event-driven workflow advancement.
+- Session recovery/checkpointing.
+- Concurrent session/workflow coordination.
+- Any change to `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, `WorkflowStep`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy`.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.3 (`Assignment` and `Assignment Policy` sections).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `AssignmentPolicy`.
+- `AssignmentPolicyId`.
+- Five assignment-requirement factors: required role, Adapter/execution capability, repository configuration, execution constraints, and human preferences.
+- Deterministic policy evaluation as a pure function of stated inputs.
+- `AssignmentPolicyService` creation, lookup, enumeration, and evaluation orchestration only.
+
+Deferred Concepts:
+
+- `EngineeringSession` / `WorkflowChain` / `ExecutionSession` wiring of `AssignmentPolicy`.
+- Runtime dispatch, Adapter selection, Adapter invocation, or execution-eligibility side effects driven by policy evaluation.
+- Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic/event-driven workflow advancement.
+- Session recovery/checkpointing and concurrent session/workflow coordination.
+- Host or Adapter consumption of `AssignmentPolicy`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-024`, `NEXUS-RAT-2026-07-14-011`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0044-assignment-policy-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Adapter/execution capability is represented as a standalone assignment-requirement string value object for this Sprint; it is not Adapter selection, Adapter dispatch, or an Adapter reference.
+- Repository configuration, execution constraints, and human preferences are immutable string-record requirement sets; evaluation requires every policy requirement entry to be present with an equivalent value in the evaluation input.
+
+### Known Limitations
+
+- `AssignmentPolicy` is advisory domain data only; no existing workflow, session, Task lifecycle, Adapter, Host, or orchestration behavior consults it.
+- Policies and repositories remain in-memory only; no durable persistence is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 44 validation passed: `npm exec vitest run test/kernel/execution/assignment-policy.test.ts test/kernel/execution/assignment-policy.repository.test.ts test/kernel/execution/assignment-policy.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- TypeScript compile passed: `npm run compile -- --pretty false`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (74 files / 347 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 44.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 43 — Engineering Session Manual Workflow Advancement
 
 ### Implemented Slice

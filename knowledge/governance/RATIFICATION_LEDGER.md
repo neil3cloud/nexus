@@ -3323,3 +3323,93 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-024
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-024
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 44 Scope Ratification — Assignment Policy Foundation. Resolves the `nexus-plan` Sprint Proposal presented after Sprint 43 (`NEXUS-RAT-2026-07-14-023`) closed with zero open findings, selecting Assignment Policy as Milestone 8's next candidate concept from the unordered set named by `NEXUS-RAT-2026-07-14-011` and restated by every subsequent Milestone 8 ratification (Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session coordination).
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Sprint Proposal (Sprint 44 — Assignment Policy Foundation), presented as a recommendation among the remaining unordered Milestone 8 candidates on the basis that Review-Gated Progression and Multi-Agent Engineering Orchestration both presuppose an Assignment concept that does not yet exist at runtime. Approved by the Sprint Owner with a binding scope statement narrowing the Sprint to a standalone, deterministic `AssignmentPolicy` domain model, independent of all runtime wiring (2026-07-14).
+
+## Governance Decision
+
+**Sprint 44 — Assignment Policy Foundation is authorized as Milestone 8's next Sprint.** The Sprint implements RFC-0004's existing, unmodified "Assignment" and "Assignment Policy" sections as a standalone Kernel domain concept: an `AssignmentPolicy` aggregate and supporting value objects representing assignment requirements (required role, Adapter/execution capability, repository configuration, execution constraints, and human preferences), with validation and deterministic policy evaluation. This establishes the canonical assignment model that future, separately-ratified Sprints may wire into workflow progression and multi-agent execution.
+
+### Sprint Owner Refinements (binding)
+
+**Refinement 1 — Standalone, unwired foundation.** `AssignmentPolicy` SHALL be implemented as a standalone Kernel domain concept, wholly independent of `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, and `WorkflowStep`. This Sprint SHALL NOT integrate `AssignmentPolicy` with any of them, and SHALL NOT introduce runtime dispatch, Review-Gated Progression, orchestration, or automatic workflow advancement of any kind, including as an unused/stubbed reference — mirroring the Sprint 41 Workflow Chaining Foundation precedent.
+
+**Refinement 2 — Assignment requirement model.** `AssignmentPolicy` SHALL represent, as immutable value objects, exactly the five factors RFC-0004's "Assignment Policy" section names policies as MAY considering: required role (via the existing `RoleId`), Adapter/execution capability, repository configuration, execution constraints, and human preferences. No additional assignment factor beyond these five SHALL be introduced.
+
+**Refinement 3 — Deterministic evaluation.** Per RFC-0004 ("Policies SHALL remain deterministic"), `AssignmentPolicy` evaluation SHALL be a pure, deterministic function of its inputs: equivalent inputs SHALL always produce equivalent evaluation outcomes. Evaluation SHALL NOT dispatch an Adapter, transition Task or Execution State, or produce any side effect.
+
+**Refinement 4 — Thin service, existing repository pattern.** `AssignmentPolicyService` SHALL provide creation, lookup, enumeration, and policy evaluation only, through constructor-injected repository contracts, mirroring `WorkflowChainService`'s thin-orchestration pattern (Sprint 41). `IAssignmentPolicyRepository` and an in-memory implementation SHALL mirror the existing Kernel repository pattern.
+
+## Explicitly Deferred (this Sprint and this ratification)
+
+- `EngineeringSession` / `WorkflowChain` / `ExecutionSession` wiring of `AssignmentPolicy`.
+- Runtime dispatch, Adapter selection, or Adapter invocation driven by policy evaluation.
+- Review-Gated Progression.
+- Multi-Agent Engineering Orchestration.
+- Automatic or event-driven workflow advancement.
+- Session recovery/checkpointing.
+- Concurrent session/workflow coordination.
+- Any `src/hosts` or `src/adapters` change.
+
+Each remains a separate future Milestone 8 Sprint requiring its own scope ratification.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Introduce an `AssignmentPolicy` immutable Kernel domain concept with `AssignmentPolicyId` and the five RFC-0004-named assignment-requirement value objects (Refinement 2).
+- Introduce a deterministic policy-evaluation operation on `AssignmentPolicy` that is a pure function of its stated inputs (Refinement 3).
+- Introduce `IAssignmentPolicyRepository` and an in-memory implementation for creation, lookup, and enumeration only.
+- Introduce a thin `AssignmentPolicyService` for creation, lookup, enumeration, and policy evaluation only, through constructor-injected repository contracts — no dispatch, no wiring, no orchestration (Refinement 4).
+- Update `createKernelServices` composition only as strictly required to construct and register the `AssignmentPolicy` repository and service.
+- Add unit tests covering: aggregate construction and immutability; each assignment-requirement value object's validation; deterministic policy evaluation for equivalent inputs; the repository; and the service.
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` in any way.
+- Introduce any reference from `AssignmentPolicy`/`AssignmentPolicyService` to `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, or `WorkflowStep`, including as an unused/optional field.
+- Introduce Adapter dispatch, Adapter selection, Review-Gated Progression, orchestration, or automatic/event-driven workflow advancement, in any form, including as an unused stub.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- No `src/hosts` or `src/adapters` change.
+- No new execution, dispatch, orchestration, or workflow-progression concept beyond the standalone, deterministic `AssignmentPolicy` domain model and its evaluation operation.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass unmodified unless they enumerate Kernel-composed services, mirroring the Sprint 37–43 precedent for such updates.
+- This ratification does not modify RFC-0004 (the "Assignment" and "Assignment Policy" sections already exist and are unmodified by this ratification), any other RFC, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 8 — Execution Roles (establishes `ExecutionRole`/`RoleId`, referenced by `AssignmentPolicy`'s required-role factor and unmodified by this Sprint).
+- Sprint 41 — Workflow Chaining Foundation (the standalone-foundation-first precedent this Sprint mirrors).
+- Sprint 43 — Engineering Session Manual Workflow Advancement (the most recently closed Milestone 8 Sprint; unmodified by this Sprint).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 44 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 44 — Assignment Policy Foundation as Milestone 8's next Sprint, implementing RFC-0004's existing "Assignment" and "Assignment Policy" sections as a standalone, deterministic Kernel domain concept. `AssignmentPolicy` SHALL be wholly independent of `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, and `WorkflowStep`, with no integration, wiring, dispatch, orchestration, or automatic workflow advancement introduced in any form, including as an unused/stubbed reference (Refinement 1). `AssignmentPolicy` SHALL represent, as immutable value objects, exactly the five RFC-0004-named assignment-requirement factors: required role, Adapter/execution capability, repository configuration, execution constraints, and human preferences (Refinement 2). Policy evaluation SHALL be a pure, deterministic function of its inputs, producing equivalent outcomes for equivalent inputs, with no dispatch or side effect (Refinement 3). `AssignmentPolicyService` SHALL remain thin orchestration — creation, lookup, enumeration, and policy evaluation only, through constructor-injected repository contracts, mirroring `WorkflowChainService`'s established pattern (Refinement 4). No modification to `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, `WorkflowStep`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` is authorized. Runtime wiring, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, and concurrent session coordination all remain explicitly deferred to future, separately-ratified Milestone 8 Sprints. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 44, and to generate Sprint 44's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

@@ -5,6 +5,8 @@ import { InMemoryAdapterRegistry } from '../adapter/adapter-registry';
 import { ProtocolVersion } from '../adapter/protocol-version';
 import { InMemoryEvidenceRepository } from '../evidence/evidence.repository';
 import { EvidenceService } from '../evidence/evidence.service';
+import { InMemoryAssignmentPolicyRepository } from '../execution/assignment-policy.repository';
+import { AssignmentPolicyService } from '../execution/assignment-policy.service';
 import { createDefaultEngineeringRoleProfiles } from '../execution/default-engineering-role-profiles';
 import { InMemoryEngineeringRoleProfileRegistry } from '../execution/engineering-role-profile-registry';
 import { EngineeringRoleProfileService } from '../execution/engineering-role-profile.service';
@@ -52,6 +54,7 @@ export function createKernelServices(
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const workflowChainRepository = new InMemoryWorkflowChainRepository();
+  const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
 
   return [
@@ -66,6 +69,7 @@ export function createKernelServices(
     new EngineeringSessionService(engineeringSessionRepository, workflowChainRepository),
     new ExecutionSessionService(executionSessionRepository),
     new WorkflowChainService(workflowChainRepository),
+    new AssignmentPolicyService(assignmentPolicyRepository),
     new ExecutionStrategyService(
       executionStrategyRepository,
       roleAssignmentRepository,

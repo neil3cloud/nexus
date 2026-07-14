@@ -11,6 +11,7 @@ import type { KernelLogger } from '../../src/kernel/common/kernel-logger';
 import { KernelError } from '../../src/kernel/common/kernel-error';
 import { createKernelServices } from '../../src/kernel/common/create-kernel-services';
 import { EvidenceService } from '../../src/kernel/evidence/evidence.service';
+import { AssignmentPolicyService } from '../../src/kernel/execution/assignment-policy.service';
 import { EngineeringRoleProfileService } from '../../src/kernel/execution/engineering-role-profile.service';
 import { EngineeringSessionService } from '../../src/kernel/execution/engineering-session.service';
 import { ExecutionSessionService } from '../../src/kernel/execution/execution-session.service';
@@ -51,6 +52,7 @@ interface KernelHarness {
   readonly engineeringSessionService: EngineeringSessionService;
   readonly executionSessionService: ExecutionSessionService;
   readonly workflowChainService: WorkflowChainService;
+  readonly assignmentPolicyService: AssignmentPolicyService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
@@ -70,6 +72,7 @@ const expectedKernelServiceNames = [
   'EngineeringSessionService',
   'ExecutionSessionService',
   'WorkflowChainService',
+  'AssignmentPolicyService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
@@ -117,6 +120,7 @@ describe('RFC-0010 Kernel boundary certification', () => {
     expect(await harness.engineeringSessionService.enumerateEngineeringSessions()).toEqual([]);
     expect(await harness.executionSessionService.enumerateExecutionSessions()).toEqual([]);
     expect(await harness.workflowChainService.enumerateWorkflowChains()).toEqual([]);
+    expect(await harness.assignmentPolicyService.enumerateAssignmentPolicies()).toEqual([]);
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -297,6 +301,11 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'WorkflowChainService',
       (service): service is WorkflowChainService => service instanceof WorkflowChainService,
+    ),
+    assignmentPolicyService: requireService(
+      services,
+      'AssignmentPolicyService',
+      (service): service is AssignmentPolicyService => service instanceof AssignmentPolicyService,
     ),
     executionStrategyService: requireService(
       services,
