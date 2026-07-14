@@ -64,8 +64,54 @@ describe('ExecutionRole domain', () => {
   it('registers default Kernel roles without provider references', () => {
     const defaultRoles = createDefaultKernelRoles();
 
-    expect(defaultRoles.map((role) => role.name)).toEqual(['Builder', 'Reviewer']);
-    expect(defaultRoles.map((role) => role.id.toString())).toEqual(['builder', 'reviewer']);
+    expect(defaultRoles.map((role) => role.name)).toEqual([
+      'Builder',
+      'Reviewer',
+      'Documentation Reviewer',
+    ]);
+    expect(defaultRoles.map((role) => role.id.toString())).toEqual([
+      'builder',
+      'reviewer',
+      'documentation-reviewer',
+    ]);
+    expect(defaultRoles.map((role) => role.toSnapshot())).toEqual([
+      {
+        id: 'builder',
+        name: 'Builder',
+        description: 'Responsible for implementing authorized engineering changes.',
+        category: 'Engineering Responsibility',
+        metadata: {
+          attributes: {
+            origin: 'KernelDefault',
+            rfc: 'RFC-0004',
+          },
+        },
+      },
+      {
+        id: 'reviewer',
+        name: 'Reviewer',
+        description: 'Responsible for validating engineering work against governing evidence.',
+        category: 'Engineering Responsibility',
+        metadata: {
+          attributes: {
+            origin: 'KernelDefault',
+            rfc: 'RFC-0004',
+          },
+        },
+      },
+      {
+        id: 'documentation-reviewer',
+        name: 'Documentation Reviewer',
+        description: 'Responsible for validating engineering documentation against governing evidence.',
+        category: 'Engineering Responsibility',
+        metadata: {
+          attributes: {
+            origin: 'KernelDefault',
+            rfc: 'RFC-0004',
+          },
+        },
+      },
+    ]);
     expect(defaultRoles.every((role) => role.metadata.attributes.origin === 'KernelDefault')).toBe(
       true,
     );
@@ -108,4 +154,3 @@ describe('RoleAssignment domain', () => {
     ).toThrow(InvalidRoleDefinitionError);
   });
 });
-

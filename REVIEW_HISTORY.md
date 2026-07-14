@@ -2,6 +2,148 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-014 — Sprint 37 — Documentation Workflow Foundation (DOC-003 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 37 — Documentation Workflow Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-013-F-001` / `DOC-003` (`builder-task.md`) — a documentation-only wording correction to `IMPLEMENTATION_REPORT.md`'s Sprint 37 Validation Summary.
+- **RFC Coverage:** None (documentation-wording finding only).
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+This review independently verifies the Builder's remediation of `DOC-003`. `IMPLEMENTATION_REPORT.md`'s Sprint 37 § Validation Summary previously read: "Sprint 18 Kernel boundary certification remained unmodified and passed in repository-wide validation." It now reads: "Sprint 18 Kernel boundary certification passed in repository-wide validation; `test/integration/kernel-boundary-certification.integration.test.ts`'s role-enumeration assertion was updated to reflect the new default `documentation-reviewer` Role, while the distinct `src/kernel` import-graph-boundary assertion named by the Sprint 37 Acceptance Criteria remained unmodified." This matches `DOC-003`'s Required Changes and Acceptance Criteria exactly: it no longer claims the whole test file was unmodified, and it accurately distinguishes the updated role-enumeration assertion from the unmodified import-graph-boundary assertion.
+
+`git diff` confirms this is the only change to `IMPLEMENTATION_REPORT.md` since `NEXUS-REV-2026-07-14-013`, and no other file (source, test, RFC, Kernel Canon, or any other governance artifact) was touched by this remediation — satisfying `DOC-003`'s "No other file is modified" Acceptance Criterion.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 294 tests**, unchanged from `NEXUS-REV-2026-07-14-013`), and `esbuild` all passed, confirming the documentation-only correction introduced no regression.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (`NEXUS-REV-2026-07-14-013-F-001` / `DOC-003`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 294 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation is a documentation-wording correction only; no RFC concept, deferred or otherwise, is touched.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The remediation is confined to one Validation Summary bullet in `IMPLEMENTATION_REPORT.md`; no source, test, RFC, or Kernel Canon content changed.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0037-documentation-workflow-foundation.md`) — Status remains **Approved with Findings**; the finding underlying that status is now remediated per this verification.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — no status change required; Sprint 37 was already marked Approved with Findings and did not block Milestone 7 progression.
+
+### Work Item State Reconciliation
+
+- Sprint 37: Remains Approved with Findings (the finding is now remediated; disposition already permitted progression).
+- Work Order: Completed.
+- Builder Tasks: `DOC-003` — Status → **Completed** (acceptance criteria verified satisfied).
+
+### Builder Task Recommendation
+
+None. `DOC-003` is closed. No further Builder or Documentation Tasks are open for Sprint 37.
+
+---
+
+## NEXUS-REV-2026-07-14-013 — Sprint 37 — Documentation Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 37 — Documentation Workflow Foundation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0037-documentation-workflow-foundation.md`'s Authorized Vertical Slice — registration of exactly one new default `ExecutionRole` (`documentation-reviewer`) in `createDefaultKernelRoles()`, mirroring the existing `builder`/`reviewer` entries' shape exactly; and an additive `nexus.runDocumentationReviewerMissionWorkflow` Host command constructed via the Sprint 36 `createConfiguredMissionWorkflow` factory with explicit `roleId: 'documentation-reviewer'`, reusing Host Adapter Configuration resolution and the certified Execution Pipeline verbatim.
+- **RFC Coverage:** No Primary RFC — Kernel Role registration reuses RFC-0004's existing `ExecutionRole`/`RoleRegistry` contracts (Sprint 8); Host command is additive, reusing existing certified contracts. Referenced: RFC-0004 — Execution Model, RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 37 was authorized by `NEXUS-RAT-2026-07-14-013` to register the RFC-0004-named `Documentation Reviewer` Additional Role as a third default Kernel Role and expose its Host workflow via the Sprint 36 canonical factory — Milestone 7's first authorized `src/kernel` change, strictly limited to Role registration.
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `src/kernel/execution/default-kernel-roles.ts` adds exactly one new `ExecutionRole.create(...)` entry (`id: 'documentation-reviewer'`, `name: 'Documentation Reviewer'`, `category: 'Engineering Responsibility'`, `metadata.attributes: { origin: 'KernelDefault', rfc: 'RFC-0004' }`), mirroring the existing `builder`/`reviewer` entries' shape exactly. Direct comparison of the `builder` and `reviewer` entries against the pre-Sprint-37 file confirms they are byte-for-byte unchanged.
+- `git status --short -- src/adapters` is empty — no Adapter source was touched, satisfying the ratification's Scope Restriction. `src/hosts/vscode/host-mission-workflow.ts` (`HostMissionWorkflow`, `createConfiguredMissionWorkflow`) and `host-adapter-configuration.ts` (`HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`) are untouched per `git diff --stat`.
+- `src/hosts/vscode/vscode-host.ts` adds one new `createConfiguredMissionWorkflow(...)` call site with `roleId: 'documentation-reviewer'` and `presentationOptions: { workflowLabel: 'Documentation Reviewer Workflow', completionMessageLabel: 'Documentation Review completed', includeAssignedRole: true }`, matching `NEXUS-RAT-2026-07-14-013` verbatim, threaded through the constructor and `createMissionWorkflowCommandOptions` alongside the existing Developer/Builder/Reviewer workflows, none of which changed identifier, dispatch, or presentation.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` adds `HOST_RUN_DOCUMENTATION_REVIEWER_MISSION_WORKFLOW_COMMAND` and its additive registration block, mirroring the existing `reviewerWorkflow` pattern exactly; no existing command's registration or dispatch logic changed.
+- `package.json` additively registers `nexus.runDocumentationReviewerMissionWorkflow`'s `activationEvents` and `contributes.commands` entry ("Run Documentation Reviewer Workflow"); the existing command entries are unchanged.
+- `knowledge/governance/RATIFICATION_LEDGER.md`'s diff is purely additive (`NEXUS-RAT-2026-07-14-013` appended at end of file); no prior ratification entry's text was rewritten.
+- `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` diffs mark Sprint 36 Approved (already certified by `NEXUS-REV-2026-07-14-012`), add the Sprint 37 section, and reference `NEXUS-RAT-2026-07-14-013` — consistent with the ratification; no historical sprint section content was altered.
+- Test coverage matches the ratification's requirement: `execution-role.test.ts` asserts the full three-Role snapshot (confirming `builder`/`reviewer` are unchanged and `documentation-reviewer` is correctly shaped); `role.service.test.ts` confirms enumeration includes the new Role; `host-mission-workflow.test.ts` adds a Documentation Reviewer role-labeling test (result, history, and presentation-line assertions); `host-mission-workflow-configured-command-registration.test.ts` adds registration/dispatch-through-configured-resolution success and input-cancellation failure tests, mirroring the existing Builder/Reviewer tests; `package-command-metadata.test.ts` and `extension-host.test.ts` assert the new command's package metadata, activation event, and discoverability.
+- `test/integration/kernel-boundary-certification.integration.test.ts`'s role-enumeration assertion (`certifies successful composed-Kernel behavior...`) was updated from `['builder', 'reviewer']` to `['builder', 'documentation-reviewer', 'reviewer']` — a necessary and correct consequence of the ratified Role registration, since this harness composes the real Kernel via `createKernelServices()`/`createDefaultKernelRoles()`. The separate, distinct `it()` block asserting the `src/kernel` import-graph boundary (`certifies Kernel source dependencies do not cross into Host, UI, infrastructure, or adapter implementations`) was not touched — confirmed via `git diff`, which shows exactly one hunk in this file, isolated to the role-enumeration assertion. This satisfies the Sprint Specification's own, more precise Acceptance Criterion ("Sprint 18's `src/kernel` import-graph boundary test passes unmodified") — see Finding F-001 regarding `IMPLEMENTATION_REPORT.md`'s broader wording of this same fact.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 294 tests**, up from Sprint 36's 59/291 by exactly three new tests), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-013-F-001 — Imprecise Validation Summary claim in IMPLEMENTATION_REPORT.md
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 12 (Documentation); `knowledge/implementation/review-classification.md` Category 4
+- **Summary:** `IMPLEMENTATION_REPORT.md`'s Sprint 37 Validation Summary states "Sprint 18 Kernel boundary certification remained unmodified and passed in repository-wide validation." In fact, `test/integration/kernel-boundary-certification.integration.test.ts` **was** modified: its role-enumeration assertion was updated from `['builder', 'reviewer']` to `['builder', 'documentation-reviewer', 'reviewer']` to reflect the newly registered default Role. Only the distinct import-graph-boundary `it()` block within the same file was left unmodified, which is what the Sprint Specification's own Acceptance Criteria correctly and more precisely describes ("Sprint 18's `src/kernel` import-graph boundary test passes unmodified").
+- **Evidence:** `git diff -- test/integration/kernel-boundary-certification.integration.test.ts` (one hunk, role-enumeration assertion only); `IMPLEMENTATION_REPORT.md` Sprint 37 § Validation Summary.
+- **Impact:** A future reader relying on the Report's broader claim could incorrectly conclude the whole test file was untouched. No architectural or behavioral impact — the change itself is correct and necessary.
+- **Required Disposition:** Documentation Task — reword the Validation Summary bullet to match the Sprint Specification's precise framing (the import-graph boundary assertion, not the whole file, remained unmodified).
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 294 tests, esbuild build, extension-host bundle build (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Planner Workflow, Documentation Author Workflow, Security Reviewer Workflow, Architecture Reviewer Workflow, or any other role-scoped workflow beyond Builder/Reviewer/Documentation Reviewer: confirmed not introduced.
+- Registration of any Additional Role other than `Documentation Reviewer`: confirmed not introduced — exactly one new `ExecutionRole` entry added.
+- Role-based adapter assignment, automatic routing, workflow chaining, multi-agent coordination: confirmed not introduced — the Documentation Reviewer Workflow reuses the identical `nexus.developerWorkflow.defaultAdapterId` configuration surface and explicit-`adapterId` resolution.
+- Execution Model expansion, Execution Session, Assignment Policy, a fourth production Adapter, Adapter Selection Policy, Marketplace publication: confirmed not introduced.
+- `src/adapters`: confirmed untouched (`git status`/`git diff --stat` both empty). `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`/existing command dispatch logic: confirmed unmodified.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice and Authorized Builder Scope in `NEXUS-RAT-2026-07-14-013`; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — the sole `src/kernel` change is the one authorized Role registration in `default-kernel-roles.ts`; no other Kernel file changed; no `src/adapters` change; Sprint 18's import-graph boundary assertion passed unmodified.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing Developer, Builder, or Reviewer Workflow command's identifier, dispatch behavior, or test coverage changed; `builder`/`reviewer` Role entries confirmed byte-for-byte unchanged.
+- Gate 4 (Host/Kernel Boundary): PASS — the Kernel receives only the new `documentation-reviewer` Role id and explicit `adapterId`; "Documentation Reviewer Workflow" exists solely as Host-layer naming and presentation metadata, matching `NEXUS-RAT-2026-07-14-012`'s binding Architectural Invariant.
+- Gate 12 (Documentation): PASS WITH FINDING — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 37 sections are otherwise mutually consistent and consistent with the actual diff; README accurately describes the new command; `RATIFICATION_LEDGER.md` additively records `NEXUS-RAT-2026-07-14-013` without disturbing prior entries; one imprecise Validation Summary claim noted (F-001).
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0037-documentation-workflow-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — Sprint 37 marked **Approved with Findings**; no further Milestone 7 Sprint is currently planned to advance to Current, and Milestone 8 remains NOT YET STARTED per `NEXUS-RAT-2026-07-14-011`.
+
+### Work Item State Reconciliation
+
+- Sprint 37: Approved with Findings.
+- Work Order: Completed (all Authorized Builder Scope items — default Role registration, additive Documentation Reviewer command, package registration, and success/failure-path test coverage — implemented and verified).
+- Builder Tasks: One open Documentation Task (F-001) generated; no Builder Task (implementation-defect) required.
+
+### Builder Task Recommendation
+
+Generate a Documentation Task via `nexus-sprint` for F-001 (reword `IMPLEMENTATION_REPORT.md`'s Sprint 37 Validation Summary claim about the Sprint 18 test file). No implementation change required; does not block Sprint 37's approval or progression.
+
+---
+
 ## NEXUS-REV-2026-07-14-012 — Sprint 36 — Reviewer Workflow Foundation
 
 - **Reviewed Sprint:** Sprint 36 — Reviewer Workflow Foundation

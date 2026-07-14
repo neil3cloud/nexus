@@ -1838,7 +1838,7 @@ See `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolid
 
 # Milestone 7 — AI Engineering Workflows
 
-Status: ACTIVE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 requires its own Sprint Owner scope ratification before implementation)
+Status: ACTIVE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 Approved with Findings — NEXUS-REV-2026-07-14-013)
 
 Objective
 
@@ -1848,13 +1848,15 @@ Governance Note
 
 Opened by `NEXUS-RAT-2026-07-14-011`, which closed Milestone 6 at Sprint 34 and retroactively classified Sprint 35 — Builder Workflow Foundation as this milestone's opening Sprint. Sprint 35's own implementation, review, and ratification records are unmodified by this reclassification; only milestone-level bookkeeping changed. No Milestone 7 Sprint SHALL introduce Kernel ownership changes, Adapter Contract changes, Adapter Selection, Role-to-Adapter routing, Execution Session, Assignment Policy, Workflow Chaining, or multi-agent orchestration, unless separately authorized through a future RFC or Sprint Owner ratification.
 
+`NEXUS-RAT-2026-07-14-013` authorizes Sprint 37 — Documentation Workflow Foundation, Milestone 7's first authorized `src/kernel` change (Role registration only), registering the RFC-0004-named `Documentation Reviewer` Additional Role and exposing its Host workflow via the Sprint 36 canonical factory.
+
 `NEXUS-RAT-2026-07-14-012` establishes a binding Architectural Invariant for this milestone: every Role-scoped Workflow entry point SHALL differ from every other only by the Execution Role requested and by workflow presentation metadata, reusing Host Adapter Configuration, explicit-`adapterId` dispatch, the certified Execution Pipeline, Adapter Runtime, and Kernel contracts unmodified in every case. Sprint 36 is directed to extract the Role-scoped Configured Mission Workflow construction (duplicated in `vscode-host.ts` for the Developer and Builder Workflows) into a single reusable factory, refactoring the Builder Workflow to use it, so the pattern is genuinely canonical rather than repeatedly copy-pasted.
 
 Provisional Roadmap
 
 - Sprint 35 — Builder Workflow Foundation (Approved).
 - Sprint 36 — Reviewer Workflow Foundation (Implemented — Pending Reviewer Validation; establishes the canonical Role-scoped Workflow construction factory and adds the Reviewer Workflow over the already-registered `reviewer` Execution Role).
-- Sprint 37 — Documentation Workflow Foundation (named direction; registers `Documentation Reviewer`, an RFC-0004-named Additional Role, as a default Kernel Role, then exposes the corresponding Host workflow via the Sprint 36 factory; requires its own Sprint Owner scope ratification before implementation).
+- Sprint 37 — Documentation Workflow Foundation (Approved with Findings — NEXUS-REV-2026-07-14-013; registers `Documentation Reviewer`, an RFC-0004-named Additional Role, as a default Kernel Role, then exposes the corresponding Host workflow via the Sprint 36 factory).
 - A **Planner Workflow** is explicitly not scheduled: "Planner" is not an RFC-0004 Execution Role and requires an RFC-0004 amendment or new RFC before it may be authorized.
 
 ---
@@ -1944,6 +1946,57 @@ Definition of Done
 - Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild.
 
 See `knowledge/implementation/sprints/sprint-0036-reviewer-workflow-foundation.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 37 — Documentation Workflow Foundation
+
+Status: Approved with Findings — NEXUS-REV-2026-07-14-013
+
+Objective
+
+Register the existing RFC-0004 `Documentation Reviewer` Additional Role as a third default Kernel Role and expose its Host workflow entry point, `nexus.runDocumentationReviewerMissionWorkflow`, using the canonical Role-scoped Workflow factory introduced in Sprint 36. This is Milestone 7's first authorized `src/kernel` change — Role registration only — and otherwise reuses the certified Host, Configuration, Execution Pipeline, and Adapter architecture verbatim.
+
+RFC Coverage
+
+- No Primary RFC — Kernel Role registration reuses RFC-0004's existing `ExecutionRole`/`RoleRegistry` contracts; Host command is additive, reusing existing certified contracts.
+- Referenced: RFC-0004 — Execution Model (registers the `Documentation Reviewer` Additional Role it already names), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-013` — governs this Sprint's entire scope: title, canonical Role id/command id/presentation strings, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-011` — named this Sprint's direction and flagged it as Milestone 7's first Sprint expected to touch `src/kernel`.
+- `NEXUS-RAT-2026-07-14-012` — the binding Architectural Invariant this Sprint complies with.
+
+Authorized Vertical Slice
+
+- Add exactly one new `ExecutionRole` entry to `createDefaultKernelRoles()` (`src/kernel/execution/default-kernel-roles.ts`) for Role id `documentation-reviewer`, mirroring the existing `builder`/`reviewer` entries' shape exactly (`category: 'Engineering Responsibility'`, `metadata.attributes: { origin: 'KernelDefault', rfc: 'RFC-0004' }`); the existing two entries SHALL remain byte-for-byte unchanged.
+- Add `nexus.runDocumentationReviewerMissionWorkflow` via the Sprint 36 `createConfiguredMissionWorkflow` factory, with explicit `roleId: 'documentation-reviewer'` and `presentationOptions: { workflowLabel: 'Documentation Reviewer Workflow', completionMessageLabel: 'Documentation Review completed', includeAssignedRole: true }`.
+- `package.json` command contribution registration mirroring the existing pattern.
+- Unit/integration test coverage: Kernel Role-registration unit test(s); Host command registration, success-path, and input-cancellation-failure-path tests; package-metadata/activation-event/extension-host discoverability assertions; and a regression assertion that the Builder and Reviewer Workflows' existing tests continue to pass unmodified.
+
+Deferred Concepts
+
+- Planner Workflow, Documentation Author Workflow, Security Reviewer Workflow, Architecture Reviewer Workflow, or any other role-scoped workflow beyond Builder/Reviewer/Documentation Reviewer.
+- Registration of any Additional Role other than `Documentation Reviewer` (Security Reviewer, Performance Reviewer, Accessibility Reviewer, Test Engineer, Database Reviewer).
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing.
+- Execution Model expansion, Execution Session, Assignment Policy, a fourth production Adapter, Adapter Selection Policy, Marketplace publication.
+- Any `src/adapters` change; any change to `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`.
+
+Definition of Done
+
+- All existing Developer, Builder, and Reviewer Workflow commands retain their identifiers, dispatch behavior, and test coverage, unmodified.
+- Exactly one new default `ExecutionRole` is registered; no lifecycle, event, or new Kernel concept is introduced.
+- The new Documentation Reviewer Workflow command dispatches through the identical certified Execution Pipeline with explicit `roleId: 'documentation-reviewer'`.
+- Sprint 18's Kernel Boundary Certification test passes unmodified; no `src/adapters` file changes.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0037-documentation-workflow-foundation.md` for the complete Sprint Implementation Record.
+
+Implementation Result
+
+- Builder implementation completed the authorized Role-registration and Host command vertical slice.
+- Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-14-013`). One Minor Documentation Drift finding (F-001) generates a Documentation Task and does not block progression. See `REVIEW_HISTORY.md` and the Sprint Implementation Record for details.
 
 ---
 

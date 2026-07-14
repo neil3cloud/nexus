@@ -22,6 +22,8 @@ export const HOST_RUN_DEVELOPER_MISSION_WORKFLOW_WITH_CONFIGURED_ADAPTER_COMMAND
   'nexus.runDeveloperMissionWorkflowWithConfiguredAdapter';
 export const HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND = 'nexus.runBuilderMissionWorkflow';
 export const HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND = 'nexus.runReviewerMissionWorkflow';
+export const HOST_RUN_DOCUMENTATION_REVIEWER_MISSION_WORKFLOW_COMMAND =
+  'nexus.runDocumentationReviewerMissionWorkflow';
 export const HOST_SHOW_MISSION_WORKFLOW_HISTORY_COMMAND = 'nexus.showMissionWorkflowHistory';
 
 export interface HostMissionWorkflowCommandRegistrationOptions {
@@ -30,6 +32,7 @@ export interface HostMissionWorkflowCommandRegistrationOptions {
   readonly configuredAdapterWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly builderWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly reviewerWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+  readonly documentationReviewerWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
 }
 
 export class HostMissionWorkflowCommandRegistration implements HostDisposable {
@@ -107,6 +110,20 @@ export class HostMissionWorkflowCommandRegistration implements HostDisposable {
       registrations.push(
         commandRegistry.registerCommand(HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND, async (input) =>
           reviewerWorkflow.runDeveloperMissionWorkflow(await this.normalizeWorkflowInput(input)),
+        ),
+      );
+    }
+
+    const documentationReviewerWorkflow = options.documentationReviewerWorkflow;
+
+    if (documentationReviewerWorkflow !== undefined) {
+      registrations.push(
+        commandRegistry.registerCommand(
+          HOST_RUN_DOCUMENTATION_REVIEWER_MISSION_WORKFLOW_COMMAND,
+          async (input) =>
+            documentationReviewerWorkflow.runDeveloperMissionWorkflow(
+              await this.normalizeWorkflowInput(input),
+            ),
         ),
       );
     }

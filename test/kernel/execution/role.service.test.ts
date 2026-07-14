@@ -18,6 +18,7 @@ describe('RoleService', () => {
 
     expect((await service.enumerateRoles()).map((role) => role.name)).toEqual([
       'Builder',
+      'Documentation Reviewer',
       'Reviewer',
     ]);
   });
@@ -90,4 +91,3 @@ describe('RoleService', () => {
     );
   });
 });
-

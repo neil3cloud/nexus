@@ -29,6 +29,7 @@
     "onCommand:nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
     "onCommand:nexus.runBuilderMissionWorkflow",
     "onCommand:nexus.runReviewerMissionWorkflow",
+    "onCommand:nexus.runDocumentationReviewerMissionWorkflow",
     "onCommand:nexus.showMissionWorkflowHistory"
   ],
   "contributes": {
@@ -66,6 +67,12 @@
         "title": "Run Reviewer Workflow",
         "category": "Nexus",
         "shortTitle": "Run Reviewer Workflow"
+      },
+      {
+        "command": "nexus.runDocumentationReviewerMissionWorkflow",
+        "title": "Run Documentation Reviewer Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Documentation Reviewer Workflow"
       },
       {
         "command": "nexus.runDeveloperMissionWorkflow",

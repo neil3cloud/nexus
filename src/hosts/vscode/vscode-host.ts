@@ -181,6 +181,7 @@ export class VscodeHost implements vscode.Disposable {
   private readonly configuredAdapterMissionWorkflow: HostConfiguredMissionWorkflow;
   private readonly builderMissionWorkflow: HostConfiguredMissionWorkflow;
   private readonly reviewerMissionWorkflow: HostConfiguredMissionWorkflow;
+  private readonly documentationReviewerMissionWorkflow: HostConfiguredMissionWorkflow;
   private commandRegistrations: HostDisposable[] = [];
 
   public constructor(
@@ -192,6 +193,7 @@ export class VscodeHost implements vscode.Disposable {
     configuredAdapterMissionWorkflow: HostConfiguredMissionWorkflow,
     builderMissionWorkflow: HostConfiguredMissionWorkflow,
     reviewerMissionWorkflow: HostConfiguredMissionWorkflow,
+    documentationReviewerMissionWorkflow: HostConfiguredMissionWorkflow,
     geminiCliMissionWorkflow?: HostMissionWorkflow,
     codexCliMissionWorkflow?: HostMissionWorkflow,
   ) {
@@ -203,6 +205,7 @@ export class VscodeHost implements vscode.Disposable {
     this.configuredAdapterMissionWorkflow = configuredAdapterMissionWorkflow;
     this.builderMissionWorkflow = builderMissionWorkflow;
     this.reviewerMissionWorkflow = reviewerMissionWorkflow;
+    this.documentationReviewerMissionWorkflow = documentationReviewerMissionWorkflow;
     this.geminiCliMissionWorkflow = geminiCliMissionWorkflow;
     this.codexCliMissionWorkflow = codexCliMissionWorkflow;
   }
@@ -227,6 +230,7 @@ export class VscodeHost implements vscode.Disposable {
           this.configuredAdapterMissionWorkflow,
           this.builderMissionWorkflow,
           this.reviewerMissionWorkflow,
+          this.documentationReviewerMissionWorkflow,
         ),
       ),
     ];
@@ -406,6 +410,29 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
       includeAssignedRole: true,
     },
   });
+  const documentationReviewerMissionWorkflow = createConfiguredMissionWorkflow({
+    adapterIds: configuredWorkflowAdapterIds,
+    registeredAdapterIds,
+    fallbackAdapterId: fallbackMissionWorkflowAdapterId,
+    configurationSurface,
+    roleId: 'documentation-reviewer',
+    missionService,
+    planningService,
+    executionService,
+    roleService,
+    executionStrategyService,
+    adapterService,
+    evidenceService,
+    reviewService,
+    knowledgeService,
+    presentation,
+    workspaceTrust,
+    presentationOptions: {
+      workflowLabel: 'Documentation Reviewer Workflow',
+      completionMessageLabel: 'Documentation Review completed',
+      includeAssignedRole: true,
+    },
+  });
   const geminiCliMissionWorkflow =
     options.geminiCliMissionWorkflowAdapterId === undefined
       ? undefined
@@ -450,6 +477,7 @@ export function createVscodeHost(options: VscodeHostOptions = {}): VscodeHost {
     configuredAdapterMissionWorkflow,
     builderMissionWorkflow,
     reviewerMissionWorkflow,
+    documentationReviewerMissionWorkflow,
     geminiCliMissionWorkflow,
     codexCliMissionWorkflow,
   );
@@ -461,12 +489,14 @@ function createMissionWorkflowCommandOptions(
   configuredAdapterWorkflow: RegisteredMissionWorkflow,
   builderWorkflow: RegisteredMissionWorkflow,
   reviewerWorkflow: RegisteredMissionWorkflow,
+  documentationReviewerWorkflow: RegisteredMissionWorkflow,
 ): {
   readonly geminiCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly codexCliWorkflow?: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly configuredAdapterWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly builderWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
   readonly reviewerWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
+  readonly documentationReviewerWorkflow: Pick<HostMissionWorkflow, 'runDeveloperMissionWorkflow'>;
 } {
   return {
     ...(geminiCliWorkflow === undefined ? {} : { geminiCliWorkflow }),
@@ -474,6 +504,7 @@ function createMissionWorkflowCommandOptions(
     configuredAdapterWorkflow,
     builderWorkflow,
     reviewerWorkflow,
+    documentationReviewerWorkflow,
   };
 }
 

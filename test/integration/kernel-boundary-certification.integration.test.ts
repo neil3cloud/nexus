@@ -84,7 +84,11 @@ describe('RFC-0010 Kernel boundary certification', () => {
     const workflow = await completeBoundaryWorkflow(harness, 'success');
 
     const roles = await harness.roleService.enumerateRoles();
-    expect(roles.map((role) => role.id.toString())).toEqual(['builder', 'reviewer']);
+    expect(roles.map((role) => role.id.toString())).toEqual([
+      'builder',
+      'documentation-reviewer',
+      'reviewer',
+    ]);
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,

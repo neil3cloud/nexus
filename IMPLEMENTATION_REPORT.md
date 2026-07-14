@@ -1,5 +1,102 @@
 # Nexus Implementation Report
 
+## Sprint 37 — Documentation Workflow Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 7 Sprint 37 Documentation Workflow Foundation vertical slice. This sprint registers the RFC-0004-named `Documentation Reviewer` Additional Role as default Kernel Role `documentation-reviewer` and adds the dedicated Documentation Reviewer Workflow Host command through the Sprint 36 Role-scoped workflow factory.
+
+Implemented scope:
+
+- Added exactly one default Kernel `ExecutionRole` entry in `createDefaultKernelRoles()` for `documentation-reviewer`.
+- Added `nexus.runDocumentationReviewerMissionWorkflow` as an additive VS Code Host command.
+- Constructed the Documentation Reviewer Workflow through `createConfiguredMissionWorkflow` with explicit `roleId: 'documentation-reviewer'`.
+- Preserved the existing Host Adapter Configuration resolution, explicit `adapterId` dispatch, certified Execution Pipeline, Adapter Runtime, and Kernel contracts.
+- Registered the new command in `package.json` `activationEvents` and `contributes.commands` as **Nexus: Run Documentation Reviewer Workflow**.
+- Added Documentation Reviewer-specific Host result/history presentation metadata that labels successful results/history with `Documentation Reviewer (documentation-reviewer)`.
+- Added deterministic tests for default Role registration, Host command registration/success/cancellation, Documentation Reviewer result/history role labeling, package metadata/activation events, and extension-host command discoverability.
+- Updated README user guidance to describe the Documentation Reviewer Workflow command alongside existing Developer, Builder, and Reviewer Workflow commands.
+
+Out of scope and not implemented:
+
+- Planner Workflow, Documentation Author Workflow, Security Reviewer Workflow, Architecture Reviewer Workflow, or any role-scoped workflow beyond Builder/Reviewer/Documentation Reviewer.
+- Registration of any Additional Role other than `Documentation Reviewer`.
+- Role-based adapter assignment, workflow chaining, multi-agent coordination, automatic routing, Adapter Selection Policy, or fallback routing.
+- New Execution Model concepts, Execution Session behavior, Assignment Policy, Kernel lifecycle changes, Kernel Domain Events, or Adapter contracts.
+- Fourth production Adapter, Marketplace publication, `src/adapters` changes, or changes to `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- No Primary RFC — Kernel Role registration reuses RFC-0004's existing `ExecutionRole`/`RoleRegistry` contracts; Host command is additive, reusing existing certified contracts.
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model (`Documentation Reviewer` Additional Role registered as a default Kernel Role).
+- RFC-0009 — Host Contract.
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Default Kernel Role registration for `documentation-reviewer`.
+- VS Code Host command contribution and activation for `nexus.runDocumentationReviewerMissionWorkflow`.
+- Host-local command registration delegating to existing configured-adapter Mission Workflow machinery.
+- Explicit Host composition of Documentation Reviewer Workflow execution with `roleId: 'documentation-reviewer'`.
+- Host presentation/result metadata for the assigned Documentation Reviewer Execution Role.
+
+Deferred Concepts:
+
+- Planner Workflow, Documentation Author Workflow, Security Reviewer Workflow, Architecture Reviewer Workflow, and other role-scoped AI Engineering Workflows beyond Builder/Reviewer/Documentation Reviewer.
+- Registration of Security Reviewer, Performance Reviewer, Accessibility Reviewer, Test Engineer, Database Reviewer, or any Additional Role other than Documentation Reviewer.
+- Role-based adapter assignment, automatic routing, workflow chaining, and multi-agent coordination.
+- Execution Model expansion, Execution Session behavior, Assignment Policy, review-gated progression, or new Kernel lifecycle semantics.
+- Fourth production Adapter, Adapter Selection Policy, Marketplace publication, and Adapter capability scoring.
+- Any `src/adapters` change; any change to `HostAdapterConfigurationResolver` or `HostConfiguredMissionWorkflow`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-013`, `NEXUS-RAT-2026-07-14-012`, `NEXUS-RAT-2026-07-14-011`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0009-host-contract.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0037-documentation-workflow-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `Documentation Reviewer` is already named by RFC-0004 as an Additional Role, so registering it as a default Kernel Role does not introduce a new RFC concept.
+- A dedicated Documentation Reviewer Workflow command is Host-layer user interaction under RFC-0009 and does not create a new Kernel lifecycle, event, or bounded context.
+- Reusing `HostAdapterConfigurationResolver.resolveDeveloperWorkflowAdapterId()` for the Documentation Reviewer Workflow remains configuration resolution to one explicit `adapterId`, not Adapter Selection Policy.
+- Surfacing the assigned Documentation Reviewer role in Host result/history presentation is Host-local metadata derived from the existing RFC-0004 Execution Role and does not introduce Kernel data or a Domain Event.
+
+### Known Limitations
+
+- Only Builder, Reviewer, and Documentation Reviewer Workflows exist after this Sprint; further role-scoped workflows remain deferred.
+- The Documentation Reviewer Workflow uses the same configured adapter setting as the configured Developer, Builder, and Reviewer Workflows, preserving Sprint 33 configuration scope and avoiding role-based adapter assignment.
+- Workflow history remains session-only and non-durable.
+
+### Validation Summary
+
+- Targeted Sprint 37 validation passed: `npm test -- --run test/kernel/execution/execution-role.test.ts test/hosts/vscode/host-mission-workflow-configured-command-registration.test.ts test/hosts/vscode/host-mission-workflow.test.ts test/hosts/vscode/package-command-metadata.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 59 files, 294 tests.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Sprint 18 Kernel boundary certification passed in repository-wide validation; `test/integration/kernel-boundary-certification.integration.test.ts`'s role-enumeration assertion was updated to reflect the new default `documentation-reviewer` Role, while the distinct `src/kernel` import-graph-boundary assertion named by the Sprint 37 Acceptance Criteria remained unmodified.
+- No `src/adapters` file was modified for Sprint 37.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 36 — Reviewer Workflow Foundation
 
 ### Implemented Slice

@@ -9,6 +9,7 @@ const GEMINI_COMMAND = 'nexus.runDeveloperMissionWorkflowWithGeminiCli';
 const CODEX_COMMAND = 'nexus.runDeveloperMissionWorkflowWithCodexCli';
 const BUILDER_COMMAND = 'nexus.runBuilderMissionWorkflow';
 const REVIEWER_COMMAND = 'nexus.runReviewerMissionWorkflow';
+const DOCUMENTATION_REVIEWER_COMMAND = 'nexus.runDocumentationReviewerMissionWorkflow';
 const HISTORY_COMMAND = 'nexus.showMissionWorkflowHistory';
 
 describe('package command metadata', () => {
@@ -23,6 +24,7 @@ describe('package command metadata', () => {
       CONFIGURED_COMMAND,
       BUILDER_COMMAND,
       REVIEWER_COMMAND,
+      DOCUMENTATION_REVIEWER_COMMAND,
       MOCK_COMMAND,
       GEMINI_COMMAND,
       CODEX_COMMAND,
@@ -46,6 +48,12 @@ describe('package command metadata', () => {
       title: 'Run Reviewer Workflow',
       category: 'Nexus',
       shortTitle: 'Run Reviewer Workflow',
+    });
+    expect(command(commands, DOCUMENTATION_REVIEWER_COMMAND)).toEqual({
+      command: DOCUMENTATION_REVIEWER_COMMAND,
+      title: 'Run Documentation Reviewer Workflow',
+      category: 'Nexus',
+      shortTitle: 'Run Documentation Reviewer Workflow',
     });
   });
 
@@ -75,6 +83,7 @@ describe('package command metadata', () => {
     expect(activationEvents).toContain(`onCommand:${CONFIGURED_COMMAND}`);
     expect(activationEvents).toContain(`onCommand:${BUILDER_COMMAND}`);
     expect(activationEvents).toContain(`onCommand:${REVIEWER_COMMAND}`);
+    expect(activationEvents).toContain(`onCommand:${DOCUMENTATION_REVIEWER_COMMAND}`);
   });
 });
 

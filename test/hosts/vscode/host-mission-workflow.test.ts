@@ -264,6 +264,85 @@ describe('HostMissionWorkflow', () => {
     );
   });
 
+  it('labels Documentation Reviewer Workflow results with the assigned Execution Role', async () => {
+    const recorder = new ServiceCallRecorder();
+    const presentation = new RecordingPresentationSurface();
+    const workflow = new HostMissionWorkflow(
+      new RecordingMissionService(recorder),
+      new RecordingPlanningService(recorder),
+      new RecordingExecutionService(recorder),
+      createRecordingPipeline(recorder, 'Completed', {
+        id: 'documentation-reviewer',
+        name: 'Documentation Reviewer',
+        description: 'Responsible for validating engineering documentation against governing evidence.',
+      }),
+      createRecordingCompletion(recorder),
+      presentation,
+      new StaticWorkspaceTrustSurface(true),
+      createDeterministicIdentity([
+        'documentation-reviewer-mission',
+        'documentation-reviewer-plan',
+        'documentation-reviewer-task',
+        'documentation-reviewer-strategy',
+        'documentation-reviewer-evidence',
+        'documentation-reviewer-review',
+        'documentation-reviewer-finding',
+        'documentation-reviewer-knowledge',
+      ]),
+      {
+        workflowLabel: 'Documentation Reviewer Workflow',
+        completionMessageLabel: 'Documentation Review completed',
+        includeAssignedRole: true,
+      },
+    );
+
+    const result = await workflow.runDeveloperMissionWorkflow({
+      objective: 'Run a Sprint 37 Documentation Reviewer Workflow.',
+      taskTitle: 'Execute documentation reviewer task',
+      taskDescription: 'Complete the single Documentation Reviewer Workflow task.',
+    });
+
+    expect(result).toMatchObject({
+      missionId: 'mission-documentation-reviewer-mission',
+      assignedRoleId: 'documentation-reviewer',
+      assignedRoleName: 'Documentation Reviewer',
+      finalStatus: 'Completed',
+      adapterId: MOCK_ADAPTER_ID,
+    });
+    expect(presentation.lines).toContain(
+      'Documentation Reviewer Workflow Progress: started mission-documentation-reviewer-mission',
+    );
+    expect(presentation.lines).toContain(
+      'Nexus Documentation Reviewer Workflow: mission-documentation-reviewer-mission',
+    );
+    expect(presentation.progressTitles).toContain(
+      'Nexus Documentation Review completed: mission-documentation-reviewer-mission',
+    );
+    expect(presentation.lines).toContain(
+      'Assigned Role: Documentation Reviewer (documentation-reviewer)',
+    );
+    expect(presentation.lines).toContain(
+      'Documentation Reviewer Workflow Progress: completed mission-documentation-reviewer-mission',
+    );
+    expect(workflow.showMissionWorkflowHistory()).toEqual([
+      {
+        missionId: 'mission-documentation-reviewer-mission',
+        objective: 'Run a Sprint 37 Documentation Reviewer Workflow.',
+        finalStatus: 'Completed',
+        assignedRoleId: 'documentation-reviewer',
+        assignedRoleName: 'Documentation Reviewer',
+        adapterId: MOCK_ADAPTER_ID,
+        adapterDispatchStatus: 'Completed',
+        reviewOutcome: 'Accepted',
+        knowledgeCaptureStatus: 'Candidate',
+      },
+    ]);
+    expect(presentation.lines).toContain('Nexus Documentation Reviewer Workflow History');
+    expect(presentation.lines).toContain(
+      'Mission History Entry: mission-documentation-reviewer-mission | Completed | Documentation Reviewer (documentation-reviewer) | mock-adapter | Completed | Accepted | Candidate | Run a Sprint 37 Documentation Reviewer Workflow.',
+    );
+  });
+
   it('refuses before any Kernel service call when workspace trust is not granted', async () => {
     const recorder = new ServiceCallRecorder();
     const presentation = new RecordingPresentationSurface();

@@ -26,6 +26,17 @@ export function createDefaultKernelRoles(): readonly ExecutionRole[] {
         },
       },
     }),
+    ExecutionRole.create({
+      id: 'documentation-reviewer',
+      name: 'Documentation Reviewer',
+      description: 'Responsible for validating engineering documentation against governing evidence.',
+      category: 'Engineering Responsibility',
+      metadata: {
+        attributes: {
+          origin: 'KernelDefault',
+          rfc: 'RFC-0004',
+        },
+      },
+    }),
   ]);
 }
-
