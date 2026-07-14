@@ -2471,3 +2471,169 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-014
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-014
+
+## Date
+
+2026-07-14
+
+## Subject
+
+RFC-0004 Amendment — Engineering Role Profile. Authorizes the repository's first RFC amendment, introducing `Engineering Role Profile` as a new RFC-0004-owned architectural concept: descriptive, presentational, discovery metadata for an Execution Role, distinct from and subordinate to Execution Role's ownership of execution semantics. Resolves the `nexus-plan` governance conflict raised when the Sprint Owner directed reclassifying Milestone 7 to include an Engineering Role Profile framework objective: `NEXUS-RAT-2026-07-14-011` classified Engineering Role Profiles as Milestone 8 candidate scope requiring "a future RFC extension and a dedicated Sprint Owner ratification" before any Sprint could touch it. This ratification supplies that RFC extension.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` governance-conflict report (Sprint 38 planning request conflicted with `NEXUS-RAT-2026-07-14-011`'s Milestone 8 classification and the absence of any RFC definition for "Engineering Role Profile"), resolved through a Sprint Owner decision to require and approve a minimal RFC-0004 amendment before Sprint 38 planning proceeds (2026-07-14).
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.0 to Version 1.1, adding `Engineering Role Profile` to RFC-0004's Domain Ownership list and introducing a new "Engineering Role Profile" section (placed after the existing "Execution Roles" section).
+
+The amendment is intentionally narrow and architectural-responsibility-scoped rather than implementation-property-scoped, per the Sprint Owner's explicit refinement: RFC-0004 now normatively requires that every registered Execution Role have exactly one corresponding Engineering Role Profile providing workflow presentation metadata, completion presentation metadata, and attribution presentation policy, and supporting canonical engineering role discoverability/enumeration — without naming concrete implementation field names (e.g. `workflowLabel`), which remain implementation details free to evolve without further RFC amendment provided they continue satisfying these architectural responsibilities.
+
+Engineering Role Profile is Kernel-owned (consistent with Execution Role and Role Registry), one-to-one with Execution Role, and strictly non-authoritative for execution semantics, dispatch eligibility, execution lifecycle, assignment policy, workflow behavior, execution sequencing, orchestration, Adapter routing, Adapter selection, or authorization. Execution Role remains the sole authority for execution semantics, identity, and dispatch eligibility; Engineering Role Profile SHALL NOT replace, wrap, or redefine it.
+
+This amendment authorizes only the metadata foundation necessary for engineering role discoverability. It does not authorize, schedule, or bring closer to implementation: Workflow Chaining, Assignment Policy, Execution Sessions, a Planner Workflow, Security/Performance/Accessibility Reviewer or Test Engineer Workflows, Adapter Routing, Adapter Selection, or multi-agent orchestration. Milestone 8 — Engineering Orchestration's remaining candidate scope (Workflow Chaining, Assignment Policy, Execution Sessions, multi-agent orchestration) is unaffected and remains NOT YET STARTED.
+
+The Sprint Owner directed and authorized `nexus-plan` to apply this amendment's text directly to `rfc-0004-execution-model.md`, as a documented one-time exception to `nexus-plan`'s ordinary prohibition on modifying the RFC suite — `nexus-plan`'s own governance-conflict report first identified the need for this amendment and drafted its text for Sprint Owner review; the Sprint Owner reviewed, refined (the two refinements below), and explicitly authorized its application.
+
+## Refinements Incorporated (Sprint Owner direction, verbatim intent)
+
+1. **Architectural responsibilities, not concrete property names.** RFC-0004 describes workflow presentation metadata, completion presentation metadata, and attribution presentation policy as architectural responsibilities; it does not normatively name implementation fields such as `workflowLabel`, `completionMessageLabel`, or `includeAssignedRole`. Those remain implementation details.
+2. **Discoverability and enumeration.** Engineering Role Profiles SHALL be discoverable and enumerable without consumers possessing hard-coded knowledge of specific Execution Roles, in support of future capabilities including command/workflow discovery, engineering workflow catalogs, Activity Bar integration, and (once separately authorized) Workflow Chaining/Planner/dashboard use cases. This ratification authorizes only the metadata foundation; it authorizes no orchestration behavior itself.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Execution identity, semantics, dispatch eligibility | `ExecutionRole` |
+| Registration, lookup, enumeration of Execution Roles | `RoleRegistry` |
+| Presentation metadata, workflow presentation metadata, completion presentation metadata, attribution presentation policy, engineering role discoverability | `EngineeringRoleProfile` |
+| Command registration, workflow dispatch | Host (RFC-0009) |
+| Execution Pipeline | Existing Kernel architecture (unchanged) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.0 → 1.1; Amendment History entry; `Engineering Role Profile` added to the Domain Ownership list; new "Engineering Role Profile" section added after "Execution Roles".
+- Resume Sprint 38 planning under a reclassified Milestone 7 scope that includes an Engineering Role Profile framework objective.
+
+`nexus-plan` SHALL NOT:
+
+- Modify any other RFC-0004 section, guarantee, or concept.
+- Modify any other RFC, the Kernel Canon, or any prior Sprint's Implementation Record, `IMPLEMENTATION_REPORT.md` entry, or `REVIEW_HISTORY.md` entry.
+- Treat this ratification as authorizing Workflow Chaining, Assignment Policy, Execution Sessions, a Planner Workflow, any Additional-Role workflow, Adapter Routing, Adapter Selection, or multi-agent orchestration — each remains separately deferred.
+- Treat this ratification as a general precedent permitting future RFC modification by ratification alone; each future RFC amendment requires its own explicit Sprint Owner authorization following the same conflict-identification-and-review process.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only; it introduces exactly one new RFC-0004-owned concept (`Engineering Role Profile`) and modifies no existing RFC-0004 guarantee, section, or concept beyond the additive Domain Ownership list entry.
+- No Kernel Canon change.
+- No source code or test change is authorized by this ratification alone; Sprint 38's own Sprint Implementation Record separately governs implementation scope.
+- Engineering Role Profile SHALL remain non-authoritative for execution semantics in all future implementation; any future ratification or Sprint Implementation Record purporting to grant it execution, lifecycle, assignment, orchestration, or authorization behavior would conflict with this ratification and RFC-0004 as amended.
+
+## Related Sprint(s)
+
+- Sprint 35 — Builder Workflow Foundation; Sprint 36 — Reviewer Workflow Foundation; Sprint 37 — Documentation Workflow Foundation (the Milestone 7 Sprints whose Host-layer presentation-metadata duplication motivated this amendment).
+- Sprint 38 — Engineering Role Profiles Foundation (planned; consumes this amendment).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 38 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies an amendment to RFC-0004 — Execution Model, incrementing it to Version 1.1 and introducing `Engineering Role Profile` as a new RFC-0004-owned architectural concept: one-to-one companion metadata to Execution Role, providing workflow presentation metadata, completion presentation metadata, and attribution presentation policy, and supporting canonical engineering role discoverability and enumeration. The amendment is described at the level of architectural responsibilities, not concrete implementation field names, so that implementation properties may evolve without further RFC amendment. Engineering Role Profile is Kernel-owned, remains strictly non-authoritative for execution semantics, dispatch eligibility, lifecycle, assignment policy, workflow behavior, sequencing, orchestration, Adapter routing/selection, or authorization, and SHALL NOT replace, wrap, or redefine Execution Role, which remains the sole authority for execution semantics. This amendment authorizes only the metadata foundation for discoverability; it authorizes no Workflow Chaining, Assignment Policy, Execution Session, Planner Workflow, additional-Role workflow, Adapter Routing/Selection, or multi-agent orchestration, all of which remain separately deferred under Milestone 8 — Engineering Orchestration (NOT YET STARTED). The Sprint Owner authorizes `nexus-plan` to apply this amendment's text directly to `rfc-0004-execution-model.md` as a one-time, explicitly authorized exception to `nexus-plan`'s ordinary prohibition on RFC modification, and to resume Sprint 38 planning under a reclassified Milestone 7 scope once the amendment is applied.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-14-015
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-015
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 38 Scope Ratification — Engineering Role Profiles Foundation. Authorizes implementation of the `EngineeringRoleProfile` Kernel concept defined by RFC-0004 v1.1 (`NEXUS-RAT-2026-07-14-014`), incorporating five Sprint Owner refinements to the `nexus-plan` Sprint Proposal. Resolves the Sprint 38 scope-ratification requirement.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Sprint Proposal (Sprint 38 — Engineering Role Profiles Foundation), refined by five Sprint Owner directives, and approved as refined (2026-07-14).
+
+## Governance Decision
+
+Sprint 38 SHALL be titled **Engineering Role Profiles Foundation**. It introduces `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`/`InMemoryEngineeringRoleProfileRegistry`, `createDefaultEngineeringRoleProfiles()`, and `EngineeringRoleProfileService`, seeding one profile per existing default Kernel Role (`builder`, `reviewer`, `documentation-reviewer`) at Kernel composition time.
+
+**EngineeringRoleProfile SHALL be the only new normative architectural concept introduced by Sprint 38.** No additional execution, lifecycle, workflow, or orchestration concept is introduced.
+
+## Refinements Incorporated (binding)
+
+1. **`EngineeringRoleProfileService` is not a business service.** It SHALL remain a thin abstraction over the registry, limited to lookup, existence checks, enumeration, and diagnostics (duplicate registration, not-found). It SHALL NOT evolve into an orchestration service; no execution behavior or business rule is authorized.
+2. **Immutable registry, composition-time-only seeding.** Default profiles SHALL be produced by `createDefaultEngineeringRoleProfiles()`; the registry SHALL be seeded during `createKernelServices()`; after composition, the registry SHALL be treated as immutable. Registration exists only during Kernel composition and is not part of normal runtime behavior. No runtime profile creation is authorized.
+3. **Strengthened acceptance criteria.** "EngineeringRoleProfile SHALL be the only new normative architectural concept introduced by Sprint 38" replaces the weaker "exactly one new Kernel concept" framing.
+4. **Forward compatibility stated explicitly.** `EngineeringRoleProfile` SHALL become the canonical engineering metadata abstraction for future Kernel and Host capabilities (Workflow Chaining, Planner Workflow, engineering role catalogs, future Host discovery mechanisms, engineering orchestration) while remaining independent of execution semantics. This Sprint does not authorize any of those capabilities; it establishes only their common metadata foundation.
+5. **Semantic equivalence, not byte-for-byte, for presentation values.** Default profile presentation metadata SHALL remain semantically equivalent to the existing Builder, Reviewer, and Documentation Reviewer Workflow presentation strings already in `vscode-host.ts`. This preserves observable behavior while permitting future presentation evolution (e.g. localization) without requiring another RFC amendment. No observable behavior change is authorized in this Sprint.
+
+## Architectural Confirmation (binding, restates RFC-0004 v1.1)
+
+`ExecutionRole` remains authoritative for execution identity, execution semantics, and dispatch eligibility. `EngineeringRoleProfile` remains authoritative for engineering metadata, presentation metadata, and engineering role discoverability. Neither replaces, wraps, or redefines the other.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Implement `EngineeringRoleProfile` (`src/kernel/execution/engineering-role-profile.ts`) as an immutable Kernel value object, mirroring `ExecutionRole`'s construction pattern.
+- Implement `EngineeringRoleProfileRegistry` contract and `InMemoryEngineeringRoleProfileRegistry`, mirroring `RoleRegistry`/`InMemoryRoleRegistry`.
+- Implement `createDefaultEngineeringRoleProfiles()`, producing one profile per existing default Kernel Role with presentation metadata semantically equivalent to existing `vscode-host.ts` values.
+- Implement `EngineeringRoleProfileService` as a thin lookup/enumeration/diagnostics abstraction only.
+- Update `createKernelServices` composition to seed the registry via `createDefaultEngineeringRoleProfiles()` at composition time.
+- Add unit test coverage for all of the above, including composition-time-only seeding and semantic-equivalence assertions.
+
+The Builder SHALL NOT modify:
+
+- Host workflows (`src/hosts`), Adapter Runtime, or Execution Pipeline.
+- Execution semantics, workflow behavior, orchestration, assignment policy, or Execution Sessions.
+- `src/adapters`, `HostAdapterConfigurationResolver`, or `HostConfiguredMissionWorkflow`.
+- Any existing command's identifier, dispatch behavior, presentation strings, or test coverage.
+
+## Scope Restrictions
+
+- No `src/hosts` or `src/adapters` change.
+- No new execution, lifecycle, workflow, or orchestration concept beyond `EngineeringRoleProfile` itself.
+- No runtime profile creation; registration occurs only during Kernel composition.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass, updated only where they enumerate Kernel-composed services (mirroring Sprint 37's role-enumeration assertion update).
+- This ratification does not modify RFC-0004 further (RFC-0004 v1.1 already reflects this Sprint's authorized concept via `NEXUS-RAT-2026-07-14-014`), RFC-0008, RFC-0009, RFC-0010, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 8 — Execution Roles (the `ExecutionRole`/`RoleRegistry` pattern this Sprint mirrors).
+- Sprint 35 — Builder Workflow Foundation; Sprint 36 — Reviewer Workflow Foundation; Sprint 37 — Documentation Workflow Foundation (source of the presentation values the default profiles formalize).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 38 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 38 as Engineering Role Profiles Foundation: implementation of `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `createDefaultEngineeringRoleProfiles()`, and `EngineeringRoleProfileService` per RFC-0004 v1.1. `EngineeringRoleProfile` SHALL be the only new normative architectural concept introduced by this Sprint. `EngineeringRoleProfileService` SHALL remain a thin, non-orchestration abstraction limited to lookup, existence checks, enumeration, and diagnostics. The registry SHALL be seeded only at Kernel composition time via `createDefaultEngineeringRoleProfiles()` and treated as immutable thereafter; no runtime profile creation is authorized. `EngineeringRoleProfile` is confirmed as the canonical engineering metadata abstraction for future capabilities (Workflow Chaining, Planner Workflow, engineering role catalogs, Host discovery, engineering orchestration), none of which are authorized by this Sprint. Default profile presentation metadata SHALL remain semantically equivalent — not byte-for-byte — to the existing Builder/Reviewer/Documentation Reviewer Workflow presentation strings, preserving observable behavior while permitting future presentation evolution without further RFC amendment. `ExecutionRole` remains authoritative for execution identity, semantics, and dispatch eligibility; `EngineeringRoleProfile` remains authoritative for engineering metadata, presentation metadata, and discoverability. No Host, Adapter Runtime, or Execution Pipeline change is authorized. The Sprint Owner authorizes `nexus-plan` to generate the Sprint 38 Implementation Record under Milestone 7 and authorizes the Builder to implement Sprint 38 in accordance with the Specification-First governance model.
+
+## Current Status
+
+Active
+
+---

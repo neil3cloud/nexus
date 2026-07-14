@@ -1836,15 +1836,17 @@ See `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolid
 
 ---
 
-# Milestone 7 — AI Engineering Workflows
+# Milestone 7 — AI Engineering Workflow Framework
 
-Status: ACTIVE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 Approved with Findings — NEXUS-REV-2026-07-14-013)
+Status: ACTIVE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 Approved with Findings — NEXUS-REV-2026-07-14-013; Sprint 38 Approved with Findings — NEXUS-REV-2026-07-14-015)
 
 Objective
 
-Establish a family of dedicated, Role-scoped AI Engineering Workflow entry points at the Host layer. Each workflow SHALL reuse the already-certified Host, Kernel, Execution Pipeline, Adapter Runtime, and Adapter Configuration without modification, differing only by Execution Role, Host presentation, and workflow-specific result presentation.
+Establish the AI Engineering Workflow Framework: a family of dedicated, Role-scoped AI Engineering Workflow entry points at the Host layer, together with the reusable Kernel metadata foundation (Engineering Role Profile) that supports discovering and presenting those workflows without hard-coded Host knowledge of each Role. Each workflow SHALL reuse the already-certified Host, Kernel, Execution Pipeline, Adapter Runtime, and Adapter Configuration without modification, differing only by Execution Role, Host presentation, and workflow-specific result presentation.
 
 Governance Note
+
+Retitled from "AI Engineering Workflows" to "AI Engineering Workflow Framework" per Sprint Owner direction (2026-07-14): Sprints 35–37 certified the canonical Role-scoped Host Workflow pattern; the milestone's remaining objective is completing the reusable framework — Engineering Role Profiles (Sprint 38) and a future Workflow Chaining Foundation — that future engineering workflows will consume. No additional individual engineering-role workflow foundation (Security Reviewer, Performance Reviewer, Accessibility Reviewer, Test Engineer, Database Reviewer) SHALL be proposed under this milestone unless it introduces a genuinely new architectural capability.
 
 Opened by `NEXUS-RAT-2026-07-14-011`, which closed Milestone 6 at Sprint 34 and retroactively classified Sprint 35 — Builder Workflow Foundation as this milestone's opening Sprint. Sprint 35's own implementation, review, and ratification records are unmodified by this reclassification; only milestone-level bookkeeping changed. No Milestone 7 Sprint SHALL introduce Kernel ownership changes, Adapter Contract changes, Adapter Selection, Role-to-Adapter routing, Execution Session, Assignment Policy, Workflow Chaining, or multi-agent orchestration, unless separately authorized through a future RFC or Sprint Owner ratification.
 
@@ -1852,12 +1854,20 @@ Opened by `NEXUS-RAT-2026-07-14-011`, which closed Milestone 6 at Sprint 34 and 
 
 `NEXUS-RAT-2026-07-14-012` establishes a binding Architectural Invariant for this milestone: every Role-scoped Workflow entry point SHALL differ from every other only by the Execution Role requested and by workflow presentation metadata, reusing Host Adapter Configuration, explicit-`adapterId` dispatch, the certified Execution Pipeline, Adapter Runtime, and Kernel contracts unmodified in every case. Sprint 36 is directed to extract the Role-scoped Configured Mission Workflow construction (duplicated in `vscode-host.ts` for the Developer and Builder Workflows) into a single reusable factory, refactoring the Builder Workflow to use it, so the pattern is genuinely canonical rather than repeatedly copy-pasted.
 
-Provisional Roadmap
+`NEXUS-RAT-2026-07-14-014` amends RFC-0004 to Version 1.1, introducing `Engineering Role Profile` as a new RFC-0004-owned architectural concept — descriptive, presentational, discoverability metadata for an Execution Role, distinct from and subordinate to Execution Role's ownership of execution semantics. `NEXUS-RAT-2026-07-14-015` authorizes Sprint 38 — Engineering Role Profiles Foundation to implement it.
+
+Completed
 
 - Sprint 35 — Builder Workflow Foundation (Approved).
-- Sprint 36 — Reviewer Workflow Foundation (Implemented — Pending Reviewer Validation; establishes the canonical Role-scoped Workflow construction factory and adds the Reviewer Workflow over the already-registered `reviewer` Execution Role).
-- Sprint 37 — Documentation Workflow Foundation (Approved with Findings — NEXUS-REV-2026-07-14-013; registers `Documentation Reviewer`, an RFC-0004-named Additional Role, as a default Kernel Role, then exposes the corresponding Host workflow via the Sprint 36 factory).
-- A **Planner Workflow** is explicitly not scheduled: "Planner" is not an RFC-0004 Execution Role and requires an RFC-0004 amendment or new RFC before it may be authorized.
+- Sprint 36 — Reviewer Workflow Foundation (Approved).
+- Sprint 37 — Documentation Workflow Foundation (Approved with Findings; remediated — no open findings).
+- Sprint 38 — Engineering Role Profiles Foundation (Approved with Findings — NEXUS-REV-2026-07-14-015; one Minor Documentation Drift finding open in `IMPLEMENTATION_MANIFEST.md`, non-blocking).
+
+Remaining Objectives
+
+- Workflow Chaining Foundation (not yet scheduled; requires its own future Sprint Owner scope ratification).
+
+Milestone 7 SHALL conclude only after these framework capabilities have been established. A **Planner Workflow** remains explicitly not scheduled: "Planner" is not an RFC-0004 Execution Role.
 
 ---
 
@@ -1997,6 +2007,68 @@ Implementation Result
 
 - Builder implementation completed the authorized Role-registration and Host command vertical slice.
 - Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-14-013`). One Minor Documentation Drift finding (F-001) generates a Documentation Task and does not block progression. See `REVIEW_HISTORY.md` and the Sprint Implementation Record for details.
+
+---
+
+## Sprint 38 — Engineering Role Profiles Foundation
+
+Status: Approved with Findings — NEXUS-REV-2026-07-14-015
+
+Objective
+
+Introduce the Kernel-owned `EngineeringRoleProfile` domain concept authorized by RFC-0004 v1.1 (`NEXUS-RAT-2026-07-14-014`), mirroring the existing `ExecutionRole`/`RoleRegistry` pattern, and seed one default profile per already-registered Kernel Role (`builder`, `reviewer`, `documentation-reviewer`) with presentation metadata semantically equivalent to the existing Builder, Reviewer, and Documentation Reviewer Workflow presentation strings. Establishes metadata only; introduces no orchestration.
+
+RFC Coverage
+
+- RFC-0004 — Execution Model v1.1 (Primary; new "Engineering Role Profile" section)
+- Referenced: RFC-0010 — Kernel Boundaries
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-015` — governs this Sprint's entire scope: `EngineeringRoleProfileService`'s non-orchestration boundary, registry immutability after Kernel composition, the strengthened acceptance criterion, the forward-compatibility statement, and the semantic-equivalence (not byte-for-byte) presentation-value requirement.
+- `NEXUS-RAT-2026-07-14-014` — the RFC-0004 v1.1 amendment this Sprint implements.
+- `NEXUS-RAT-2026-07-14-011` — the milestone-boundary ratification opening Milestone 7, as retitled.
+
+Authorized Vertical Slice
+
+- `EngineeringRoleProfile` immutable Kernel value object (`src/kernel/execution/engineering-role-profile.ts`): `roleId` reference, workflow presentation label, completion presentation label, attribution presentation policy (boolean); `create`/`fromSnapshot`/`toSnapshot`/`equals`, mirroring `ExecutionRole`'s construction pattern.
+- `EngineeringRoleProfileRegistry` contract + `InMemoryEngineeringRoleProfileRegistry` (`register`/`getById`/`has`/`enumerate`), mirroring `RoleRegistry`/`InMemoryRoleRegistry`, keyed by `RoleId`.
+- `createDefaultEngineeringRoleProfiles()` factory producing exactly one profile per existing default Kernel Role, with presentation values semantically equivalent to Sprints 35–37's existing `vscode-host.ts` `presentationOptions` values. No observable Host behavior change is authorized.
+- `EngineeringRoleProfileService`: a thin, non-orchestration abstraction over the registry, limited to lookup, existence checks, enumeration, and diagnostics (duplicate registration, not-found). It SHALL NOT evolve into an orchestration service and authorizes no execution behavior or business rule.
+- `createKernelServices` composition seeds the registry via `createDefaultEngineeringRoleProfiles()` at composition time only. Registration exists only during Kernel composition; the registry is treated as immutable at runtime thereafter. No runtime profile creation is authorized.
+- Unit tests: value object validation/equality/immutability; registry registration/duplicate-rejection/lookup/enumeration; default-profile factory semantic-equivalence assertions against Sprint 35–37 presentation values; service lookup/enumeration/diagnostics behavior; composition-time-only seeding assertion.
+
+Architectural Purpose (forward compatibility)
+
+`EngineeringRoleProfile` is established as the canonical engineering metadata abstraction for future Kernel and Host capabilities, remaining independent of execution semantics. Future capabilities MAY consume it, including Workflow Chaining, Planner Workflow, engineering role catalogs, future Host discovery mechanisms, and engineering orchestration. This Sprint does not authorize any of those capabilities; it establishes only their common metadata foundation.
+
+Deferred Concepts
+
+- Any Host (`src/hosts`) file change — `vscode-host.ts` continues using its own inline `presentationOptions`; no existing command's identifier, dispatch behavior, presentation strings, or test coverage changes.
+- Host/command discovery, workflow catalogs, Activity Bar integration, dashboard generation.
+- Workflow Chaining, Assignment Policy, Execution Sessions, Planner Workflow.
+- Security Reviewer, Performance Reviewer, Accessibility Reviewer, Test Engineer Workflows (and their Kernel Role registration).
+- Adapter Routing, Adapter Selection, multi-agent orchestration, authorization.
+- Any `src/adapters` or Execution Pipeline change.
+
+Definition of Done
+
+- `EngineeringRoleProfile` SHALL be the only new normative architectural concept introduced by Sprint 38. No additional execution, lifecycle, workflow, or orchestration concept is introduced.
+- Every default Kernel Role has exactly one default Engineering Role Profile; presentation values remain semantically equivalent to existing `vscode-host.ts` values — no observable behavior change.
+- No `src/hosts` or `src/adapters` file is modified; all existing Developer/Builder/Reviewer/Documentation Reviewer Workflow commands remain unmodified in identifier, dispatch, presentation, and test coverage.
+- `EngineeringRoleProfileService` remains a thin lookup/enumeration/diagnostics abstraction; it introduces no execution behavior or business rule.
+- Engineering Role Profile registration occurs only during Kernel composition (`createKernelServices`); the registry is immutable thereafter — no runtime profile creation is introduced.
+- `EngineeringRoleProfile` carries no execution semantics, dispatch eligibility, lifecycle, assignment, orchestration, or authorization behavior (verified against RFC-0004 v1.1's SHALL-NOT list).
+- Sprint 18's Kernel Boundary Certification test passes, updated only if it enumerates Kernel-composed services (mirroring Sprint 37's role-enumeration assertion update).
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0038-engineering-role-profiles-foundation.md` for the complete Sprint Implementation Record.
+
+Implementation Result
+
+- Builder implementation completed the authorized Engineering Role Profiles metadata foundation vertical slice.
+- Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-14-015`). One Minor Documentation Drift finding (F-001) generates a Documentation Task (`IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line) and does not block progression. See `REVIEW_HISTORY.md` and the Sprint Implementation Record for details.
+- No further Milestone 7 Sprint is currently planned to advance to Current; Milestone 8 remains NOT YET STARTED per `NEXUS-RAT-2026-07-14-011`.
 
 ---
 

@@ -1,9 +1,16 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.0
+**Version:** 1.1
 **Authority:** Normative
 **Normative Language:** RFC 2119
+
+---
+
+# Amendment History
+
+- v1.0 — Original specification.
+- v1.1 — Adds Engineering Role Profile (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-014`). Engineering Role Profile is descriptive/presentational metadata only, one-to-one with Execution Role; Execution Role remains the sole authority for execution semantics, identity, and dispatch eligibility. No other section of this specification is modified.
 
 ---
 
@@ -84,6 +91,7 @@ RFC-0004 exclusively owns:
 - Execution
 - Execution Strategy
 - Execution Role
+- Engineering Role Profile
 - Assignment
 - Assignment Policy
 - Execution State
@@ -148,6 +156,43 @@ Additional roles MAY include:
 Roles define responsibilities.
 
 Roles SHALL remain independent of implementation providers.
+
+---
+
+# Engineering Role Profile
+
+An Engineering Role Profile describes an Execution Role for engineering discovery and presentation purposes.
+
+Every registered Execution Role SHALL have exactly one corresponding Engineering Role Profile.
+
+Engineering Role Profile SHALL provide:
+
+- workflow presentation metadata
+- completion presentation metadata
+- attribution presentation policy
+
+Engineering Role Profile SHALL support canonical engineering role discoverability and enumeration, so that consumers MAY discover every registered Engineering Role Profile without requiring hard-coded knowledge of specific Execution Roles.
+
+Engineering Role Profile SHALL NOT:
+
+- define execution semantics
+- define dispatch eligibility
+- define execution lifecycle
+- define assignment policy
+- define workflow behavior
+- define execution sequencing
+- define orchestration
+- define Adapter routing
+- define Adapter selection
+- define authorization
+
+Execution Role remains the sole authority for execution semantics, identity, and dispatch eligibility. Engineering Role Profile SHALL NOT replace, wrap, or redefine Execution Role.
+
+Engineering Role Profile SHALL remain Kernel-owned, consistent with Execution Role and Role Registry, so that presentation and discovery metadata remain provider-independent and Host-independent.
+
+This specification describes Engineering Role Profile's architectural responsibilities only. Concrete implementation properties satisfying workflow presentation metadata, completion presentation metadata, and attribution presentation policy are implementation details and MAY evolve without requiring amendment to this specification, provided they continue to satisfy these architectural responsibilities.
+
+This amendment authorizes only the metadata foundation necessary for engineering role discoverability. It does not authorize Workflow Chaining, Assignment Policy, Execution Sessions, a Planner Workflow, Adapter Routing, Adapter Selection, authorization, or any orchestration behavior.
 
 ---
 

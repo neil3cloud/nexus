@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 38 — Engineering Role Profiles Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 7 Sprint 38 Engineering Role Profiles Foundation vertical slice. This sprint introduces the Kernel-owned `EngineeringRoleProfile` metadata concept authorized by RFC-0004 v1.1 and seeds one immutable default profile per already-registered default Kernel Role.
+
+Implemented scope:
+
+- Added immutable `EngineeringRoleProfile` value object with `roleId`, workflow presentation label, completion presentation label, attribution presentation policy, `create`/`fromSnapshot`/`toSnapshot`/`equals`, and dedicated definition validation.
+- Added `EngineeringRoleProfileRegistry` and `InMemoryEngineeringRoleProfileRegistry` with deterministic registration, lookup, existence checks, enumeration, duplicate diagnostics, and constructor-time seeding for Kernel composition.
+- Added `createDefaultEngineeringRoleProfiles()` with one profile each for `builder`, `reviewer`, and `documentation-reviewer`, preserving presentation metadata semantically equivalent to the existing Host workflow values.
+- Added `EngineeringRoleProfileService` as a thin lookup/existence/enumeration/diagnostics abstraction only.
+- Updated `createKernelServices()` to seed `InMemoryEngineeringRoleProfileRegistry` from `createDefaultEngineeringRoleProfiles()` at Kernel composition time and register `EngineeringRoleProfileService`.
+- Added deterministic unit and integration coverage for value-object behavior, registry diagnostics, default-profile semantic equivalence, service surface, and Kernel composition seeding.
+
+Out of scope and not implemented:
+
+- Any Host workflow or command discovery changes.
+- Workflow catalogs, Activity Bar integration, dashboards, Host discovery, or user-facing presentation changes.
+- Workflow Chaining, Assignment Policy, Execution Sessions, Planner Workflow, Adapter Routing, Adapter Selection, multi-agent orchestration, or authorization.
+- Security Reviewer, Performance Reviewer, Accessibility Reviewer, Test Engineer, Database Reviewer workflows or Kernel Role registration.
+- Any `src/hosts`, `src/adapters`, Adapter Runtime, Host Adapter Configuration, or Execution Pipeline change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.1 (Engineering Role Profile).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `EngineeringRoleProfile` as RFC-0004-owned Kernel metadata for workflow presentation, completion presentation, attribution presentation policy, and engineering role discoverability.
+- `EngineeringRoleProfileRegistry` / `InMemoryEngineeringRoleProfileRegistry` for profile registration, lookup, existence checks, and enumeration.
+- Default Engineering Role Profiles for the three registered default Kernel Roles.
+- `EngineeringRoleProfileService` as a non-orchestration lookup/enumeration abstraction.
+- Kernel composition-time profile registry seeding.
+
+Deferred Concepts:
+
+- Any Host (`src/hosts`) file change or Host consumer of Engineering Role Profiles.
+- Host/command discovery, workflow catalogs, Activity Bar integration, dashboard generation.
+- Workflow Chaining, Assignment Policy, Execution Sessions, Planner Workflow.
+- Security Reviewer, Performance Reviewer, Accessibility Reviewer, Test Engineer Workflows and their Kernel Role registration.
+- Adapter Routing, Adapter Selection, multi-agent orchestration, authorization, and Execution Pipeline changes.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-015`, `NEXUS-RAT-2026-07-14-014`, `NEXUS-RAT-2026-07-14-011`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0038-engineering-role-profiles-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `EngineeringRoleProfile` is descriptive Kernel metadata only and remains subordinate to `ExecutionRole` for execution identity, semantics, and dispatch eligibility.
+- Constructor-time seeding of `InMemoryEngineeringRoleProfileRegistry` in `createKernelServices()` satisfies the Sprint requirement that registration occurs only during Kernel composition and is not exposed as normal runtime behavior.
+- Keeping Host workflow presentation strings inline in `vscode-host.ts` preserves Sprint 38's no-observable-behavior-change boundary while default profiles carry semantically equivalent metadata for future consumers.
+
+### Known Limitations
+
+- Profiles exist only for the three current default Kernel Roles: `builder`, `reviewer`, and `documentation-reviewer`.
+- Profiles are in-memory only and seeded during Kernel composition; there is no durable persistence, runtime creation, update, or versioning path.
+- No Host consumer exists yet; Engineering Role Profiles are inert metadata until a future separately ratified Sprint consumes them.
+
+### Validation Summary
+
+- Targeted Sprint 38 validation passed: `npm test -- --run test/kernel/execution/engineering-role-profile.test.ts test/kernel/execution/engineering-role-profile-registry.test.ts test/kernel/execution/engineering-role-profile.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- TypeScript compile passed with `npm run compile`.
+- ESLint passed with `npm run lint`.
+- Vitest passed with `npm test`: 62 files, 301 tests.
+- esbuild passed with `npm run build`.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Sprint 18 Kernel boundary certification was updated only where it enumerates Kernel-composed services/profiles; the distinct `src/kernel` import-graph-boundary assertion remained unmodified.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 38.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 37 — Documentation Workflow Foundation
 
 ### Implemented Slice

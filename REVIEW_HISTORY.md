@@ -2,6 +2,134 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-016 — Sprint 38 — Engineering Role Profiles Foundation (DOC-004 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 38 — Engineering Role Profiles Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-015-F-001` / `DOC-004` (`builder-task.md`) — a documentation-only wording correction to `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line.
+- **RFC Coverage:** None (documentation-wording finding only).
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+This review independently verifies the Builder's remediation of `DOC-004`. `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line previously read: "...Sprint 38 Current — Engineering Role Profiles Foundation, NEXUS-RAT-2026-07-14-015)". It now reads: "...Sprint 38 Approved with Findings — NEXUS-REV-2026-07-14-015)". This matches `DOC-004`'s Required Changes and Acceptance Criteria exactly, and mirrors the wording pattern already used for Sprint 37 in the same line and the correction the Reviewer previously applied to the equivalent `IMPLEMENTATION_PLAN.md` line.
+
+`git diff` confirms this is the only substantive change to `IMPLEMENTATION_MANIFEST.md` since `NEXUS-REV-2026-07-14-015`: the Sprint 38 subsection itself (status, implemented/deferred concepts, notes) is untouched, and no source, test, RFC, Kernel Canon, or other governance artifact was modified by this remediation — satisfying `DOC-004`'s "No other file is modified" Acceptance Criterion. `builder-task.md` is likewise unchanged, consistent with the Builder correctly not self-modifying task status.
+
+Independently reran `npm run compile`, `npm run lint`, and the full Vitest suite: `tsc --noEmit` and ESLint passed with no output; Vitest passed **62 files / 301 tests** (including `test/integration/local-process-runtime.integration.test.ts`, which failed transiently under load during the prior review and is now confirmed passing along with everything else), confirming the documentation-only correction introduced no regression.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (`NEXUS-REV-2026-07-14-015-F-001` / `DOC-004`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 62 files / 301 tests (independently reproduced, no flakiness this run) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation is a documentation-wording correction only; no RFC concept, deferred or otherwise, is touched.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The remediation is confined to one status-summary-line wording correction in `IMPLEMENTATION_MANIFEST.md`; no source, test, RFC, or Kernel Canon content changed.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0038-engineering-role-profiles-foundation.md`) — Status remains **Approved with Findings**; the finding underlying that status is now remediated per this verification.
+- `IMPLEMENTATION_PLAN.md` — no status change required; Sprint 38 was already marked Approved with Findings and did not block Milestone 7 progression.
+
+### Work Item State Reconciliation
+
+- Sprint 38: Remains Approved with Findings (the finding is now remediated; disposition already permitted progression).
+- Work Order: Completed.
+- Builder Tasks: `DOC-004` — Status → **Completed** (acceptance criteria verified satisfied).
+
+### Builder Task Recommendation
+
+None. `DOC-004` is closed. No further Builder or Documentation Tasks are open for Sprint 38.
+
+---
+
+## NEXUS-REV-2026-07-14-015 — Sprint 38 — Engineering Role Profiles Foundation
+
+- **Reviewed Sprint:** Sprint 38 — Engineering Role Profiles Foundation
+- **Reviewed Vertical Slice:** `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`/`InMemoryEngineeringRoleProfileRegistry`, `createDefaultEngineeringRoleProfiles()`, `EngineeringRoleProfileService`, and Kernel composition-time seeding, per `knowledge/implementation/sprints/sprint-0038-engineering-role-profiles-foundation.md` and `NEXUS-RAT-2026-07-14-015`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.1 (Primary; "Engineering Role Profile" section added by `NEXUS-RAT-2026-07-14-014`). Referenced: RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 38 was authorized by `NEXUS-RAT-2026-07-14-015` to implement the `EngineeringRoleProfile` Kernel concept added to RFC-0004 by the v1.1 amendment (`NEXUS-RAT-2026-07-14-014`), incorporating five binding Sprint Owner refinements: a non-orchestration `EngineeringRoleProfileService`, composition-time-only registry seeding treated as immutable thereafter, the strengthened "only new normative concept" acceptance criterion, an explicit forward-compatibility statement, and semantic-equivalence (not byte-for-byte) presentation values.
+
+Independent review confirms the implementation conforms to the authorized vertical slice. `EngineeringRoleProfile` (`src/kernel/execution/engineering-role-profile.ts`) is an immutable value object mirroring `ExecutionRole`'s construction pattern exactly, carrying only `roleId`, `workflowPresentationLabel`, `completionPresentationLabel`, and `includeAssignedRoleInPresentation` — no execution semantics, dispatch eligibility, lifecycle, assignment, orchestration, Adapter routing/selection, or authorization field or method exists anywhere in the new surface. `InMemoryEngineeringRoleProfileRegistry` accepts an optional constructor-supplied initial-profile list (the only seeding path) and otherwise behaves identically to `RoleRegistry`. `EngineeringRoleProfileService` exposes exactly `getById`/`has`/`enumerate` as own prototype methods (verified by both the test suite and independent inspection) — no orchestration surface exists. `createDefaultEngineeringRoleProfiles()` derives its Role set from `createDefaultKernelRoles()` and supplies presentation values matching the existing `vscode-host.ts` strings for Builder/Reviewer/Documentation Reviewer workflows exactly. `createKernelServices()` seeds the registry once, at composition time, via this factory, and registers `EngineeringRoleProfileService` immediately after `RoleService` in the composed service list.
+
+`ExecutionRole`, `default-kernel-roles.ts`, `role-registry.ts`, and `role.service.ts` are confirmed byte-for-byte unmodified (`git diff` shows no changes to any of these files). No `src/hosts` or `src/adapters` file was modified. The Sprint 18 Kernel Boundary Certification test (`test/integration/kernel-boundary-certification.integration.test.ts`) was updated only to add `EngineeringRoleProfileService` to its expected composed-service list and to assert profile enumeration/lookup alongside the pre-existing role-enumeration assertion — the file's distinct `src/kernel` import-graph-boundary assertion is unmodified.
+
+Independently reran full repository validation. `npm run validate` (`tsc --noEmit`, ESLint, Vitest, esbuild) initially showed one failing test, `test/integration/local-process-runtime.integration.test.ts` (`TimedOut` vs. expected `Exited`, a Sprint 21 local-process-spawn test unrelated to this Sprint's file changes). Re-running that file in isolation passed deterministically (1/1), confirming this is pre-existing test-infrastructure timing flakiness under full-suite parallel load, not a Sprint 38 regression — no file this Sprint touched is referenced by that test. With that isolated confirmation, full validation is **PASS**: TypeScript compile, ESLint, Vitest (62 files / 301 tests, matching the Builder's reported count exactly), esbuild, and the extension-host bundle build (`npm run test:extension-host:build`) all passed.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-015-F-001 — Milestone 7 status summary line understates Sprint 38's actual state
+
+- **Category:** 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 12 (Documentation).
+- **Summary:** Both `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` carry a Milestone 7 status summary line reading "...Sprint 38 Current — Engineering Role Profiles Foundation...", and `IMPLEMENTATION_PLAN.md`'s "Remaining Objectives" list still reads "Engineering Role Profiles (Sprint 38 — Current)". The Builder correctly updated Sprint 38's own subsection status to "Implemented — Pending Reviewer Validation" in both files, but did not propagate that state to the milestone-level summary lines, leaving them inconsistent with the sprint-level status — the same class of drift previously recorded as `NEXUS-REV-2026-07-14-013-F-001`.
+- **Evidence:** `IMPLEMENTATION_PLAN.md:1841,1867`; `IMPLEMENTATION_MANIFEST.md:1463`; contrast with `IMPLEMENTATION_PLAN.md:2015` ("Implemented — Pending Reviewer Validation").
+- **Impact:** Documentation-only; does not affect implementation correctness, architectural conformance, or test coverage.
+- **Recommended Disposition:** Documentation Task. This review closes the `IMPLEMENTATION_PLAN.md` half directly as part of its Repository State Update (Reviewer-owned artifact) by marking Sprint 38 Approved with Findings. The `IMPLEMENTATION_MANIFEST.md` half remains open as a Builder-owned Documentation Task, since the Reviewer SHALL NOT modify `IMPLEMENTATION_MANIFEST.md`.
+- **Builder Action:** Update documentation only — reword `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line to reflect Sprint 38's Approved with Findings disposition once this review is recorded. No implementation or architectural change.
+
+### Deferred Concept Validation
+
+- Confirmed no `src/hosts` file was modified: `git diff --stat` shows changes limited to `src/kernel/execution/*` (new files) and `src/kernel/common/create-kernel-services.ts`.
+- Confirmed no `src/adapters` file was modified.
+- Confirmed no Workflow Chaining, Assignment Policy, Execution Session, Planner Workflow, Adapter Routing, Adapter Selection, or authorization concept was introduced — the new surface exposes only `getById`/`has`/`enumerate` and value-object accessors.
+- Confirmed `ExecutionRole` and `default-kernel-roles.ts` are unmodified; `EngineeringRoleProfile` does not replace, wrap, or redefine `ExecutionRole`, satisfying RFC-0004 v1.1's ownership boundary.
+- Observation (Category 6, non-blocking): the Sprint Implementation Record's test list named a dedicated "composition test asserting `createKernelServices()` seeds the registry from `createDefaultEngineeringRoleProfiles()` exactly once and that no runtime registration path exists outside composition." No standalone test with that specific assertion exists; the property is instead verified indirectly through the Kernel Boundary Certification integration test's profile-enumeration assertions, which do demonstrate correct seeding content. This is a test-coverage refinement opportunity, not a defect — the acceptance criteria in the Sprint's own Definition of Done section do not separately require this specific test, and the underlying behavior is otherwise proven correct.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `EngineeringRoleProfile` is confirmed Kernel-owned, one-to-one with `ExecutionRole`, and strictly non-authoritative for execution semantics, dispatch eligibility, lifecycle, assignment, workflow behavior, sequencing, orchestration, Adapter routing/selection, or authorization, in conformance with RFC-0004 v1.1 and `NEXUS-RAT-2026-07-14-015`'s five binding refinements. `EngineeringRoleProfileService` is confirmed to expose no orchestration surface. Registry seeding is confirmed composition-time-only. Gate 12 (Documentation): PASS WITH FINDING — one Minor Documentation Drift finding (F-001) noted above; all other Sprint 38 documentation (`IMPLEMENTATION_REPORT.md`, Sprint Implementation Record, Ratification Ledger references) is internally consistent and consistent with the actual diff.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 (Minor) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 62 files / 301 tests, esbuild, extension-host bundle build (independently reproduced; one unrelated pre-existing flaky test isolated and confirmed non-regressing) |
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0038-engineering-role-profiles-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 38 marked **Approved with Findings**; Milestone 7 status summary line and Remaining Objectives list updated to reflect Sprint 38's approval. No further Milestone 7 or Milestone 8 Sprint is currently planned to advance to Current — none exists in `IMPLEMENTATION_PLAN.md` beyond Sprint 38, and Milestone 8 remains NOT YET STARTED per `NEXUS-RAT-2026-07-14-011`.
+
+### Work Item State Reconciliation
+
+- Sprint 38: Approved with Findings.
+- Work Order: Completed.
+- Builder Tasks: None existed for Sprint 38 (no `builder-task.md` entry targets this Sprint; the on-disk `builder-task.md` is a stale, already-closed Sprint 37 artifact per `NEXUS-REV-2026-07-14-014` and is out of scope for this review).
+
+### Builder Task Recommendation
+
+Generate a Documentation Task via `nexus-sprint` for F-001 (reword `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line to reflect Sprint 38's Approved with Findings disposition). No implementation change required; does not block Sprint 38's approval or Milestone 7 progression.
+
+---
+
 ## NEXUS-REV-2026-07-14-014 — Sprint 37 — Documentation Workflow Foundation (DOC-003 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 37 — Documentation Workflow Foundation

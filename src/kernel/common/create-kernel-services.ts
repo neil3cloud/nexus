@@ -5,6 +5,9 @@ import { InMemoryAdapterRegistry } from '../adapter/adapter-registry';
 import { ProtocolVersion } from '../adapter/protocol-version';
 import { InMemoryEvidenceRepository } from '../evidence/evidence.repository';
 import { EvidenceService } from '../evidence/evidence.service';
+import { createDefaultEngineeringRoleProfiles } from '../execution/default-engineering-role-profiles';
+import { InMemoryEngineeringRoleProfileRegistry } from '../execution/engineering-role-profile-registry';
+import { EngineeringRoleProfileService } from '../execution/engineering-role-profile.service';
 import { InMemoryExecutionStrategyRepository } from '../execution/execution-strategy.repository';
 import { ExecutionStrategyService } from '../execution/execution-strategy.service';
 import { ExecutionService } from '../execution/execution.service';
@@ -36,6 +39,9 @@ export function createKernelServices(
   const reviewRepository = new InMemoryReviewRepository();
   const knowledgeRepository = new InMemoryKnowledgeRepository();
   const roleRegistry = new InMemoryRoleRegistry();
+  const engineeringRoleProfileRegistry = new InMemoryEngineeringRoleProfileRegistry(
+    createDefaultEngineeringRoleProfiles(),
+  );
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
 
@@ -47,6 +53,7 @@ export function createKernelServices(
     new EvidenceService(evidenceRepository, eventBus),
     new ProjectionService(missionRepository, evidenceRepository),
     new RoleService(roleRegistry, roleAssignmentRepository),
+    new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     new ExecutionStrategyService(
       executionStrategyRepository,
       roleAssignmentRepository,

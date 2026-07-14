@@ -11,6 +11,7 @@ import type { KernelLogger } from '../../src/kernel/common/kernel-logger';
 import { KernelError } from '../../src/kernel/common/kernel-error';
 import { createKernelServices } from '../../src/kernel/common/create-kernel-services';
 import { EvidenceService } from '../../src/kernel/evidence/evidence.service';
+import { EngineeringRoleProfileService } from '../../src/kernel/execution/engineering-role-profile.service';
 import { ExecutionStrategyReferenceError } from '../../src/kernel/execution/execution-strategy.errors';
 import { ExecutionStrategyService } from '../../src/kernel/execution/execution-strategy.service';
 import { ExecutionService } from '../../src/kernel/execution/execution.service';
@@ -43,6 +44,7 @@ interface KernelHarness {
   readonly evidenceService: EvidenceService;
   readonly projectionService: ProjectionService;
   readonly roleService: RoleService;
+  readonly engineeringRoleProfileService: EngineeringRoleProfileService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
@@ -58,6 +60,7 @@ const expectedKernelServiceNames = [
   'EvidenceService',
   'ProjectionService',
   'RoleService',
+  'EngineeringRoleProfileService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
@@ -84,11 +87,24 @@ describe('RFC-0010 Kernel boundary certification', () => {
     const workflow = await completeBoundaryWorkflow(harness, 'success');
 
     const roles = await harness.roleService.enumerateRoles();
+    const profiles = await harness.engineeringRoleProfileService.enumerate();
+
     expect(roles.map((role) => role.id.toString())).toEqual([
       'builder',
       'documentation-reviewer',
       'reviewer',
     ]);
+    expect(profiles.map((profile) => profile.roleId.toString())).toEqual([
+      'builder',
+      'documentation-reviewer',
+      'reviewer',
+    ]);
+    expect((await harness.engineeringRoleProfileService.getById('builder')).toSnapshot()).toEqual({
+      roleId: 'builder',
+      workflowPresentationLabel: 'Builder Workflow',
+      completionPresentationLabel: 'Builder workflow',
+      includeAssignedRoleInPresentation: true,
+    });
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -248,6 +264,12 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'RoleService',
       (service): service is RoleService => service instanceof RoleService,
+    ),
+    engineeringRoleProfileService: requireService(
+      services,
+      'EngineeringRoleProfileService',
+      (service): service is EngineeringRoleProfileService =>
+        service instanceof EngineeringRoleProfileService,
     ),
     executionStrategyService: requireService(
       services,
