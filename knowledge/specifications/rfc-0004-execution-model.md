@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.2
+**Version:** 1.3
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -12,6 +12,7 @@
 - v1.0 — Original specification.
 - v1.1 — Adds Engineering Role Profile (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-014`). Engineering Role Profile is descriptive/presentational metadata only, one-to-one with Execution Role; Execution Role remains the sole authority for execution semantics, identity, and dispatch eligibility. No other section of this specification is modified.
 - v1.2 — Adds Engineering Session (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-017`). Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work and MAY contain zero or more Execution Sessions. Execution Session's existing definition, invariants, and immutability are unmodified by this amendment; it becomes one activity record capturable within an Engineering Session's timeline. No other section of this specification is modified.
+- v1.3 — Adds Workflow Chaining (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-020`). Workflow Chain is the Kernel-owned, immutable definition of an ordered engineering workflow (chain identity, ordered steps, topology); it owns no mutable runtime state. Engineering Session's existing Architectural Responsibilities are clarified, not expanded: it executes a Workflow Chain, owning the active Workflow Chain reference, current workflow position, workflow state, and workflow execution history as runtime progression through that Chain's immutable structure. Execution Session's existing definition, invariants, and immutability are unmodified. No other section of this specification is modified.
 
 ---
 
@@ -98,6 +99,7 @@ RFC-0004 exclusively owns:
 - Execution State
 - Execution Session
 - Engineering Session
+- Workflow Chaining
 
 Other specifications MAY reference these concepts.
 
@@ -281,9 +283,43 @@ Execution State SHALL remain observable.
 
 ---
 
+# Workflow Chaining
+
+A Workflow Chain is the Kernel-owned, immutable definition of an ordered engineering workflow: a named, ordered sequence of Role-scoped Workflow steps, each step referencing exactly one Execution Role.
+
+## Architectural Responsibilities
+
+Workflow Chain owns:
+
+- chain identity
+- ordered workflow steps, each referencing exactly one Execution Role
+- workflow topology (the ordering and structure of those steps)
+
+Workflow Chain SHALL remain immutable after creation. It SHALL NOT own mutable runtime state, current execution position, step history, or any other runtime progression concern — those belong to Engineering Session, which executes the Chain (see "Engineering Session" below).
+
+Workflow Chain SHALL NOT itself define: automatic advancement between steps, Assignment Policy evaluation, Review-Gated Progression, Multi-Agent Orchestration, Adapter dispatch, or Task lifecycle transition. Advancing execution through a Workflow Chain is a separate, future orchestration capability requiring its own Sprint Owner ratification; this amendment authorizes only the Chain's structure and identity.
+
+## Relationship to Engineering Session and Execution Session
+
+```text
+EngineeringSession
+        │
+        ▼
+WorkflowChain
+        │
+        ▼
+ExecutionSession(s)
+```
+
+- `WorkflowChain` defines the ordered sequence of engineering activities (template; immutable).
+- `EngineeringSession` coordinates runtime execution of that sequence (runtime progression: active Chain reference, current position, workflow state, workflow execution history).
+- `ExecutionSession` records each immutable execution attempt performed within the Engineering Session, exactly as defined below.
+
+---
+
 # Engineering Session
 
-An Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work.
+An Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work. An Engineering Session executes a Workflow Chain: it owns runtime progression through that Chain's immutable, ordered structure; it does not redefine, wrap, or duplicate the Chain's structural definition.
 
 An Engineering Session MAY contain zero or more Execution Sessions. Each Execution Session remains the authoritative, immutable record of one coordinated execution attempt occurring within that Engineering Session, exactly as defined below; Engineering Session establishes a containment relationship over Execution Sessions and does not redefine, wrap, or duplicate Execution Session's existing semantics.
 
@@ -292,12 +328,16 @@ An Engineering Session MAY contain zero or more Execution Sessions. Each Executi
 Engineering Session owns:
 
 - engineering runtime context
-- the active engineering workflow
+- the active Workflow Chain (a reference to the Workflow Chain being executed)
+- the current workflow position within that Workflow Chain
 - participating Engineering Roles
 - workflow state
+- workflow execution history
 - the session timeline
 - session diagnostics
 - collaboration metadata
+
+Workflow Chain owns only the immutable definition of the engineering workflow (chain identity, ordered steps, topology). Workflow Chain SHALL NOT own step history or current execution position; those remain Engineering Session's runtime responsibility.
 
 Execution Session owns:
 
@@ -308,7 +348,7 @@ Execution Session owns:
 - execution outcome
 - produced artifacts
 
-Execution semantics, dispatch eligibility, and execution policies remain owned by this specification's Execution, Execution Strategy, Execution Role, Assignment, Assignment Policy, and Execution State sections. Engineering Session SHALL NOT redefine or duplicate those responsibilities, and SHALL NOT itself define Workflow Chaining behavior, Assignment Policy, or Multi-agent Orchestration.
+Execution semantics, dispatch eligibility, and execution policies remain owned by this specification's Execution, Execution Strategy, Execution Role, Assignment, Assignment Policy, and Execution State sections. Engineering Session SHALL NOT redefine or duplicate Workflow Chain's structural definition or those execution responsibilities, and SHALL NOT itself define Assignment Policy or Multi-agent Orchestration.
 
 ---
 

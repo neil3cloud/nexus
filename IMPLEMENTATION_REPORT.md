@@ -1,5 +1,95 @@
 # Nexus Implementation Report
 
+## Sprint 41 — Workflow Chaining Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 41 Workflow Chaining Foundation vertical slice. This sprint introduces RFC-0004 v1.3's standalone `WorkflowChain` Kernel domain concept as the immutable definition of an ordered engineering workflow, wholly independent of `EngineeringSession` and `ExecutionSession`.
+
+Implemented scope:
+
+- Added immutable `WorkflowChainId`.
+- Added `WorkflowStep` as a value object containing exactly one Execution Role reference via `RoleId`.
+- Added `WorkflowChain` with `create`/`fromSnapshot`/`toSnapshot`/`equals`, immutable ordered `WorkflowStep` topology, immutable snapshots, deterministic equality, and dedicated definition diagnostics.
+- Added `WorkflowChain` snapshot/input structures for chain identity and ordered workflow steps.
+- Added `IWorkflowChainRepository` and `InMemoryWorkflowChainRepository` with create, lookup, and deterministic enumeration only.
+- Added `WorkflowChainService` as thin orchestration over constructor-injected repository contracts for create, lookup, and enumeration only.
+- Updated `createKernelServices()` to compose `InMemoryWorkflowChainRepository` and `WorkflowChainService`.
+- Updated Sprint 18 Kernel Boundary Certification only where it enumerates Kernel-composed services.
+- Added deterministic unit coverage for domain construction, validation, equality, immutability, no-mutation-method behavior, `WorkflowStep` boundary constraints, repository behavior, service diagnostics, and composition.
+
+Out of scope and not implemented:
+
+- `EngineeringSession` to `WorkflowChain` wiring, active-chain references, current workflow position, workflow state advancement, or workflow execution history.
+- Automatic workflow advancement, Assignment Policy evaluation, Review-Gated Progression, Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session coordination.
+- Adapter dispatch, Adapter invocation, execution eligibility determination, Task lifecycle transition, workflow coordination, or orchestration behavior.
+- Any `src/hosts` or `src/adapters` file change.
+- Any behavior change to `EngineeringSession`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, or `TaskId`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.3 (Workflow Chaining).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `WorkflowChain`.
+- `WorkflowChainId`.
+- `WorkflowStep`.
+- `IWorkflowChainRepository` / `InMemoryWorkflowChainRepository`.
+- `WorkflowChainService`.
+- Kernel composition of the workflow-chain repository and workflow-chain service.
+
+Deferred Concepts:
+
+- `EngineeringSession` to `WorkflowChain` wiring, active-chain reference, and current workflow position.
+- Automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing and concurrent session coordination.
+- Host or Adapter consumption of `WorkflowChain`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-021`, `NEXUS-RAT-2026-07-14-020`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0041-workflow-chaining-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Workflow topology is represented by the immutable order of `WorkflowStep` snapshots because RFC-0004 v1.3 defines topology as "the ordering and structure of those steps" and Sprint 41 authorizes no additional step fields.
+- `WorkflowChain` identity is the only chain-level identifying field implemented because Sprint 41 authorizes chain identity and ordered steps only; no separate display-name field is introduced.
+
+### Known Limitations
+
+- Chains are in-memory only; no durable persistence, recovery, checkpointing, or concurrent coordination is implemented.
+- `WorkflowChain` is inert Kernel state this sprint; no `EngineeringSession`, Host, Adapter, Execution Pipeline, Assignment Policy, or Task lifecycle consumer exists.
+- `WorkflowStep` validates only structural boundaries and `RoleId` identity shape; it does not validate role registry membership or dispatch eligibility.
+
+### Validation Summary
+
+- Targeted Sprint 41 validation passed: `npm exec vitest run test\kernel\execution\workflow-chain.test.ts test\kernel\execution\workflow-chain.repository.test.ts test\kernel\execution\workflow-chain.service.test.ts test\integration\kernel-boundary-certification.integration.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 41.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 40 — Execution Session Foundation
 
 ### Implemented Slice

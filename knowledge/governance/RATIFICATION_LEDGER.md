@@ -2958,3 +2958,179 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-020
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-020
+
+## Date
+
+2026-07-14
+
+## Subject
+
+RFC-0004 Amendment — Workflow Chaining. Authorizes the repository's third RFC amendment, introducing `Workflow Chaining` (aggregate: `WorkflowChain`) as a new RFC-0004-owned architectural concept: the Kernel-owned, immutable definition of an ordered engineering workflow, structurally distinct from `EngineeringSession`'s runtime execution of it. Resolves the `nexus-plan` governance-conflict report raised when the Sprint Owner directed prioritizing Workflow Chaining over Assignment Policy for Milestone 8's next Sprint: unlike Assignment Policy and Execution Session (both fully specified in RFC-0004 since v1.0), Workflow Chaining had no RFC-0004 section — every one of its prior repository-wide mentions was a negative reference in some other Sprint's or ratification's deferred-scope list. This ratification supplies that RFC extension.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` governance-conflict report (Sprint 41 planning request — Workflow Chaining prioritized over Assignment Policy — conflicted with the absence of any RFC definition for "Workflow Chaining"), resolved through a Sprint Owner decision to require and approve a minimal RFC-0004 amendment before Sprint 41 planning proceeds, incorporating four refinements to `nexus-plan`'s drafted amendment text (2026-07-14).
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.2 to Version 1.3, adding `Workflow Chaining` to RFC-0004's Domain Ownership list and introducing a new "Workflow Chaining" section (placed after "Execution State" and before "Engineering Session"), and clarifying (not expanding) `Engineering Session`'s existing Architectural Responsibilities to describe its relationship to `WorkflowChain`.
+
+The amendment is intentionally narrow and architectural-responsibility-scoped, per the Sprint Owner's four refinements below: `WorkflowChain` owns only the immutable template (chain identity, ordered steps, workflow topology); it owns no mutable runtime state. `EngineeringSession` owns all runtime progression (active `WorkflowChain` reference, current workflow position, workflow state, workflow execution history) — this was already implicit in RFC-0004 v1.2's "the active engineering workflow" and "workflow state" Architectural Responsibilities, now made precise rather than newly granted. `WorkflowChain` remains immutable after creation. `ExecutionSession`'s existing definition, invariants, and immutability (RFC-0004 v1.0) are entirely unmodified; it records execution attempts performed within an `EngineeringSession`'s execution of a `WorkflowChain`, exactly as it already recorded execution attempts within an `EngineeringSession` under v1.2.
+
+## Refinements Incorporated (Sprint Owner direction, verbatim intent)
+
+1. **`WorkflowChain` defines structure only.** `WorkflowChain` SHALL own only the immutable definition of an engineering workflow: chain identity, ordered workflow steps, workflow topology. It SHALL NOT own mutable runtime state.
+2. **Runtime progress belongs to `EngineeringSession`.** `EngineeringSession` SHALL own runtime progression, including: active `WorkflowChain`; current workflow position; workflow state; workflow execution history. `WorkflowChain` SHALL NOT own step history or current execution position.
+3. **Template vs. runtime responsibilities distinguished.** `WorkflowChain` defines the ordered engineering workflow and remains immutable after creation. `EngineeringSession` executes a `WorkflowChain` and records runtime progression through it.
+4. **Relationship to `ExecutionSession` clarified.** `EngineeringSession` → `WorkflowChain` → `ExecutionSession(s)`: `WorkflowChain` defines the ordered sequence of engineering activities; `EngineeringSession` coordinates runtime execution of that sequence; `ExecutionSession` records each immutable execution attempt performed within the Engineering Session. This diagram and its accompanying prose are incorporated into RFC-0004's new "Workflow Chaining" section as a non-normative "Relationship to Engineering Session and Execution Session" subsection.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Chain identity, ordered workflow steps, workflow topology (immutable template) | `WorkflowChain` |
+| Engineering runtime context, active `WorkflowChain` reference, current workflow position, workflow state, workflow execution history, participating Engineering Roles, session timeline, session diagnostics, collaboration metadata | `EngineeringSession` (unchanged aggregate; clarified responsibilities) |
+| One coordinated execution attempt: assigned Execution Role, assigned Adapter, execution timestamps, execution outcome, produced artifacts | `ExecutionSession` (RFC-0004 v1.0, entirely unmodified) |
+| Automatic advancement between `WorkflowChain` steps, Assignment Policy evaluation, Review-Gated Progression, Multi-Agent Orchestration, Adapter dispatch, Task lifecycle transition | Future, separately-ratified Milestone 8 Sprints |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.2 → 1.3; Amendment History entry; `Workflow Chaining` added to the Domain Ownership list; new "Workflow Chaining" section added after "Execution State" and before "Engineering Session"; `Engineering Session`'s Architectural Responsibilities section clarified to describe its relationship to `WorkflowChain`, with no change to `Execution Session`'s own section text.
+- Proceed to propose Sprint 41 — Workflow Chaining Foundation under this amendment.
+
+`nexus-plan` SHALL NOT:
+
+- Modify `Execution Session`'s own section text, any other RFC-0004 section, guarantee, or concept beyond the additive Domain Ownership list entry and the `Engineering Session` clarification described above.
+- Modify any other RFC, the Kernel Canon, or any prior Sprint's Implementation Record, `IMPLEMENTATION_REPORT.md` entry, or `REVIEW_HISTORY.md` entry.
+- Treat this ratification as authorizing automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination — each remains separately deferred.
+- Treat this ratification as a general precedent permitting future RFC modification by ratification alone; each future RFC amendment requires its own explicit Sprint Owner authorization following the same conflict-identification-and-review process (per `NEXUS-RAT-2026-07-14-014`'s existing restriction).
+
+## Scope Restrictions
+
+- This is a documentation/specification change only; it introduces exactly one new RFC-0004-owned concept (`Workflow Chaining`), clarifies `Engineering Session`'s existing Architectural Responsibilities without expanding them, and modifies no other RFC-0004 guarantee, section, or concept.
+- No Kernel Canon change.
+- No source code or test change is authorized by this ratification alone; Sprint 41's own Sprint Implementation Record separately governs implementation scope.
+- `WorkflowChain` SHALL remain immutable in all future implementation; any future ratification or Sprint Implementation Record purporting to grant it mutable runtime state, step history, or current execution position would conflict with this ratification and RFC-0004 as amended.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation; Sprint 40 — Execution Session Foundation (the Milestone 8 Sprints whose `EngineeringSession`/`ExecutionSession` ownership boundaries this amendment clarifies and extends without modifying).
+- Sprint 41 — Workflow Chaining Foundation (planned; consumes this amendment).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 41 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies an amendment to RFC-0004 — Execution Model, incrementing it to Version 1.3 and introducing `Workflow Chaining` (aggregate: `WorkflowChain`) as a new RFC-0004-owned architectural concept: the Kernel-owned, immutable definition of an ordered engineering workflow — chain identity, ordered workflow steps (each referencing exactly one Execution Role), and workflow topology — owning no mutable runtime state (Refinement 1). `EngineeringSession`'s existing Architectural Responsibilities are clarified, not expanded, to state precisely that it owns all runtime progression through a `WorkflowChain`: the active `WorkflowChain` reference, current workflow position, workflow state, and workflow execution history; `WorkflowChain` SHALL NOT own step history or current execution position (Refinement 2). `WorkflowChain` defines the ordered engineering workflow and remains immutable after creation; `EngineeringSession` executes a `WorkflowChain` and records runtime progression through it (Refinement 3). The relationship `EngineeringSession` → `WorkflowChain` → `ExecutionSession(s)` is incorporated into RFC-0004 as a non-normative clarifying diagram: `WorkflowChain` defines the ordered sequence of engineering activities, `EngineeringSession` coordinates runtime execution of that sequence, and `ExecutionSession` records each immutable execution attempt performed within the Engineering Session (Refinement 4). `ExecutionSession`'s own RFC-0004 v1.0 section text is entirely unmodified. This amendment authorizes only the Workflow Chain's structure and identity; it authorizes no automatic advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination, all of which remain separately deferred under Milestone 8 — Engineering Orchestration. The Sprint Owner authorizes `nexus-plan` to apply this amendment's text directly to `rfc-0004-execution-model.md` as a one-time, explicitly authorized exception to `nexus-plan`'s ordinary prohibition on RFC modification, and to proceed to propose Sprint 41 — Workflow Chaining Foundation once the amendment is applied.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-14-021
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-021
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 41 Scope Ratification — Workflow Chaining Foundation. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-14-020` amended RFC-0004 to v1.3, introducing `WorkflowChain` as a standalone, unreferenced Kernel concept — mirroring the Sprint 39 → 40 precedent of introducing one new aggregate per Sprint without modifying previously certified aggregates.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Sprint Proposal (Sprint 41 — Workflow Chaining Foundation, recommending `WorkflowChain` be introduced as a standalone concept this Sprint, deferring `EngineeringSession` wiring to a future Sprint). Approved by the Sprint Owner with two refinements strengthening the immutability invariant and `WorkflowStep` boundary precision (2026-07-14).
+
+## Governance Decision
+
+**Sprint 41 — Workflow Chaining Foundation is authorized as Milestone 8's next Sprint.** Sprint 41 implements RFC-0004 v1.3's `WorkflowChain` concept as a standalone, immutable Kernel domain concept, wholly independent of `EngineeringSession` and `ExecutionSession`.
+
+Sprint 41 SHALL introduce only:
+
+- `WorkflowChain`
+- `WorkflowChainId`
+- immutable ordered workflow steps
+- `IWorkflowChainRepository`
+- `InMemoryWorkflowChainRepository`
+- `WorkflowChainService`
+- Kernel composition updates
+- unit tests
+
+No modifications to `EngineeringSession` or `ExecutionSession` are authorized.
+
+### Sprint Owner Refinements (binding)
+
+**Refinement 1 — Immutability as an Architectural Invariant.** `WorkflowChain` SHALL be an immutable Kernel definition. Once created, its topology and ordered workflow steps SHALL NOT be modified. Changes to a workflow definition SHALL require creation of a new `WorkflowChain` rather than mutation of an existing instance. This is elevated from an implementation characteristic to a normative architectural invariant, aligning with the immutability principles already established for `ExecutionSession`.
+
+**Refinement 2 — `WorkflowStep` Boundaries.** Each `WorkflowStep` SHALL reference exactly one `ExecutionRole` through the existing `RoleId`. A `WorkflowStep` SHALL NOT directly reference `EngineeringSession`, `ExecutionSession`, Adapter, Assignment Policy, or `EngineeringRoleProfile`. This ensures `WorkflowChain` remains a structural workflow definition rather than evolving into an orchestration or runtime model.
+
+## Explicitly Deferred (this Sprint and this ratification)
+
+- `EngineeringSession` → `WorkflowChain` wiring (active-chain reference, current workflow position)
+- Automatic workflow advancement
+- Assignment Policy
+- Review-Gated Progression
+- Multi-Agent Engineering Orchestration
+- Session recovery and checkpointing
+- Concurrent session coordination
+- Host or Adapter integration
+
+Each remains a separate future Milestone 8 Sprint requiring its own scope ratification.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Implement `WorkflowChain` as an immutable Kernel domain concept with `WorkflowChainId` and an ordered list of `WorkflowStep`s, exactly per RFC-0004 v1.3's "Workflow Chaining" section — chain identity, ordered workflow steps, workflow topology only. No mutation method of any kind after construction (Refinement 1).
+- Implement `WorkflowStep` as a value object referencing exactly one Execution Role via the existing `RoleId`. `WorkflowStep` SHALL NOT reference `EngineeringSession`, `ExecutionSession`, Adapter, Assignment Policy, or `EngineeringRoleProfile` in any form, including as an unused/optional field (Refinement 2).
+- Implement `IWorkflowChainRepository` and `InMemoryWorkflowChainRepository`, mirroring existing Kernel repository patterns: create, lookup, enumerate only.
+- Implement a thin `WorkflowChainService` for creation, lookup, and enumeration through constructor-injected repository contracts only — no dispatch, no advancement, no Assignment Policy evaluation, no Engineering Session wiring.
+- Update `createKernelServices` composition to construct and register the `WorkflowChain` repository and `WorkflowChainService`.
+- Add unit test coverage for the aggregate (construction, immutability, no mutation method, equality), `WorkflowStep` boundary constraints, the repository, and the service.
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`, `EngineeringSessionId`, `EngineeringSessionStatus`, `EngineeringSessionService`, `ExecutionSession`, `ExecutionSessionId`, `ExecutionSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`, or any existing Kernel Execution/Mission-domain file's behavior, beyond the one authorized `createKernelServices` composition touch point.
+- Modify any `src/hosts` or `src/adapters` file.
+- Introduce any `EngineeringSession` → `WorkflowChain` reference, current-position tracking, automatic advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination in any form, including as an unused stub.
+
+## Scope Restrictions
+
+- No `src/hosts` or `src/adapters` change.
+- No new execution, dispatch, assignment, orchestration, or runtime-progression concept beyond `WorkflowChain`'s own immutable structure.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass unmodified unless they enumerate Kernel-composed services, mirroring the Sprint 37/38/39/40 precedent for such updates.
+- This ratification does not modify RFC-0004 further (already amended to v1.3 by `NEXUS-RAT-2026-07-14-020`), any other RFC, or the Kernel Canon.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation; Sprint 40 — Execution Session Foundation (existing Milestone 8 patterns Sprint 41 mirrors — one new aggregate per Sprint — without modifying either).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 41 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 41 — Workflow Chaining Foundation as Milestone 8's next Sprint, implementing RFC-0004 v1.3's `WorkflowChain` as a standalone, immutable Kernel domain concept: `WorkflowChain`, `WorkflowChainId`, immutable ordered `WorkflowStep`s, a repository contract and in-memory implementation, and a thin `WorkflowChainService` (create/lookup/enumerate only). `WorkflowChain` SHALL be an immutable Kernel definition; once created, its topology and ordered workflow steps SHALL NOT be modified, and changes to a workflow definition SHALL require creating a new `WorkflowChain` rather than mutating an existing instance (Refinement 1). Each `WorkflowStep` SHALL reference exactly one `ExecutionRole` through the existing `RoleId` and SHALL NOT directly reference `EngineeringSession`, `ExecutionSession`, Adapter, Assignment Policy, or `EngineeringRoleProfile` (Refinement 2). No modification to `EngineeringSession` or `ExecutionSession` is authorized; `EngineeringSession` → `WorkflowChain` wiring, current workflow position tracking, automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination, and Host/Adapter integration all remain explicitly deferred to future, separately-ratified Milestone 8 Sprints. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 41, and to generate Sprint 41's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

@@ -18,6 +18,7 @@ import { ExecutionStrategyReferenceError } from '../../src/kernel/execution/exec
 import { ExecutionStrategyService } from '../../src/kernel/execution/execution-strategy.service';
 import { ExecutionService } from '../../src/kernel/execution/execution.service';
 import { RoleService } from '../../src/kernel/execution/role.service';
+import { WorkflowChainService } from '../../src/kernel/execution/workflow-chain.service';
 import { Kernel } from '../../src/kernel/kernel';
 import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../src/kernel/mission/mission-execution.service';
@@ -49,6 +50,7 @@ interface KernelHarness {
   readonly engineeringRoleProfileService: EngineeringRoleProfileService;
   readonly engineeringSessionService: EngineeringSessionService;
   readonly executionSessionService: ExecutionSessionService;
+  readonly workflowChainService: WorkflowChainService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
@@ -67,6 +69,7 @@ const expectedKernelServiceNames = [
   'EngineeringRoleProfileService',
   'EngineeringSessionService',
   'ExecutionSessionService',
+  'WorkflowChainService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
@@ -113,6 +116,7 @@ describe('RFC-0010 Kernel boundary certification', () => {
     });
     expect(await harness.engineeringSessionService.enumerateEngineeringSessions()).toEqual([]);
     expect(await harness.executionSessionService.enumerateExecutionSessions()).toEqual([]);
+    expect(await harness.workflowChainService.enumerateWorkflowChains()).toEqual([]);
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -288,6 +292,11 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'ExecutionSessionService',
       (service): service is ExecutionSessionService => service instanceof ExecutionSessionService,
+    ),
+    workflowChainService: requireService(
+      services,
+      'WorkflowChainService',
+      (service): service is WorkflowChainService => service instanceof WorkflowChainService,
     ),
     executionStrategyService: requireService(
       services,

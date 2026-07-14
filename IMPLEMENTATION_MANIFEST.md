@@ -1637,9 +1637,9 @@ Notes:
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Implemented — Pending Reviewer Validation — Workflow Chaining Foundation)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession`. Current remaining candidate scope, per `NEXUS-RAT-2026-07-14-018`'s Explicitly Deferred list: Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination — plus RFC-0004's still-unimplemented `Execution Session` concept, now Sprint 40's target.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, now Sprint 41's target as a standalone `WorkflowChain` concept. Current remaining candidate scope after Sprint 41: Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, `EngineeringSession` → `WorkflowChain` wiring, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) introducing `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, and concurrent session coordination remain explicitly deferred pending their own future scope ratifications.
 
@@ -1716,6 +1716,47 @@ Notes:
 - Builder implementation completed the authorized Execution Session Foundation vertical slice.
 - `ExecutionSession`, `ExecutionSessionId`, `IExecutionSessionRepository`/`InMemoryExecutionSessionRepository`, and `ExecutionSessionService` are implemented as Kernel-only execution-domain code and composed through `createKernelServices()`.
 - Adapter dispatch, execution-eligibility determination, Assignment Policy evaluation, Task lifecycle transition, workflow coordination, Workflow Chaining, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, and Host/Adapter consumption remain deferred pending future ratification.
+- Both findings (F-001, F-002) remediated and independently verified Completed (`NEXUS-REV-2026-07-14-019`). Sprint 40 is fully closed with zero open findings.
+
+---
+
+## Sprint 41 — Workflow Chaining Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model v1.3 (Primary; new "Workflow Chaining" section).
+- Referenced: RFC-0010 — Kernel Boundaries.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-021` — governs this Sprint's entire scope: Authorized Builder Scope, two Sprint Owner Refinements, Explicitly Deferred list, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-020` — the RFC-0004 v1.3 amendment (Workflow Chaining) this Sprint implements.
+
+Authorized Concepts:
+
+- `WorkflowChain` immutable Kernel domain concept with `WorkflowChainId` and an ordered list of `WorkflowStep`s, exactly per RFC-0004 v1.3's "Workflow Chaining" section. No mutation method after construction (Refinement 1).
+- `WorkflowStep` value object referencing exactly one Execution Role via the existing `RoleId`; no reference to `EngineeringSession`, `ExecutionSession`, Adapter, Assignment Policy, or `EngineeringRoleProfile` (Refinement 2).
+- `WorkflowChain` repository contract and in-memory implementation — create/lookup/enumerate only.
+- Thin `WorkflowChainService` (create/lookup/enumerate only) — no dispatch, no advancement, no Assignment Policy, no Engineering Session wiring.
+- `createKernelServices` composition updated to construct and register the `WorkflowChain` repository and `WorkflowChainService`.
+
+Deferred Concepts:
+
+- `EngineeringSession` → `WorkflowChain` wiring (active-chain reference, current workflow position).
+- Automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing, concurrent session coordination.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0041-workflow-chaining-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0004, any other RFC, or the Kernel Canon. `EngineeringSession` and `ExecutionSession` are not modified by this Sprint.
+- Builder implementation completed the authorized Workflow Chaining Foundation vertical slice.
+- `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`/`InMemoryWorkflowChainRepository`, and `WorkflowChainService` are implemented as Kernel-only execution-domain code and composed through `createKernelServices()`.
+- `EngineeringSession` to `WorkflowChain` wiring, automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination, Host integration, and Adapter integration remain deferred pending future ratification.
+- Reviewer validation pending.
 
 ---
 

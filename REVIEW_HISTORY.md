@@ -2,6 +2,68 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-020 — Sprint 41 — Workflow Chaining Foundation
+
+- **Reviewed Sprint:** Sprint 41 — Workflow Chaining Foundation
+- **Reviewed Vertical Slice:** `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`/`InMemoryWorkflowChainRepository`, `WorkflowChainService`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-14-021`'s Authorized Builder Scope and two Sprint Owner Refinements.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (Primary; new "Workflow Chaining" section). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 41 — Workflow Chaining Foundation conforms to RFC-0004 v1.3 and `NEXUS-RAT-2026-07-14-021`'s Authorized Builder Scope, including both Sprint Owner Refinements. `WorkflowChain` is implemented as a standalone, immutable Kernel domain concept — `WorkflowChainId`, an ordered, frozen list of `WorkflowStep`s, `create`/`fromSnapshot`/`toSnapshot`/`equals` — with no mutation method of any kind, confirmed by explicit `'advance' in workflowChain` / `'addStep' in workflowChain` / `'close' in workflowChain` / `'save' in workflowChain` assertions all evaluating `false` (Refinement 1). `WorkflowStep` carries exactly one `RoleId` field; `EngineeringSession`, `ExecutionSession`, Adapter, Assignment Policy, and `EngineeringRoleProfile` references are rejected both at the TypeScript type level (`WorkflowStepInput` declares only `roleId`) and at runtime by `assertWorkflowStepBoundary`, independently exercised by a dedicated test that bypasses the type system via `@ts-expect-error` to prove the runtime guard is genuinely reachable, not dead code (Refinement 2). `EngineeringSession`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`, and the Kernel Canon are all confirmed unmodified; the only existing-file changes are the one authorized `create-kernel-services.ts` composition touch point and the Sprint 37/38/39/40-precedented extension of the Kernel Boundary Certification test. No `src/hosts` or `src/adapters` file was touched. RFC-0004's v1.3 amendment (applied during planning, ratified by `NEXUS-RAT-2026-07-14-020`) was not further modified by this Sprint. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes **71 files / 326 tests** on two consecutive runs, with no flakiness observed. Overall disposition: **PASS**.
+
+No findings were recorded.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 326 tests (reproduced clean on two consecutive full-suite runs) |
+
+### Deferred Concept Validation
+
+All Sprint 41 Deferred Concepts remain unimplemented: `EngineeringSession` → `WorkflowChain` wiring (active-chain reference, current workflow position), automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and concurrent session coordination. No deferred concept was silently introduced. `EngineeringSession` and `ExecutionSession` are confirmed byte-for-byte unmodified; RFC-0004's "Execution Session" section text remains unmodified since v1.0.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `WorkflowChain` owns only chain identity, ordered `WorkflowStep`s, and workflow topology (the immutable template); it does not own or reference runtime state, current position, or step history. `EngineeringSession`'s runtime-progression responsibilities (unchanged this Sprint) remain untouched. Compliant with RFC-0004 v1.3 and Refinement 1.
+- **`WorkflowStep` boundaries:** Each step carries exactly one `RoleId` reference and nothing else, enforced at both the type level and a genuinely-reachable runtime guard. Compliant with Refinement 2.
+- **Immutability:** `WorkflowChain` and `WorkflowStep` are frozen per instance and per snapshot; no mutation method exists on either class (explicitly asserted in tests); array/object snapshots are defensively copied and frozen, confirmed to throw `TypeError` on attempted external mutation. Compliant with Refinement 1.
+- **Service orchestration:** `WorkflowChainService` is thin — create/lookup/enumerate only, delegating all validation and boundary enforcement to `WorkflowChain`/`WorkflowStep` and the repository. Compliant with the established Kernel service pattern.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution/Mission-domain file modified beyond the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Dead code:** All exported types and classes are referenced and used; no unused exports were found (a repository-wide export/usage check found none), avoiding the Sprint 40 (`NEXUS-REV-2026-07-14-018-F-001`) precedent.
+- **Tests:** 3 new files covering domain construction, validation, equality, immutability, absence of mutation methods, `WorkflowStep` boundary constraints (positive and negative cases via `@ts-expect-error`-bypassed runtime checks), repository behavior, and service behavior; Kernel Boundary Certification test extended consistently with the Sprint 37/38/39/40 precedent. Full suite 326/326 passing on repeated runs.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded. Sprint 41 satisfies its approval criteria: implementation conforms to RFC-0004 v1.3 and `NEXUS-RAT-2026-07-14-021`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 41 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0041-workflow-chaining-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 41 marked **Approved**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (`EngineeringSession` → `WorkflowChain` wiring, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 41: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
 ## NEXUS-REV-2026-07-14-019 — Sprint 40 — Execution Session Foundation (TASK-001 / DOC-005 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 40 — Execution Session Foundation

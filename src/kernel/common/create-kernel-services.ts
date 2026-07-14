@@ -18,6 +18,8 @@ import { ExecutionService } from '../execution/execution.service';
 import { InMemoryRoleAssignmentRepository } from '../execution/role-assignment.repository';
 import { InMemoryRoleRegistry } from '../execution/role-registry';
 import { RoleService } from '../execution/role.service';
+import { InMemoryWorkflowChainRepository } from '../execution/workflow-chain.repository';
+import { WorkflowChainService } from '../execution/workflow-chain.service';
 import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
@@ -49,6 +51,7 @@ export function createKernelServices(
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
+  const workflowChainRepository = new InMemoryWorkflowChainRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
 
   return [
@@ -62,6 +65,7 @@ export function createKernelServices(
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     new EngineeringSessionService(engineeringSessionRepository),
     new ExecutionSessionService(executionSessionRepository),
+    new WorkflowChainService(workflowChainRepository),
     new ExecutionStrategyService(
       executionStrategyRepository,
       roleAssignmentRepository,
