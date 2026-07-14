@@ -3585,3 +3585,171 @@ Each remains a separate future Milestone 8 Sprint requiring its own scope ratifi
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-001
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Review-Gated Advancement gating semantics — RFC-0004 v1.4 → v1.5 amendment defining the Blocking/Non-Blocking Review Outcome classification against Advancement Eligibility.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Governance Report presented after Sprint 45's approval, resolving the gating-semantics ambiguity RFC-0004 v1.4 (`NEXUS-RAT-2026-07-14-025`) explicitly left open for Review-Gated Advancement.
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.4 to Version 1.5, defining Review-Gated Advancement's gating semantics against RFC-0006's `ReviewOutcome`.
+
+A workflow position gated by Review-Gated Advancement is eligible to advance only when the governing Review reaches a **Non-Blocking Review Outcome**:
+
+| Classification | ReviewOutcome values | Effect on Advancement Eligibility |
+| --- | --- | --- |
+| Non-Blocking Review Outcome | Accepted, Accepted With Observations | Eligible — Advancement Eligibility MAY be satisfied. |
+| Blocking Review Outcome | Action Required, Rejected | Not eligible — Advancement Eligibility SHALL NOT be satisfied; the attempt SHALL produce an Advancement Failure. |
+
+Rationale: a workflow position should advance only once the implementation has been independently certified, whether unconditionally (Accepted) or with only non-blocking observations (Accepted With Observations). Action Required and Rejected indicate recovery or reimplementation is still required, and advancing under either would allow uncertified work to progress, undermining the purpose of a review gate.
+
+This classification is owned by RFC-0004 solely for Review-Gated Advancement's Advancement Eligibility. It does not modify RFC-0006's `ReviewOutcome` values, semantics, or lifecycle, and RFC-0006 is otherwise unmodified.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| `ReviewOutcome` identity, values, and lifecycle | RFC-0006 (unmodified) |
+| Blocking/Non-Blocking Review Outcome classification (for Advancement Eligibility purposes only) | RFC-0004 "Workflow Advancement" section (this amendment) |
+| Review-Gated Advancement implementation | Future, separately-ratified Sprint (not authorized by this ratification) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge\specifications\rfc-0004-execution-model.md`: Version 1.4 → 1.5; Amendment History entry; Review-Gated Advancement bullet and Blocking/Non-Blocking Review Outcome classification added to the "Workflow Advancement" section.
+- Proceed to propose a future Sprint scope ratification authorizing Review-Gated Advancement implementation, consuming this classification.
+
+`nexus-plan` SHALL NOT:
+
+- Modify RFC-0006, `Engineering Session`, `Workflow Chain`, Manual Advancement, or Automatic/Event-Driven Advancement's own section text or semantics.
+- Modify any other RFC, the Kernel Canon, or any prior Sprint's Implementation Record, `IMPLEMENTATION_REPORT.md` entry, or `REVIEW_HISTORY.md` entry.
+- Treat this ratification as authorizing implementation of Review-Gated Advancement; implementation remains separately deferred pending its own Sprint scope ratification.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only.
+- No Kernel Canon change. No RFC-0006 change.
+- No source code or test change is authorized by this ratification alone.
+
+## Related Sprint(s)
+
+- Sprint 45 — Automatic/Event-Driven Workflow Advancement (approved; unmodified and unaffected by this amendment).
+- Future Review-Gated Advancement implementation Sprint (not yet proposed; will consume this classification).
+
+## Related Review(s)
+
+- None.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies that Review-Gated Advancement SHALL use a non-blocking review outcome model: a workflow position is eligible to advance only when the governing Review's outcome is Accepted or Accepted With Observations (Non-Blocking Review Outcome); Action Required and Rejected (Blocking Review Outcome) SHALL NOT permit advancement and SHALL produce an Advancement Failure. This preserves Review-Gated Advancement as a certification gate: Accepted With Observations indicates independent certification with only non-blocking remaining observations, addressable through documentation or follow-up work without preventing advancement, while Action Required and Rejected indicate recovery or reimplementation is still required. RFC-0004 SHALL be amended to Version 1.5 to define this Blocking/Non-Blocking Review Outcome classification, scoped solely to Review-Gated Advancement's Advancement Eligibility; RFC-0006's `ReviewOutcome` values, semantics, and lifecycle are unmodified. This ratification authorizes the RFC-0004 clarification and its supporting documentation only; no implementation behavior change is authorized beyond this governance clarification, and Review-Gated Advancement implementation remains subject to its own future Sprint Owner scope ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-002
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 46 Scope Ratification — Review-Gated Workflow Advancement. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-15-001` amended RFC-0004 to v1.5, authorizing implementation of the Review-Gated Advancement Strategy, incorporating the Sprint Owner's objective refinement and architectural-responsibility clarification.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved with refinements by the Sprint Owner.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 46 — Review-Gated Workflow Advancement as Milestone 8's next Sprint, implementing RFC-0004 v1.5's Review-Gated Advancement Strategy only, subject to the following binding refinements:
+
+**Objective (binding, supersedes the `nexus-plan` proposal draft):** Implement RFC-0004 v1.5's Review-Gated Advancement Strategy by introducing an `EngineeringSession` advancement operation that consumes an already-finalized `ReviewOutcome`, determines advancement eligibility using the ratified Blocking/Non-Blocking classification (`NEXUS-RAT-2026-07-15-001`), and advances the current workflow position only when the supplied `ReviewOutcome` is classified as Non-Blocking. The Sprint SHALL NOT evaluate, calculate, reinterpret, or modify `ReviewOutcome`; `ReviewOutcome` remains exclusively owned by RFC-0006; Sprint 46 only consumes the final `ReviewOutcome` as immutable input.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| Review lifecycle, Review evaluation, `ReviewOutcome` determination | RFC-0006 (unmodified) |
+| Advancement eligibility, Blocking/Non-Blocking classification, workflow position advancement | RFC-0004 (this Sprint, consuming `NEXUS-RAT-2026-07-15-001`) |
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| `ReviewOutcome` identity, values, lifecycle, determination | RFC-0006 / `ReviewService` (unmodified; read-only lookup only) |
+| Blocking/Non-Blocking Review Outcome classification | RFC-0004 v1.5 "Workflow Advancement" section (`NEXUS-RAT-2026-07-15-001`, unmodified by this ratification) |
+| Review-Gated Advancement operation (new `EngineeringSession` operation, `EngineeringSessionService` orchestration) | This Sprint |
+| Sprint 43 Advancement Eligibility/Result/Failure semantics | `EngineeringSession` (Sprint 43, reused unchanged, extended only with the additional Review-Gated eligibility check) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Activate Sprint 46 in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`.
+- Generate Sprint 46's Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0046-review-gated-workflow-advancement.md`) as the Builder's authoritative implementation contract, incorporating this ratification's binding Objective and Architectural Responsibilities verbatim.
+
+The Builder MAY:
+
+- Introduce the `EngineeringSession` Review-Gated advancement operation, accepting an already-finalized `ReviewOutcome` (or a reference resolved to one via existing, unmodified `ReviewService` lookup) as immutable input.
+- Classify the supplied `ReviewOutcome` using the ratified Blocking/Non-Blocking semantics (`NEXUS-RAT-2026-07-15-001`).
+- Reuse Sprint 43's existing Advancement Eligibility, Advancement Result, and Advancement Failure semantics unchanged, adding only the Review-Gated eligibility check.
+- Add a thin `EngineeringSessionService` orchestration operation, mirroring Sprint 45's pattern.
+
+The Builder SHALL NOT:
+
+- Modify Review lifecycle semantics, `ReviewOutcome` values, or any `ReviewService` write operation.
+- Persist or mutate Review state from within `EngineeringSession`/`EngineeringSessionService`.
+- Introduce Event Bus triggers, orchestration, or any automatic Review-completion-driven wiring.
+- Modify `AssignmentPolicy`, `ExecutionSession`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, or Sprint 43's/Sprint 45's existing `advanceWorkflow()`/`advanceWorkflowOnTrigger()`/`isWorkflowComplete()` methods.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- `ReviewOutcome` SHALL be treated as immutable input; Sprint 46 SHALL NOT modify or persist Review state.
+- Advancement SHALL preserve Sprint 43 Advancement Eligibility, Result, and Failure semantics unchanged, adding only the Review-Gated eligibility check.
+- Existing approved advancement behavior (Sprint 43 Manual Advancement, Sprint 45 Automatic/Event-Driven Advancement) SHALL remain byte-for-byte identical for all non-review-gated scenarios.
+- No Kernel Canon change; no RFC-0004 or RFC-0006 change beyond what `NEXUS-RAT-2026-07-15-001` already authorized.
+
+## Related Sprint(s)
+
+- Sprint 43 — Engineering Session Manual Workflow Advancement (Advancement Eligibility/Result/Failure logic reused unchanged).
+- Sprint 45 — Automatic/Event-Driven Workflow Advancement (sibling Advancement Strategy; unmodified and unaffected).
+- Sprint 9 — Review Foundation (`ReviewOutcome` source; unmodified, read-only consumption only).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 46 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 46 — Review-Gated Workflow Advancement as Milestone 8's next Sprint, implementing RFC-0004 v1.5's Review-Gated Advancement Strategy only. The Sprint's objective is refined to: implement an `EngineeringSession` advancement operation that consumes an already-finalized `ReviewOutcome`, determines advancement eligibility using the ratified Blocking/Non-Blocking classification, and advances the current workflow position only when the supplied `ReviewOutcome` is classified as Non-Blocking. The Sprint SHALL NOT evaluate, calculate, reinterpret, or modify `ReviewOutcome`; `ReviewOutcome` remains exclusively owned by RFC-0006 and is consumed only as immutable input. RFC-0006 owns Review lifecycle, Review evaluation, and `ReviewOutcome` determination; RFC-0004 owns advancement eligibility, the Blocking/Non-Blocking classification, and workflow position advancement — this separation SHALL be preserved. Acceptance criteria additionally require: `ReviewOutcome` treated as immutable input; no Review state modified or persisted by this Sprint; Sprint 43's Advancement Eligibility, Result, and Failure semantics preserved unchanged, extended only by the Review-Gated eligibility check; existing approved advancement behavior remains byte-for-byte identical for all non-review-gated scenarios. The Sprint SHALL NOT modify Review lifecycle semantics, `ReviewOutcome` values, introduce Event Bus triggers, introduce orchestration, or modify `AssignmentPolicy`, `ExecutionSession`, `Host`, or `Adapter` behavior. With these refinements incorporated into the Sprint Implementation Record, Sprint 46 is authorized and may be activated.
+
+## Current Status
+
+Active
+
+---

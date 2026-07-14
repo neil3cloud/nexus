@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 46 — Review-Gated Workflow Advancement
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 46 Review-Gated Workflow Advancement vertical slice. This sprint introduces RFC-0004 v1.5's synchronous Review-Gated Advancement Strategy entry point without introducing Review lifecycle changes, Event Bus subscription, scheduling, background processing, or cross-domain review-state persistence.
+
+Implemented scope:
+
+- Added `EngineeringSession.advanceWorkflowAfterReview()` as the Review-Gated Advancement aggregate operation.
+- Consumed `ReviewOutcome` as immutable, already-finalized input from RFC-0006; no Review evaluation, calculation, modification, persistence, or lifecycle behavior was introduced.
+- Classified the supplied `ReviewOutcome` using RFC-0004 v1.5's Blocking/Non-Blocking semantics: Accepted and Accepted With Observations are Non-Blocking; Action Required and Rejected are Blocking.
+- Reused Sprint 43's existing `EngineeringSession.advanceWorkflow()` path for bound-chain validation, current-position validation, terminal-position rejection, advancement result, and no-state-change failure behavior.
+- Added `EngineeringSessionService.advanceWorkflowAfterReview()` as repository lookup, read-only `WorkflowChain` lookup, ReviewOutcome value construction, aggregate delegation, persistence, and snapshot return only.
+- Added deterministic tests for Non-Blocking advancement, Blocking rejection, existing ineligibility rejection, equivalent-session/equivalent-outcome determinism, service persistence, and Kernel composition continuity.
+
+Out of scope and not implemented:
+
+- Event Bus-driven or automatic Review-completion-triggered advancement.
+- Scheduling, background processing, polling, or asynchronous workflow advancement.
+- Any `ReviewService` write operation, Review lifecycle change, Review state persistence, or Review outcome calculation.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing or concurrent session/workflow coordination.
+- Assignment Policy, ExecutionSession, Adapter dispatch, Host, or Adapter wiring.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.5 (`Workflow Advancement`, Review-Gated Advancement Strategy and Blocking/Non-Blocking Review Outcome classification).
+
+Referenced RFCs:
+
+- RFC-0006 — Engineering Assessment Model (`ReviewOutcome` consumed as immutable input only).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `EngineeringSession.advanceWorkflowAfterReview()`.
+- `EngineeringSessionService.advanceWorkflowAfterReview()`.
+- Review-Gated Advancement eligibility check requiring a Non-Blocking Review Outcome.
+- Blocking Review Outcome rejection as an Advancement Failure preserving the current workflow position.
+
+Deferred Concepts:
+
+- Event Bus-driven or Review-completion-triggered advancement.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing and concurrent session/workflow coordination.
+- Review lifecycle modification or Review state persistence from `EngineeringSession` / `EngineeringSessionService`.
+- Host or Adapter consumption of Review-Gated Advancement.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-15-001`, `NEXUS-RAT-2026-07-15-002`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0046-review-gated-workflow-advancement.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The call site supplies an already-finalized `ReviewOutcome`; this sprint does not resolve a Review reference through `ReviewService` because the authorized slice allows direct outcome input and forbids Review writes.
+- Existing Advancement Failure semantics are represented by the existing `InvalidEngineeringSessionDefinitionError`, consistent with Sprint 43 and Sprint 45 behavior.
+
+### Known Limitations
+
+- Review-Gated Advancement is synchronous and caller-invoked at the service boundary for this Sprint; no automatic, scheduled, event-subscribed, or Review-completion-triggered invocation exists.
+- Manual Advancement, Automatic/Event-Driven Advancement, and Review-Gated Advancement remain separate entry points onto shared Advancement Eligibility/Result/Failure behavior.
+- Sessions remain in-memory only; no durable persistence is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 46 validation passed: `npm exec vitest run test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- TypeScript compile passed: `npm run compile -- --pretty false`.
+- ESLint passed: `npm run lint -- --quiet`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (75 files / 362 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 46.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 45 — Automatic/Event-Driven Workflow Advancement
 
 ### Implemented Slice

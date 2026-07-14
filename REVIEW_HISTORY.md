@@ -2,6 +2,85 @@
 
 ---
 
+## NEXUS-REV-2026-07-15-001 — Sprint 46 — Review-Gated Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 46 — Review-Gated Workflow Advancement
+- **Reviewed Vertical Slice:** RFC-0004 v1.5 Review-Gated Advancement Strategy (`EngineeringSession.advanceWorkflowAfterReview()`, `EngineeringSessionService.advanceWorkflowAfterReview()`)
+- **RFC Coverage:** RFC-0004 — Execution Model v1.5 ("Workflow Advancement" § Review-Gated Advancement, Primary). Referenced: RFC-0006 — Engineering Assessment Model (`ReviewOutcome` consumed read-only); RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 46 implements RFC-0004 v1.5's Review-Gated Advancement Strategy exactly as authorized by `NEXUS-RAT-2026-07-15-002`. `EngineeringSession.advanceWorkflowAfterReview()` accepts a `ReviewOutcome` (RFC-0006, consumed read-only via `ReviewOutcome.fromString()` at the service boundary), classifies it using the ratified Blocking/Non-Blocking semantics (`NEXUS-RAT-2026-07-15-001`) via a new private `assertNonBlockingReviewOutcome()` helper, and delegates to Sprint 43's existing `advanceWorkflow()` unchanged for eligibility, result, and failure behavior. `EngineeringSessionService.advanceWorkflowAfterReview()` is thin orchestration: repository lookup, `WorkflowChain` lookup, `ReviewOutcome` construction, aggregate delegation, persistence, snapshot return — mirroring Sprint 45's `advanceWorkflowOnTrigger()` pattern precisely.
+
+`git diff --stat` against the prior committed state confirms the source change is confined to `engineering-session.contract.ts`, `engineering-session.service.ts`, and `engineering-session.ts` (36 lines combined) plus test files. `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `AssignmentPolicy`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, Sprint 43's `advanceWorkflow()`/`isWorkflowComplete()`, and Sprint 45's `advanceWorkflowOnTrigger()` are all confirmed byte-for-byte unmodified — none appear in the diff. No `ReviewService`, `Review`, or `Finding` file is modified; `ReviewOutcome` is imported and consumed strictly read-only (no write path exists in the diff). No `src/hosts` or `src/adapters` file is modified. No Event Bus subscription, scheduling, or asynchronous behavior was introduced.
+
+Test coverage is thorough and traces directly to the Sprint Implementation Record's Authorized Vertical Slice: Non-Blocking advancement (Accepted, Accepted With Observations) at both the aggregate and service layers; Blocking rejection (Action Required, Rejected) producing `InvalidEngineeringSessionDefinitionError` with no workflow-position change, verified at both layers; existing Sprint 43 ineligibility conditions (unbound chain, terminal position, invalid current position, mismatched chain) continue to reject independently of `ReviewOutcome`; determinism for equivalent session state and equivalent outcome; a Kernel Boundary Certification assertion that `advanceWorkflowAfterReview` is composed and callable. Independent re-validation confirms `tsc --noEmit`, ESLint (`--quiet`, zero warnings suppressed beyond existing baseline), `npm run validate` (TypeScript compile, ESLint, Vitest 75 files / 362 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly, matching the Builder's reported counts exactly.
+
+Documentation is internally consistent: `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` all correctly describe the same scope, and the RFC-0004 v1.5 amendment text in the working tree is byte-for-byte identical to the ratified `NEXUS-RAT-2026-07-15-001` amendment — the Builder introduced no additional specification drift.
+
+One Minor, non-blocking finding is recorded concerning vocabulary duplication (see below). Overall disposition: **PASS WITH FINDINGS**.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-001-F-001 — Blocking/Non-Blocking classification duplicates RFC-0006's `ReviewOutcome` vocabulary as literal strings
+
+- **Category:** Category 6 — Observation
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 10 (Code Quality — coupling, cohesion)
+- **Summary:** `assertNonBlockingReviewOutcome()` (`src/kernel/execution/engineering-session.ts:329-339`) compares `reviewOutcome.toString()` against the literal strings `'Accepted'` and `'Accepted With Observations'`, rather than referencing the canonical `reviewOutcomes` array exported from `src/kernel/review/review.types.ts` (`['Accepted', 'Accepted With Observations', 'Action Required', 'Rejected']`). The two Non-Blocking literals are spelled correctly and match the canonical vocabulary today, so behavior is currently correct.
+- **Evidence:** `src/kernel/execution/engineering-session.ts:329-339`; `src/kernel/review/review.types.ts:4-9` (`reviewOutcomes` canonical array, not imported by `engineering-session.ts`).
+- **Impact:** Low. RFC-0006's `ReviewOutcome` vocabulary is frozen by Sprint 9 and not modified by this or any prior sprint, so no present divergence exists. However, the duplication means a future RFC-0006 vocabulary change (e.g., renaming "Accepted With Observations") would not be caught by the type system in `engineering-session.ts` — the two literal strings would silently stop matching valid `ReviewOutcomeValue`s, which fails closed (all outcomes rejected as Blocking) rather than failing open, so this is not a correctness risk, only a maintainability one.
+- **Required Disposition:** Optional Documentation/Code Task — reference the exported `reviewOutcomes` array (or equivalent named constants) from `review.types.ts` instead of literal strings, in a future sprint touching this file. Does not block approval.
+- **Builder Action:** None unless directed; no Builder Task generated.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001, Observation) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run validate` (Vitest 75 files / 362 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 46 deferred concepts confirmed absent from the diff: Event Bus-driven/automatic Review-completion-triggered advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, any `ReviewService` write operation or Review state persistence, and any `AssignmentPolicy`/`ExecutionSession`/`src/hosts`/`src/adapters` change. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+- **RFC conformance:** `advanceWorkflowAfterReview()` implements exactly the Review-Gated Advancement Strategy named by RFC-0004 v1.4 and defined by v1.5; the Blocking/Non-Blocking classification matches the ratified amendment text verbatim.
+- **Aggregate ownership:** `EngineeringSession` owns Advancement Eligibility/Result/Failure and the Review-Gated eligibility check; `ReviewOutcome` determination remains exclusively owned by RFC-0006/`ReviewService`, consumed read-only. Ownership separation from `NEXUS-RAT-2026-07-15-002` is preserved.
+- **Domain ownership / cross-domain access:** `ReviewOutcome` is imported as a shared value object (not an internal entity), consistent with the existing Knowledge-domain precedent (`knowledge.aggregate.ts` importing `Review`/`IReviewRepository` types read-only). No aggregate internals of the Review domain are accessed.
+- **Determinism:** Equivalent session state and equivalent `ReviewOutcome` produce equivalent results, verified by dedicated tests at both aggregate and service layers.
+- **Terminology:** `ReviewOutcome`, `Non-Blocking`/`Blocking Review Outcome` used consistently with the RFC-0004 v1.5 and RFC-0006 vocabulary; no renamed or invented terms.
+- **Scope discipline:** No file outside the Authorized Vertical Slice was touched; `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `AssignmentPolicy`, `ReviewService`, `Review`, `Finding`, `src/hosts`, `src/adapters` all confirmed unmodified by direct diff inspection.
+- **Tests:** Comprehensive coverage of Non-Blocking advancement, Blocking rejection without state change, existing ineligibility preservation, determinism, and Kernel composition continuity, at both the `EngineeringSession` aggregate and `EngineeringSessionService` layers.
+
+### Builder Task Recommendation
+
+None required for approval. F-001 is an optional, non-blocking Category 6 Observation; no Builder Task is generated. Recommend the Sprint Owner mark Sprint 46 **Approved with Findings**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0046-review-gated-workflow-advancement.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 46 marked Approved with Findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 46: Status → **Approved with Findings** (`NEXUS-REV-2026-07-15-001`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated; no open Builder Tasks remain.
+
+---
+
 ## NEXUS-REV-2026-07-14-026 — Sprint 45 — Automatic/Event-Driven Workflow Advancement (TASK-001 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 45 — Automatic/Event-Driven Workflow Advancement

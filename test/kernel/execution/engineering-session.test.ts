@@ -11,6 +11,7 @@ import { EngineeringSessionStatus } from '../../../src/kernel/execution/engineer
 import type { EngineeringSessionInput } from '../../../src/kernel/execution/engineering-session.types';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { WorkflowChainId } from '../../../src/kernel/execution/workflow-chain-id';
+import { ReviewOutcome } from '../../../src/kernel/review/review-values';
 
 const workflowChain = WorkflowChain.create({
   id: 'workflow-chain-1',
@@ -170,6 +171,31 @@ describe('EngineeringSession domain', () => {
     expect(session.isWorkflowComplete(workflowChain)).toBe(true);
   });
 
+  it('advances after Non-Blocking Review Outcomes using existing Workflow Advancement semantics', () => {
+    for (const outcome of ['Accepted', 'Accepted With Observations']) {
+      const session = createSession();
+
+      session.advanceWorkflowAfterReview(ReviewOutcome.fromString(outcome), workflowChain);
+
+      expect(session.toSnapshot()).toMatchObject({
+        currentWorkflowStepId: '1',
+        status: 'Open',
+      });
+      expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+    }
+  });
+
+  it('rejects Blocking Review Outcomes without changing workflow position', () => {
+    for (const outcome of ['Action Required', 'Rejected']) {
+      const session = createSession();
+
+      expect(() =>
+        session.advanceWorkflowAfterReview(ReviewOutcome.fromString(outcome), workflowChain),
+      ).toThrow(InvalidEngineeringSessionDefinitionError);
+      expect(session.currentWorkflowStepId).toBe('0');
+    }
+  });
+
   it('rejects advancement beyond the terminal WorkflowStep', () => {
     const session = EngineeringSession.create(
       createSessionInput({ currentWorkflowStepId: '1' }),
@@ -208,6 +234,37 @@ describe('EngineeringSession domain', () => {
     ).toThrow(InvalidEngineeringSessionDefinitionError);
     expect(() =>
       createSession().advanceWorkflowOnTrigger(advancementTrigger, mismatchedWorkflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(terminalSession.currentWorkflowStepId).toBe('1');
+    expect(invalidCurrentStepSession.currentWorkflowStepId).toBe('2');
+  });
+
+  it('rejects review-gated advancement using the same ineligible Advancement Failure semantics', () => {
+    const acceptedOutcome = ReviewOutcome.fromString('Accepted');
+    const terminalSession = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+    const invalidCurrentStepSession = EngineeringSession.fromSnapshot({
+      ...createSession().toSnapshot(),
+      currentWorkflowStepId: '2',
+    });
+    const mismatchedWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-2',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+
+    expect(() => createSession().advanceWorkflowAfterReview(acceptedOutcome, undefined)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() =>
+      terminalSession.advanceWorkflowAfterReview(acceptedOutcome, workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      invalidCurrentStepSession.advanceWorkflowAfterReview(acceptedOutcome, workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      createSession().advanceWorkflowAfterReview(acceptedOutcome, mismatchedWorkflowChain),
     ).toThrow(InvalidEngineeringSessionDefinitionError);
     expect(terminalSession.currentWorkflowStepId).toBe('1');
     expect(invalidCurrentStepSession.currentWorkflowStepId).toBe('2');
@@ -258,6 +315,32 @@ describe('EngineeringSession domain', () => {
 
     expect(left.toSnapshot()).toEqual(right.toSnapshot());
     expect(left.equals(right)).toBe(true);
+  });
+
+  it('advances deterministically for equivalent ReviewOutcome and EngineeringSession state', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+    const leftOutcome = ReviewOutcome.fromString('Accepted With Observations');
+    const rightOutcome = ReviewOutcome.fromString(leftOutcome.toString());
+
+    left.advanceWorkflowAfterReview(leftOutcome, workflowChain);
+    right.advanceWorkflowAfterReview(rightOutcome, workflowChain);
+
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+    expect(left.equals(right)).toBe(true);
+  });
+
+  it('rejects review-gated advancement deterministically for equivalent Blocking Review Outcomes', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+
+    expect(() =>
+      left.advanceWorkflowAfterReview(ReviewOutcome.fromString('Rejected'), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      right.advanceWorkflowAfterReview(ReviewOutcome.fromString('Rejected'), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
   });
 
   it('rejects invalid session definitions deterministically', () => {

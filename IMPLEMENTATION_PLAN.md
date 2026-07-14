@@ -2074,9 +2074,9 @@ Implementation Result
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026, fully closed by TASK-001 remediation of NEXUS-REV-2026-07-14-025-F-001)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026, fully closed by TASK-001 remediation of NEXUS-REV-2026-07-14-025-F-001; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model (Advancement Strategy, Trigger, Eligibility, Authority, Result, Failure) naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (future). Remaining candidate scope after Sprint 45: Review-Gated Advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model (Advancement Strategy, Trigger, Eligibility, Authority, Result, Failure) naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (future). RFC-0004 was further amended to v1.5 (`NEXUS-RAT-2026-07-15-001`) to define Review-Gated Advancement's gating semantics (Blocking/Non-Blocking Review Outcome classification). Sprint 46 — Review-Gated Workflow Advancement (`NEXUS-RAT-2026-07-15-002`) implemented that Strategy and is Approved with Findings (`NEXUS-REV-2026-07-15-001`, zero open findings). No further Milestone 8 Sprint is currently Current; remaining candidate scope (Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) that introduced `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Sprint 39 — Engineering Sessions Foundation is Milestone 8's opening Sprint, implementing `EngineeringSession`/`EngineeringSessionId`/`EngineeringSessionStatus`/`EngineeringSessionService` as a foundation-only vertical slice.
 
@@ -2527,4 +2527,71 @@ See `knowledge/implementation/sprints/sprint-0045-automatic-event-driven-workflo
 Reviewer Validation Result
 
 - Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-14-025`). One Minor, non-blocking finding (F-001 — dead `trigger.toSnapshot()` statement in `EngineeringSession.advanceWorkflowOnTrigger()`, Gate 10 dead-code); full Vitest suite (75 files / 354 tests), `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
-- `TASK-001` remediation of F-001 verified (`NEXUS-REV-2026-07-14-026`): dead statement removed; only `engineering-session.ts` changed; all tests pass unmodified. Sprint 45 is now fully closed with zero open findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Review-Gated Advancement, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- `TASK-001` remediation of F-001 verified (`NEXUS-REV-2026-07-14-026`): dead statement removed; only `engineering-session.ts` changed; all tests pass unmodified. Sprint 45 is now fully closed with zero open findings.
+- RFC-0004 was amended to v1.5 (`NEXUS-RAT-2026-07-15-001`) following this Sprint's closure, defining Review-Gated Advancement's Blocking/Non-Blocking Review Outcome gating semantics. Sprint 46 — Review-Gated Workflow Advancement (`NEXUS-RAT-2026-07-15-002`) implemented that Strategy and is Approved with Findings (`NEXUS-REV-2026-07-15-001`).
+
+---
+
+## Sprint 46 — Review-Gated Workflow Advancement
+
+Status: Approved with Findings — `NEXUS-REV-2026-07-15-001` (one Minor, non-blocking Category 6 Observation; zero open Builder Tasks)
+
+Objective
+
+Implement RFC-0004 v1.5's Review-Gated Advancement Strategy by introducing an `EngineeringSession` advancement operation that consumes an already-finalized `ReviewOutcome`, determines advancement eligibility using the ratified Blocking/Non-Blocking classification (`NEXUS-RAT-2026-07-15-001`), and advances the current workflow position only when the supplied `ReviewOutcome` is classified as Non-Blocking. The Sprint SHALL NOT evaluate, calculate, reinterpret, or modify `ReviewOutcome`; `ReviewOutcome` remains exclusively owned by RFC-0006; this Sprint only consumes the final `ReviewOutcome` as immutable input.
+
+RFC Coverage
+
+Primary
+
+- RFC-0004 v1.5 — Execution Model ("Workflow Advancement" § Review-Gated Advancement)
+
+Referenced
+
+- RFC-0006 — Engineering Assessment Model (`ReviewOutcome` consumed as immutable, read-only input; RFC-0006 unmodified)
+- RFC-0010 — Kernel Boundaries
+
+No RFC ownership changes are authorized.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-15-002` — Sprint 46 scope ratification: governs this Sprint's entire scope, the binding Objective refinement, the binding Architectural Responsibilities split, and scope restrictions.
+- `NEXUS-RAT-2026-07-15-001` — the companion RFC-0004 v1.5 amendment defining the Blocking/Non-Blocking Review Outcome classification this Sprint consumes.
+
+Architectural Responsibilities (binding, from `NEXUS-RAT-2026-07-15-002`)
+
+| Concern | Owner |
+| --- | --- |
+| Review lifecycle, Review evaluation, `ReviewOutcome` determination | RFC-0006 / `ReviewService` (unmodified) |
+| Advancement eligibility, Blocking/Non-Blocking classification, workflow position advancement | RFC-0004 (this Sprint, consuming `NEXUS-RAT-2026-07-15-001`) |
+
+Authorized Vertical Slice
+
+- A new `EngineeringSession` operation accepting an already-finalized `ReviewOutcome` (or a reference resolved via existing, unmodified `ReviewService` lookup) as immutable input, classifying it using the ratified Blocking/Non-Blocking semantics, and reusing Sprint 43's existing Advancement Eligibility, Advancement Result, and Advancement Failure semantics unchanged, extended only by the Review-Gated eligibility check.
+- A corresponding thin `EngineeringSessionService` orchestration operation, mirroring Sprint 45's pattern (repository lookup, aggregate delegation, persistence only).
+- Unit/integration tests covering: Non-Blocking outcome advancement (Accepted, Accepted With Observations); Blocking outcome rejection (Action Required, Rejected) producing an Advancement Failure with no state change; determinism; regression-safety of Sprint 43's and Sprint 45's existing behavior.
+
+Deferred Concepts
+
+- Event Bus-driven or other automatic Review-completion-triggered advancement.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing.
+- Concurrent session/workflow coordination.
+- Any `ReviewService` write operation, Review lifecycle modification, or Review state persistence from within `EngineeringSession`/`EngineeringSessionService`.
+- Any `AssignmentPolicy`, `ExecutionSession`, `src/hosts`, or `src/adapters` change.
+
+Definition of Done
+
+- `ReviewOutcome` is treated as immutable input; this Sprint does not modify or persist Review state.
+- Advancement preserves Sprint 43's Advancement Eligibility, Result, and Failure semantics unchanged, adding only the Review-Gated eligibility check.
+- Existing approved advancement behavior (Sprint 43 Manual Advancement, Sprint 45 Automatic/Event-Driven Advancement) remains byte-for-byte identical for all non-review-gated scenarios.
+- `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `AssignmentPolicy` remain unmodified.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0046-review-gated-workflow-advancement.md` for the complete Sprint Implementation Record.
+
+Reviewer Validation Result
+
+- Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-15-001`). Confirmed `advanceWorkflowAfterReview()` reuses Sprint 43's `advanceWorkflow()` unchanged, adding only the ratified Review-Gated eligibility check; confirmed `ReviewOutcome` is consumed strictly read-only with no `ReviewService` write path; confirmed `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `AssignmentPolicy`, `ReviewService`, `Review`, `Finding`, `src/hosts`, and `src/adapters` are all byte-for-byte unmodified. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run validate` (Vitest 75 files / 362 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly.
+- One Minor, non-blocking finding recorded: `NEXUS-REV-2026-07-15-001-F-001` — the Blocking/Non-Blocking classification duplicates RFC-0006's `ReviewOutcome` vocabulary as literal strings rather than referencing the canonical `reviewOutcomes` array in `review.types.ts`. Currently correct; generates no Builder Task. Sprint 46 is fully closed with zero open findings requiring action. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.

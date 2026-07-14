@@ -1,6 +1,7 @@
 import { EngineeringSessionId } from './engineering-session-id';
 import { EngineeringSessionStatus } from './engineering-session-status';
 import { AdvancementTrigger } from './advancement-trigger';
+import { ReviewOutcome } from '../review/review-values';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionDiagnosticSnapshot,
@@ -218,6 +219,14 @@ export class EngineeringSession {
     this.advanceWorkflow(workflowChain);
   }
 
+  public advanceWorkflowAfterReview(
+    reviewOutcome: ReviewOutcome,
+    workflowChain: WorkflowChain | undefined,
+  ): void {
+    assertNonBlockingReviewOutcome(reviewOutcome);
+    this.advanceWorkflow(workflowChain);
+  }
+
   public isWorkflowComplete(workflowChain: WorkflowChain | undefined): boolean {
     const workflowPosition = validateWorkflowPosition(
       this.workflowChainIdValue,
@@ -315,6 +324,18 @@ function validateWorkflowPosition(
     position,
     terminalPosition,
   });
+}
+
+function assertNonBlockingReviewOutcome(reviewOutcome: ReviewOutcome): void {
+  const outcome = reviewOutcome.toString();
+
+  if (outcome === 'Accepted' || outcome === 'Accepted With Observations') {
+    return;
+  }
+
+  throw new InvalidEngineeringSessionDefinitionError(
+    `EngineeringSession Review-Gated Advancement requires a Non-Blocking Review Outcome; received '${outcome}'.`,
+  );
 }
 
 function normalizeWorkflowStepPosition(value: unknown, label: string): number {

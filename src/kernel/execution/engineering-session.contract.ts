@@ -30,12 +30,20 @@ export interface AdvanceEngineeringSessionWorkflowOnTriggerCommand {
   readonly trigger: AdvancementTriggerInput;
 }
 
+export interface AdvanceEngineeringSessionWorkflowAfterReviewCommand {
+  readonly engineeringSessionId: string;
+  readonly reviewOutcome: string;
+}
+
 export interface EngineeringSessionServiceContract {
   createEngineeringSession(command: CreateEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   closeEngineeringSession(command: CloseEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   advanceWorkflow(command: AdvanceEngineeringSessionWorkflowCommand): Promise<EngineeringSessionSnapshot>;
   advanceWorkflowOnTrigger(
     command: AdvanceEngineeringSessionWorkflowOnTriggerCommand,
+  ): Promise<EngineeringSessionSnapshot>;
+  advanceWorkflowAfterReview(
+    command: AdvanceEngineeringSessionWorkflowAfterReviewCommand,
   ): Promise<EngineeringSessionSnapshot>;
   getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot>;
   enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;

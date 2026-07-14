@@ -5,6 +5,7 @@ import { AdvancementTrigger } from './advancement-trigger';
 import { EngineeringSession } from './engineering-session';
 import type {
   AdvanceEngineeringSessionWorkflowCommand,
+  AdvanceEngineeringSessionWorkflowAfterReviewCommand,
   AdvanceEngineeringSessionWorkflowOnTriggerCommand,
   CloseEngineeringSessionCommand,
   CreateEngineeringSessionCommand,
@@ -24,6 +25,7 @@ import {
   InMemoryWorkflowChainRepository,
   type IWorkflowChainRepository,
 } from './workflow-chain.repository';
+import { ReviewOutcome } from '../review/review-values';
 
 export class EngineeringSessionService
   extends ServiceLifecycle
@@ -106,6 +108,19 @@ export class EngineeringSessionService
     const trigger = AdvancementTrigger.create(command.trigger);
 
     engineeringSession.advanceWorkflowOnTrigger(trigger, workflowChain);
+    await this.repository.save(engineeringSession);
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflowAfterReview(
+    command: AdvanceEngineeringSessionWorkflowAfterReviewCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const reviewOutcome = ReviewOutcome.fromString(command.reviewOutcome);
+
+    engineeringSession.advanceWorkflowAfterReview(reviewOutcome, workflowChain);
     await this.repository.save(engineeringSession);
 
     return engineeringSession.toSnapshot();

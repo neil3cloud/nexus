@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.4
+**Version:** 1.5
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -14,6 +14,7 @@
 - v1.2 — Adds Engineering Session (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-017`). Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work and MAY contain zero or more Execution Sessions. Execution Session's existing definition, invariants, and immutability are unmodified by this amendment; it becomes one activity record capturable within an Engineering Session's timeline. No other section of this specification is modified.
 - v1.3 — Adds Workflow Chaining (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-020`). Workflow Chain is the Kernel-owned, immutable definition of an ordered engineering workflow (chain identity, ordered steps, topology); it owns no mutable runtime state. Engineering Session's existing Architectural Responsibilities are clarified, not expanded: it executes a Workflow Chain, owning the active Workflow Chain reference, current workflow position, workflow state, and workflow execution history as runtime progression through that Chain's immutable structure. Execution Session's existing definition, invariants, and immutability are unmodified. No other section of this specification is modified.
 - v1.4 — Adds Workflow Advancement (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-025`). Workflow Advancement is the generalized, normative model for how an Engineering Session's current workflow position moves forward within its bound Workflow Chain, organized around six concepts (Advancement Strategy, Advancement Trigger, Advancement Eligibility, Advancement Authority, Advancement Result, Advancement Failure) and exactly three named Advancement Strategies (Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement). Manual Advancement is the existing Sprint 43 capability, unmodified and unexpanded by this amendment. Automatic/Event-Driven Advancement and Review-Gated Advancement are named but not yet implemented; each requires its own future Sprint Owner scope ratification. Engineering Session's existing ownership of runtime progression (RFC-0004 v1.2/v1.3) is unmodified; this amendment organizes and names the strategies by which that progression occurs. No other section of this specification is modified.
+- v1.5 — Defines Review-Gated Advancement's gating semantics (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-001`). Introduces the **Blocking Review Outcome** / **Non-Blocking Review Outcome** classification of RFC-0006's `ReviewOutcome` values: Accepted and Accepted With Observations are Non-Blocking; Action Required and Rejected are Blocking. Review-Gated Advancement's Advancement Eligibility additionally requires a Non-Blocking Review Outcome. This amendment defines gating semantics only; it does not authorize implementation, which requires its own future Sprint Owner scope ratification. Manual Advancement, Automatic/Event-Driven Advancement, Engineering Session, Workflow Chain, and RFC-0006 are unmodified. No other section of this specification is modified.
 
 ---
 
@@ -373,7 +374,14 @@ An **Advancement Strategy** is a named mechanism by which an Engineering Session
 
 - **Manual Advancement** — an explicit, caller-invoked request to advance exactly one workflow position. Implemented by Sprint 43; unmodified and unexpanded by this amendment.
 - **Automatic/Event-Driven Advancement** — advancement evaluated deterministically in response to an Advancement Trigger, without the caller itself deciding or requesting the specific advancement. Not yet implemented; requires its own future Sprint Owner scope ratification.
-- **Review-Gated Advancement** — advancement contingent upon a Review Outcome (RFC-0006). Not yet implemented; requires its own future Sprint Owner scope ratification, including the gating semantics between Review Outcome and Advancement Eligibility.
+- **Review-Gated Advancement** — advancement contingent upon a Review Outcome (RFC-0006). Advancement Eligibility for this Strategy additionally requires a **Non-Blocking Review Outcome** (defined below). Gating semantics are defined by this amendment (v1.5); implementation is not yet authorized and requires its own future Sprint Owner scope ratification.
+
+A **ReviewOutcome** (RFC-0006) is classified as exactly one of:
+
+- **Non-Blocking Review Outcome** — Accepted, Accepted With Observations. A workflow position gated by Review-Gated Advancement MAY advance when the governing Review reaches a Non-Blocking Review Outcome.
+- **Blocking Review Outcome** — Action Required, Rejected. A workflow position gated by Review-Gated Advancement SHALL NOT advance when the governing Review reaches a Blocking Review Outcome; the attempt SHALL produce an Advancement Failure.
+
+This classification is owned by RFC-0004 for the sole purpose of Review-Gated Advancement's Advancement Eligibility. It does not modify RFC-0006's `ReviewOutcome` values, semantics, or lifecycle.
 
 An **Advancement Trigger** is the deterministic condition or reported fact that causes an Advancement Strategy to evaluate Advancement Eligibility.
 
