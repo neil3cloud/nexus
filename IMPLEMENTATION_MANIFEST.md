@@ -1460,11 +1460,11 @@ Notes:
 
 # Milestone 7 — AI Engineering Workflow Framework
 
-Status: ACTIVE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 Approved with Findings — NEXUS-REV-2026-07-14-013; Sprint 38 Approved with Findings — NEXUS-REV-2026-07-14-015)
+Status: ✅ COMPLETE (Sprint 35 Approved — NEXUS-REV-2026-07-14-011; Sprint 36 Approved — NEXUS-REV-2026-07-14-012; Sprint 37 Approved with Findings — NEXUS-REV-2026-07-14-013; Sprint 38 Approved with Findings — NEXUS-REV-2026-07-14-015)
 
-Retitled from "AI Engineering Workflows" to "AI Engineering Workflow Framework" per Sprint Owner direction (2026-07-14): Sprints 35–37 certified the canonical Role-scoped Host Workflow pattern; the milestone's remaining objective is completing the reusable framework — Engineering Role Profiles (Sprint 38) and a future Workflow Chaining Foundation.
+Retitled from "AI Engineering Workflows" to "AI Engineering Workflow Framework" per Sprint Owner direction (2026-07-14): Sprints 35–37 certified the canonical Role-scoped Host Workflow pattern and Sprint 38 completed the reusable framework's metadata foundation (Engineering Role Profiles). Per `NEXUS-RAT-2026-07-14-016`, Milestone 7's remaining objectives are limited to those explicitly authorized through ratified governance; no additional architectural capability, including Workflow Chaining, is authorized within this milestone. Sprint 38 is Milestone 7's final authorized Sprint, and Milestone 7 is therefore Complete.
 
-Opened by `NEXUS-RAT-2026-07-14-011`, which closed Milestone 6 at Sprint 34 and retroactively classified Sprint 35 — Builder Workflow Foundation as this milestone's opening Sprint. No Milestone 7 Sprint SHALL introduce Kernel ownership changes, Adapter Contract changes, Adapter Selection, Role-to-Adapter routing, Execution Session, Assignment Policy, Workflow Chaining, or multi-agent orchestration, unless separately authorized through a future RFC or Sprint Owner ratification.
+Opened by `NEXUS-RAT-2026-07-14-011`, which closed Milestone 6 at Sprint 34 and retroactively classified Sprint 35 — Builder Workflow Foundation as this milestone's opening Sprint. No Milestone 7 Sprint SHALL introduce Kernel ownership changes, Adapter Contract changes, Adapter Selection, Role-to-Adapter routing, Execution Session, Assignment Policy, Workflow Chaining, or multi-agent orchestration, unless separately authorized through a future RFC or Sprint Owner ratification. Workflow Chaining, Assignment Policy, and Execution Sessions remain deferred to Milestone 8 per `NEXUS-RAT-2026-07-14-011`, reaffirmed by `NEXUS-RAT-2026-07-14-016`.
 
 `NEXUS-RAT-2026-07-14-012` establishes a binding Architectural Invariant for this milestone: every Role-scoped Workflow entry point SHALL differ from every other only by the Execution Role requested and by workflow presentation metadata, reusing Host Adapter Configuration, explicit-`adapterId` dispatch, the certified Execution Pipeline, Adapter Runtime, and Kernel contracts unmodified in every case.
 
@@ -1595,7 +1595,7 @@ Notes:
 
 ## Sprint 38 — Engineering Role Profiles Foundation
 
-Status: Implemented — Pending Reviewer Validation
+Status: Approved with Findings — NEXUS-REV-2026-07-14-015 (F-001 remediated and verified by NEXUS-REV-2026-07-14-016)
 
 RFC Coverage:
 
@@ -1631,15 +1631,52 @@ Critical Boundary:
 Notes:
 
 - See `knowledge/implementation/sprints/sprint-0038-engineering-role-profiles-foundation.md` for the complete Sprint Implementation Record.
-- Builder implementation completed the authorized vertical slice; Reviewer validation pending.
+- Builder implementation completed the authorized vertical slice. Reviewer validation complete: Approved with Findings (`NEXUS-REV-2026-07-14-015`); the sole finding, F-001, was remediated (`DOC-004`) and independently verified (`NEXUS-REV-2026-07-14-016`). Sprint 38 is Milestone 7's final authorized Sprint; Milestone 7 is Complete per `NEXUS-RAT-2026-07-14-016`.
 
 ---
 
 # Milestone 8 — Engineering Orchestration
 
-Status: NOT YET STARTED
+Status: ACTIVE (Sprint 39 Implemented — Pending Reviewer Validation — Engineering Sessions Foundation, NEXUS-RAT-2026-07-14-018)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and are intentionally excluded from Milestone 7. No Sprint under Milestone 8 is authorized at this time; scheduling any of this candidate scope requires a future RFC extension and a dedicated Sprint Owner ratification.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`).
+
+Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) introducing `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, and concurrent session coordination remain explicitly deferred pending their own future scope ratifications.
+
+## Sprint 39 — Engineering Sessions Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model v1.2 (Primary; new "Engineering Session" section).
+- Referenced: RFC-0010 — Kernel Boundaries.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-14-018` — governs this Sprint's entire scope: Authorized Builder Scope, Explicitly Deferred list, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-017` — the RFC-0004 v1.2 amendment (Engineering Session) this Sprint implements.
+- `NEXUS-RAT-2026-07-14-011` — the ratification naming Milestone 8's candidate scope, now opened by `NEXUS-RAT-2026-07-14-018`.
+
+Implemented Concepts:
+
+- `EngineeringSession` Kernel domain concept with `EngineeringSessionId`, `EngineeringSessionStatus` deterministic lifecycle, and the RFC-0004 v1.2 Architectural Responsibilities at foundation-level detail only.
+- Session repository contract and in-memory implementation, mirroring existing Kernel repository patterns.
+- `EngineeringSessionService` for session creation, lifecycle transition, lookup, and enumeration — thin orchestration only.
+- `createKernelServices` composition updated to construct and register the Session repository and `EngineeringSessionService`.
+
+Deferred Concepts:
+
+- Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic workflow advancement, session recovery/checkpointing, concurrent session coordination.
+- `ExecutionSession` implementation (RFC-0004's existing, narrower concept remains unimplemented and out of scope).
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0039-engineering-sessions-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0004 further (already amended to v1.2 by `NEXUS-RAT-2026-07-14-017`), any other RFC, or the Kernel Canon.
+- Builder implementation is complete and pending Reviewer validation.
 
 ---
 

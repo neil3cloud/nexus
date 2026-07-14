@@ -1,5 +1,95 @@
 # Nexus Implementation Report
 
+## Sprint 39 — Engineering Sessions Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 39 Engineering Sessions Foundation vertical slice. This sprint introduces the RFC-0004 v1.2 `EngineeringSession` Kernel runtime boundary for one span of AI-assisted engineering work, with identity, deterministic lifecycle, in-memory persistence, diagnostics structure, and a thin Kernel service.
+
+Implemented scope:
+
+- Added immutable `EngineeringSessionId` and `EngineeringSessionStatus` value objects.
+- Added `EngineeringSession` with `create`/`fromSnapshot`/`toSnapshot`/`equals`, required foundation fields for RFC-0004 v1.2 Architectural Responsibilities, deterministic `Open` -> `Closed` lifecycle, immutable snapshot output, and dedicated definition/lifecycle diagnostics.
+- Added `EngineeringSession` diagnostics and collaboration metadata snapshot structures without introducing workflow behavior.
+- Added `IEngineeringSessionRepository` and `InMemoryEngineeringSessionRepository` with create, save, lookup, existence, and deterministic enumeration.
+- Added `EngineeringSessionService` as thin orchestration over constructor-injected repository contracts for create, close, lookup, and enumeration.
+- Updated `createKernelServices()` to compose `InMemoryEngineeringSessionRepository` and `EngineeringSessionService`.
+- Updated Sprint 18 Kernel Boundary Certification only where it enumerates Kernel-composed services.
+- Added deterministic unit coverage for domain construction, validation, equality, snapshot immutability, lifecycle transitions, repository behavior, service diagnostics, and composition.
+
+Out of scope and not implemented:
+
+- `ExecutionSession` implementation or any reference to implemented `ExecutionSession` records.
+- Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic workflow advancement, session recovery/checkpointing, or concurrent session coordination.
+- Any `src/hosts` or `src/adapters` file change.
+- Any behavior change to `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, or existing workflow command dispatch.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.2 (Engineering Session).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `EngineeringSession`.
+- `EngineeringSessionId`.
+- `EngineeringSessionStatus`.
+- `IEngineeringSessionRepository` / `InMemoryEngineeringSessionRepository`.
+- `EngineeringSessionService`.
+- Kernel composition of the session repository and session service.
+
+Deferred Concepts:
+
+- Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic workflow advancement, session recovery/checkpointing, concurrent session coordination.
+- `ExecutionSession` implementation.
+- Host or Adapter consumption of `EngineeringSession`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-018`, `NEXUS-RAT-2026-07-14-017`, `NEXUS-RAT-2026-07-14-011`, `NEXUS-RAT-2026-07-14-016`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0039-engineering-sessions-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The Sprint-authorized minimal lifecycle is represented as `Open` and terminal `Closed`, with no automatic advancement and no review gating.
+- `workflowState` is intentionally opaque foundation state; no workflow semantics, sequencing, or orchestration rules are derived from it.
+- Session diagnostics and collaboration metadata are structural Kernel-owned session data only; they do not create events, execution attempts, adapter dispatch, or Host behavior.
+
+### Known Limitations
+
+- Sessions are in-memory only; no durable persistence, recovery, checkpointing, or concurrent coordination is implemented.
+- `EngineeringSession` is inert Kernel state this sprint; no Host, Adapter, Execution Pipeline, or workflow consumer exists.
+- `ExecutionSession` remains unimplemented and out of scope.
+
+### Validation Summary
+
+- Targeted Sprint 39 validation passed: `npm test -- --run test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.repository.test.ts test/kernel/execution/engineering-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 39.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 38 — Engineering Role Profiles Foundation
 
 ### Implemented Slice

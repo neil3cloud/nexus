@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.1
+**Version:** 1.2
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -11,6 +11,7 @@
 
 - v1.0 — Original specification.
 - v1.1 — Adds Engineering Role Profile (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-014`). Engineering Role Profile is descriptive/presentational metadata only, one-to-one with Execution Role; Execution Role remains the sole authority for execution semantics, identity, and dispatch eligibility. No other section of this specification is modified.
+- v1.2 — Adds Engineering Session (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-017`). Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work and MAY contain zero or more Execution Sessions. Execution Session's existing definition, invariants, and immutability are unmodified by this amendment; it becomes one activity record capturable within an Engineering Session's timeline. No other section of this specification is modified.
 
 ---
 
@@ -96,6 +97,7 @@ RFC-0004 exclusively owns:
 - Assignment Policy
 - Execution State
 - Execution Session
+- Engineering Session
 
 Other specifications MAY reference these concepts.
 
@@ -276,6 +278,37 @@ Minimum states SHALL include:
 - Blocked
 
 Execution State SHALL remain observable.
+
+---
+
+# Engineering Session
+
+An Engineering Session is the Kernel-owned runtime boundary for one span of AI-assisted engineering work.
+
+An Engineering Session MAY contain zero or more Execution Sessions. Each Execution Session remains the authoritative, immutable record of one coordinated execution attempt occurring within that Engineering Session, exactly as defined below; Engineering Session establishes a containment relationship over Execution Sessions and does not redefine, wrap, or duplicate Execution Session's existing semantics.
+
+## Architectural Responsibilities
+
+Engineering Session owns:
+
+- engineering runtime context
+- the active engineering workflow
+- participating Engineering Roles
+- workflow state
+- the session timeline
+- session diagnostics
+- collaboration metadata
+
+Execution Session owns:
+
+- one coordinated execution attempt
+- assigned Execution Role
+- assigned Adapter
+- execution timestamps
+- execution outcome
+- produced artifacts
+
+Execution semantics, dispatch eligibility, and execution policies remain owned by this specification's Execution, Execution Strategy, Execution Role, Assignment, Assignment Policy, and Execution State sections. Engineering Session SHALL NOT redefine or duplicate those responsibilities, and SHALL NOT itself define Workflow Chaining behavior, Assignment Policy, or Multi-agent Orchestration.
 
 ---
 

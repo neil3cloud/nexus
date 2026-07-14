@@ -2,6 +2,74 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-017 — Sprint 39 — Engineering Sessions Foundation
+
+- **Reviewed Sprint:** Sprint 39 — Engineering Sessions Foundation
+- **Reviewed Vertical Slice:** `EngineeringSession`, `EngineeringSessionId`, `EngineeringSessionStatus`, `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository`, `EngineeringSessionService`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-14-018`'s Authorized Builder Scope.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.2 (Primary; Engineering Session). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 39 — Engineering Sessions Foundation conforms to RFC-0004 v1.2 and `NEXUS-RAT-2026-07-14-018`'s Authorized Builder Scope. `EngineeringSession`, `EngineeringSessionId`, `EngineeringSessionStatus`, `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository`, and `EngineeringSessionService` were implemented exactly as authorized: a foundation-only Kernel domain concept with a minimal `Open` → `Closed` lifecycle, thin service orchestration, and in-memory persistence. `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `role.service.ts`, `src/hosts`, and `src/adapters` are confirmed unmodified; the only existing-file change is the one authorized composition touch point in `create-kernel-services.ts`. `Execution Session` (RFC-0004's existing, narrower concept) remains correctly unimplemented; RFC-0004's own "Execution Session" section text is unmodified. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes 65 files / 308 tests, with one non-regressing, environment-load-induced timeout observed on a single run against the Kernel Boundary Certification test's static import-scan (confirmed to pass consistently in isolation and across a majority of full-suite runs). Overall disposition: **PASS**.
+
+One Category 6 Observation was recorded; it generates no Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-017-F-001 — Composition test named in the Sprint record is verified indirectly, not by a standalone test
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `knowledge/implementation/sprints/sprint-0039-engineering-sessions-foundation.md` — Authorized Vertical Slice unit-test list
+- **Summary:** The Sprint record names "a composition test asserting `createKernelServices()` composes the Session repository and `EngineeringSessionService` without altering any existing composed service." No standalone test carries that specific assertion; it is instead verified indirectly through `kernel-boundary-certification.integration.test.ts`'s expanded `expectedKernelServiceNames` list, `KernelHarness`/`createHarness()` wiring, and an `enumerateEngineeringSessions()` empty-array assertion.
+- **Impact:** None — the underlying property (correct, non-disruptive Kernel composition) is proven correct; only the specific test-file organization named in the Sprint record differs. This is the identical situation the Sprint 38 review (`NEXUS-REV-2026-07-14-015`) classified as a non-blocking Observation for the equivalent bullet.
+- **Required Disposition:** No action.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 1 (F-001) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 65 files / 308 tests (one non-regressing full-suite-load timeout observed and isolated; confirmed passing in isolation and on majority of full-suite reruns) |
+
+### Deferred Concept Validation
+
+All Sprint 39 Deferred Concepts remain unimplemented: Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, and `Execution Session` implementation. No deferred concept was silently introduced. RFC-0004's existing "Execution Session" section is confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `EngineeringSession` owns engineering runtime context, active workflow reference, participating Engineering Roles, workflow state, session timeline, diagnostics, and collaboration metadata, exactly per RFC-0004 v1.2's Architectural Responsibilities. It does not redefine or duplicate `Execution Session`'s responsibilities, and carries no execution semantics, dispatch eligibility, Assignment Policy, Workflow Chaining, or orchestration behavior. Compliant.
+- **Aggregate discipline:** `EngineeringSession` is immutable per snapshot, with dedicated validation and lifecycle errors; `close()` correctly rejects a second transition. Compliant.
+- **Service orchestration:** `EngineeringSessionService` is thin — create/close/lookup/enumerate only, delegating all validation and lifecycle rules to `EngineeringSession`. Compliant with the established Kernel service pattern (mirrors `KnowledgeService`, `RoleService`).
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution-domain file modified beyond the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Tests:** 3 new files / covering domain construction, validation, equality, immutability, lifecycle transitions, repository create/save/lookup/enumerate/duplicate-rejection, and service create/close/lookup/enumerate/diagnostics; Kernel Boundary Certification test extended consistently with the Sprint 37/38 precedent. Full suite 308/308 passing (isolation-verified for the one full-suite-load timeout).
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded. Sprint 39 satisfies its approval criteria: implementation conforms to RFC-0004 v1.2 and `NEXUS-RAT-2026-07-14-018`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 39 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0039-engineering-sessions-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 39 marked **Approved**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Workflow Chaining, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 39: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
 ## NEXUS-REV-2026-07-14-016 — Sprint 38 — Engineering Role Profiles Foundation (DOC-004 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 38 — Engineering Role Profiles Foundation
