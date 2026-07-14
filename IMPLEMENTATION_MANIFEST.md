@@ -1637,9 +1637,9 @@ Notes:
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 — Workflow Chain Execution Current, authorized by NEXUS-RAT-2026-07-15-004)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 — Assignment Policy Integration Implemented — Pending Reviewer Validation, authorized by NEXUS-RAT-2026-07-15-006)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (Sprint 46, `NEXUS-REV-2026-07-15-001`). RFC-0004 was further amended to v1.6 (`NEXUS-RAT-2026-07-15-003`) to add "Workflow Chain Execution" — executing the Workflow Step at the current position, distinct from Workflow Advancement — after governance analysis found this capability explicitly reserved but unauthorized by v1.3/v1.4. Sprint 47 (`NEXUS-RAT-2026-07-15-004`) is Current, implementing that section. Remaining candidate scope after Sprint 47: Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (Sprint 46, `NEXUS-REV-2026-07-15-001`). RFC-0004 was further amended to v1.6 (`NEXUS-RAT-2026-07-15-003`) to add "Workflow Chain Execution" — executing the Workflow Step at the current position, distinct from Workflow Advancement — after governance analysis found this capability explicitly reserved but unauthorized by v1.3/v1.4. Sprint 47 (`NEXUS-RAT-2026-07-15-004`) implemented that section and is Approved (`NEXUS-REV-2026-07-15-003`, fully closed with zero open findings). During Sprint 48's planning, a Sprint Owner request to evaluate "Assignment Policy Foundation" was re-scoped after governance analysis found that capability already certified as Sprint 44; RFC-0004 was amended to v1.7 (`NEXUS-RAT-2026-07-15-005`) to add an "Assignment Policy Evaluation" subsection to Workflow Chain Execution. Sprint 48 (`NEXUS-RAT-2026-07-15-006`) is Implemented — Pending Reviewer Validation for that subsection. Remaining candidate scope after Sprint 48: Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) introducing `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, and concurrent session coordination remain explicitly deferred pending their own future scope ratifications.
 
@@ -1997,6 +1997,46 @@ Notes:
 - See `knowledge/implementation/sprints/sprint-0047-workflow-chain-execution.md` for the complete Sprint Implementation Record.
 - This Sprint does not modify RFC-0006, the Kernel Canon, or any other RFC beyond `NEXUS-RAT-2026-07-15-003`'s RFC-0004 v1.6 amendment.
 - Execution and Advancement remain separate operations; this Sprint SHALL NOT fold execution into any existing `advanceWorkflow*` method or cause execution to implicitly advance the workflow position.
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-003`). `TASK-001` remediated the sole finding from `NEXUS-REV-2026-07-15-002`; Sprint 47 is fully closed with zero open findings.
+
+---
+
+## Sprint 48 — Assignment Policy Integration
+
+Status: Implemented — Pending Reviewer Validation.
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model v1.7 (Primary; new "Workflow Chain Execution" § Assignment Policy Evaluation subsection).
+- Referenced: RFC-0004 v1.3 "Assignment Policy" (Sprint 44, unmodified); RFC-0004 v1.6 "Workflow Chain Execution" (Sprint 47, unmodified); RFC-0010 — Kernel Boundaries.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-15-006` — governs this Sprint's entire scope: the binding Objective, the binding Architectural Responsibilities, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-15-005` — the companion RFC-0004 v1.7 amendment defining Assignment Policy Evaluation this Sprint implements.
+
+Authorized Concepts:
+
+- Extension of `ExecuteCurrentWorkflowStepCommand` with an optional Assignment Policy reference and optional evaluation-input fields.
+- Extension of `EngineeringSessionService.executeCurrentWorkflowStep` to invoke the existing, unmodified `AssignmentPolicyService.evaluateAssignmentPolicy` (Sprint 44) with the resolved `WorkflowStep`'s `RoleId` as the required-role input, before Adapter dispatch, when a reference is supplied.
+- A new deterministic rejection outcome on `EngineeringSessionWorkflowExecutionStatus` (e.g. `AssignmentPolicyRejected`), mirroring the existing `ReadinessRejected` shape.
+- `createKernelServices` composition updated only as strictly required to supply `AssignmentPolicyService` to `EngineeringSessionService` as an optional collaborator.
+
+Deferred Concepts:
+
+- Adapter Selection, Adapter routing, capability scoring, or fallback logic.
+- Automatic Assignment Policy binding, inference, or lookup by `WorkflowStep`.
+- Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, Task lifecycle transition.
+- Any modification to `AssignmentPolicy`, `AssignmentPolicyService`, `IAssignmentPolicyRepository`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, or `Finding`.
+- Any modification to Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, or Sprint 46's `advanceWorkflowAfterReview()`.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0048-assignment-policy-integration.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify RFC-0006, the Kernel Canon, or any other RFC beyond `NEXUS-RAT-2026-07-15-005`'s RFC-0004 v1.7 amendment.
+- When no Assignment Policy reference is supplied, `executeCurrentWorkflowStep` SHALL behave identically to Sprint 47's certified implementation.
+- This Sprint determines Execution Role eligibility only; no Adapter Selection or role routing is introduced.
 
 ---
 

@@ -1,5 +1,6 @@
 import type { EngineeringSessionState } from './engineering-session-status';
 import type { AdapterResponseSnapshot } from '../adapter/adapter-response';
+import type { AssignmentPolicyEvaluationResult } from './assignment-policy.types';
 import type { AssignmentReadinessResult } from './execution-strategy.types';
 import type { ExecutionSessionSnapshot } from './execution-session.types';
 
@@ -8,6 +9,7 @@ export type EngineeringSessionMetadata = Readonly<Record<string, string>>;
 export const engineeringSessionWorkflowExecutionStatuses = [
   'Completed',
   'Failed',
+  'AssignmentPolicyRejected',
   'ReadinessRejected',
 ] as const;
 
@@ -90,6 +92,7 @@ export interface EngineeringSessionWorkflowExecutionResult {
   readonly taskId: string;
   readonly adapterId: string;
   readonly readiness?: AssignmentReadinessResult;
+  readonly assignmentPolicy?: AssignmentPolicyEvaluationResult;
   readonly adapterResponse?: AdapterResponseSnapshot;
   readonly executionSession?: ExecutionSessionSnapshot;
   readonly diagnostics: readonly EngineeringSessionDiagnosticSnapshot[];

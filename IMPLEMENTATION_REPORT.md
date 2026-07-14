@@ -1,5 +1,113 @@
 # Nexus Implementation Report
 
+## Sprint 48 — Assignment Policy Integration
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 48 Assignment Policy Integration vertical slice. This sprint adds RFC-0004 v1.7's optional Assignment Policy Evaluation gate to `EngineeringSessionService.executeCurrentWorkflowStep` while preserving Sprint 47 Workflow Chain Execution behavior when no Assignment Policy reference is supplied.
+
+Implemented scope:
+
+- Extended `ExecuteCurrentWorkflowStepCommand` with an explicit optional `assignmentPolicyId` and optional `assignmentPolicyEvaluationInput` matching the existing `AssignmentPolicyEvaluationInput` factors except `requiredRole`, which is supplied from the resolved current `WorkflowStep` RoleId.
+- Added `AssignmentPolicyRejected` to `EngineeringSessionWorkflowExecutionStatus`.
+- Added deterministic rejection before Adapter dispatch and before `ExecutionSession` creation when `AssignmentPolicyService.evaluateAssignmentPolicy` reports `satisfied: false`.
+- Reused the existing, unmodified `AssignmentPolicyService.evaluateAssignmentPolicy` and `AssignmentPolicy.evaluate()` behavior; no Assignment Policy value objects or evaluation semantics were changed.
+- Updated `createKernelServices()` only to supply the composed `AssignmentPolicyService` instance to `EngineeringSessionService`.
+- Added focused coverage for satisfied policy execution, unsatisfied policy rejection, omitted policy behavior, deterministic policy outcomes, advancement regression safety, and Kernel composition continuity.
+
+Out of scope and not implemented:
+
+- Adapter Selection, Adapter routing, capability scoring, or fallback logic.
+- Automatic Assignment Policy binding, inference, lookup by `WorkflowStep`, or policy selection.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing or concurrent session/workflow coordination.
+- Task lifecycle transition.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.7 (`Workflow Chain Execution` / `Assignment Policy Evaluation`).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model v1.3 (`Assignment Policy`; existing semantics reused).
+- RFC-0004 — Execution Model v1.6 (`Workflow Chain Execution`; Sprint 47 behavior preserved except this optional gate).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Caller-supplied Assignment Policy reference for Workflow Chain Execution.
+- Assignment Policy Evaluation consumption point before Adapter dispatch.
+- Use of resolved current `WorkflowStep` RoleId as Assignment Policy `requiredRole` input.
+- Deterministic `AssignmentPolicyRejected` outcome with no Adapter dispatch and no `ExecutionSession` record.
+
+Deferred Concepts:
+
+- Adapter Selection, routing, capability scoring, and fallback logic.
+- Automatic Assignment Policy binding, inference, lookup, or selection.
+- Multi-Agent Engineering Orchestration.
+- Session recovery/checkpointing and concurrent session coordination.
+- Task lifecycle transition.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-15-005`, `NEXUS-RAT-2026-07-15-006`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0048-assignment-policy-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The caller supplies the explicit Assignment Policy reference and evaluation input when policy gating is required.
+- `EngineeringSessionService` owns only the consumption gate; Assignment Policy value objects and evaluation semantics remain owned by `AssignmentPolicy`/`AssignmentPolicyService`.
+- Existing readiness evaluation remains part of Sprint 47 Workflow Chain Execution and continues to reject before dispatch when readiness fails.
+
+### Known Limitations
+
+- Assignment Policy Evaluation gates only the single already-resolved current `WorkflowStep` RoleId.
+- No persistent binding exists between a `WorkflowStep` and an `AssignmentPolicy`.
+- Adapter selection remains entirely caller-supplied through explicit `adapterId`.
+- Sessions and execution sessions remain in-memory only; no durable persistence is implemented.
+
+### Validation Summary
+
+- Targeted Sprint 48 validation passed: `npx vitest run test/kernel/execution/engineering-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts` (27 tests).
+- TypeScript compile passed: `npm run compile`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (75 files / 374 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+### TASK-001 Remediation — NEXUS-REV-2026-07-15-004-F-001
+
+Implemented the test-only remediation for `TASK-001`.
+
+Remediation scope:
+
+- Added coverage for `executeCurrentWorkflowStep()` rejecting with `InvalidEngineeringSessionDefinitionError` when `assignmentPolicyId` is supplied without `assignmentPolicyEvaluationInput`, with no `ExecutionSession` created and no Adapter invocation.
+- Added coverage for `requireAssignmentPolicyService()` rejecting with `InvalidEngineeringSessionDefinitionError` when `assignmentPolicyId` is supplied but `EngineeringSessionService` was constructed without an `assignmentPolicyService` collaborator, with no `ExecutionSession` created and no Adapter invocation.
+
+No production source files were modified for this remediation.
+
+Validation:
+
+- Targeted remediation validation passed: `npx vitest run test/kernel/execution/engineering-session.service.test.ts` (25 tests).
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (75 files / 376 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+
+---
+
 ## Sprint 47 — Workflow Chain Execution
 
 ### Implemented Slice

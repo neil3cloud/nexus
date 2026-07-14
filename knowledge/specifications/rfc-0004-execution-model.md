@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.6
+**Version:** 1.7
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -16,6 +16,7 @@
 - v1.4 — Adds Workflow Advancement (Sprint Owner Ratification `NEXUS-RAT-2026-07-14-025`). Workflow Advancement is the generalized, normative model for how an Engineering Session's current workflow position moves forward within its bound Workflow Chain, organized around six concepts (Advancement Strategy, Advancement Trigger, Advancement Eligibility, Advancement Authority, Advancement Result, Advancement Failure) and exactly three named Advancement Strategies (Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement). Manual Advancement is the existing Sprint 43 capability, unmodified and unexpanded by this amendment. Automatic/Event-Driven Advancement and Review-Gated Advancement are named but not yet implemented; each requires its own future Sprint Owner scope ratification. Engineering Session's existing ownership of runtime progression (RFC-0004 v1.2/v1.3) is unmodified; this amendment organizes and names the strategies by which that progression occurs. No other section of this specification is modified.
 - v1.5 — Defines Review-Gated Advancement's gating semantics (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-001`). Introduces the **Blocking Review Outcome** / **Non-Blocking Review Outcome** classification of RFC-0006's `ReviewOutcome` values: Accepted and Accepted With Observations are Non-Blocking; Action Required and Rejected are Blocking. Review-Gated Advancement's Advancement Eligibility additionally requires a Non-Blocking Review Outcome. This amendment defines gating semantics only; it does not authorize implementation, which requires its own future Sprint Owner scope ratification. Manual Advancement, Automatic/Event-Driven Advancement, Engineering Session, Workflow Chain, and RFC-0006 are unmodified. No other section of this specification is modified.
 - v1.6 — Adds Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-003`). Defines the act of executing the Workflow Step at an Engineering Session's current workflow position — resolving the Workflow Step's Execution Role, invoking the existing Execution Strategy, and dispatching through the existing Adapter contract (explicit `adapterId` only; no Adapter Selection) — distinct from Workflow Advancement, which only moves the current workflow position. Execution is recorded through the existing Execution Session model without redefining Execution Session's own lifecycle. This amendment does not modify Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, Assignment Policy, or RFC-0006; it does not introduce Assignment Policy evaluation, Adapter Selection, Multi-Agent Orchestration, or Task lifecycle transition. No other section of this specification is modified.
+- v1.7 — Adds Assignment Policy Evaluation to Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-005`). Defines an optional consumption point at which Workflow Chain Execution, given a caller-supplied Assignment Policy reference, consults the existing Assignment Policy's existing deterministic evaluation to gate dispatch: when the resolved Workflow Step's Execution Role and supplied evaluation input do not satisfy the referenced Assignment Policy, Workflow Chain Execution SHALL reject execution before Adapter dispatch and before any Execution Session is recorded. This amendment does not modify Assignment Policy's own definition, evaluation semantics, or value objects (v1.3, unmodified); it does not introduce Adapter Selection, Adapter routing, capability scoring, automatic Assignment Policy binding/inference, Multi-Agent Orchestration, or Task lifecycle transition. When no Assignment Policy reference is supplied, Workflow Chain Execution's existing v1.6 behavior is unchanged. No other section of this specification is modified.
 
 ---
 
@@ -434,6 +435,20 @@ Workflow Chain Execution SHALL reuse the previously certified Engineering Sessio
 Workflow Chain Execution SHALL remain deterministic and provider-agnostic, consistent with this specification's existing Execution Strategy and Adapter Contract guarantees.
 
 This amendment intentionally preserves future compatibility with Assignment Policy, Session Recovery/Checkpointing, Concurrent Session Coordination, and Multi-Agent Engineering Orchestration. None of these capabilities are introduced or implied by Workflow Chain Execution.
+
+## Assignment Policy Evaluation
+
+Workflow Chain Execution MAY accept a caller-supplied Assignment Policy reference alongside its existing execution inputs.
+
+When an Assignment Policy reference is supplied, Workflow Chain Execution SHALL invoke that Assignment Policy's existing deterministic evaluation, supplying the resolved Workflow Step's Execution Role and the caller-supplied evaluation input, before Adapter dispatch.
+
+When the evaluation is not satisfied, Workflow Chain Execution SHALL reject execution deterministically: no Adapter dispatch SHALL occur and no Execution Session record SHALL be created.
+
+When no Assignment Policy reference is supplied, Workflow Chain Execution SHALL proceed exactly as defined by this specification's v1.6 amendment, unchanged.
+
+This section SHALL NOT redefine Assignment Policy's own value objects, evaluation semantics, or determinism guarantees; those remain exclusively owned by this specification's Assignment Policy section, unmodified. This section owns only the consumption point at which that evaluation gates Workflow Chain Execution's existing dispatch step.
+
+This section SHALL NOT introduce Assignment Policy selection, inference, or automatic binding to a Workflow Step; the Assignment Policy reference SHALL be supplied explicitly by the caller.
 
 ---
 

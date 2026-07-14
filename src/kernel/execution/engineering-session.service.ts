@@ -5,6 +5,8 @@ import { AdapterRequest } from '../adapter/adapter-request';
 import type { AdapterService } from '../adapter/adapter.service';
 import { KernelError } from '../common/kernel-error';
 import { AdvancementTrigger } from './advancement-trigger';
+import type { AssignmentPolicyService } from './assignment-policy.service';
+import type { AssignmentPolicyEvaluationResult } from './assignment-policy.types';
 import { EngineeringSession } from './engineering-session';
 import type {
   AdvanceEngineeringSessionWorkflowCommand,
@@ -48,6 +50,18 @@ type ReadinessRejectedWorkflowExecutionResult = EngineeringSessionWorkflowExecut
   readonly status: 'ReadinessRejected';
 };
 
+type AssignmentPolicyRejectedWorkflowExecutionResult = EngineeringSessionWorkflowExecutionResult & {
+  readonly status: 'AssignmentPolicyRejected';
+  readonly assignmentPolicy: AssignmentPolicyEvaluationResult;
+};
+
+type WorkflowExecutionAssignmentPolicyEvaluation =
+  | {
+      readonly status: 'Satisfied';
+      readonly assignmentPolicy: AssignmentPolicyEvaluationResult;
+    }
+  | AssignmentPolicyRejectedWorkflowExecutionResult;
+
 export class EngineeringSessionService
   extends ServiceLifecycle
   implements EngineeringSessionServiceContract
@@ -65,6 +79,10 @@ export class EngineeringSessionService
     private readonly executionSessionService?: Pick<
       ExecutionSessionService,
       'createExecutionSession'
+    >,
+    private readonly assignmentPolicyService?: Pick<
+      AssignmentPolicyService,
+      'evaluateAssignmentPolicy'
     >,
   ) {
     super('EngineeringSessionService');
@@ -190,6 +208,18 @@ export class EngineeringSessionService
     }
 
     const readinessResult = readiness.readiness;
+    const assignmentPolicyEvaluation = await this.evaluateAssignmentPolicy(
+      command,
+      workflowStepRoleId,
+      engineeringSession.toSnapshot(),
+      taskId,
+      adapterId,
+    );
+
+    if (assignmentPolicyEvaluation?.status === 'AssignmentPolicyRejected') {
+      return assignmentPolicyEvaluation;
+    }
+
     const startedAt = this.createTimestamp();
     const adapterResponse = await adapterService.dispatch({
       adapterId,
@@ -232,6 +262,9 @@ export class EngineeringSessionService
       taskId,
       adapterId,
       readiness: readinessResult,
+      ...(assignmentPolicyEvaluation === undefined
+        ? {}
+        : { assignmentPolicy: assignmentPolicyEvaluation.assignmentPolicy }),
       adapterResponse: adapterResponse.toSnapshot(),
       executionSession,
       diagnostics: adapterResponse.diagnostics.map((diagnostic) =>
@@ -344,6 +377,62 @@ export class EngineeringSessionService
     });
   }
 
+  private async evaluateAssignmentPolicy(
+    command: ExecuteCurrentWorkflowStepCommand,
+    workflowStepRoleId: string,
+    engineeringSession: EngineeringSessionSnapshot,
+    taskId: string,
+    adapterId: string,
+  ): Promise<WorkflowExecutionAssignmentPolicyEvaluation | undefined> {
+    if (command.assignmentPolicyId === undefined) {
+      return undefined;
+    }
+
+    if (command.assignmentPolicyEvaluationInput === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution Assignment Policy Evaluation requires assignmentPolicyEvaluationInput.',
+      );
+    }
+
+    const assignmentPolicyService = this.requireAssignmentPolicyService();
+    const assignmentPolicyId = normalizeCreationReference(
+      command.assignmentPolicyId,
+      'EngineeringSession assignmentPolicyId',
+    );
+    const assignmentPolicy = await assignmentPolicyService.evaluateAssignmentPolicy({
+      assignmentPolicyId,
+      input: {
+        requiredRole: workflowStepRoleId,
+        ...command.assignmentPolicyEvaluationInput,
+      },
+    });
+
+    if (assignmentPolicy.satisfied) {
+      return Object.freeze({
+        status: 'Satisfied' as const,
+        assignmentPolicy,
+      });
+    }
+
+    return Object.freeze({
+      status: 'AssignmentPolicyRejected',
+      engineeringSession,
+      workflowChainId: engineeringSession.workflowChainId,
+      currentWorkflowStepId: engineeringSession.currentWorkflowStepId,
+      workflowStepRoleId,
+      taskId,
+      adapterId,
+      assignmentPolicy,
+      diagnostics: Object.freeze([
+        Object.freeze({
+          code: 'engineering-session.assignment-policy-rejected',
+          message: `AssignmentPolicy '${assignmentPolicy.assignmentPolicyId}' was not satisfied for WorkflowStep Role '${workflowStepRoleId}'.`,
+          recordedAt: this.createTimestamp(),
+        }),
+      ]),
+    });
+  }
+
   private requireExecutionStrategyService(): Pick<
     ExecutionStrategyService,
     'evaluateAssignmentReadiness'
@@ -378,6 +467,19 @@ export class EngineeringSessionService
     }
 
     return this.executionSessionService;
+  }
+
+  private requireAssignmentPolicyService(): Pick<
+    AssignmentPolicyService,
+    'evaluateAssignmentPolicy'
+  > {
+    if (this.assignmentPolicyService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution Assignment Policy Evaluation requires AssignmentPolicyService.',
+      );
+    }
+
+    return this.assignmentPolicyService;
   }
 }
 

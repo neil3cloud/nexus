@@ -2,6 +2,132 @@
 
 ---
 
+## NEXUS-REV-2026-07-15-005 — Sprint 48 — Assignment Policy Integration (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 48 — Assignment Policy Integration
+- **Reviewed Change:** `builder-task.md` `TASK-001` remediation of `NEXUS-REV-2026-07-15-004-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.7 ("Workflow Chain Execution" § Assignment Policy Evaluation, unmodified by this remediation). Referenced: RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-15-004-F-001`. The Builder added two test cases to `test/kernel/execution/engineering-session.service.test.ts`: (1) `'rejects AssignmentPolicy evaluation when an AssignmentPolicy reference is supplied without evaluation input'` — supplies `assignmentPolicyId` without `assignmentPolicyEvaluationInput`, asserting rejection with `InvalidEngineeringSessionDefinitionError`, no `ExecutionSession` created, and no Adapter invocation; (2) `'rejects AssignmentPolicy evaluation when AssignmentPolicyService is not supplied'` — uses a new harness helper, `createWorkflowExecutionHarnessWithoutAssignmentPolicyService()`, which constructs `EngineeringSessionService` with its `assignmentPolicyService` constructor argument omitted (confirmed by direct inspection: the 8th constructor argument is absent from the `new EngineeringSessionService(...)` call, distinct from the harness's separately-held `assignmentPolicyService` used only to seed the `AssignmentPolicy` record itself) while supplying both `assignmentPolicyId` and `assignmentPolicyEvaluationInput`, asserting the same rejection with no `ExecutionSession` created and no Adapter invocation.
+
+`git diff --stat` confirms the remediation touches only `test/kernel/execution/engineering-session.service.test.ts` (purely additive) plus `IMPLEMENTATION_REPORT.md`. No production source file was modified — `engineering-session.service.ts`, `engineering-session.contract.ts`, `engineering-session.types.ts`, and `create-kernel-services.ts` remain identical (byte-for-byte, confirmed by unchanged diff line counts) to what was already reviewed and approved in `NEXUS-REV-2026-07-15-004`.
+
+Independent re-validation confirms `tsc --noEmit`, ESLint, the targeted test file in isolation (25/25 tests, matching the Builder's reported count), a full `npm run validate` run (75 files / 376 tests, matching the Builder's reported count exactly), and `npm run test:extension-host:build` all pass cleanly.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-15-004-F-001` is fully resolved with no residual or newly introduced defect.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Findings resolved this review | 1 (F-001) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (25/25), `npm run validate` (Vitest 75 files / 376 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 48 deferred concepts (Adapter Selection/routing/scoring, automatic Assignment Policy binding/inference/lookup, Multi-Agent Engineering Orchestration, Task lifecycle transition, session recovery/checkpointing, concurrent session coordination, any `src/hosts`/`src/adapters` change) remain confirmed absent.
+
+### Architectural Compliance Summary
+
+- **Test-only remediation:** Exactly the two branches identified by `NEXUS-REV-2026-07-15-004-F-001` are now covered; no production behavior changed.
+- **No regression:** All previously passing Sprint 48 tests continue to pass unmodified; the full repository suite passes at 75 files / 376 tests.
+- **Scope discipline:** No file beyond `test/kernel/execution/engineering-session.service.test.ts` and `IMPLEMENTATION_REPORT.md` was touched.
+
+### Builder Task Recommendation
+
+None. `TASK-001` is fully closed with no residual finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0048-assignment-policy-integration.md`) — Status updated to Approved; Reviewer Notes and Final Disposition updated to reflect `F-001`'s closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 48 marked Approved (no open findings remain).
+
+### Work Item State Reconciliation
+
+- Sprint 48: Status → **Approved** (`NEXUS-REV-2026-07-15-005`; fully closed, zero open findings).
+- Work Order: Status → **Completed**.
+- Builder Tasks: `TASK-001` → **Completed** (acceptance criteria satisfied; verified above).
+
+---
+
+## NEXUS-REV-2026-07-15-004 — Sprint 48 — Assignment Policy Integration
+
+- **Reviewed Sprint:** Sprint 48 — Assignment Policy Integration
+- **RFC Coverage:** RFC-0004 — Execution Model v1.7 ("Workflow Chain Execution" § Assignment Policy Evaluation, new subsection). Referenced: RFC-0004 v1.3 ("Assignment Policy", unmodified), RFC-0004 v1.6 ("Workflow Chain Execution", unmodified except this Sprint's new optional gate), RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 48 extends `EngineeringSessionService.executeCurrentWorkflowStep` (Sprint 47) with an optional Assignment Policy Evaluation gate, exactly per `NEXUS-RAT-2026-07-15-006`'s Authorized Builder Scope. `ExecuteCurrentWorkflowStepCommand` gained an optional `assignmentPolicyId` and `assignmentPolicyEvaluationInput` (typed as `Omit<AssignmentPolicyEvaluationInput, 'requiredRole'>` — a correct, minimal interpretation, since the required-role input is the already-resolved `WorkflowStep` `RoleId`, not a caller-supplied value). `EngineeringSessionWorkflowExecutionStatus` gained one new outcome, `AssignmentPolicyRejected`, mirroring the existing `ReadinessRejected` shape. `createKernelServices` was extended only to supply the already-composed `AssignmentPolicyService` instance to `EngineeringSessionService` as an optional collaborator.
+
+Direct diff inspection (`git diff --stat`) confirms `AssignmentPolicy`, `AssignmentPolicyService`, `IAssignmentPolicyRepository`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, the `EngineeringSession` aggregate itself (`engineering-session.ts` — zero diff; the gate lives entirely in the service layer), Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, and every `src/hosts`/`src/adapters` file are all byte-for-byte unmodified. The new gate is evaluated after Sprint 47's existing readiness check and strictly before Adapter dispatch and before `ExecutionSession` construction, matching the ratified ordering. When `assignmentPolicyId` is omitted, the new code path returns `undefined` immediately and the result construction spreads in `assignmentPolicy` only when defined — confirmed regression-safe and byte-for-byte identical to Sprint 47 by a dedicated test and by the shared code path being otherwise unchanged.
+
+Independent re-validation: `tsc --noEmit` clean; ESLint clean on all changed files; targeted Vitest (`engineering-session.service.test.ts`, `engineering-session.test.ts`, `kernel-boundary-certification.integration.test.ts`) 44/44 passing; full `npm run validate` — TypeScript compile, ESLint, Vitest 75 files / 374 tests, esbuild — all passing, matching the Builder's reported count exactly; `npm run test:extension-host:build` passing.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-004-F-001 — Two new defensive/guard branches have no exercising test
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 11 (Testing — "New behavior is covered").
+- **Evidence:** `src/kernel/execution/engineering-session.service.ts`, `evaluateAssignmentPolicy()`: (a) throws `InvalidEngineeringSessionDefinitionError` when `command.assignmentPolicyId` is supplied but `command.assignmentPolicyEvaluationInput` is `undefined`; (b) `requireAssignmentPolicyService()` throws `InvalidEngineeringSessionDefinitionError` when `assignmentPolicyId` is supplied but the `EngineeringSessionService` was constructed without an `assignmentPolicyService` collaborator. `grep` across `test/kernel/execution/engineering-session.service.test.ts` for `assignmentPolicyId`/`assignmentPolicyEvaluationInput`/`assignmentPolicyService` confirms every existing test either supplies both fields together against a harness that always constructs `AssignmentPolicyService`, or omits `assignmentPolicyId` entirely — neither guard branch is exercised.
+- **Impact:** Directly analogous to Sprint 47's `NEXUS-REV-2026-07-15-002-F-001` (four untested defensive branches in the same method), which the Sprint Owner and Reviewer treated as Minor and non-blocking. Both branches are reachable under the certified Kernel composition (an `EngineeringSessionService` caller could omit `assignmentPolicyEvaluationInput`, or a future composition could omit `assignmentPolicyService` while still supplying `assignmentPolicyId`) but do not currently affect any certified behavior path, since `createKernelServices()` always supplies `assignmentPolicyService`.
+- **Recommended Disposition:** Builder Task — add test coverage for the two branches identified above. No production-code change is implied or required.
+- **Builder Action:** Fix (add tests only).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 1 (F-001, test-only) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (44/44), `npm run validate` (Vitest 75 files / 374 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Confirmed absent, per `NEXUS-RAT-2026-07-15-006`'s scope restrictions: Adapter Selection/routing/capability scoring, automatic Assignment Policy binding/inference/lookup, Multi-Agent Engineering Orchestration, Task lifecycle transition, session recovery/checkpointing, concurrent session/workflow coordination, and any `src/hosts`/`src/adapters` change. `AssignmentPolicy`'s own value objects and evaluation semantics (Sprint 44) remain unmodified and are consumed read-only through the existing public `evaluateAssignmentPolicy` method only.
+
+### Architectural Compliance Summary
+
+- **Ownership Model honored:** Assignment Policy value objects/evaluation remain owned by Sprint 44's `AssignmentPolicy`/`AssignmentPolicyService`, unmodified; the new consumption gate is owned entirely by `EngineeringSessionService.executeCurrentWorkflowStep`, per `NEXUS-RAT-2026-07-15-006`'s Architectural Responsibilities table.
+- **Gate ordering correct:** Assignment Policy evaluation occurs after readiness evaluation and strictly before Adapter dispatch/`ExecutionSession` creation, matching RFC-0004 v1.7 § Assignment Policy Evaluation.
+- **Explicit reference only:** No automatic Assignment Policy binding, inference, or lookup by `WorkflowStep` was introduced; the reference and evaluation input are caller-supplied only, consistent with the standing explicit-`adapterId`-only guardrail this amendment extends to Assignment Policy.
+- **Regression safety confirmed:** Sprint 47 behavior is byte-for-byte identical when no Assignment Policy reference is supplied (dedicated test, plus unchanged code path).
+- **No scope creep:** `AssignmentPolicy`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, the `EngineeringSession` aggregate, all three Advancement methods, and `src/hosts`/`src/adapters` are confirmed byte-for-byte unmodified via direct diff inspection.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-004-F-001` (add test coverage for the two untested defensive branches; no production-code change required). This finding does not block approval — recommend the Sprint Owner mark Sprint 48 **Approved with Findings**, consistent with the Sprint 47 precedent for an identically-shaped finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0048-assignment-policy-integration.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 48 marked Approved with Findings.
+
+### Work Item State Reconciliation
+
+- Sprint 48: Status → **Approved with Findings** (`NEXUS-REV-2026-07-15-004`; one open Builder Task, test-only, non-blocking).
+- Work Order: Status → **Completed**.
+- Builder Tasks: One Builder Task generated for `NEXUS-REV-2026-07-15-004-F-001` (test-coverage addition); non-blocking.
+
+---
+
 ## NEXUS-REV-2026-07-15-003 — Sprint 47 — Workflow Chain Execution (TASK-001 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 47 — Workflow Chain Execution

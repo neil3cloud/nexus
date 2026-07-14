@@ -60,6 +60,7 @@ export function createKernelServices(
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
   const adapterService = new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0'));
   const executionSessionService = new ExecutionSessionService(executionSessionRepository);
+  const assignmentPolicyService = new AssignmentPolicyService(assignmentPolicyRepository);
   const executionStrategyService = new ExecutionStrategyService(
     executionStrategyRepository,
     roleAssignmentRepository,
@@ -73,6 +74,7 @@ export function createKernelServices(
     executionStrategyService,
     adapterService,
     executionSessionService,
+    assignmentPolicyService,
   );
 
   return [
@@ -87,7 +89,7 @@ export function createKernelServices(
     engineeringSessionService,
     executionSessionService,
     new WorkflowChainService(workflowChainRepository),
-    new AssignmentPolicyService(assignmentPolicyRepository),
+    assignmentPolicyService,
     executionStrategyService,
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),

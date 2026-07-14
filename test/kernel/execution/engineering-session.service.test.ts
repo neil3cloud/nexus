@@ -8,6 +8,8 @@ import { InMemoryAdapterRegistry } from '../../../src/kernel/adapter/adapter-reg
 import { AdapterService } from '../../../src/kernel/adapter/adapter.service';
 import type { EventBusContract, EventBusEvent, EventSubscriptionHandle } from '../../../src/kernel/common/event-bus-contract';
 import { ProtocolVersion } from '../../../src/kernel/adapter/protocol-version';
+import { InMemoryAssignmentPolicyRepository } from '../../../src/kernel/execution/assignment-policy.repository';
+import { AssignmentPolicyService } from '../../../src/kernel/execution/assignment-policy.service';
 import {
   EngineeringSessionNotFoundError,
   InvalidEngineeringSessionDefinitionError,
@@ -88,6 +90,7 @@ class RecordingAdapter implements Adapter {
 
 interface WorkflowExecutionHarness {
   readonly service: EngineeringSessionService;
+  readonly assignmentPolicyService: AssignmentPolicyService;
   readonly roleService: RoleService;
   readonly executionSessionService: ExecutionSessionService;
   readonly missionService: MissionService;
@@ -655,6 +658,157 @@ describe('EngineeringSessionService', () => {
     });
   });
 
+  it('executes the current WorkflowStep when the supplied AssignmentPolicy is satisfied', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'assignment-policy-satisfied');
+    const assignmentPolicy = await createWorkflowExecutionAssignmentPolicy(
+      harness,
+      'assignment-policy-satisfied',
+    );
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+      assignmentPolicyId: assignmentPolicy.id,
+      assignmentPolicyEvaluationInput: createSatisfiedAssignmentPolicyEvaluationInput(),
+    });
+
+    expect(result).toMatchObject({
+      status: 'Completed',
+      readiness: {
+        roleId: 'builder',
+      },
+      assignmentPolicy: {
+        assignmentPolicyId: assignmentPolicy.id,
+        satisfied: true,
+        requirements: {
+          requiredRole: true,
+          adapterExecutionCapability: true,
+          repositoryConfiguration: true,
+          executionConstraints: true,
+          humanPreferences: true,
+        },
+      },
+      executionSession: {
+        engineeringSessionId: workflow.engineeringSessionId,
+        assignedRole: 'builder',
+        assignedAdapter: 'recording-adapter',
+      },
+    });
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([result.executionSession]);
+    expect(harness.adapter.requests).toHaveLength(1);
+  });
+
+  it('rejects WorkflowStep execution when the supplied AssignmentPolicy is not satisfied', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'assignment-policy-rejected');
+    const assignmentPolicy = await createWorkflowExecutionAssignmentPolicy(
+      harness,
+      'assignment-policy-rejected',
+    );
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+      assignmentPolicyId: assignmentPolicy.id,
+      assignmentPolicyEvaluationInput: {
+        ...createSatisfiedAssignmentPolicyEvaluationInput(),
+        adapterExecutionCapability: 'DocumentationReview',
+      },
+    });
+
+    expect(result).toMatchObject({
+      status: 'AssignmentPolicyRejected',
+      currentWorkflowStepId: '0',
+      workflowStepRoleId: 'builder',
+      assignmentPolicy: {
+        assignmentPolicyId: assignmentPolicy.id,
+        satisfied: false,
+        requirements: {
+          requiredRole: true,
+          adapterExecutionCapability: false,
+          repositoryConfiguration: true,
+          executionConstraints: true,
+          humanPreferences: true,
+        },
+      },
+      diagnostics: [
+        {
+          code: 'engineering-session.assignment-policy-rejected',
+        },
+      ],
+    });
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([]);
+    expect(harness.adapter.requests).toEqual([]);
+  });
+
+  it('preserves Sprint 47 execution behavior when no AssignmentPolicy reference is supplied', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'assignment-policy-omitted');
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+      assignmentPolicyEvaluationInput: createSatisfiedAssignmentPolicyEvaluationInput(),
+    });
+
+    expect(result.assignmentPolicy).toBeUndefined();
+    expect(result).toMatchObject({
+      status: 'Completed',
+      workflowStepRoleId: 'builder',
+      executionSession: {
+        engineeringSessionId: workflow.engineeringSessionId,
+        assignedRole: 'builder',
+        assignedAdapter: 'recording-adapter',
+      },
+    });
+    expect(harness.adapter.requests).toHaveLength(1);
+  });
+
+  it('rejects AssignmentPolicy evaluation when an AssignmentPolicy reference is supplied without evaluation input', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(
+      harness,
+      'assignment-policy-missing-input',
+    );
+
+    await expect(
+      harness.service.executeCurrentWorkflowStep({
+        engineeringSessionId: workflow.engineeringSessionId,
+        executionStrategyId: workflow.executionStrategyId,
+        missionPlanId: workflow.missionPlanId,
+        taskId: workflow.taskId,
+        adapterId: 'recording-adapter',
+        contextPackageReference: `context-package-${workflow.missionId}`,
+        consumedProjectionVersion: 'projection-v1',
+        assignmentPolicyId: 'assignment-policy-workflow-execution-missing-input',
+      }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([]);
+    expect(harness.adapter.requests).toEqual([]);
+  });
+
   it('rejects execution readiness deterministically without creating an ExecutionSession', async () => {
     const harness = await createWorkflowExecutionHarness();
     const workflow = await createReadyWorkflowExecutionScenario(harness, 'readiness-rejected', {
@@ -780,6 +934,32 @@ describe('EngineeringSessionService', () => {
     ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
   });
 
+  it('rejects AssignmentPolicy evaluation when AssignmentPolicyService is not supplied', async () => {
+    const harness = await createWorkflowExecutionHarnessWithoutAssignmentPolicyService();
+    const workflow = await createReadyWorkflowExecutionScenario(
+      harness,
+      'assignment-policy-missing-service',
+    );
+
+    await expect(
+      harness.service.executeCurrentWorkflowStep({
+        engineeringSessionId: workflow.engineeringSessionId,
+        executionStrategyId: workflow.executionStrategyId,
+        missionPlanId: workflow.missionPlanId,
+        taskId: workflow.taskId,
+        adapterId: 'recording-adapter',
+        contextPackageReference: `context-package-${workflow.missionId}`,
+        consumedProjectionVersion: 'projection-v1',
+        assignmentPolicyId: 'assignment-policy-workflow-execution-missing-service',
+        assignmentPolicyEvaluationInput: createSatisfiedAssignmentPolicyEvaluationInput(),
+      }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(workflow.engineeringSessionId),
+    ).resolves.toEqual([]);
+    expect(harness.adapter.requests).toEqual([]);
+  });
+
   it('records non-Completed Adapter responses as failed WorkflowStep execution attempts', async () => {
     const harness = await createWorkflowExecutionHarness('Failed');
     const workflow = await createReadyWorkflowExecutionScenario(harness, 'adapter-failed');
@@ -838,11 +1018,48 @@ describe('EngineeringSessionService', () => {
 
     expect(leftResult).toEqual(rightResult);
   });
+
+  it('evaluates AssignmentPolicy rejection deterministically for equivalent policy inputs', async () => {
+    const left = await createWorkflowExecutionHarness();
+    const right = await createWorkflowExecutionHarness();
+    const leftWorkflow = await createReadyWorkflowExecutionScenario(left, 'policy-deterministic');
+    const rightWorkflow = await createReadyWorkflowExecutionScenario(right, 'policy-deterministic');
+    const leftPolicy = await createWorkflowExecutionAssignmentPolicy(left, 'policy-deterministic');
+    const rightPolicy = await createWorkflowExecutionAssignmentPolicy(right, 'policy-deterministic');
+    const command = {
+      executionStrategyId: leftWorkflow.executionStrategyId,
+      missionPlanId: leftWorkflow.missionPlanId,
+      taskId: leftWorkflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${leftWorkflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+      assignmentPolicyId: leftPolicy.id,
+      assignmentPolicyEvaluationInput: {
+        ...createSatisfiedAssignmentPolicyEvaluationInput(),
+        repositoryConfiguration: {
+          branch: 'release',
+        },
+      },
+    };
+
+    expect(leftPolicy).toEqual(rightPolicy);
+
+    const leftResult = await left.service.executeCurrentWorkflowStep({
+      engineeringSessionId: leftWorkflow.engineeringSessionId,
+      ...command,
+    });
+    const rightResult = await right.service.executeCurrentWorkflowStep({
+      engineeringSessionId: rightWorkflow.engineeringSessionId,
+      ...command,
+    });
+
+    expect(leftResult).toEqual(rightResult);
+    expect(left.adapter.requests).toEqual([]);
+    expect(right.adapter.requests).toEqual([]);
+  });
 });
 
-async function createWorkflowExecutionHarness(
-  adapterStatus: 'Completed' | 'Failed' = 'Completed',
-): Promise<WorkflowExecutionHarness> {
+async function createWorkflowExecutionHarnessWithoutAssignmentPolicyService(): Promise<WorkflowExecutionHarness> {
   const eventBus = new TestEventBus();
   const missionRepository = new InMemoryMissionRepository();
   const workflowChainRepository = await createWorkflowChainRepository();
@@ -850,7 +1067,7 @@ async function createWorkflowExecutionHarness(
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const roleRegistry = new InMemoryRoleRegistry();
-  const adapter = new RecordingAdapter(adapterStatus);
+  const adapter = new RecordingAdapter();
   const adapterService = new AdapterService(
     new InMemoryAdapterRegistry([adapter]),
     ProtocolVersion.fromString('1.0'),
@@ -858,6 +1075,9 @@ async function createWorkflowExecutionHarness(
   const executionSessionService = new ExecutionSessionService(
     executionSessionRepository,
     () => 'execution-session-1',
+  );
+  const assignmentPolicyService = new AssignmentPolicyService(
+    new InMemoryAssignmentPolicyRepository(),
   );
   const executionStrategyService = new ExecutionStrategyService(
     new InMemoryExecutionStrategyRepository(),
@@ -906,6 +1126,7 @@ async function createWorkflowExecutionHarness(
       adapterService,
       executionSessionService,
     ),
+    assignmentPolicyService,
     roleService,
     executionSessionService,
     missionService: new MissionService(
@@ -923,6 +1144,127 @@ async function createWorkflowExecutionHarness(
     executionStrategyService,
     adapter,
   };
+}
+
+async function createWorkflowExecutionHarness(
+  adapterStatus: 'Completed' | 'Failed' = 'Completed',
+): Promise<WorkflowExecutionHarness> {
+  const eventBus = new TestEventBus();
+  const missionRepository = new InMemoryMissionRepository();
+  const workflowChainRepository = await createWorkflowChainRepository();
+  const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+  const executionSessionRepository = new InMemoryExecutionSessionRepository();
+  const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
+  const roleRegistry = new InMemoryRoleRegistry();
+  const adapter = new RecordingAdapter(adapterStatus);
+  const adapterService = new AdapterService(
+    new InMemoryAdapterRegistry([adapter]),
+    ProtocolVersion.fromString('1.0'),
+  );
+  const executionSessionService = new ExecutionSessionService(
+    executionSessionRepository,
+    () => 'execution-session-1',
+  );
+  const assignmentPolicyService = new AssignmentPolicyService(
+    new InMemoryAssignmentPolicyRepository(),
+  );
+  const executionStrategyService = new ExecutionStrategyService(
+    new InMemoryExecutionStrategyRepository(),
+    roleAssignmentRepository,
+    missionRepository,
+    () => 'execution-strategy-generated',
+  );
+  const roleService = new RoleService(roleRegistry, roleAssignmentRepository);
+  const timestamps = [
+    '2026-07-15T00:00:00.000Z',
+    '2026-07-15T00:01:00.000Z',
+    '2026-07-15T00:02:00.000Z',
+    '2026-07-15T00:03:00.000Z',
+    '2026-07-15T00:04:00.000Z',
+    '2026-07-15T00:05:00.000Z',
+    '2026-07-15T00:06:00.000Z',
+    '2026-07-15T00:07:00.000Z',
+    '2026-07-15T00:08:00.000Z',
+    '2026-07-15T00:09:00.000Z',
+    '2026-07-15T00:10:00.000Z',
+    '2026-07-15T00:11:00.000Z',
+    '2026-07-15T00:12:00.000Z',
+    '2026-07-15T00:13:00.000Z',
+    '2026-07-15T00:14:00.000Z',
+    '2026-07-15T00:15:00.000Z',
+  ];
+  const createTimestamp = () => {
+    const timestamp = timestamps.shift();
+
+    if (timestamp === undefined) {
+      throw new Error('No timestamp available for test.');
+    }
+
+    return timestamp;
+  };
+
+  await roleService.initialize();
+
+  return {
+    service: new EngineeringSessionService(
+      engineeringSessionRepository,
+      workflowChainRepository,
+      () => 'engineering-session-generated',
+      createTimestamp,
+      executionStrategyService,
+      adapterService,
+      executionSessionService,
+      assignmentPolicyService,
+    ),
+    assignmentPolicyService,
+    roleService,
+    executionSessionService,
+    missionService: new MissionService(
+      missionRepository,
+      eventBus,
+      () => 'mission-generated',
+      createTimestamp,
+    ),
+    planningService: new MissionPlanningService(
+      missionRepository,
+      eventBus,
+      () => 'mission-plan-generated',
+      createTimestamp,
+    ),
+    executionStrategyService,
+    adapter,
+  };
+}
+
+function createSatisfiedAssignmentPolicyEvaluationInput(): {
+  readonly adapterExecutionCapability: string;
+  readonly repositoryConfiguration: Readonly<Record<string, string>>;
+  readonly executionConstraints: Readonly<Record<string, string>>;
+  readonly humanPreferences: Readonly<Record<string, string>>;
+} {
+  return Object.freeze({
+    adapterExecutionCapability: 'CodeModification',
+    repositoryConfiguration: Object.freeze({
+      branch: 'main',
+    }),
+    executionConstraints: Object.freeze({
+      sandbox: 'enabled',
+    }),
+    humanPreferences: Object.freeze({
+      review: 'required',
+    }),
+  });
+}
+
+async function createWorkflowExecutionAssignmentPolicy(
+  harness: WorkflowExecutionHarness,
+  suffix: string,
+) {
+  return harness.assignmentPolicyService.createAssignmentPolicy({
+    id: `assignment-policy-workflow-execution-${suffix}`,
+    requiredRole: 'builder',
+    ...createSatisfiedAssignmentPolicyEvaluationInput(),
+  });
 }
 
 function createAdapterService(adapter: RecordingAdapter): AdapterService {

@@ -1,11 +1,17 @@
 import type { AdvancementTriggerInput } from './advancement-trigger.types';
 import type { AdapterExecutionConstraints, AdapterRequestMetadata } from '../adapter/adapter-request';
+import type { AssignmentPolicyEvaluationInput } from './assignment-policy.types';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionMetadata,
   EngineeringSessionSnapshot,
   EngineeringSessionWorkflowExecutionResult,
 } from './engineering-session.types';
+
+export type ExecuteCurrentWorkflowStepAssignmentPolicyInput = Omit<
+  AssignmentPolicyEvaluationInput,
+  'requiredRole'
+>;
 
 export interface CreateEngineeringSessionCommand {
   readonly id?: string;
@@ -45,6 +51,8 @@ export interface ExecuteCurrentWorkflowStepCommand {
   readonly adapterId: string;
   readonly contextPackageReference: string;
   readonly consumedProjectionVersion: string;
+  readonly assignmentPolicyId?: string;
+  readonly assignmentPolicyEvaluationInput?: ExecuteCurrentWorkflowStepAssignmentPolicyInput;
   readonly executionConstraints?: AdapterExecutionConstraints;
   readonly requestMetadata?: AdapterRequestMetadata;
 }

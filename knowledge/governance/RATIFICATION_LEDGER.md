@@ -3914,3 +3914,161 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-005
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-005
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Assignment Policy Evaluation — RFC-0004 v1.6 to v1.7 amendment adding an optional consumption point at which Workflow Chain Execution gates dispatch using the existing, unmodified Assignment Policy evaluation.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Owner planning request evaluating "Assignment Policy Foundation" as Milestone 8's next capability. Governance analysis determined that capability already shipped and was certified with zero findings as Sprint 44 (`NEXUS-REV-2026-07-14-024`), and remains frozen under the Constitution's Approved Vertical Slice Immutability rule. Sprint 44 explicitly deferred wiring of AssignmentPolicy into EngineeringSession, WorkflowChain, or ExecutionSession; Sprint 47 explicitly deferred Assignment Policy evaluation. RFC-0004 v1.6's Workflow Chain Execution section states it shall not own Assignment Policy, and that the amendment intentionally preserves future compatibility with Assignment Policy without introducing or implying it - i.e., the consumption point is anticipated but not yet authorized. The Sprint Owner directed that the stated objective (determine which Execution Role should execute the current Workflow Step, integrating cleanly with the existing execution pipeline) be re-scoped as this wiring/consumption capability rather than a re-implementation of Sprint 44.
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.6 to Version 1.7, adding a new "Assignment Policy Evaluation" subsection under the existing "Workflow Chain Execution" section.
+
+Workflow Chain Execution MAY accept a caller-supplied Assignment Policy reference alongside its existing execution inputs. When supplied, Workflow Chain Execution SHALL invoke that Assignment Policy's existing deterministic evaluation with the resolved Workflow Step's Execution Role and the caller-supplied evaluation input, before Adapter dispatch; when unsatisfied, execution SHALL be rejected deterministically with no Adapter dispatch and no Execution Session record created. When no reference is supplied, Workflow Chain Execution's existing v1.6 behavior is unchanged.
+
+This amendment SHALL NOT redefine Assignment Policy's own value objects, evaluation semantics, or determinism guarantees (v1.3, unmodified). This amendment SHALL NOT introduce Assignment Policy selection, inference, or automatic binding to a Workflow Step - the reference SHALL be supplied explicitly by the caller, consistent with the standing explicit-adapterId-only guardrail already established for Adapter dispatch (Sprint 20, reaffirmed by `NEXUS-RAT-2026-07-15-003`).
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Assignment Policy value objects (required role, Adapter execution capability, repository configuration, execution constraints, human preferences), pure evaluation function | RFC-0004 "Assignment Policy" (Sprint 44, unmodified) |
+| Resolving current Workflow Step's Execution Role; invoking Execution Strategy; Adapter dispatch (explicit adapterId only) | RFC-0004 "Workflow Chain Execution" (v1.6, Sprint 47, unmodified) |
+| Consuming an explicitly-supplied Assignment Policy reference to gate dispatch before Adapter invocation | RFC-0004 "Workflow Chain Execution" section Assignment Policy Evaluation (this amendment) |
+| Execution Session creation, update, completion, persistence | RFC-0004 "Execution Session" (Sprint 40, unmodified) |
+| Workflow position advancement (separate from execution) | RFC-0004 "Workflow Advancement" (Sprints 43/45/46, unmodified and unaffected) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.6 to 1.7; Amendment History entry; new "Assignment Policy Evaluation" subsection under "Workflow Chain Execution."
+- Proceed to draft a Sprint 48 scope ratification authorizing implementation of Assignment Policy Evaluation, consuming this amendment.
+
+`nexus-plan` SHALL NOT:
+
+- Modify RFC-0006, Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, or Assignment Policy's own section text, value objects, or evaluation semantics.
+- Modify any other RFC, the Kernel Canon, or any prior Sprint's Implementation Record, `IMPLEMENTATION_REPORT.md` entry, or `REVIEW_HISTORY.md` entry.
+- Treat this ratification as authorizing implementation; implementation remains separately deferred pending its own Sprint scope ratification.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only.
+- No Kernel Canon change. No RFC-0006 change. No Adapter Selection, Adapter routing, capability scoring, automatic Assignment Policy binding/inference, Multi-Agent Orchestration, or Task lifecycle transition is introduced or implied.
+- No source code or test change is authorized by this ratification alone.
+
+## Related Sprint(s)
+
+- Sprint 44 — Assignment Policy Foundation (the certified, unmodified AssignmentPolicy/AssignmentPolicyService this amendment's consumption point reuses).
+- Sprint 47 — Workflow Chain Execution (the certified, unmodified dispatch pipeline this amendment extends with an optional gate).
+- Future Assignment Policy Evaluation implementation Sprint (Sprint 48; not yet implemented; will consume this amendment).
+
+## Related Review(s)
+
+- None.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies that Assignment Policy Evaluation - the act of gating Workflow Chain Execution's existing dispatch step using an explicitly-supplied Assignment Policy reference - SHALL be defined by RFC-0004 as a new subsection of the existing "Workflow Chain Execution" section. Workflow Chain Execution MAY accept a caller-supplied Assignment Policy reference; when supplied, it SHALL invoke the existing Assignment Policy evaluation with the resolved Execution Role and caller-supplied evaluation input before Adapter dispatch, rejecting execution deterministically (no dispatch, no Execution Session record) when unsatisfied; when omitted, existing v1.6 behavior is unchanged. This amendment does not redefine Assignment Policy's own semantics and does not introduce Assignment Policy selection, inference, or automatic binding. RFC-0004 SHALL be amended to Version 1.7 to add this subsection; Assignment Policy, Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, and RFC-0006 are otherwise unmodified. This ratification authorizes the RFC-0004 amendment and its supporting documentation only; implementation remains subject to its own future Sprint Owner scope ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-006
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-006
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 48 Scope Ratification — Assignment Policy Integration. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-15-005` amended RFC-0004 to v1.7, authorizing implementation of Assignment Policy Evaluation within Workflow Chain Execution.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved by the Sprint Owner ("proceed to nexus-plan").
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 48 — Assignment Policy Integration as Milestone 8's next Sprint, implementing RFC-0004 v1.7's Assignment Policy Evaluation subsection only.
+
+**Objective (binding):** Extend `EngineeringSessionService.executeCurrentWorkflowStep` (Sprint 47) so that, when the caller supplies an Assignment Policy reference and evaluation input, the operation invokes the existing, unmodified `AssignmentPolicyService.evaluateAssignmentPolicy` with the resolved Workflow Step's `RoleId` as the required-role input before Adapter dispatch. When the evaluation reports unsatisfied, the operation SHALL return a deterministic rejection outcome with no Adapter dispatch and no `ExecutionSession` record created. When no Assignment Policy reference is supplied, behavior SHALL be byte-for-byte identical to Sprint 47.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| Assignment Policy value objects, pure evaluation function | AssignmentPolicy/AssignmentPolicyService (Sprint 44, unmodified) |
+| Resolving current Workflow Step's Execution Role; Execution Strategy readiness; Adapter dispatch | EngineeringSession/EngineeringSessionService (Sprint 47, unmodified except for this Sprint's new optional gate) |
+| Assignment Policy Evaluation consumption gating dispatch | EngineeringSessionService.executeCurrentWorkflowStep (this Sprint, new optional gate only) |
+| Execution attempt record | ExecutionSession/ExecutionSessionService (Sprint 40, unmodified) |
+| Workflow position advancement | Manual/Automatic/Review-Gated Advancement (Sprints 43/45/46, unmodified and unaffected) |
+
+## Ownership Model (ratified)
+
+Identical to `NEXUS-RAT-2026-07-15-005`'s Ownership Model table; this ratification authorizes implementation against it.
+
+## Authorized Scope
+
+The Builder MAY:
+
+- Extend `ExecuteCurrentWorkflowStepCommand` with an optional Assignment Policy reference and optional evaluation-input fields (mirroring `AssignmentPolicyEvaluationInput`'s existing shape: Adapter execution capability, repository configuration, execution constraints, human preferences).
+- Extend `EngineeringSessionService.executeCurrentWorkflowStep` to invoke `AssignmentPolicyService.evaluateAssignmentPolicy` when a reference is supplied, using the resolved Workflow Step `RoleId` as the required-role input, before constructing the Adapter dispatch request.
+- Add a new deterministic rejection outcome to `EngineeringSessionWorkflowExecutionStatus` (e.g. `AssignmentPolicyRejected`), mirroring the existing `ReadinessRejected` outcome shape, produced when evaluation is unsatisfied.
+- Extend `createKernelServices` composition only as strictly required to supply `AssignmentPolicyService` to `EngineeringSessionService`'s constructor as an optional collaborator, mirroring the existing optional executionStrategyService/adapterService/executionSessionService pattern.
+- Add unit/integration tests covering: satisfied policy leads to execution proceeding unchanged; unsatisfied policy leads to deterministic rejection with no dispatch and no ExecutionSession record; omitted policy reference leads to Sprint 47 behavior unchanged, byte-for-byte; determinism for equivalent inputs.
+
+The Builder SHALL NOT:
+
+- Modify `AssignmentPolicy`, `AssignmentPolicyService`, `IAssignmentPolicyRepository`, or any of their existing value objects, evaluation semantics, or public method signatures.
+- Modify `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, or `Finding`.
+- Modify Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, or Sprint 46's `advanceWorkflowAfterReview()`.
+- Introduce Adapter Selection, Adapter routing, capability scoring, or fallback logic.
+- Introduce automatic Assignment Policy binding, inference, or lookup by Workflow Step - the Assignment Policy reference SHALL be supplied explicitly by the caller.
+- Introduce Multi-Agent Orchestration, Task lifecycle transition, session recovery/checkpointing, or concurrent session coordination.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- Execution and Advancement remain separate operations; this Sprint SHALL NOT fold Assignment Policy evaluation into any advanceWorkflow* method.
+- When no Assignment Policy reference is supplied, `executeCurrentWorkflowStep` SHALL behave identically to Sprint 47's certified implementation; this is a regression-safety requirement, not an option.
+- No Kernel Canon change; no RFC-0004 change beyond what `NEXUS-RAT-2026-07-15-005` already authorized; no RFC-0006 change.
+
+## Related Sprint(s)
+
+- Sprint 44 — Assignment Policy Foundation (the certified, unmodified domain model this Sprint consumes).
+- Sprint 47 — Workflow Chain Execution (the certified dispatch pipeline this Sprint extends with an optional gate).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 48 — Assignment Policy Integration, authorizing the Builder to extend `EngineeringSessionService.executeCurrentWorkflowStep` with an optional Assignment Policy Evaluation gate per RFC-0004 v1.7, consuming the existing, unmodified Sprint 44 AssignmentPolicyService and the existing, unmodified Sprint 47 execution pipeline. The Builder SHALL NOT modify AssignmentPolicy, AssignmentPolicyService, WorkflowChain, WorkflowStep, WorkflowChainService, ExecutionStrategy, AdapterService, AdapterRegistry, ExecutionSession, ExecutionSessionService, ReviewService, Review, Finding, or any existing Advancement method, and SHALL NOT introduce Adapter Selection, automatic Assignment Policy binding/inference, Multi-Agent Orchestration, or any src/hosts or src/adapters change. When no Assignment Policy reference is supplied, behavior SHALL remain byte-for-byte identical to Sprint 47.
+
+## Current Status
+
+Active
+
+---
