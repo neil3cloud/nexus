@@ -2,6 +2,150 @@
 
 ---
 
+## NEXUS-REV-2026-07-14-019 — Sprint 40 — Execution Session Foundation (TASK-001 / DOC-005 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 40 — Execution Session Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-018-F-001` / `TASK-001` (removal of the unused `ExecutionSessionMetadata` type) and `NEXUS-REV-2026-07-14-018-F-002` / `DOC-005` (`builder-task.md`) — a dead-code removal and a documentation-only wording correction to `IMPLEMENTATION_MANIFEST.md`'s Milestone 8 and Sprint 40 status lines.
+- **RFC Coverage:** None (implementation-defect and documentation-wording findings only; no RFC concept touched).
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+This review independently verifies the Builder's remediation of `TASK-001` and `DOC-005`.
+
+`TASK-001`: `src/kernel/execution/execution-session.types.ts` no longer declares `ExecutionSessionMetadata`; a repository-wide grep confirms zero remaining references anywhere in `src/` or `test/`. The file's other four exported types (`ExecutionSessionTimestampsInput`, `ExecutionSessionTimestampsSnapshot`, `ExecutionSessionInput`, `ExecutionSessionSnapshot`) are byte-for-byte unchanged, and `ExecutionSession`, `ExecutionSessionService`, `IExecutionSessionRepository`, and all three test files are untouched by this remediation — satisfying `TASK-001`'s "public surface otherwise unchanged" and "no new field, behavior, or normative concept introduced" Acceptance Criteria exactly.
+
+`DOC-005`: `IMPLEMENTATION_MANIFEST.md:1640`'s Milestone 8 status summary line now reads "...Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018)", and `:1685`'s Sprint 40 subsection status line now reads "Status: Approved with Findings — NEXUS-REV-2026-07-14-018" — both matching `DOC-005`'s Required Changes and Acceptance Criteria exactly, and mirroring the correction the Reviewer previously applied to the equivalent `IMPLEMENTATION_PLAN.md` lines. No other content in `IMPLEMENTATION_MANIFEST.md`'s Sprint 40 subsection (status, implemented/deferred concepts, notes) was altered.
+
+`builder-task.md` is confirmed unchanged in its task-status fields since generation (still "OPEN — 2 tasks pending"), consistent with the Builder correctly not self-modifying task completion status. No source file, test, RFC, or Kernel Canon beyond the one authorized `execution-session.types.ts` edit was touched by this remediation.
+
+Independently reran `npm run compile` (clean), `npm run lint` (clean), `npm run build` and `npm run test:extension-host:build` (both clean), and the full Vitest suite (`npm test`) twice: the first run showed one transient failure in `test/integration/local-process-runtime.integration.test.ts` under full-suite parallel load (unrelated to `ExecutionSession`, adapter-layer runtime concern), confirmed passing in isolation and on immediate rerun (**68 files / 316 tests**, no flakiness) — the identical category of pre-existing full-suite-load timing variance documented in the Sprint 38 and Sprint 39 reviews, not a regression introduced by this remediation.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 (`NEXUS-REV-2026-07-14-018-F-001` / `TASK-001`; `NEXUS-REV-2026-07-14-018-F-002` / `DOC-005`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 68 files / 316 tests (independently reproduced on rerun; one transient full-suite-load failure isolated and confirmed non-regressing) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation is a dead-code removal and a documentation-wording correction only; no RFC concept, deferred or otherwise, is touched. All Sprint 40 Deferred Concepts (Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, Adapter dispatch, execution-eligibility determination, Task lifecycle transition) remain unimplemented and untouched.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The remediation is confined to one unused-type removal in `execution-session.types.ts` and two status-line wording corrections in `IMPLEMENTATION_MANIFEST.md`; no other source, test, RFC, or Kernel Canon content changed.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0040-execution-session-foundation.md`) — Status remains **Approved with Findings**; both findings underlying that status are now remediated per this verification.
+- `IMPLEMENTATION_PLAN.md` — no status change required; Sprint 40 was already marked Approved with Findings and did not block Milestone 8 progression.
+
+### Work Item State Reconciliation
+
+- Sprint 40: Remains Approved with Findings (both findings are now remediated; disposition already permitted progression).
+- Work Order: Completed.
+- Builder Tasks: `TASK-001` — Status → **Completed** (acceptance criteria verified satisfied). `DOC-005` — Status → **Completed** (acceptance criteria verified satisfied).
+
+### Builder Task Recommendation
+
+None. `TASK-001` and `DOC-005` are both closed. No further Builder or Documentation Tasks are open for Sprint 40.
+
+---
+
+## NEXUS-REV-2026-07-14-018 — Sprint 40 — Execution Session Foundation
+
+- **Reviewed Sprint:** Sprint 40 — Execution Session Foundation
+- **Reviewed Vertical Slice:** `ExecutionSession`, `ExecutionSessionId`, `IExecutionSessionRepository`/`InMemoryExecutionSessionRepository`, `ExecutionSessionService`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-14-019`'s Authorized Builder Scope and four Sprint Owner Refinements.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.2 (Primary; existing "Execution Session" section, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 40 — Execution Session Foundation conforms to RFC-0004's existing "Execution Session" section and to `NEXUS-RAT-2026-07-14-019`'s Authorized Builder Scope, including all four Sprint Owner Refinements. `ExecutionSession` is implemented as an immutable, append-only Kernel domain concept carrying exactly RFC-0004's defined fields (assigned role, assigned adapter, execution timestamps, consumed Projection version, produced artifacts, execution outcome) plus a required, immutable owning `EngineeringSessionId` (Refinement 4), with no mutation method of any kind and deterministic, reproducible snapshot construction (Refinement 3) confirmed by dedicated tests. `EngineeringSession` owns only the containment association and is confirmed byte-for-byte unmodified; `ExecutionSession` does not mutate `EngineeringSession`'s internal state and vice versa (Refinement 1). `ExecutionSessionService` exposes only create/lookup/enumerate, with no dispatch, Assignment Policy evaluation, Task lifecycle transition, or workflow coordination present anywhere in the diff (Refinement 2). The ownership invariant is enforced both at aggregate construction and, confirmed by a dedicated repository test that bypasses the aggregate, at the repository layer (Refinement 4). `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`, RFC-0004, and the Kernel Canon are all confirmed unmodified; the only existing-file changes are the one authorized `create-kernel-services.ts` composition touch point and the Sprint 37/38/39-precedented extension of the Kernel Boundary Certification test. No `src/hosts` or `src/adapters` file was touched. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes 68 files / 316 tests with no flakiness observed. Overall disposition: **PASS WITH FINDINGS**.
+
+One Category 1 Implementation Defect (Minor) was recorded.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-018-F-001 — Unused `ExecutionSessionMetadata` type
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 10 (Code Quality — "No dead code introduced.")
+- **Summary:** `src/kernel/execution/execution-session.types.ts:1` declares `export type ExecutionSessionMetadata = Readonly<Record<string, string>>;`. It is not referenced by `ExecutionSession`, `ExecutionSessionInput`, `ExecutionSessionSnapshot`, `ExecutionSessionServiceContract`, `CreateExecutionSessionCommand`, the repository, the service, or any test — a repository-wide grep for `ExecutionSessionMetadata` returns only its own declaration. RFC-0004's "Execution Session" section defines no metadata field (unlike `EngineeringSession`, which genuinely owns and uses `collaborationMetadata`/`EngineeringSessionMetadata` throughout `engineering-session.ts`/`.contract.ts`/`.types.ts`) — this appears to be a vestigial artifact of mirroring the `EngineeringSession` types file structure.
+- **Evidence:** `src/kernel/execution/execution-session.types.ts:1`; repository-wide grep for `ExecutionSessionMetadata` (single match, the declaration itself); RFC-0004 "Execution Session" section (`knowledge/specifications/rfc-0004-execution-model.md:315-330`), which defines no metadata field.
+- **Impact:** Dead exported type; no functional impact, but it misleadingly implies `ExecutionSession` carries metadata state that neither RFC-0004 nor the Authorized Vertical Slice define, and that no code path populates or reads.
+- **Required Disposition:** Builder Task — remove the unused `ExecutionSessionMetadata` type export.
+- **Builder Action:** Fix.
+
+#### NEXUS-REV-2026-07-14-018-F-002 — Stale Sprint 40 status lines in IMPLEMENTATION_MANIFEST.md
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 12 (Documentation); Builder/Reviewer artifact-ownership boundary (Reviewer SHALL NOT modify `IMPLEMENTATION_MANIFEST.md`)
+- **Summary:** `IMPLEMENTATION_MANIFEST.md:1640`'s Milestone 8 status summary still reads "...Sprint 40 Current — Execution Session Foundation, NEXUS-RAT-2026-07-14-019)", and `IMPLEMENTATION_MANIFEST.md:1685`'s Sprint 40 subsection still reads "Status: Implemented — Pending Reviewer Validation — NEXUS-RAT-2026-07-14-019", both stale now that Sprint 40 is Approved with Findings per this review. This is the identical situation `NEXUS-REV-2026-07-14-015-F-001` classified for Sprint 38/`IMPLEMENTATION_MANIFEST.md`: the Reviewer closed the `IMPLEMENTATION_PLAN.md` half of this same drift directly as part of its own Repository State Update (a Reviewer-owned artifact); the `IMPLEMENTATION_MANIFEST.md` half remains open, since the Reviewer SHALL NOT modify `IMPLEMENTATION_MANIFEST.md`.
+- **Evidence:** `IMPLEMENTATION_MANIFEST.md:1640,1685`; corrected precedent already applied by this review to `IMPLEMENTATION_PLAN.md`'s equivalent lines.
+- **Impact:** Non-blocking wording inconsistency between Builder-owned and Reviewer-owned status lines; no architectural or scope impact.
+- **Required Disposition:** Documentation Task — update `IMPLEMENTATION_MANIFEST.md:1640` to "Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018" and `:1685` to "Status: Approved with Findings — NEXUS-REV-2026-07-14-018".
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 2 (F-001, F-002) |
+| Informational (Observation) | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 68 files / 316 tests (no flakiness observed this run) |
+
+### Deferred Concept Validation
+
+All Sprint 40 Deferred Concepts remain unimplemented: Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, Adapter dispatch, execution-eligibility determination, and Task lifecycle transition. No deferred concept was silently introduced. RFC-0004's "Execution Session" section is confirmed byte-for-byte unmodified; the Kernel Canon is confirmed unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `ExecutionSession` owns exactly RFC-0004's defined fields plus the required owning `EngineeringSessionId`; it does not redefine or duplicate `EngineeringSession`'s Architectural Responsibilities. `EngineeringSession` owns only the containment association and is confirmed unmodified. Compliant with Refinement 1.
+- **Non-responsibilities:** No Adapter dispatch, Assignment Policy evaluation, execution-eligibility determination, Task lifecycle transition, workflow coordination, or orchestration behavior exists anywhere in the diff. Compliant with Refinement 2.
+- **Invariants:** `ExecutionSessionId` is immutable; `ExecutionSession` exposes no mutation method (`'close' in executionSession` / `'save' in executionSession` explicitly asserted `false` in tests); equivalent construction inputs produce equivalent snapshots (dedicated reproducibility test). Compliant with Refinement 3.
+- **Ownership invariant:** Every `ExecutionSession` requires a valid owning `EngineeringSessionId` at construction (`EngineeringSessionId.fromString` validation) and independently at the repository layer (`assertOwningEngineeringSessionId`, exercised by a test that bypasses the aggregate to prove the repository check is genuinely reachable, not dead code). Compliant with Refinement 4.
+- **Aggregate discipline:** `ExecutionSession` is frozen per snapshot, with dedicated validation and not-found/duplicate errors; reuses the existing shared `RoleId` value object for `assignedRole` (no duplicate identity concept introduced).
+- **Service orchestration:** `ExecutionSessionService` is thin — create/lookup/enumerate only, delegating all validation and invariants to `ExecutionSession` and its repository. Compliant with the established Kernel service pattern.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution/Mission-domain file modified beyond the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Tests:** 3 new files covering domain construction, validation, equality, immutability, append-only behavior, deterministic reproducibility, ownership-invariant rejection (aggregate and repository layers), repository behavior (including owner-scoped enumeration), and service behavior; Kernel Boundary Certification test extended consistently with the Sprint 37/38/39 precedent. Full suite 316/316 passing.
+
+### Builder Task Recommendation
+
+Generate Builder Tasks via `nexus-sprint` for F-001 (implementation fix: remove the unused `ExecutionSessionMetadata` type) and F-002 (documentation task: correct the two stale Sprint 40 status lines in `IMPLEMENTATION_MANIFEST.md`). Both are Minor and non-blocking; neither affects Sprint 40's approval or Milestone 8 progression.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0040-execution-session-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 40 marked **Approved with Findings**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Workflow Chaining, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 40: Status → **Approved with Findings**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: Two new Builder Tasks recommended (F-001 implementation fix; F-002 documentation task), both Minor and non-blocking — remain open pending `nexus-sprint` generation and Builder remediation.
+
+---
+
 ## NEXUS-REV-2026-07-14-017 — Sprint 39 — Engineering Sessions Foundation
 
 - **Reviewed Sprint:** Sprint 39 — Engineering Sessions Foundation

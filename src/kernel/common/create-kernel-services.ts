@@ -10,6 +10,8 @@ import { InMemoryEngineeringRoleProfileRegistry } from '../execution/engineering
 import { EngineeringRoleProfileService } from '../execution/engineering-role-profile.service';
 import { InMemoryEngineeringSessionRepository } from '../execution/engineering-session.repository';
 import { EngineeringSessionService } from '../execution/engineering-session.service';
+import { InMemoryExecutionSessionRepository } from '../execution/execution-session.repository';
+import { ExecutionSessionService } from '../execution/execution-session.service';
 import { InMemoryExecutionStrategyRepository } from '../execution/execution-strategy.repository';
 import { ExecutionStrategyService } from '../execution/execution-strategy.service';
 import { ExecutionService } from '../execution/execution.service';
@@ -46,6 +48,7 @@ export function createKernelServices(
   );
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+  const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
 
   return [
@@ -58,6 +61,7 @@ export function createKernelServices(
     new RoleService(roleRegistry, roleAssignmentRepository),
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     new EngineeringSessionService(engineeringSessionRepository),
+    new ExecutionSessionService(executionSessionRepository),
     new ExecutionStrategyService(
       executionStrategyRepository,
       roleAssignmentRepository,

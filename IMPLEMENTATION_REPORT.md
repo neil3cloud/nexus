@@ -1,5 +1,95 @@
 # Nexus Implementation Report
 
+## Sprint 40 — Execution Session Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 40 Execution Session Foundation vertical slice. This sprint introduces the RFC-0004 v1.2 `ExecutionSession` Kernel domain concept as the immutable, append-only record of one coordinated execution attempt owned by exactly one `EngineeringSession`.
+
+Implemented scope:
+
+- Added immutable `ExecutionSessionId`.
+- Added `ExecutionSession` with `create`/`fromSnapshot`/`toSnapshot`/`equals`, required owning `EngineeringSessionId`, assigned role, assigned adapter, execution timestamps, consumed Projection version, produced artifacts, execution outcome, immutable snapshots, deterministic equality, and dedicated definition diagnostics.
+- Added `ExecutionSession` snapshot/input structures for RFC-0004's Execution Session fields and Sprint 40's owning-`EngineeringSessionId` invariant.
+- Added `IExecutionSessionRepository` and `InMemoryExecutionSessionRepository` with create, lookup, existence checks, deterministic enumeration, and owner-scoped enumeration by `EngineeringSessionId`.
+- Added repository-layer ownership validation as defense in depth for the required owning `EngineeringSessionId`.
+- Added `ExecutionSessionService` as thin orchestration over constructor-injected repository contracts for create, lookup, and enumeration only.
+- Updated `createKernelServices()` to compose `InMemoryExecutionSessionRepository` and `ExecutionSessionService`.
+- Updated Sprint 18 Kernel Boundary Certification only where it enumerates Kernel-composed services.
+- Added deterministic unit coverage for domain construction, validation, equality, snapshot immutability, append-only behavior, repository behavior, owner-scoped enumeration, service diagnostics, and composition.
+
+Out of scope and not implemented:
+
+- Adapter dispatch, Adapter invocation, execution eligibility determination, Assignment Policy evaluation, Task lifecycle transition, workflow coordination, or orchestration behavior.
+- Workflow Chaining, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic workflow advancement, session recovery/checkpointing, or concurrent session coordination.
+- Any `src/hosts` or `src/adapters` file change.
+- Any behavior change to `EngineeringSession`, `EngineeringSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, or `TaskId`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.2 (Execution Session).
+
+Referenced RFCs:
+
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `ExecutionSession`.
+- `ExecutionSessionId`.
+- `IExecutionSessionRepository` / `InMemoryExecutionSessionRepository`.
+- `ExecutionSessionService`.
+- Kernel composition of the execution-session repository and execution-session service.
+
+Deferred Concepts:
+
+- Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic workflow advancement, session recovery/checkpointing, concurrent session coordination.
+- Adapter dispatch, execution-eligibility determination, Task lifecycle transition, and all orchestration behavior.
+- Host or Adapter consumption of `ExecutionSession`.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-14-019`, `NEXUS-RAT-2026-07-14-018`, `NEXUS-RAT-2026-07-14-011`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0040-execution-session-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `executionOutcome` is preserved as a deterministic non-empty string because RFC-0004's Execution Session section requires recording the execution outcome without defining a Sprint 40-owned outcome enumeration.
+- `assignedAdapter` is preserved as a deterministic non-empty adapter reference string; Sprint 40 records assignment but does not validate adapter registry membership or dispatch eligibility.
+- `executionTimestamps` are recorded as explicit `startedAt` and `completedAt` values to represent RFC-0004's execution timestamps without introducing a lifecycle state machine.
+
+### Known Limitations
+
+- Sessions are in-memory only; no durable persistence, recovery, checkpointing, or concurrent coordination is implemented.
+- `ExecutionSession` is inert Kernel state this sprint; no Host, Adapter, Execution Pipeline, Assignment Policy, or Task lifecycle consumer exists.
+- The `EngineeringSession` containment association is represented by the required owning `EngineeringSessionId`; no `EngineeringSession` mutation or lifecycle propagation is introduced.
+
+### Validation Summary
+
+- Targeted Sprint 40 validation passed: `npm exec vitest run test/kernel/execution/execution-session.test.ts test/kernel/execution/execution-session.repository.test.ts test/kernel/execution/execution-session.service.test.ts test/integration/kernel-boundary-certification.integration.test.ts`.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+- No `src/hosts` or `src/adapters` file was modified for Sprint 40.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 39 — Engineering Sessions Foundation
 
 ### Implemented Slice

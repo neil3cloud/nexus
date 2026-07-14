@@ -2859,3 +2859,102 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-14-019
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-14-019
+
+## Date
+
+2026-07-14
+
+## Subject
+
+Sprint 40 Scope Ratification — Execution Session Foundation. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-14-018` opened Milestone 8 and left Workflow Chaining, Assignment Policy, Review-Gated Progression, and Multi-Agent Engineering Orchestration without a ratified priority order.
+
+## Originating Review Finding(s)
+
+None. Originated as a `nexus-plan` Sprint Proposal (Sprint 40 — Execution Session Foundation, recommending RFC-0004's already-defined `Execution Session` concept over Assignment Policy, on the grounds that Assignment Policy's domain sits atop the unresolved Task Lifecycle three-way naming mismatch tracked in `IMPLEMENTATION_MANIFEST.md`, while `Execution Session` has no such conflict and is the concept Sprint 39's `EngineeringSession` was built to contain). Approved by the Sprint Owner with four refinements strengthening aggregate-boundary and invariant precision (2026-07-14).
+
+## Governance Decision
+
+**Sprint 40 — Execution Session Foundation is authorized as Milestone 8's next Sprint.** Sprint 40 implements RFC-0004's existing, unmodified `Execution Session` concept (Execution Model v1.2, "Execution Session" section) as a Kernel domain concept associated with, but independently owned from, the `EngineeringSession` introduced by Sprint 39.
+
+Sprint 40 SHALL introduce only:
+
+- `ExecutionSession`
+- `ExecutionSessionId`
+- an `ExecutionSession` repository contract and in-memory implementation
+- a thin `ExecutionSessionService` (create / lookup / enumerate)
+- the `EngineeringSession`-to-`ExecutionSession` containment association at foundation level (association only, not lifecycle control)
+
+No additional orchestration, dispatch, assignment, or workflow capability is authorized by this ratification.
+
+### Sprint Owner Refinements (binding)
+
+**Refinement 1 — Aggregate Relationship.** `EngineeringSession` MAY contain zero or more `ExecutionSession`s. `EngineeringSession` owns only the association. `ExecutionSession` remains an independent aggregate responsible for its own lifecycle and immutable execution record. Neither aggregate SHALL mutate the internal state of the other.
+
+**Refinement 2 — Non-Responsibilities.** `ExecutionSession` SHALL NOT: dispatch Adapters; evaluate Assignment Policy; determine execution eligibility; transition Task lifecycle; coordinate workflows; implement orchestration behavior. These responsibilities remain owned by the existing Kernel execution model and future Milestone 8 orchestration capabilities.
+
+**Refinement 3 — Strengthened Invariants.** In addition to base immutability: equivalent execution inputs SHALL always produce equivalent `ExecutionSession` state; `ExecutionSessionId` SHALL be immutable; `ExecutionSession` records SHALL be append-only and SHALL NOT be modified after creation; all execution metadata SHALL remain deterministic and reproducible.
+
+**Refinement 4 — Ownership Invariant.** Every `ExecutionSession` SHALL belong to exactly one `EngineeringSession`. An `EngineeringSession` MAY contain zero or more `ExecutionSession`s. `ExecutionSession` SHALL NOT exist independently of an `EngineeringSession`. This invariant is enforced at the repository/service level (construction requires an owning `EngineeringSessionId`); it does not modify RFC-0004's "Execution Session" section text, which is unmodified by this ratification.
+
+## Explicitly Deferred (this Sprint and this ratification)
+
+- Workflow Chaining
+- Assignment Policy
+- Review-Gated Progression
+- Multi-Agent Engineering Orchestration
+- Automatic workflow advancement
+- Session recovery and checkpointing
+- Concurrent session coordination
+
+Each remains a separate future Milestone 8 Sprint requiring its own scope ratification.
+
+## Authorized Builder Scope
+
+The Builder MAY, in the Sprint this ratification authorizes:
+
+- Implement `ExecutionSession` as an immutable, append-only Kernel domain concept with `ExecutionSessionId`, recording assigned Execution Role, assigned Adapter, execution timestamps, consumed Projection version, produced artifacts, and execution outcome, exactly per RFC-0004's existing "Execution Session" section — no field or behavior beyond what that section already defines.
+- Implement a required, immutable owning-`EngineeringSessionId` reference on every `ExecutionSession`, enforcing Refinement 4's ownership invariant at construction and at the repository layer (an `ExecutionSession` cannot be created or persisted without a valid owning `EngineeringSessionId`).
+- Implement a `ExecutionSession` repository contract and in-memory implementation, mirroring existing Kernel repository patterns, including lookup/enumeration scoped by owning `EngineeringSessionId`.
+- Implement a thin `ExecutionSessionService` for creation, lookup, and enumeration through constructor-injected repository contracts only — no dispatch, no Adapter invocation, no Assignment Policy evaluation, no Task lifecycle transition, no workflow coordination.
+- Update `createKernelServices` composition to construct and register the `ExecutionSession` repository and `ExecutionSessionService`.
+- Add unit test coverage for the aggregate (construction, immutability, append-only behavior, deterministic/reproducible state for equivalent inputs), the ownership invariant (rejection of an `ExecutionSession` without a valid owning `EngineeringSessionId`), the repository, and the service.
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`, `EngineeringSessionId`, `EngineeringSessionStatus`, `EngineeringSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`, or any existing Kernel Execution/Mission-domain file's behavior, beyond the one authorized `createKernelServices` composition touch point.
+- Modify any `src/hosts` or `src/adapters` file.
+- Implement Adapter dispatch, Assignment Policy evaluation, execution-eligibility determination, Task lifecycle transition, workflow coordination, or any orchestration behavior, including as an unused stub.
+- Introduce Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Orchestration, automatic workflow advancement, session recovery/checkpointing, or concurrent session coordination in any form.
+
+## Scope Restrictions
+
+- No `src/hosts` or `src/adapters` change.
+- No new execution, dispatch, assignment, orchestration, or workflow-chaining concept beyond `ExecutionSession` itself and its ownership association to `EngineeringSession`.
+- No previously approved test SHALL regress; TypeScript compilation, ESLint, Vitest, esbuild, the Sprint 18 Kernel Boundary Certification test, and the Sprint 28 Extension Host suite SHALL continue to pass unmodified unless they enumerate Kernel-composed services, mirroring the Sprint 37/38/39 precedent for such updates.
+- This ratification does not modify RFC-0004, any other RFC, or the Kernel Canon. Refinement 4's ownership invariant is an implementation/repository-level constraint, not an amendment to RFC-0004's "Execution Session" section text.
+- `nexus-plan` is authorized to correct, as part of this Sprint's Activation, the stale Milestone 8 candidate-scope sentence and the stale Sprint 39 status line in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` identified by its governance scan (both already superseded by `NEXUS-RAT-2026-07-14-018` and `NEXUS-REV-2026-07-14-017` respectively; no new decision is required for these corrections).
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (`NEXUS-RAT-2026-07-14-018`; establishes `EngineeringSession`, the aggregate Sprint 40's `ExecutionSession` is owned by).
+- Sprint 8 — Execution Roles; Sprint 10 — Execution Strategy (existing Execution-domain patterns Sprint 40 mirrors without modifying).
+
+## Related Review(s)
+
+- None. This ratification precedes Sprint 40 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 40 — Execution Session Foundation as Milestone 8's next Sprint, implementing RFC-0004's existing, unmodified "Execution Session" concept as a Kernel domain concept: `ExecutionSession`, `ExecutionSessionId`, a repository contract and in-memory implementation, and a thin `ExecutionSessionService` (create/lookup/enumerate only). `EngineeringSession` MAY contain zero or more `ExecutionSession`s; `EngineeringSession` owns only the association, `ExecutionSession` remains an independently-owned aggregate, and neither SHALL mutate the other's internal state (Refinement 1). `ExecutionSession` SHALL NOT dispatch Adapters, evaluate Assignment Policy, determine execution eligibility, transition Task lifecycle, coordinate workflows, or implement any orchestration behavior (Refinement 2). Beyond base immutability, equivalent execution inputs SHALL always produce equivalent `ExecutionSession` state, `ExecutionSessionId` SHALL be immutable, records SHALL be append-only and unmodifiable after creation, and all execution metadata SHALL remain deterministic and reproducible (Refinement 3). Every `ExecutionSession` SHALL belong to exactly one `EngineeringSession` and SHALL NOT exist independently of one, enforced at construction and the repository layer (Refinement 4). Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, and concurrent session coordination remain explicitly deferred to future, separately-ratified Milestone 8 Sprints. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 40 (correcting the stale Milestone 8 candidate-scope sentence and stale Sprint 39 status line identified by its governance scan as part of the same update), and to generate Sprint 40's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

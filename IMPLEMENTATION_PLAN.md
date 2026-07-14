@@ -2074,9 +2074,9 @@ Implementation Result
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`).
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession`. Current remaining candidate scope, per `NEXUS-RAT-2026-07-14-018`'s Explicitly Deferred list: Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination — plus RFC-0004's still-unimplemented `Execution Session` concept, now Sprint 40's target.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) that introduced `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Sprint 39 — Engineering Sessions Foundation is Milestone 8's opening Sprint, implementing `EngineeringSession`/`EngineeringSessionId`/`EngineeringSessionStatus`/`EngineeringSessionService` as a foundation-only vertical slice.
 
@@ -2133,4 +2133,60 @@ Implementation Result
 - `createKernelServices()` composes `EngineeringSessionService` through an in-memory session repository.
 - Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, and `ExecutionSession` implementation remain deferred pending future ratification.
 - Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-14-017`). One Category 6 Observation (F-001, composition property verified indirectly rather than by a standalone test) was recorded; it generates no Builder Task and does not affect approval. See `REVIEW_HISTORY.md` and the Sprint Implementation Record for details.
+
+## Sprint 40 — Execution Session Foundation
+
+Status: Approved with Findings — NEXUS-REV-2026-07-14-018
+
+Objective
+
+Implement RFC-0004's existing, unmodified `Execution Session` concept — the immutable record of one coordinated execution attempt (assigned role, assigned adapter, execution timestamps, consumed Projection version, produced artifacts, execution outcome) — as a Kernel domain concept owned by, and associated with, exactly one `EngineeringSession`.
+
+RFC Coverage
+
+- RFC-0004 — Execution Model v1.2 (Primary; existing "Execution Session" section, unmodified by this Sprint)
+- Referenced: RFC-0010 — Kernel Boundaries
+
+Ratification
+
+- `NEXUS-RAT-2026-07-14-019` — governs this Sprint's entire scope: Authorized Builder Scope, four Sprint Owner Refinements, Explicitly Deferred list, and scope restrictions.
+- `NEXUS-RAT-2026-07-14-018` — Sprint 39's ratification; establishes `EngineeringSession`, the aggregate this Sprint's `ExecutionSession` is owned by.
+
+Authorized Vertical Slice
+
+- `ExecutionSession` immutable, append-only Kernel domain concept with `ExecutionSessionId`, recording assigned Execution Role, assigned Adapter, execution timestamps, consumed Projection version, produced artifacts, and execution outcome, exactly per RFC-0004's existing "Execution Session" section.
+- A required, immutable owning-`EngineeringSessionId` reference on every `ExecutionSession` (Refinement 4): every `ExecutionSession` SHALL belong to exactly one `EngineeringSession` and SHALL NOT exist independently of one, enforced at construction and the repository layer.
+- `ExecutionSession` repository contract and in-memory implementation, mirroring existing Kernel repository patterns, including lookup/enumeration scoped by owning `EngineeringSessionId`.
+- Thin `ExecutionSessionService` (create/lookup/enumerate only) through constructor-injected repository contracts — no dispatch, no Assignment Policy evaluation, no Task lifecycle transition, no workflow coordination (Refinement 2).
+- `createKernelServices` composition updated to construct and register the `ExecutionSession` repository and `ExecutionSessionService`.
+- Unit tests covering aggregate construction/immutability/append-only behavior, deterministic and reproducible state for equivalent inputs (Refinement 3), the ownership invariant (Refinement 4), the repository, and the service.
+
+Deferred Concepts
+
+- Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration.
+- Automatic workflow advancement, session recovery/checkpointing, concurrent session coordination.
+- Adapter dispatch, execution-eligibility determination, Task lifecycle transition, and all orchestration behavior.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- `ExecutionSession` is the only new normative architectural concept introduced by Sprint 40.
+- Neither `EngineeringSession` nor `ExecutionSession` mutates the other's internal state; `EngineeringSession` owns only the containment association (Refinement 1).
+- `ExecutionSessionId` is immutable; `ExecutionSession` records are append-only and never modified after creation; equivalent inputs always produce equivalent state (Refinement 3).
+- Every `ExecutionSession` belongs to exactly one `EngineeringSession`; construction without a valid owning `EngineeringSessionId` is rejected (Refinement 4).
+- No existing Kernel Execution/Mission-domain file (`EngineeringSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`) is modified beyond the one authorized `createKernelServices` composition touch point.
+- No `src/hosts` or `src/adapters` file is modified.
+- `ExecutionSessionService` remains thin orchestration; implements no dispatch, Assignment Policy, or orchestration behavior.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0040-execution-session-foundation.md` for the complete Sprint Implementation Record.
+
+Implementation Result
+
+- Builder implementation completed the authorized Execution Session Foundation vertical slice.
+- `ExecutionSession`, `ExecutionSessionId`, `IExecutionSessionRepository`/`InMemoryExecutionSessionRepository`, and `ExecutionSessionService` were implemented as Kernel-only execution-domain code.
+- `createKernelServices()` composes `ExecutionSessionService` through an in-memory execution-session repository.
+- Adapter dispatch, execution-eligibility determination, Assignment Policy evaluation, Task lifecycle transition, workflow coordination, Workflow Chaining, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, and Host/Adapter consumption remain deferred pending future ratification.
+- Repository validation passed with `npm run validate`; extension-host test bundle build passed with `npm run test:extension-host:build`.
+- Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-14-018`). One Category 1 Minor finding (F-001, unused `ExecutionSessionMetadata` type in `execution-session.types.ts`) was recorded; it generates a non-blocking Builder Task via `nexus-sprint` and does not affect approval. See `REVIEW_HISTORY.md` and the Sprint Implementation Record for details.
 - No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Workflow Chaining, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.

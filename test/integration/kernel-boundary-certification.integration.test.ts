@@ -13,6 +13,7 @@ import { createKernelServices } from '../../src/kernel/common/create-kernel-serv
 import { EvidenceService } from '../../src/kernel/evidence/evidence.service';
 import { EngineeringRoleProfileService } from '../../src/kernel/execution/engineering-role-profile.service';
 import { EngineeringSessionService } from '../../src/kernel/execution/engineering-session.service';
+import { ExecutionSessionService } from '../../src/kernel/execution/execution-session.service';
 import { ExecutionStrategyReferenceError } from '../../src/kernel/execution/execution-strategy.errors';
 import { ExecutionStrategyService } from '../../src/kernel/execution/execution-strategy.service';
 import { ExecutionService } from '../../src/kernel/execution/execution.service';
@@ -47,6 +48,7 @@ interface KernelHarness {
   readonly roleService: RoleService;
   readonly engineeringRoleProfileService: EngineeringRoleProfileService;
   readonly engineeringSessionService: EngineeringSessionService;
+  readonly executionSessionService: ExecutionSessionService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
@@ -64,6 +66,7 @@ const expectedKernelServiceNames = [
   'RoleService',
   'EngineeringRoleProfileService',
   'EngineeringSessionService',
+  'ExecutionSessionService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
@@ -109,6 +112,7 @@ describe('RFC-0010 Kernel boundary certification', () => {
       includeAssignedRoleInPresentation: true,
     });
     expect(await harness.engineeringSessionService.enumerateEngineeringSessions()).toEqual([]);
+    expect(await harness.executionSessionService.enumerateExecutionSessions()).toEqual([]);
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -279,6 +283,11 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'EngineeringSessionService',
       (service): service is EngineeringSessionService => service instanceof EngineeringSessionService,
+    ),
+    executionSessionService: requireService(
+      services,
+      'ExecutionSessionService',
+      (service): service is ExecutionSessionService => service instanceof ExecutionSessionService,
     ),
     executionStrategyService: requireService(
       services,
