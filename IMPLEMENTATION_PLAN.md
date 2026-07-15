@@ -2961,3 +2961,95 @@ Reviewer Validation Result
 
 - Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-008`). Confirmed `MissionEngineeringGroup` and `EngineeringSessionHandoff` are new, additive Kernel concepts with their own repository contracts and in-memory implementations reusing the Kernel's established sequential-operation-queue idiom; confirmed `MissionEngineeringOrchestrationService` is thin orchestration validating Engineering Session references through the existing, unmodified `IEngineeringSessionRepository.exists()`, rejecting unauthorized and duplicate Handoffs deterministically, and never executing a Workflow Step, advancing a workflow position, evaluating an Assignment Policy, or dispatching an Adapter. Confirmed `EngineeringSession`, `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `enumerateActiveEngineeringSessions()`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, `RoleId`, `EngineeringSessionId`, `MissionId`, and `src/hosts`/`src/adapters` are all byte-for-byte unmodified. Cross-session isolation is verified by unit and composed-Kernel integration tests. Independent re-validation confirmed `tsc --noEmit`, targeted Vitest (13/13), `npm run validate` (Vitest 78 files / 392 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly.
 - Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-008-F-001`, `-F-002`): `MissionEngineeringGroup` association performs no Mission-existence validation (not required by the ratified scope), and an unrelated pre-existing Kernel-boundary test was reformatted with an added timeout in the same diff (cosmetic only). Neither generates a Builder Task. Sprint 51 is fully closed with zero open findings. Per `NEXUS-RAT-2026-07-15-012`, Milestone 8 — Engineering Orchestration is now Complete.
+
+---
+
+# Milestone 9 — Engineering Governance Automation
+
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, authorized by `NEXUS-RAT-2026-07-15-015`; no further Milestone 9 Sprint is Current)
+
+Objective
+
+Introduce deterministic, evidence-based governance capabilities that evaluate engineering outcomes, repository policies, review findings, ratifications, and workflow state. Milestone 9 SHALL reduce repetitive Sprint Owner intervention without transferring final engineering authority to the Kernel. The milestone builds upon the completed Engineering Orchestration Foundation established through Milestone 8.
+
+RFC Coverage
+
+- RFC-0011 — Engineering Governance Model (Final, Version 1.0, Normative — ratified `NEXUS-RAT-2026-07-15-014`)
+
+Ratification
+
+- `NEXUS-RAT-2026-07-15-013` — opens Milestone 9, sets the binding Objective and Architectural Boundary, and authorizes `nexus-plan` to draft RFC-0011 for a separate follow-up ratification.
+- `NEXUS-RAT-2026-07-15-014` — ratifies RFC-0011 v1.0 as Final and Normative following a section-by-section pre-ratification architectural review (RFC Ratification Report). Does not itself authorize any implementation Sprint.
+
+Architectural Boundary (binding, from `NEXUS-RAT-2026-07-15-013`)
+
+Governance automation SHALL evaluate explicit repository policies; consume authoritative Evidence and Shared Reality; consume finalized Review Outcomes and structured Findings; apply existing Ratifications and repository law; produce deterministic governance decisions and escalation requirements; and preserve complete attribution and explainability.
+
+Governance automation SHALL NOT redefine Mission objectives; autonomously create project intent; perform unrestricted architectural deliberation; replace final human engineering authority; introduce persistent cognition or self-directed engineering; or silently approve ambiguous or unsupported decisions. Any decision that cannot be resolved deterministically from repository law SHALL be escalated to the Sprint Owner.
+
+Provisional Capability Sequence (non-binding; subject to `nexus-plan` dependency validation and re-sequencing before any Sprint is proposed)
+
+- Sprint 52 — Governance Policy Model Foundation
+- Sprint 53 — Policy Evaluation Foundation
+- Sprint 54 — Governance Decision and Escalation
+- Sprint 55 — Ratification and Repository-Law Integration
+- Sprint 56 — Review-to-Governance Workflow Integration
+- Sprint 57 — Governance Automation Validation
+
+Status
+
+- RFC-0011 drafted (`knowledge/specifications/rfc-0011-engineering-governance-model.md`), pre-ratification reviewed (RFC Ratification Report), revised to v0.2 to resolve a `Blocked`/RFC-0004 terminology collision and add explicit Authority Hierarchy, Decision Semantics, and Failure/Conflict Handling, and ratified Final as v1.0 by `NEXUS-RAT-2026-07-15-014`.
+- Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings), authorized by `NEXUS-RAT-2026-07-15-015`. No further Milestone 9 Sprint is Current; the provisional Sprint 53/54 merge ("Policy Evaluation and Governance Decision Foundation") remains approved in principle only and requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## Sprint 52 — Governance Policy Model Foundation
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-009` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings). Authorized by `NEXUS-RAT-2026-07-15-015`. Milestone 9's opening Sprint.
+
+Objective
+
+Introduce `RepositoryPolicy` as an immutable, ratification-attributed, versioned Kernel domain concept. Sprint 52 establishes only the policy-definition and version-history foundation required by future deterministic Policy Evaluation. It does not implement evaluation, decision production, escalation, event publication, or cross-domain consumption.
+
+RFC Coverage
+
+- RFC-0011 — Engineering Governance Model v1.0 (Primary; Repository Policy, Policy Criterion, immutability, versioning/supersession, attribution).
+- RFC-0005 — Domain Event Model (Referenced; no Domain Events authorized this Sprint).
+
+Ratification
+
+- `NEXUS-RAT-2026-07-15-015` — governs this Sprint's entire scope: the binding Objective, RepositoryPolicy Aggregate, Version Lineage Rules, PolicyCriterion Boundary, Criterion Integrity, Ratification Attribution, Repository Contract, RepositoryPolicyService, and Kernel Composition rules.
+- `NEXUS-RAT-2026-07-15-014` — the companion RFC-0011 Final ratification this Sprint implements.
+
+Authorized Concepts
+
+- `RepositoryPolicy`, `RepositoryPolicyId`, `PolicyCriterion`, policy version, policy supersession reference, Ratification attribution reference.
+- `IRepositoryPolicyRepository` and in-memory implementation.
+- `RepositoryPolicyService` (registration, supersession, retrieval, current-version lookup, enumeration, version-history enumeration; thin orchestration only).
+- Minimal `createKernelServices` wiring for the new repository/service.
+
+Deferred Concepts
+
+- Policy Criterion predicate evaluation, Policy Evaluation, Governance Decision (Approved/Rejected/Deferred/Escalation Required), Governance Escalation.
+- Evidence, Shared Reality, Review Outcome/Finding consumption.
+- Ratification-Ledger content validation, policy authority/conflict/precedence resolution.
+- RFC-0005 Policy Events, Domain Event publication.
+- Policy activation/enforcement, workflow gates, repository-write automation, Host-facing policy surfaces, durable persistence.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- `RepositoryPolicy` versions are immutable; supersession creates a new version without mutating history while preserving stable identity; version numbers sequential; policy history linear (no forking); duplicate/skipped/regressed versions rejected.
+- Policy Criteria ordered, immutable, unique identifiers within a version; never evaluated or interpreted.
+- Every version carries Ratification attribution (structural-format validation only; no ledger access).
+- `RepositoryPolicyService` remains orchestration-only.
+- No Governance Decision, Governance Escalation, or Domain Event is introduced, including as a stub.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0052-governance-policy-model-foundation.md` for the complete Sprint Implementation Record.
+
+Reviewer Validation Result
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-009`). Confirmed `RepositoryPolicy`/`PolicyCriterion` are new, additive Kernel governance concepts implementing exactly RFC-0011's Repository Policy/Policy Criterion sections; confirmed the ratified Version Lineage Rules are enforced at both the aggregate and repository layers with no mutation path; confirmed `PolicyCriterion` is inert declarative data with no predicate/evaluation logic anywhere in the diff; confirmed `RepositoryPolicyService` is thin orchestration with zero Policy Evaluation, Governance Decision, Governance Escalation, Ratification-Ledger access, cross-domain access, or event publication, verified by source inspection, a full import-graph check (zero cross-domain imports), and dedicated negative tests. Confirmed `create-kernel-services.ts` and `kernel-boundary-certification.integration.test.ts` were extended additively only, and no `src/hosts` or `src/adapters` file was touched. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run test` (Vitest 81 files / 405 tests on full-suite re-run), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+- Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-009-F-001`, `-F-002`): pre-existing, systemic `kernel-service-map.md` drift predating this Sprint (also missing prior Approved sprints' services), and a transient process-timing flake in an unrelated, unmodified Sprint 21 test (confirmed passing in isolation and on full-suite re-run). Neither generates a Builder Task. Sprint 52 is fully closed with zero open findings.

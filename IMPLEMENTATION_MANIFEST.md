@@ -1637,7 +1637,7 @@ Notes:
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 Approved — Assignment Policy Integration, NEXUS-REV-2026-07-15-005, fully closed with zero open findings; Sprint 49 Approved — Session Recovery/Checkpointing Foundation, NEXUS-REV-2026-07-15-006, fully closed with zero open findings; Sprint 50 Approved — Concurrent Session Coordination, NEXUS-REV-2026-07-15-007, fully closed with zero open findings; Sprint 51 Implemented — Pending Reviewer Validation — Multi-Agent Engineering Orchestration Foundation, authorized by NEXUS-RAT-2026-07-15-012, designated Milestone 8's concluding Sprint)
+Status: ✅ COMPLETE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 Approved — Assignment Policy Integration, NEXUS-REV-2026-07-15-005, fully closed with zero open findings; Sprint 49 Approved — Session Recovery/Checkpointing Foundation, NEXUS-REV-2026-07-15-006, fully closed with zero open findings; Sprint 50 Approved — Concurrent Session Coordination, NEXUS-REV-2026-07-15-007, fully closed with zero open findings; Sprint 51 Approved — NEXUS-REV-2026-07-15-008 — Multi-Agent Engineering Orchestration Foundation, authorized by NEXUS-RAT-2026-07-15-012, designated and confirmed as Milestone 8's concluding Sprint; Milestone 8 is Complete)
 
 Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (Sprint 46, `NEXUS-REV-2026-07-15-001`). RFC-0004 was further amended to v1.6 (`NEXUS-RAT-2026-07-15-003`) to add "Workflow Chain Execution" — executing the Workflow Step at the current position, distinct from Workflow Advancement — after governance analysis found this capability explicitly reserved but unauthorized by v1.3/v1.4. Sprint 47 (`NEXUS-RAT-2026-07-15-004`) implemented that section and is Approved (`NEXUS-REV-2026-07-15-003`, fully closed with zero open findings). During Sprint 48's planning, a Sprint Owner request to evaluate "Assignment Policy Foundation" was re-scoped after governance analysis found that capability already certified as Sprint 44; RFC-0004 was amended to v1.7 (`NEXUS-RAT-2026-07-15-005`) to add an "Assignment Policy Evaluation" subsection to Workflow Chain Execution. Sprint 48 (`NEXUS-RAT-2026-07-15-006`) is Approved (`NEXUS-REV-2026-07-15-005`), fully closed with zero open findings. During Sprint 49's planning, the Sprint Owner selected Session Recovery/Checkpointing from Milestone 8's remaining candidate scope (Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination); RFC-0004 was amended to v1.8 (`NEXUS-RAT-2026-07-15-007`) to add a "Session Recovery/Checkpointing" section defining Checkpoint and Recovery atop Engineering Session's existing, unmodified snapshot/reconstitution contract. Sprint 49 (`NEXUS-RAT-2026-07-15-008`) is Approved (`NEXUS-REV-2026-07-15-006`), fully closed with zero open findings. During Sprint 50's planning, the Sprint Owner selected Concurrent Session Coordination from Milestone 8's remaining candidate scope (Multi-Agent Engineering Orchestration, Concurrent Session Coordination); RFC-0004 was amended to v1.9 (`NEXUS-RAT-2026-07-15-009`) to add a "Concurrent Session Coordination" section. Sprint 50 (`NEXUS-RAT-2026-07-15-010`) is Approved (`NEXUS-REV-2026-07-15-007`), fully closed with zero open findings. Following Sprint 50's closure, the planner found no existing normative definition of Multi-Agent Engineering Orchestration anywhere in RFC-0004, the Kernel Canon, or `knowledge/reference/`; the Sprint Owner selected a combined scope — Mission Engineering Grouping and cross-role Handoff — as Milestone 8's concluding capability. RFC-0004 was amended to v1.10 (`NEXUS-RAT-2026-07-15-011`) to add "Multi-Agent Engineering Orchestration Foundation," authorized for implementation as Sprint 51 (`NEXUS-RAT-2026-07-15-012`), which is Current.
 
@@ -2122,7 +2122,7 @@ Notes:
 
 ## Sprint 51 — Multi-Agent Engineering Orchestration Foundation
 
-Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-15-012`. Designated Milestone 8's concluding Sprint.
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-008` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings). Authorized by `NEXUS-RAT-2026-07-15-012`. Milestone 8's concluding Sprint — Milestone 8 is now Complete.
 
 RFC Coverage:
 
@@ -2158,7 +2158,71 @@ Notes:
 - This Sprint does not modify RFC-0006, the Kernel Canon, or any other RFC beyond `NEXUS-RAT-2026-07-15-011`'s RFC-0004 v1.10 amendment.
 - Mission Engineering Group and Engineering Session Handoff are new, additive Kernel concepts; no existing aggregate or repository is modified to introduce them, and neither operation executes a Workflow Step, advances a workflow position, evaluates an Assignment Policy, or dispatches an Adapter.
 - Upon this Sprint's Approval with zero open Critical/Major/Minor findings, Milestone 8 — Engineering Orchestration SHALL be considered Complete.
-- Builder implementation complete; Sprint is Implemented — Pending Reviewer Validation.
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-008`). Two Category 6, Informational Observations recorded (`-F-001`, `-F-002`); neither generates a Builder Task. Sprint 51 is fully closed with zero open findings. Per `NEXUS-RAT-2026-07-15-012`, Milestone 8 — Engineering Orchestration is now Complete.
+
+---
+
+# Milestone 9 — Engineering Governance Automation
+
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; no further Milestone 9 Sprint is Current)
+
+RFC Coverage:
+
+- RFC-0011 — Engineering Governance Model (Final, Version 1.0, Normative — ratified `NEXUS-RAT-2026-07-15-014`)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-15-013` — opens Milestone 9, sets the binding Objective and Architectural Boundary, and authorizes `nexus-plan` to draft RFC-0011 for a separate follow-up ratification.
+- `NEXUS-RAT-2026-07-15-014` — ratifies RFC-0011 v1.0 as Final and Normative following a section-by-section pre-ratification architectural review. Does not itself authorize any implementation Sprint.
+
+Notes:
+
+- RFC-0011 owns Repository Policy, Policy Criterion, Policy Evaluation, Governance Decision, and Governance Escalation; it does not modify RFC-0001 through RFC-0010 or the Kernel Canon.
+- Governance Decision values (Approved, Rejected, Deferred, Escalation Required) are ratified as deterministic and mutually exclusive; no value permits autonomous state mutation.
+- See `knowledge/specifications/rfc-0011-engineering-governance-model.md` for the full ratified text.
+
+---
+
+## Sprint 52 — Governance Policy Model Foundation
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-009` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings). Authorized by `NEXUS-RAT-2026-07-15-015`. Milestone 9's opening Sprint.
+
+RFC Coverage:
+
+- RFC-0011 — Engineering Governance Model v1.0 (Primary; Repository Policy, Policy Criterion, immutability, versioning/supersession, attribution).
+- RFC-0005 — Domain Event Model (Referenced; no Domain Events authorized this Sprint).
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-15-015` — governs this Sprint's entire scope.
+- `NEXUS-RAT-2026-07-15-014` — the companion RFC-0011 Final ratification this Sprint implements.
+
+Authorized Concepts:
+
+- `RepositoryPolicy`, `RepositoryPolicyId`, `PolicyCriterion`, policy version, policy supersession reference, Ratification attribution reference.
+- `IRepositoryPolicyRepository` and in-memory implementation.
+- `RepositoryPolicyService` (registration, supersession, retrieval, current-version lookup, enumeration, version-history enumeration; thin orchestration only).
+- Minimal `createKernelServices` wiring for the new repository/service.
+
+Deferred Concepts:
+
+- Policy Criterion predicate evaluation, Policy Evaluation, Governance Decision (Approved/Rejected/Deferred/Escalation Required), Governance Escalation.
+- Evidence, Shared Reality, Review Outcome/Finding consumption.
+- Ratification-Ledger content validation, policy authority/conflict/precedence resolution.
+- RFC-0005 Policy Events, Domain Event publication.
+- Policy activation/enforcement, workflow gates, repository-write automation, Host-facing policy surfaces, durable persistence.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0052-governance-policy-model-foundation.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify the Kernel Canon, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- No placeholder implementation of any deferred concept is authorized, including as an unused/stubbed reference.
+
+Reviewer Validation Result:
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-009`). Confirmed `RepositoryPolicy`/`PolicyCriterion` are new, additive Kernel governance concepts implementing exactly RFC-0011's Repository Policy/Policy Criterion sections; confirmed the ratified Version Lineage Rules are enforced at both the aggregate and repository layers with no mutation path; confirmed `PolicyCriterion` is inert declarative data with no predicate/evaluation logic anywhere in the diff; confirmed `RepositoryPolicyService` is thin orchestration with zero Policy Evaluation, Governance Decision, Governance Escalation, Ratification-Ledger access, cross-domain access, or event publication. No `src/hosts` or `src/adapters` file was touched. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run test` (Vitest 81 files / 405 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+- Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-009-F-001`, `-F-002`): pre-existing, systemic `kernel-service-map.md` drift predating this Sprint, and a transient process-timing flake in an unrelated, unmodified Sprint 21 test. Neither generates a Builder Task. Sprint 52 is fully closed with zero open findings.
 
 ---
 

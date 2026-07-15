@@ -22,6 +22,7 @@ import { MissionEngineeringOrchestrationService } from '../../src/kernel/executi
 import { RoleService } from '../../src/kernel/execution/role.service';
 import { WorkflowChainService } from '../../src/kernel/execution/workflow-chain.service';
 import { Kernel } from '../../src/kernel/kernel';
+import { RepositoryPolicyService } from '../../src/kernel/governance/repository-policy.service';
 import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../src/kernel/mission/mission-execution.service';
 import { MissionPlanningService } from '../../src/kernel/mission/mission-planning.service';
@@ -55,6 +56,7 @@ interface KernelHarness {
   readonly executionSessionService: ExecutionSessionService;
   readonly workflowChainService: WorkflowChainService;
   readonly assignmentPolicyService: AssignmentPolicyService;
+  readonly repositoryPolicyService: RepositoryPolicyService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
@@ -76,6 +78,7 @@ const expectedKernelServiceNames = [
   'ExecutionSessionService',
   'WorkflowChainService',
   'AssignmentPolicyService',
+  'RepositoryPolicyService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
@@ -135,6 +138,7 @@ describe('RFC-0010 Kernel boundary certification', () => {
     expect(await harness.executionSessionService.enumerateExecutionSessions()).toEqual([]);
     expect(await harness.workflowChainService.enumerateWorkflowChains()).toEqual([]);
     expect(await harness.assignmentPolicyService.enumerateAssignmentPolicies()).toEqual([]);
+    expect(await harness.repositoryPolicyService.enumerateCurrentRepositoryPolicies()).toEqual([]);
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -400,6 +404,11 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'AssignmentPolicyService',
       (service): service is AssignmentPolicyService => service instanceof AssignmentPolicyService,
+    ),
+    repositoryPolicyService: requireService(
+      services,
+      'RepositoryPolicyService',
+      (service): service is RepositoryPolicyService => service instanceof RepositoryPolicyService,
     ),
     executionStrategyService: requireService(
       services,

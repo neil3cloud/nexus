@@ -32,6 +32,8 @@ import { InMemoryWorkflowChainRepository } from '../execution/workflow-chain.rep
 import { WorkflowChainService } from '../execution/workflow-chain.service';
 import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
+import { InMemoryRepositoryPolicyRepository } from '../governance/repository-policy.repository';
+import { RepositoryPolicyService } from '../governance/repository-policy.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
 import { MissionPlanningService } from '../mission/mission-planning.service';
 import { InMemoryMissionRepository } from '../mission/mission.repository';
@@ -54,6 +56,7 @@ export function createKernelServices(
   const evidenceRepository = new InMemoryEvidenceRepository();
   const reviewRepository = new InMemoryReviewRepository();
   const knowledgeRepository = new InMemoryKnowledgeRepository();
+  const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
   const roleRegistry = new InMemoryRoleRegistry();
   const engineeringRoleProfileRegistry = new InMemoryEngineeringRoleProfileRegistry(
     createDefaultEngineeringRoleProfiles(),
@@ -70,6 +73,7 @@ export function createKernelServices(
   const adapterService = new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0'));
   const executionSessionService = new ExecutionSessionService(executionSessionRepository);
   const assignmentPolicyService = new AssignmentPolicyService(assignmentPolicyRepository);
+  const repositoryPolicyService = new RepositoryPolicyService(repositoryPolicyRepository);
   const executionStrategyService = new ExecutionStrategyService(
     executionStrategyRepository,
     roleAssignmentRepository,
@@ -108,6 +112,7 @@ export function createKernelServices(
     executionSessionService,
     new WorkflowChainService(workflowChainRepository),
     assignmentPolicyService,
+    repositoryPolicyService,
     executionStrategyService,
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),

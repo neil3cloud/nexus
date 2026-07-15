@@ -4551,3 +4551,260 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-014
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-014
+
+## Date
+
+2026-07-15
+
+## Subject
+
+RFC-0011 — Engineering Governance Model, Final Ratification. Resolves the pre-ratification architectural review requested against `NEXUS-RAT-2026-07-15-013`'s Draft, authorizing RFC-0011 v1.0 as Final and Normative.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan`-produced RFC Ratification Report (section-by-section validation against the Kernel Canon, RFC-0001 through RFC-0010, `IMPLEMENTATION_CONSTITUTION.md`, and `RATIFICATION_LEDGER.md`), reviewed and accepted by the Sprint Owner.
+
+## Governance Decision
+
+**RFC-0011 — Engineering Governance Model is ratified Final, Version 1.0, Authority Normative.**
+
+RFC-0011 exclusively owns: Repository Policy, Policy Criterion, Policy Evaluation, Governance Decision, Governance Escalation. RFC-0011 consumes but does not redefine any concept owned by RFC-0001 through RFC-0010. Existing ownership of Mission, Evidence, Shared Reality, Execution, Domain Events, Engineering Assessment, Knowledge, Adapters, Host responsibilities, and Kernel boundaries is unchanged.
+
+**Ratified Governance Decision values (canonical, deterministic, mutually exclusive):** Approved, Rejected, Deferred, Escalation Required. No Governance Decision value SHALL autonomously advance a Mission, modify repository state, publish Knowledge, activate a Sprint, or perform any other downstream transition. Rejected SHALL NOT reopen Review, cancel a Mission, or mutate execution state. Deferred SHALL NOT be interpreted as Approved or Rejected and MAY be re-evaluated once the missing input appears. Escalation Required SHALL fail closed and requires resolution through an authorized Sprint Owner decision or a new/amended Ratification. Governance SHALL NOT choose an outcome by unrestricted model judgment.
+
+**Ratified Authority Hierarchy:** Repository Policies remain subordinate to superior repository law. The applicable architectural hierarchy is: (1) Nexus Kernel Canon, (2) RFC Suite, (3) Implementation Constitution, (4) Technology Standards, (5) Conventions, (6) Reference Documents, (7) Implementation. Governance-artifact precedence remains separately governed by the Implementation Constitution and Ratification Ledger. A Ratification inherits the authority of the artifact or governance scope it amends. A Repository Policy SHALL NOT override the Kernel Canon, an RFC, the Implementation Constitution, an applicable Ratification, or another superior repository authority. Any unresolved authority conflict, and any conflicting same-tier Repository Policies absent explicit deterministic precedence, SHALL produce Escalation Required.
+
+**Ratified Immutability and Versioning:** Repository Policies are immutable per version; modification creates a new superseding version; previous versions remain preserved. Every Policy Evaluation and Governance Decision remains permanently attributable to the exact Policy version, Policy Criteria, Evidence, Shared Reality projection, Review Outcome, Findings, Ratifications, and repository state used during evaluation. Historical evaluations and decisions SHALL NOT be rewritten following Policy supersession.
+
+**Ratified Architectural Boundary:** RFC-0011 authorizes deterministic engineering governance evaluation only. It does not authorize autonomous Mission creation, Mission objective modification, autonomous planning, RFC amendment, Ratification creation, architectural approval, policy generation, policy optimization, unrestricted AI deliberation, workflow orchestration, Adapter execution, repository-write automation, Sprint activation, or self-directed engineering. Governance Decisions are recommendations or gates, not self-executing commands. Human Authority remains preserved.
+
+**Ratified Failure-Closed Requirement:** missing Evidence; stale or missing Shared Reality; incomplete or non-terminal Review; unsupported Policy Criteria; conflicting Policies; contradictory Ratifications; missing Policy versions; unresolved repository-state inconsistencies; ambiguous authority; and non-deterministic evaluation requirements SHALL produce Deferred (input merely absent) or Escalation Required (ambiguity, contradiction, conflict, or unsupported interpretation). These conditions SHALL NOT default to Approved or Rejected.
+
+**Ratified Event Model Alignment:** RFC-0011 SHALL reuse the RFC-0005 "Policy Events" category and SHALL NOT introduce a competing event category. Concrete event vocabulary remains an implementation-layer decision requiring separate authorization during implementation planning.
+
+**Deferred Governance Maintenance:** the identified wording tension in `IMPLEMENTATION_CONSTITUTION.md` Sprint Owner Ratifications section (stating ratifications amend implementation governance "without modifying the Kernel Canon or RFC suite," in apparent tension with the repeatedly-ratified practice of amending RFC text, including this RFC's own creation) is acknowledged as a pre-existing governance issue. It does not invalidate RFC-0011 and SHALL be addressed, if at all, through a separate governance-maintenance action. No amendment to RFC-0011 is authorized for that issue.
+
+## Ownership Model (ratified)
+
+Identical to the ownership matrix in `nexus-plan`'s RFC-0011 Ratification Report: RFC-0011 owns Repository Policy, Policy Criterion, Policy Evaluation, Governance Decision, Governance Escalation exclusively; all other listed concepts remain owned by their existing RFCs, unmodified.
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Update RFC-0011's metadata (Status: Final; Version: 1.0; Authority: Normative) and Amendment History.
+- Synchronize `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and applicable Milestone 9 documentation to reflect RFC-0011's Final status.
+- Proceed to re-evaluate the provisional Milestone 9 Sprint sequence and propose Sprint 52 as the smallest coherent first vertical slice of RFC-0011, for Sprint Owner approval.
+
+`nexus-plan` SHALL NOT:
+
+- Modify RFC-0011's ratified text beyond the metadata/status update authorized above without a further Sprint Owner ratification.
+- Modify the Kernel Canon or RFC-0001 through RFC-0010.
+- Activate Sprint 52 or any other implementation Sprint without a separate, explicit Sprint Owner approval of the Sprint 52 proposal.
+- Treat Milestone 9 as anything other than OPEN with no Current Sprint until Sprint 52 (or another proposal) is approved.
+
+## Scope Restrictions
+
+- This is a documentation/specification ratification only.
+- No source code or test change is authorized by this ratification.
+- Milestone 9 remains OPEN; no Current Sprint exists as a result of this ratification alone.
+
+## Related Sprint(s)
+
+- No Milestone 9 Sprint exists yet. This ratification is a precondition for the Sprint 52 proposal `nexus-plan` will return next.
+
+## Related Review(s)
+
+- None. This ratification precedes any Milestone 9 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies RFC-0011 — Engineering Governance Model as Final, Version 1.0, Authority Normative, accepting the `nexus-plan` RFC Ratification Report and confirming that all required pre-ratification amendments (the Blocked-to-Deferred rename, Authority Hierarchy, per-value Decision Semantics, Failure and Conflict Handling table, expanded Boundaries, and RFC-0005 "Policy Events" alignment) are already incorporated into the ratified text. RFC-0011 exclusively owns Repository Policy, Policy Criterion, Policy Evaluation, Governance Decision, and Governance Escalation, and does not redefine any concept owned by RFC-0001 through RFC-0010. The canonical Governance Decision values — Approved, Rejected, Deferred, Escalation Required — are ratified as deterministic and mutually exclusive, with no value permitting autonomous Mission advancement, repository-state mutation, Knowledge publication, or Sprint activation. The ratified Authority Hierarchy subordinates Repository Policy to the Kernel Canon, the RFC Suite, the Implementation Constitution, and applicable Ratifications, with unresolved authority conflicts and same-tier Policy conflicts producing Escalation Required. Repository Policies are ratified as immutable per version and versioned by supersession, with full historical attribution preserved. The ratified Architectural Boundary confirms RFC-0011 authorizes deterministic governance evaluation only, excluding autonomous Mission creation, Mission objective modification, RFC amendment, Ratification creation, architectural approval, policy generation/optimization, unrestricted AI deliberation, workflow orchestration, Adapter execution, repository-write automation, and Sprint activation. The ratified Failure-Closed Requirement and Event Model Alignment (reuse of RFC-0005's "Policy Events" category) are confirmed as stated above. The identified `IMPLEMENTATION_CONSTITUTION.md` wording tension concerning Ratification authority over RFC text is acknowledged as a pre-existing issue requiring separate governance maintenance, not an RFC-0011 amendment. The Sprint Owner authorizes `nexus-plan` to update RFC-0011's metadata to Final, synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`/Milestone 9 documentation accordingly, and to re-evaluate the provisional Milestone 9 Sprint sequence and return a Sprint 52 proposal for separate Sprint Owner approval. Milestone 9 remains OPEN with no Current Sprint until that proposal is approved.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-015
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-015
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 52 Scope Ratification — Governance Policy Model Foundation. Resolves the `nexus-plan` Sprint 52 Proposal presented after `NEXUS-RAT-2026-07-15-014` ratified RFC-0011 v1.0 Final, authorizing implementation of the `RepositoryPolicy` foundation as Milestone 9's opening Sprint. Also approves, in principle, merging the provisional Sprint 53/54 scopes into a future combined Sprint titled "Policy Evaluation and Governance Decision Foundation"; that merge does not activate any Sprint by this ratification.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved by the Sprint Owner with refinements supplied directly as binding Sprint scope.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 52 — Governance Policy Model Foundation as Milestone 9's opening Sprint, implementing RFC-0011 v1.0's Repository Policy and Policy Criterion sections only (policy definition, immutability, versioning/supersession, and Ratification attribution). No evaluation, decision production, escalation, event publication, or cross-domain consumption is authorized.
+
+**Objective (binding):** Introduce `RepositoryPolicy` as an immutable, ratification-attributed, versioned Kernel domain concept. Sprint 52 establishes only the policy-definition and version-history foundation required by future deterministic Policy Evaluation.
+
+**RepositoryPolicy Aggregate (binding):** immutable per version; each version contains stable `RepositoryPolicyId`, positive version number, name, description, ordered `PolicyCriterion` collection, Ratification identifier reference, and optional predecessor-version reference. A constructed version is never mutated; changes are represented only by a new superseding version.
+
+**Version Lineage Rules (binding):** an initial version uses version `1`, has no predecessor, contains at least one `PolicyCriterion`, and includes a Ratification identifier reference. A superseding version preserves the same `RepositoryPolicyId`, uses the next sequential version number, references the immediately preceding version, includes the Ratification identifier authorizing that supersession, and produces a new immutable instance without overwriting the previous one. The implementation SHALL reject duplicate versions, skipped version numbers, version regression, supersession of an unknown predecessor, supersession across different `RepositoryPolicyId`s, multiple competing successors for the same current version, and mutation or replacement of an existing version. Policy history SHALL remain linear and queryable; policy branching is not authorized.
+
+**PolicyCriterion Boundary (binding):** declarative policy-definition data only — criterion identifier, description, required-input declarations, and an opaque, immutable condition descriptor. Sprint 52 SHALL NOT define or implement predicates, comparison operators, boolean expression trees, expression parsing, executable callbacks, scripting, model prompts, evaluation functions, pass/fail state, criterion outcomes, or provider-specific condition formats. No part of Sprint 52 may execute or interpret a Policy Criterion. Within a version: criterion identifiers unique, order deterministic and preserved, at least one criterion required, criteria immutable, empty identifiers/descriptions rejected, duplicate identifiers rejected. Criterion order SHALL NOT imply evaluation precedence absent a future RFC amendment.
+
+**Ratification Attribution (binding):** every version includes a Ratification identifier reference. Sprint 52 SHALL validate only the identifier's canonical structural format — it SHALL NOT read `RATIFICATION_LEDGER.md`, validate ledger contents, infer Ratification authority, determine legal authorization, or introduce a Ratification repository/service. The stored identifier is attribution data, not proof of authorization; live Ratification authority validation remains deferred.
+
+**Repository Contract (binding):** `IRepositoryPolicyRepository` supports deterministic registration of an initial version, registration of a superseding version, retrieval by identity and version, retrieval of the current version, enumeration of all current policies, and enumeration of complete version history. Every historical version is preserved; duplicate registration and invalid lineage are rejected. The in-memory implementation is the only authorized implementation this Sprint; no durable persistence is authorized.
+
+**RepositoryPolicyService (binding):** thin application service coordinating initial registration, supersession, retrieval, current-version lookup, enumeration, and version-history enumeration only, delegating invariant enforcement to the domain model and repository contracts. It SHALL NOT contain Policy Evaluation, Governance Decision production, Governance Escalation, authority interpretation, Ratification-Ledger validation, Evidence/Shared Reality/Review access, event publication, workflow orchestration, or repository mutation outside `RepositoryPolicy` persistence.
+
+**Kernel Composition (binding):** `createKernelServices()` may be extended only to compose the Repository Policy repository and `RepositoryPolicyService`. No existing Kernel service contract may be modified beyond the minimum additive composition required. No Host or Adapter change is authorized.
+
+## Ownership Model (ratified)
+
+Identical to RFC-0011's ratified ownership matrix (`NEXUS-RAT-2026-07-15-014`); this ratification authorizes implementation of the Repository Policy/Policy Criterion foundation subset only, against it.
+
+## Authorized Scope
+
+The Builder MAY introduce exactly: `RepositoryPolicy`, `RepositoryPolicyId`, `PolicyCriterion`, policy version, policy supersession reference, Ratification attribution reference, `IRepositoryPolicyRepository`, an in-memory repository implementation, `RepositoryPolicyService`, minimal Kernel composition wiring, deterministic diagnostics, and unit tests, exactly as specified in the binding Governance Decision above and in Sprint 52's Sprint Implementation Record.
+
+## Deferred Concepts
+
+Policy Criterion predicate evaluation; Policy Evaluation; Governance Decision (Approved, Rejected, Deferred, Escalation Required); Governance Escalation; decision explanation records; Evidence consumption; Shared Reality consumption; Review Outcome/Finding consumption; Ratification-Ledger content validation; policy authority resolution; policy conflict resolution; policy precedence evaluation; RFC-0005 Policy Events; Domain Event publication; policy activation or enforcement; workflow gates; repository-write automation; Host-facing policy surfaces; durable persistence; `src/hosts` changes; `src/adapters` changes. No placeholder implementation of any deferred concept is authorized.
+
+## Scope Restrictions
+
+- No Domain Event is authorized this Sprint; policy creation and supersession remain event-silent until a dedicated event-publication slice is authorized.
+- No `src/hosts` or `src/adapters` change.
+- No modification to the Kernel Canon, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- The provisional Sprint 53/54 merge into a future "Policy Evaluation and Governance Decision Foundation" Sprint is approved in principle only; it does not activate any Sprint and requires its own future scope ratification when formally proposed.
+
+## Related Sprint(s)
+
+- Sprint 5 — Evidence Foundation; Sprint 9 — Review Foundation; Sprint 12 — Knowledge Foundation; Sprint 39 — Engineering Sessions Foundation (existing foundation-sprint patterns Sprint 52 mirrors).
+- Sprint 51 — Multi-Agent Engineering Orchestration Foundation (Milestone 8's closing Sprint; immediate predecessor).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner approves Sprint 52 — Governance Policy Model Foundation as Milestone 9's opening Sprint, with the binding Objective, RepositoryPolicy Aggregate, Version Lineage Rules, PolicyCriterion Boundary, Criterion Integrity, Ratification Attribution, Repository Contract, RepositoryPolicyService, and Kernel Composition rules recorded above. The Builder SHALL implement exactly the Authorized Scope and SHALL NOT implement any Deferred Concept, including as a placeholder or stub. No Domain Event, `src/hosts`, or `src/adapters` change is authorized. The Sprint Owner additionally approves, in principle, merging the provisional Sprint 53 and Sprint 54 scopes into a future Sprint titled "Policy Evaluation and Governance Decision Foundation," delivering Policy Evaluation and exactly one Governance Decision as a single complete deterministic capability; the milestone sequence may be renumbered when that Sprint is formally proposed, and no future Sprint is activated by this decision. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 52 as Current under Milestone 9, and to generate Sprint 52's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-013
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-013
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Milestone Boundary Ratification — Opening Milestone 9 (Engineering Governance Automation). Resolves the `nexus-plan` governance question of what may follow Milestone 8 (Complete, `NEXUS-RAT-2026-07-15-012`).
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal presented after Sprint 51's closure, in which the planner recommended Governance/Policy Engine as the strongest next-capability candidate (repeatedly named as deferred and unauthorized since Milestone 4; explicitly logged in this ledger's `NEXUS-RAT-2026-07-14-016` Ownership Model as "Unauthorized; reserved for future Sprint Owner scope ratification"). The Sprint Owner accepted this direction and issued binding scope instructions directly.
+
+## Governance Decision
+
+**Milestone 9 — Engineering Governance Automation is opened.**
+
+**Objective (binding):** Introduce deterministic, evidence-based governance capabilities that evaluate engineering outcomes, repository policies, review findings, ratifications, and workflow state. Milestone 9 SHALL reduce repetitive Sprint Owner intervention without transferring final engineering authority to the Kernel. The milestone SHALL build upon the completed Engineering Orchestration Foundation established through Milestone 8.
+
+**Architectural Boundary (binding):**
+
+Governance automation SHALL:
+
+- evaluate explicit repository policies;
+- consume authoritative Evidence and Shared Reality;
+- consume finalized Review Outcomes and structured Findings;
+- apply existing Ratifications and repository law;
+- produce deterministic governance decisions and escalation requirements;
+- preserve complete attribution and explainability.
+
+Governance automation SHALL NOT:
+
+- redefine Mission objectives;
+- autonomously create project intent;
+- perform unrestricted architectural deliberation;
+- replace final human engineering authority;
+- introduce persistent cognition or self-directed engineering;
+- silently approve ambiguous or unsupported decisions.
+
+Any decision that cannot be resolved deterministically from repository law SHALL be escalated to the Sprint Owner.
+
+## Normative Work Required (authorized by this ratification)
+
+This ratification authorizes `nexus-plan` to:
+
+1. Draft RFC-0011 — Engineering Governance Model, Status: Draft, validated against the Kernel Canon and RFC-0002/0003/0005/0006/0007/0010.
+2. Define RFC-0011's exclusive vocabulary ownership (Repository Policy, Policy Criterion, Policy Evaluation, Governance Decision, Governance Escalation) and its upstream dependencies.
+3. Return RFC-0011 and this milestone's proposed implementation sequence to the Sprint Owner for a separate, follow-up ratification before RFC-0011 becomes Final.
+
+This ratification does NOT authorize:
+
+- RFC-0011 as Final/normative — a separate follow-up ratification is required;
+- any implementation Sprint (Sprint 52 or otherwise);
+- any source code, test, or `src/hosts`/`src/adapters` change;
+- any modification to RFC-0001 through RFC-0010 or the Kernel Canon.
+
+## Provisional Capability Sequence (non-binding, subject to `nexus-plan` dependency validation and re-sequencing)
+
+- Sprint 52 — Governance Policy Model Foundation
+- Sprint 53 — Policy Evaluation Foundation
+- Sprint 54 — Governance Decision and Escalation
+- Sprint 55 — Ratification and Repository-Law Integration
+- Sprint 56 — Review-to-Governance Workflow Integration
+- Sprint 57 — Governance Automation Validation
+
+## Milestone Completion Condition
+
+Milestone 9 SHALL be complete only when Nexus can deterministically:
+
+- evaluate a finalized engineering outcome against repository policy;
+- distinguish approved, rejected, blocked, and escalation-required outcomes;
+- explain every decision using attributable Evidence and repository law;
+- apply existing ratifications without repeated human interpretation;
+- escalate genuine ambiguity rather than inventing authority;
+- preserve the Sprint Owner as final engineering authority.
+
+## Related Sprint(s)
+
+- Sprint 51 — Multi-Agent Engineering Orchestration Foundation (Milestone 8's closing Sprint; immediate predecessor).
+- No Milestone 9 Sprint exists yet; Sprint 52 is not authorized by this ratification.
+
+## Related Review(s)
+
+- None. This ratification precedes any Milestone 9 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner opens Milestone 9 — Engineering Governance Automation, with the binding Objective and Architectural Boundary recorded above. The Sprint Owner authorizes `nexus-plan` to draft RFC-0011 — Engineering Governance Model as a non-Final Draft, validated against the Kernel Canon and RFC-0002/0003/0005/0006/0007/0010, defining exclusive ownership of Repository Policy, Policy Criterion, Policy Evaluation, Governance Decision, and Governance Escalation, and to return it together with a validated implementation sequence for a separate follow-up Sprint Owner ratification. This ratification does not itself finalize RFC-0011, does not authorize Sprint 52 or any other implementation Sprint, and does not modify RFC-0001 through RFC-0010 or the Kernel Canon. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to open Milestone 9 in an unactivated (no Current Sprint) state.
+
+## Current Status
+
+Active
+
+---
