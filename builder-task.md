@@ -4,11 +4,11 @@
 
 Engineering Review Report:
 
-`REVIEW_HISTORY.md` § `NEXUS-REV-2026-07-15-010`
+`REVIEW_HISTORY.md` § `NEXUS-REV-2026-07-15-011`
 
 Review Reference:
 
-`NEXUS-REV-2026-07-15-010`
+`NEXUS-REV-2026-07-15-011`
 
 Sprint:
 
@@ -26,7 +26,7 @@ Generation Date:
 
 # Executive Summary
 
-The Reviewer certified Sprint 53 — Policy Evaluation and Governance Decision Foundation with an Overall Disposition of **PASS WITH FINDINGS** (`NEXUS-REV-2026-07-15-010`). One Category 1 — Implementation Defect finding was recorded, Severity Minor, with Required Disposition "Builder SHALL correct the implementation." No Category 2–5 finding was recorded.
+The Reviewer certified the Sprint 53 TASK-001 remediation with an Overall Disposition of **PASS WITH FINDINGS** (`NEXUS-REV-2026-07-15-011`). `NEXUS-REV-2026-07-15-010-F-001` (Category 1, Minor) is confirmed **Resolved** and generates no further Builder action. One new Category 4 — Documentation Drift finding was recorded, Severity Informational, with Required Disposition "Documentation SHALL be reconciled. No architectural changes are implied."
 
 This document is the authoritative implementation contract for the Builder.
 
@@ -34,7 +34,7 @@ The Builder SHALL implement only the work described herein.
 
 The Builder SHALL NOT reinterpret the Engineering Review Report.
 
-**There is exactly one OPEN Builder Task arising from this review cycle.** Sprint 53 itself is Approved with Findings and its implementation baseline is otherwise frozen per Approved Vertical Slice Immutability; this task corrects a narrowly-scoped repository-layer defect without reopening any ratified rule, RFC coverage, or Sprint 53 scope decision.
+**There is exactly one Documentation Task arising from this review cycle, and no OPEN or BLOCKED Builder Task.** Sprint 53's implementation is otherwise unchanged and frozen per Approved Vertical Slice Immutability; this task corrects a single stale figure in a validation summary.
 
 ---
 
@@ -42,17 +42,23 @@ The Builder SHALL NOT reinterpret the Engineering Review Report.
 
 ## Included
 
-- `NEXUS-REV-2026-07-15-010-F-001` — Category 1, Implementation Defect, Minor. Generates TASK-001 below.
+- `NEXUS-REV-2026-07-15-011-F-001` — Category 4, Documentation Drift, Informational. Generates DOC-001 below.
 
 ## Excluded
 
-None. No Observation, Documentation Drift, Architectural Violation, Specification Conflict, or Governance Decision Required finding was recorded in `NEXUS-REV-2026-07-15-010`.
+- `NEXUS-REV-2026-07-15-010-F-001` — Resolved by the prior TASK-001 remediation; the Reviewer confirmed closure in `NEXUS-REV-2026-07-15-011` and it requires no further Builder action.
 
 ---
 
 # Open Builder Tasks
 
-## TASK-001 — Narrow GovernanceDecision duplicate-registration equivalence check to semantic fields only
+None. `NEXUS-REV-2026-07-15-011` recorded no Category 1 — Implementation Defect finding.
+
+---
+
+# Documentation Tasks
+
+## DOC-001 — Correct the Vitest total in IMPLEMENTATION_REPORT.md's Sprint 53 Validation Summary
 
 Status
 
@@ -60,78 +66,62 @@ OPEN
 
 ### Category
 
-Implementation Defect
+Documentation Drift
 
 ### Severity
 
-Minor
+Informational
 
 ### Source
 
-`NEXUS-REV-2026-07-15-010-F-001`
+`NEXUS-REV-2026-07-15-011-F-001`
 
 ### Summary
 
-`InMemoryGovernanceDecisionRepository.register` (`src/kernel/governance/governance-decision.repository.ts`) determines whether two `GovernanceDecision`s sharing the same evaluation key are "equivalent" (idempotent return) or "contradictory" (reject) by comparing `JSON.stringify` of their *entire* snapshots via `canonicalizeGovernanceDecision`. This full-snapshot comparison includes the randomly-generated `GovernanceDecisionId`/`PolicyEvaluationId` (default `createIdentity = randomUUID`) and the caller-supplied `evaluatedAt` timestamp — fields the ratification does not treat as semantically significant. Under concurrent (non-sequential) evaluation of the same evaluation key, two semantically identical decisions can therefore spuriously trigger `ContradictoryGovernanceDecisionError`.
+`IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary reports "Vitest passed: 82 files, 441 tests," carried over unchanged from before the TASK-001 remediation, even though the line immediately above it correctly reports the file-level count as 37 Sprint 53 tests (up from 36 — TASK-001 added one regression test). The true, independently-confirmed post-remediation suite total is 82 files / 442 tests.
 
 ### Authority
 
 Normative
 
-- `NEXUS-RAT-2026-07-15-016`, Evaluation Idempotency: "Repeated evaluation of the same immutable input set SHALL NOT produce conflicting Governance Decisions... `IGovernanceDecisionRepository` SHALL enforce one deterministic behavior: return the existing equivalent GovernanceDecision; or reject duplicate registration with a deterministic duplicate diagnostic."
-- `NEXUS-RAT-2026-07-15-016`, Deterministic Identity and Evaluation Key: "Identifiers SHALL NOT change the semantic outcome of evaluation."
-- `NEXUS-RAT-2026-07-15-016`, Deterministic Time: the evaluation timestamp is "attribution metadata only. It SHALL NOT influence the Governance Decision value."
-- Sprint 53 Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0053-policy-evaluation-and-governance-decision-foundation.md`), Acceptance Criteria: "repeated evaluation cannot create contradictory records."
+- `IMPLEMENTATION_CONSTITUTION.md` § Implementation Report — implementation reports SHALL accurately describe validation performed.
+- `NEXUS-REV-2026-07-15-011-F-001`, Required Disposition: "Documentation SHALL be reconciled. No architectural or implementation change is implied."
 
 ### References
 
-- Engineering Review Report Finding `NEXUS-REV-2026-07-15-010-F-001`
+- Engineering Review Report Finding `NEXUS-REV-2026-07-15-011-F-001`
 
 ### Implementation Targets
 
-- `src/kernel/governance/governance-decision.repository.ts` (`canonicalizeGovernanceDecision`, `register`)
-- `test/kernel/governance/governance.service.test.ts` (or an equivalent test location) — add a regression test
+- `IMPLEMENTATION_REPORT.md` — Sprint 53 § Validation Summary (the line currently reading "Vitest passed: 82 files, 441 tests.")
 
 ### Required Changes
 
-Narrow the equivalence check performed in `register()` so that two `GovernanceDecisionSnapshot`s sharing the same `evaluationKey` are treated as equivalent (idempotent — return the existing decision, no error) when they agree on exactly the semantically relevant fields: `value`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `reviewStateReference`, `evaluationKey`, `criterionResults`, `explanationCodes`, and `escalation` (comparing `escalation` by its content excluding its own `id`, which is likewise a non-semantic identifier). The comparison SHALL exclude the top-level `GovernanceDecision.id`, `policyEvaluationId`, and `evaluatedAt` fields, since the ratification defines these as non-semantic (identifiers do not change the semantic evaluation outcome; the timestamp is attribution metadata only). Two snapshots sharing an evaluation key that disagree on any of the semantic fields above (e.g., a different `value`) SHALL continue to raise `ContradictoryGovernanceDecisionError`, exactly as today.
-
-Do not change: the `evaluationKey` derivation; the `GovernanceService` orchestration flow; the Governance Decision Precedence, Mixed-Result Decision Table, Missing Review Resolution, or `UnresolvedFindingMatch` polarity logic; the public `IGovernanceDecisionRepository` contract shape; any Sprint 52 or Sprint 9 file; any `src/hosts` or `src/adapters` file. Do not introduce a Domain Event, a new Authorized Concept, or any Deferred Concept listed in Sprint 53's Sprint Implementation Record.
+Update the single line in `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary from "Vitest passed: 82 files, 441 tests." to "Vitest passed: 82 files, 442 tests." Make no other change to `IMPLEMENTATION_REPORT.md`, any other file, or any test.
 
 ### Acceptance Criteria
 
-- Two `GovernanceDecision`s that share an evaluation key and agree on `value`, policy identity/version, review identity/state reference, `criterionResults`, `explanationCodes`, and `escalation` content are treated as equivalent by `register()` regardless of differing `id`, `policyEvaluationId`, or `evaluatedAt` — the existing recorded decision is returned, and no error is thrown.
-- Two `GovernanceDecision`s that share an evaluation key but disagree on `value` (or any other semantic field) continue to raise `ContradictoryGovernanceDecisionError`, exactly as before this fix (the existing test `'rejects contradictory duplicate GovernanceDecision registration for the same evaluation key'` continues to pass unmodified).
-- A new regression test demonstrates that two decisions built for the same evaluation key with the same semantic content but different `id`/`evaluatedAt` (simulating the concurrent-evaluation race) register without error and result in exactly one stored decision.
-- All existing Sprint 53 tests (36) continue to pass unmodified.
-- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
-- No architectural deviation; no change to any ratified rule, RFC coverage, or Sprint 53 Authorized Scope.
+- `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary reads "82 files, 442 tests," matching an independently-run `npm run test`.
+- No other line in `IMPLEMENTATION_REPORT.md`, and no source or test file, is modified.
+- Repository-wide validation continues to pass: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build (all unaffected by a documentation-only change, but SHALL be re-confirmed).
 
 ### Reviewer Evidence
 
-- Diff of `governance-decision.repository.ts` showing the narrowed equivalence comparison.
-- The new regression test and its passing output.
-- Full `npm run test` output confirming the previous 441-test count is preserved or grows by exactly the added regression test(s), with zero failures.
-- `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all passing.
-- Confirmation (e.g. `git diff --stat`) that no file outside `src/kernel/governance/governance-decision.repository.ts` and its test was modified, and that no Sprint 52/Sprint 9 file, `src/hosts` file, or `src/adapters` file was touched.
-
----
-
-# Documentation Tasks
-
-None. `NEXUS-REV-2026-07-15-010` recorded no Category 4 — Documentation Drift finding.
+- Diff of `IMPLEMENTATION_REPORT.md` showing only the corrected count.
+- `npm run test` output confirming 82 files / 442 tests.
+- Confirmation (e.g. `git diff --stat`) that no file other than `IMPLEMENTATION_REPORT.md` was touched by this task.
 
 ---
 
 # Blocked Builder Tasks
 
-None. `NEXUS-REV-2026-07-15-010` recorded no Category 2 — Architectural Violation, Category 3 — Specification Conflict, or Category 5 — Governance Decision Required finding.
+None. `NEXUS-REV-2026-07-15-011` recorded no Category 2 — Architectural Violation, Category 3 — Specification Conflict, or Category 5 — Governance Decision Required finding.
 
 ---
 
 # Future Improvements
 
-None. `NEXUS-REV-2026-07-15-010` recorded no Category 6 — Observation finding.
+None. `NEXUS-REV-2026-07-15-011` recorded no Category 6 — Observation finding.
 
 ---
 
@@ -139,23 +129,21 @@ None. `NEXUS-REV-2026-07-15-010` recorded no Category 6 — Observation finding.
 
 The Builder SHALL:
 
-- implement only TASK-001 above;
-- preserve Sprint 53's scope, RFC Coverage, and every ratified rule in `NEXUS-RAT-2026-07-15-016`, including both Final Refinements;
-- preserve all Deferred Concepts listed in the Sprint 53 Sprint Implementation Record;
-- preserve architectural terminology (`GovernanceDecision`, `PolicyEvaluation`, `GovernanceEscalation`, `evaluationKey`, etc.) unchanged;
-- update `IMPLEMENTATION_REPORT.md` to record this remediation under Sprint 53;
-- update `IMPLEMENTATION_MANIFEST.md` if Sprint 53's recorded implementation description needs to reflect the corrected repository behavior;
-- leave `IMPLEMENTATION_PLAN.md` unchanged — Sprint 53 is already Approved with Findings and this remediation does not change that disposition (Approved findings SHALL NOT block progression).
+- implement only DOC-001 above;
+- make a documentation-only change — no source code, test, RFC, or Kernel Canon edit;
+- preserve Sprint 53's scope, RFC Coverage, and every ratified rule in `NEXUS-RAT-2026-07-15-016`;
+- update `IMPLEMENTATION_MANIFEST.md` only if its own Sprint 53 notes separately cite the stale count (verify before editing; do not introduce a new citation);
+- leave `IMPLEMENTATION_PLAN.md` unchanged — Sprint 53 is already Approved with Findings and this correction does not change that disposition.
 
 The Builder SHALL NOT:
 
-- reinterpret Reviewer finding `NEXUS-REV-2026-07-15-010-F-001`;
-- redefine RFC-0011 terminology or any ratified rule in `NEXUS-RAT-2026-07-15-016`;
-- modify the Kernel Canon or any RFC;
+- reinterpret Reviewer finding `NEXUS-REV-2026-07-15-011-F-001`;
+- reopen or reinterpret the already-Resolved `NEXUS-REV-2026-07-15-010-F-001`;
+- modify `src/kernel/governance/governance-decision.repository.ts`, its test, or any other Sprint 53 implementation file;
+- modify the Kernel Canon, any RFC, or any Ratification;
 - modify Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 9's `Review`/`Finding` implementation;
 - modify any `src/hosts` or `src/adapters` file;
-- expand Sprint 53 scope or implement any Deferred Concept, including as a placeholder or stub;
-- treat this remediation as authorization to begin Milestone 9's next Sprint — that requires a separate `nexus-plan` proposal and Sprint Owner ratification.
+- treat this task as authorization to begin Milestone 9's next Sprint — that requires a separate `nexus-plan` proposal and Sprint Owner ratification.
 
 ---
 
@@ -163,10 +151,8 @@ The Builder SHALL NOT:
 
 Upon completion the Builder SHALL provide:
 
-- Summary of TASK-001's completion.
-- Files modified (expected: `src/kernel/governance/governance-decision.repository.ts`, its test file, `IMPLEMENTATION_REPORT.md`, and possibly `IMPLEMENTATION_MANIFEST.md`).
-- Tests added or updated, and their results.
-- Validation performed (`tsc --noEmit`, ESLint, `npm run test`, `npm run build`, `npm run test:extension-host:build`).
-- Confirmation that no other Sprint 53 behavior, no Sprint 52/Sprint 9 file, and no `src/hosts`/`src/adapters` file was changed.
+- Confirmation that `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary now reads "82 files, 442 tests."
+- `git diff --stat` confirming only `IMPLEMENTATION_REPORT.md` (and, if applicable, a matching `IMPLEMENTATION_MANIFEST.md` citation) was changed.
+- `npm run test` output confirming 82 files / 442 tests, zero failures.
 - Remaining blocked tasks: none.
-- Outstanding governance dependencies: none for this remediation. The next Milestone 9 Sprint awaits a `nexus-plan` proposal and Sprint Owner ratification.
+- Outstanding governance dependencies: none. The next Milestone 9 Sprint awaits a `nexus-plan` proposal and Sprint Owner ratification.

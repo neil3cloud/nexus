@@ -92,7 +92,7 @@ Deferred Concepts:
 - TASK-001 remediation corrected `InMemoryGovernanceDecisionRepository` duplicate-registration equivalence to ignore non-semantic top-level `GovernanceDecision.id`, `policyEvaluationId`, `evaluatedAt`, and `GovernanceEscalation.id` fields while preserving contradiction rejection for semantic differences.
 - Targeted Sprint 53 validation passed: `npm run compile` and `npx vitest run test\kernel\governance\governance.service.test.ts` (37 tests).
 - Repository validation passed: TypeScript compile, ESLint, Vitest, esbuild, and extension-host bundle build.
-- Vitest passed: 82 files, 441 tests.
+- Vitest passed: 82 files, 442 tests.
 
 ### Deviations
 
