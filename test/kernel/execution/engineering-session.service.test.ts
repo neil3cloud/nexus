@@ -11,6 +11,7 @@ import { ProtocolVersion } from '../../../src/kernel/adapter/protocol-version';
 import { InMemoryAssignmentPolicyRepository } from '../../../src/kernel/execution/assignment-policy.repository';
 import { AssignmentPolicyService } from '../../../src/kernel/execution/assignment-policy.service';
 import {
+  EngineeringSessionCheckpointNotFoundError,
   EngineeringSessionNotFoundError,
   InvalidEngineeringSessionDefinitionError,
   InvalidEngineeringSessionLifecycleTransitionError,
@@ -206,6 +207,67 @@ describe('EngineeringSessionService', () => {
     await expect(
       service.closeEngineeringSession({ engineeringSessionId: 'session-1' }),
     ).rejects.toThrow(InvalidEngineeringSessionLifecycleTransitionError);
+  });
+
+  it('captures deterministic Checkpoints and recovers semantically equivalent EngineeringSessions', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'unused-generated-id',
+      createTimestampSequence([
+        '2026-07-15T00:00:00.000Z',
+        '2026-07-15T00:01:00.000Z',
+      ]),
+    );
+    const created = await service.createEngineeringSession({
+      id: 'engineering-session-checkpointed',
+      engineeringRuntimeContextReference: 'runtime-context-checkpointed',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['reviewer', 'builder'],
+      workflowState: 'active',
+      diagnostics: [
+        {
+          code: 'engineering-session.checkpoint-source',
+          message: 'Checkpoint source diagnostic.',
+          recordedAt: '2026-07-15T00:00:30.000Z',
+        },
+      ],
+      collaborationMetadata: {
+        pair: 'human-builder',
+      },
+    });
+    const checkpoint = await service.createCheckpoint({
+      engineeringSessionId: created.id,
+      checkpointId: 'checkpoint-before-advancement',
+    });
+    const advanced = await service.advanceWorkflow({ engineeringSessionId: created.id });
+    const recovered = await service.recoverFromCheckpoint({
+      checkpointId: checkpoint.id,
+    });
+
+    expect(checkpoint).toEqual({
+      id: 'checkpoint-before-advancement',
+      engineeringSession: created,
+      capturedAt: '2026-07-15T00:01:00.000Z',
+    });
+    expect(advanced.currentWorkflowStepId).toBe('1');
+    expect(recovered).toEqual(created);
+    await expect(service.getEngineeringSession(created.id)).resolves.toEqual(advanced);
+  });
+
+  it('rejects Recovery from a nonexistent Checkpoint', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'unused-generated-id',
+      () => '2026-07-15T00:00:00.000Z',
+    );
+
+    await expect(
+      service.recoverFromCheckpoint({ checkpointId: 'missing-checkpoint' }),
+    ).rejects.toThrow(EngineeringSessionCheckpointNotFoundError);
   });
 
   it('orchestrates validated WorkflowChain binding creation and rejection cases', async () => {
@@ -1254,6 +1316,18 @@ function createSatisfiedAssignmentPolicyEvaluationInput(): {
       review: 'required',
     }),
   });
+}
+
+function createTimestampSequence(timestamps: string[]): () => string {
+  return () => {
+    const timestamp = timestamps.shift();
+
+    if (timestamp === undefined) {
+      throw new Error('No timestamp available for test.');
+    }
+
+    return timestamp;
+  };
 }
 
 async function createWorkflowExecutionAssignmentPolicy(

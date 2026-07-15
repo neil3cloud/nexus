@@ -2074,7 +2074,7 @@ Implementation Result
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026, fully closed by TASK-001 remediation of NEXUS-REV-2026-07-14-025-F-001; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 Approved — Assignment Policy Integration, NEXUS-REV-2026-07-15-005, fully closed with zero open findings)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026, fully closed by TASK-001 remediation of NEXUS-REV-2026-07-14-025-F-001; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 Approved — Assignment Policy Integration, NEXUS-REV-2026-07-15-005, fully closed with zero open findings; Sprint 49 Approved — Session Recovery/Checkpointing Foundation, NEXUS-REV-2026-07-15-006, fully closed with zero open findings)
 
 Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model (Advancement Strategy, Trigger, Eligibility, Authority, Result, Failure) naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (Sprint 46, `NEXUS-REV-2026-07-15-001`). During Sprint 47's planning, governance analysis determined that Workflow Advancement moves the current workflow position but RFC-0004 explicitly reserved *executing* the Workflow Step at that position (Adapter dispatch) as a separate, not-yet-authorized capability (v1.3 § Workflow Chaining, v1.4 § Workflow Advancement). RFC-0004 was therefore amended to v1.6 (`NEXUS-RAT-2026-07-15-003`) to add "Workflow Chain Execution," implemented by Sprint 47 (`NEXUS-RAT-2026-07-15-004`) and Approved (`NEXUS-REV-2026-07-15-003`, fully closed after `TASK-001` remediated the sole finding from `NEXUS-REV-2026-07-15-002`). During Sprint 48's planning, a Sprint Owner planning request proposed evaluating "Assignment Policy Foundation" as Milestone 8's next capability; governance analysis found that capability already certified with zero findings as Sprint 44, frozen under Approved Vertical Slice Immutability. RFC-0004 was therefore amended to v1.7 (`NEXUS-RAT-2026-07-15-005`) to add an "Assignment Policy Evaluation" subsection to Workflow Chain Execution — an optional consumption point gating dispatch using Sprint 44's existing, unmodified evaluation — implemented by Sprint 48 (`NEXUS-RAT-2026-07-15-006`), Approved (`NEXUS-REV-2026-07-15-005`, fully closed after `TASK-001` remediated the sole finding from `NEXUS-REV-2026-07-15-004`). Remaining candidate scope after Sprint 48 (Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
 
@@ -2746,4 +2746,78 @@ Reviewer Validation Result
 
 - Reviewer validation complete: **Approved with Findings** (`NEXUS-REV-2026-07-15-004`). Confirmed the Assignment Policy Evaluation gate is thin orchestration reusing Sprint 44's unmodified `AssignmentPolicyService.evaluateAssignmentPolicy`/`AssignmentPolicy.evaluate()`, evaluated after Sprint 47's existing readiness check and strictly before Adapter dispatch/`ExecutionSession` creation; confirmed `AssignmentPolicy`, `AssignmentPolicyService`, `IAssignmentPolicyRepository`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, the `EngineeringSession` aggregate itself, Sprint 43's/45's/46's advancement methods, and `src/hosts`/`src/adapters` are all byte-for-byte unmodified. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run validate` (Vitest 75 files / 374 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly.
 - One Minor, non-blocking finding recorded: `NEXUS-REV-2026-07-15-004-F-001` — two new defensive/guard branches (missing `assignmentPolicyEvaluationInput` when `assignmentPolicyId` is supplied; missing `assignmentPolicyService` collaborator when `assignmentPolicyId` is supplied) have no exercising test, directly analogous to Sprint 47's `NEXUS-REV-2026-07-15-002-F-001`. Generated one test-only Builder Task.
-- `TASK-001` remediation verified (`NEXUS-REV-2026-07-15-005`): two test cases added to `engineering-session.service.test.ts` covering exactly the two identified branches; no production source file modified; `npm run validate` passes at 75 files / 376 tests. Sprint 48 is fully closed with zero open findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- `TASK-001` remediation verified (`NEXUS-REV-2026-07-15-005`): two test cases added to `engineering-session.service.test.ts` covering exactly the two identified branches; no production source file modified; `npm run validate` passes at 75 files / 376 tests. Sprint 48 is fully closed with zero open findings.
+
+---
+
+## Sprint 49 — Session Recovery/Checkpointing Foundation
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-006` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings).
+
+Objective
+
+Add `EngineeringSessionService.createCheckpoint()`, capturing an Engineering Session's existing `toSnapshot()` state as a named, immutable, timestamped `EngineeringSessionCheckpoint` persisted through a new `IEngineeringSessionCheckpointRepository`, and `EngineeringSessionService.recoverFromCheckpoint()`, reconstituting an `EngineeringSession` from a stored Checkpoint via the existing, unmodified `fromSnapshot()`. Recovery SHALL reconstruct a semantically equivalent Engineering Session, not a byte-for-byte identical one.
+
+RFC Coverage
+
+Primary
+
+- RFC-0004 v1.8 — Execution Model ("Session Recovery/Checkpointing", new section)
+
+Referenced
+
+- RFC-0004 v1.2/v1.3 — "Engineering Session" (Sprints 39/40, unmodified)
+- RFC-0010 — Kernel Boundaries
+
+No RFC ownership changes are authorized beyond `NEXUS-RAT-2026-07-15-007`'s RFC-0004 v1.8 amendment.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-15-008` — Sprint 49 scope ratification: governs this Sprint's entire scope, the binding Objective, the binding Architectural Responsibilities, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-15-007` — the companion RFC-0004 v1.8 amendment defining Session Recovery/Checkpointing this Sprint implements.
+
+Architectural Responsibilities (binding, from `NEXUS-RAT-2026-07-15-008`)
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, snapshot, reconstitution | `EngineeringSession` (Sprints 39/40, unmodified) |
+| `EngineeringSessionCheckpoint` value object, Checkpoint identity, capture timestamp | `EngineeringSessionCheckpoint` (this Sprint, new) |
+| Checkpoint capture orchestration | `EngineeringSessionService.createCheckpoint` (this Sprint, new) |
+| Checkpoint persistence | `IEngineeringSessionCheckpointRepository` / in-memory implementation (this Sprint, new) |
+| Recovery orchestration via existing `fromSnapshot()` | `EngineeringSessionService.recoverFromCheckpoint` (this Sprint, new) |
+| Workflow position, Workflow Advancement, Workflow Chain Execution, Assignment Policy Evaluation | Unmodified (Sprints 43/45/46/47/48) |
+
+Authorized Vertical Slice
+
+- Add `EngineeringSessionCheckpoint`, an immutable value object wrapping an Engineering Session's existing `EngineeringSessionSnapshot`, a `EngineeringSessionCheckpointId`, and a capture timestamp.
+- Add `EngineeringSessionService.createCheckpoint()`, calling the existing, unmodified `EngineeringSession.toSnapshot()` and persisting the resulting Checkpoint.
+- Add `IEngineeringSessionCheckpointRepository` and an in-memory implementation, mirroring existing Kernel repository patterns.
+- Add `EngineeringSessionService.recoverFromCheckpoint()`, retrieving a stored Checkpoint and reconstituting an `EngineeringSession` via the existing, unmodified `EngineeringSession.fromSnapshot()`.
+- Extend `createKernelServices` composition only as strictly required to construct and register the Checkpoint repository and supply it to `EngineeringSessionService`.
+- Unit/integration tests covering: deterministic Checkpoint capture; Recovery producing a semantically equivalent Engineering Session; the deterministic round-trip property `recoverFromCheckpoint(createCheckpoint(session))` yields a session semantically equivalent to `session` under all RFC-0004 invariants; not-found handling; repository behavior; Kernel composition continuity.
+
+Deferred Concepts
+
+- Concurrent Session Coordination, Multi-Agent Engineering Orchestration.
+- Automatic or background checkpointing, Checkpoint retention/pruning policy, cross-session Checkpoint sharing.
+- Any modification to `EngineeringSession`'s existing `toSnapshot()`, `fromSnapshot()`, snapshot structure, workflow state, timeline, or diagnostics.
+- Any modification to `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, or `AssignmentPolicyService`.
+- Any modification to Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, or Sprint 47's/48's `executeCurrentWorkflowStep()`.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- `EngineeringSession`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService` remain unmodified.
+- Sprint 43/45/46/47/48 advancement and execution methods remain unmodified.
+- Checkpoint capture and Recovery reuse `toSnapshot()`/`fromSnapshot()` exactly as they exist; no duplicate snapshot or reconstruction model is introduced.
+- Recovery satisfies semantic equivalence (RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants), not byte-for-byte identity.
+- The deterministic round-trip property `recoverFromCheckpoint(createCheckpoint(session))` is verified by automated test to be semantically equivalent to `session`.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0049-session-recovery-checkpointing-foundation.md` for the complete Sprint Implementation Record.
+
+Reviewer Validation Result
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-006`). Confirmed the Checkpoint capture/Recovery pair is thin orchestration reusing Sprint 39's unmodified `EngineeringSession.toSnapshot()`/`fromSnapshot()` verbatim, with no duplicate snapshot or reconstruction model introduced; confirmed `EngineeringSession`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, Sprint 43's/45's/46's/47's/48's advancement and execution methods, and `src/hosts`/`src/adapters` are all byte-for-byte unmodified. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run validate` (Vitest 76 files / 380 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly.
+- Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-006-F-001`, `-F-002`): a `JSON.stringify`-based `equals()` versus the sibling `EngineeringSession.equals()`'s dedicated comparison helper, and reuse of an EngineeringSession-scoped error class for Checkpoint validation. Neither generates a Builder Task. Sprint 49 is fully closed with zero open findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Multi-Agent Engineering Orchestration or Concurrent Session Coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.

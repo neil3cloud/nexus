@@ -34,3 +34,17 @@ export class EngineeringSessionNotFoundError extends EngineeringSessionDomainErr
     this.name = 'EngineeringSessionNotFoundError';
   }
 }
+
+export class DuplicateEngineeringSessionCheckpointError extends EngineeringSessionDomainError {
+  public constructor(checkpointId: string) {
+    super(`EngineeringSessionCheckpoint '${checkpointId}' already exists.`);
+    this.name = 'DuplicateEngineeringSessionCheckpointError';
+  }
+}
+
+export class EngineeringSessionCheckpointNotFoundError extends EngineeringSessionDomainError {
+  public constructor(checkpointId: string) {
+    super(`EngineeringSessionCheckpoint '${checkpointId}' was not found.`);
+    this.name = 'EngineeringSessionCheckpointNotFoundError';
+  }
+}

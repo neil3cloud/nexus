@@ -4069,6 +4069,168 @@ The Builder SHALL NOT:
 
 ## Current Status
 
+Active (Sprint 48 subsequently closed, fully certified — `NEXUS-REV-2026-07-15-005`; `TASK-001` remediation of `NEXUS-REV-2026-07-15-004-F-001` verified; zero open findings).
+
+---
+
+# NEXUS-RAT-2026-07-15-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-007
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Session Recovery/Checkpointing — RFC-0004 v1.7 to v1.8 amendment adding a new "Session Recovery/Checkpointing" section defining a Checkpoint (a named, immutable, point-in-time capture of an Engineering Session's runtime state) and Recovery (reconstituting an Engineering Session's runtime state from a Checkpoint).
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal presented after Sprint 48's closure, evaluating Milestone 8's three remaining candidate directions (Multi-Agent Engineering Orchestration, Session Recovery/Checkpointing, Concurrent Session/Workflow Coordination) named by RFC-0004 v1.6 line 437's "future compatibility" reservation and carried forward, unauthorized, through Sprints 44-48. The Sprint Owner selected Session Recovery/Checkpointing.
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.7 to Version 1.8, adding a new "Session Recovery/Checkpointing" section.
+
+Engineering Session already owns runtime progression, workflow state, workflow execution history, the session timeline, and session diagnostics (v1.2/v1.3, unmodified), and already exposes deterministic snapshot/reconstitution (`toSnapshot()`/`fromSnapshot()`, Sprint 39, unmodified) used for repository persistence. This amendment formalizes an explicit, Kernel-owned Checkpoint capability — capturing that existing snapshot at a caller-determined point as a named, retrievable record distinct from ordinary repository persistence — and a Recovery operation that reconstitutes an Engineering Session from a given Checkpoint via the existing, unmodified `fromSnapshot()`.
+
+Recovery SHALL reconstruct an Engineering Session that is semantically equivalent to the captured Checkpoint, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants; implementation-specific object identity, memory layout, or serialization format are not part of this contract (Sprint Owner wording refinement, adopted in place of a byte-for-byte equivalence formulation, to preserve implementation flexibility).
+
+Checkpoint creation and Recovery SHALL remain deterministic and SHALL NOT redefine Engineering Session's existing snapshot/reconstitution semantics, workflow state, or timeline.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, snapshot, reconstitution | `EngineeringSession` (Sprints 39/40, unmodified) |
+| Capturing a named Checkpoint from existing Engineering Session snapshot state | RFC-0004 "Session Recovery/Checkpointing" (this amendment) |
+| Reconstituting an Engineering Session from a Checkpoint via existing `fromSnapshot()` | RFC-0004 "Session Recovery/Checkpointing" (this amendment) |
+| Workflow position, Workflow Advancement, Workflow Chain Execution, Assignment Policy Evaluation | Unmodified (Sprints 43/45/46/47/48) |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.7 to 1.8; Amendment History entry; new "Session Recovery/Checkpointing" section.
+- Proceed to draft a Sprint 49 scope ratification authorizing implementation of Session Recovery/Checkpointing, consuming this amendment.
+
+`nexus-plan` SHALL NOT:
+
+- Modify Engineering Session's existing snapshot/reconstitution semantics, Workflow Chain, Workflow Advancement, Workflow Chain Execution, Assignment Policy, Execution Session, or any other RFC or the Kernel Canon.
+- Introduce Concurrent Session Coordination or Multi-Agent Engineering Orchestration, both of which remain separately unauthorized.
+- Treat this ratification as authorizing implementation; implementation remains separately deferred pending its own Sprint scope ratification.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only.
+- No Kernel Canon change. No modification to Engineering Session's existing snapshot/reconstitution contract. No Concurrent Session Coordination or Multi-Agent Orchestration is introduced or implied.
+- No source code or test change is authorized by this ratification alone.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (the certified, unmodified snapshot/reconstitution contract this amendment's Checkpoint/Recovery capability reuses).
+- Sprint 40 — Execution Session Foundation (referenced; unaffected).
+- Future Session Recovery/Checkpointing implementation Sprint (Sprint 49; not yet implemented; will consume this amendment).
+
+## Related Review(s)
+
+- None.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies that Session Recovery/Checkpointing — capturing a named, immutable Checkpoint of an Engineering Session's existing runtime snapshot, and Recovery reconstituting an Engineering Session from that Checkpoint via the existing, unmodified `fromSnapshot()` — SHALL be defined by RFC-0004 as a new section. RFC-0004 SHALL be amended to Version 1.8. Recovery SHALL reconstruct a semantically equivalent Engineering Session, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants; implementation-specific object identity, memory layout, or serialization format are not part of this contract. Engineering Session's existing snapshot/reconstitution semantics, workflow state, timeline, and diagnostics ownership are otherwise unmodified. Concurrent Session Coordination and Multi-Agent Orchestration remain unauthorized and are not introduced by this amendment. This ratification authorizes the RFC-0004 amendment only; implementation remains subject to its own future Sprint Owner scope ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-008
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-008
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 49 Scope Ratification — Session Recovery/Checkpointing Foundation. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-15-007` amended RFC-0004 to v1.8, authorizing implementation of Session Recovery/Checkpointing.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved by the Sprint Owner.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 49 — Session Recovery/Checkpointing Foundation as Milestone 8's next Sprint, implementing RFC-0004 v1.8's Session Recovery/Checkpointing section only.
+
+**Objective (binding):** Add `EngineeringSessionService.createCheckpoint()`, capturing an Engineering Session's existing `toSnapshot()` state as a named, immutable, timestamped `EngineeringSessionCheckpoint` persisted through a new `IEngineeringSessionCheckpointRepository`, and `EngineeringSessionService.recoverFromCheckpoint()`, reconstituting an `EngineeringSession` from a stored Checkpoint via the existing, unmodified `fromSnapshot()`.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, snapshot, reconstitution | `EngineeringSession` (Sprints 39/40, unmodified) |
+| `EngineeringSessionCheckpoint` value object, Checkpoint identity, capture timestamp | `EngineeringSessionCheckpoint` (this Sprint, new) |
+| Checkpoint capture orchestration | `EngineeringSessionService.createCheckpoint` (this Sprint, new) |
+| Checkpoint persistence | `IEngineeringSessionCheckpointRepository` / in-memory implementation (this Sprint, new) |
+| Recovery orchestration via existing `fromSnapshot()` | `EngineeringSessionService.recoverFromCheckpoint` (this Sprint, new) |
+| Workflow position, Workflow Advancement, Workflow Chain Execution, Assignment Policy Evaluation | Unmodified (Sprints 43/45/46/47/48) |
+
+## Ownership Model (ratified)
+
+Identical to `NEXUS-RAT-2026-07-15-007`'s Ownership Model table; this ratification authorizes implementation against it.
+
+## Authorized Scope
+
+The Builder MAY:
+
+- Add `EngineeringSessionCheckpoint`, an immutable value object wrapping an Engineering Session's existing `EngineeringSessionSnapshot`, a `EngineeringSessionCheckpointId`, and a capture timestamp.
+- Add `EngineeringSessionService.createCheckpoint()`, calling the existing, unmodified `EngineeringSession.toSnapshot()` and persisting the resulting Checkpoint.
+- Add `IEngineeringSessionCheckpointRepository` and an in-memory implementation, mirroring existing Kernel repository patterns.
+- Add `EngineeringSessionService.recoverFromCheckpoint()`, retrieving a stored Checkpoint and reconstituting an `EngineeringSession` via the existing, unmodified `EngineeringSession.fromSnapshot()`.
+- Extend `createKernelServices` composition only as strictly required to construct and register the Checkpoint repository and supply it to `EngineeringSessionService`.
+- Add unit/integration tests covering: deterministic Checkpoint capture; Recovery producing a semantically equivalent Engineering Session; the deterministic round-trip property `recoverFromCheckpoint(createCheckpoint(session))` yields a session semantically equivalent to `session` under all RFC-0004 invariants; not-found handling; repository behavior; Kernel composition continuity.
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`'s existing `toSnapshot()`, `fromSnapshot()`, snapshot structure, workflow state, timeline, or diagnostics.
+- Modify `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, or `AssignmentPolicyService`.
+- Modify Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, or Sprint 47's/48's `executeCurrentWorkflowStep()`.
+- Introduce Concurrent Session Coordination, Multi-Agent Engineering Orchestration, automatic or background checkpointing, Checkpoint retention/pruning policy, or cross-session Checkpoint sharing.
+- Introduce a duplicate snapshot or reconstruction model; Checkpoint capture and Recovery SHALL reuse `toSnapshot()`/`fromSnapshot()` exactly as they exist.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- Checkpoint capture and Recovery are separate operations from Workflow Advancement and Workflow Chain Execution; this Sprint SHALL NOT fold either into any existing `advanceWorkflow*` or `executeCurrentWorkflowStep` method.
+- Recovery SHALL satisfy semantic equivalence, not byte-for-byte identity, per `NEXUS-RAT-2026-07-15-007`'s wording refinement; this requirement SHALL be verified through automated tests, including the deterministic round-trip property.
+- No Kernel Canon change; no RFC-0004 change beyond what `NEXUS-RAT-2026-07-15-007` already authorized; no RFC-0006 change.
+- This ratification additionally authorizes `nexus-plan` to correct `IMPLEMENTATION_MANIFEST.md`'s stale Sprint 48 status line (previously "Implemented — Pending Reviewer Validation") to reflect Sprint 48's actual closure per `NEXUS-REV-2026-07-15-005`.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (the certified, unmodified snapshot/reconstitution contract this Sprint consumes).
+- Sprint 40 — Execution Session Foundation (referenced; unaffected).
+- Sprint 48 — Assignment Policy Integration (most recently closed Sprint; this Sprint's immediate predecessor).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 49 — Session Recovery/Checkpointing Foundation, authorizing the Builder to add `EngineeringSessionCheckpoint`, `EngineeringSessionService.createCheckpoint()`, `IEngineeringSessionCheckpointRepository`, and `EngineeringSessionService.recoverFromCheckpoint()` per RFC-0004 v1.8, reusing the existing, unmodified Sprint 39 `EngineeringSession.toSnapshot()`/`fromSnapshot()` contract without introducing a duplicate snapshot or reconstruction model. The Builder SHALL NOT modify EngineeringSession's existing snapshot/reconstitution semantics, WorkflowChain, WorkflowStep, WorkflowChainService, ExecutionStrategy, AdapterService, AdapterRegistry, ExecutionSession, ExecutionSessionService, ReviewService, Review, Finding, AssignmentPolicy, AssignmentPolicyService, or any existing Advancement/Execution method, and SHALL NOT introduce Concurrent Session Coordination, Multi-Agent Orchestration, automatic checkpointing, Checkpoint retention policy, cross-session Checkpoint sharing, or any src/hosts or src/adapters change. Recovery SHALL satisfy semantic equivalence under all RFC-0004 invariants, verified by a deterministic round-trip test, per this ratification's adopted wording refinement.
+
+## Current Status
+
 Active
 
 ---

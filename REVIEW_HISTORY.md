@@ -2,6 +2,90 @@
 
 ---
 
+## NEXUS-REV-2026-07-15-006 — Sprint 49 — Session Recovery/Checkpointing Foundation
+
+- **Reviewed Sprint:** Sprint 49 — Session Recovery/Checkpointing Foundation
+- **Reviewed Vertical Slice:** `EngineeringSessionCheckpoint`, `EngineeringSessionCheckpointId`, `IEngineeringSessionCheckpointRepository`/`InMemoryEngineeringSessionCheckpointRepository`, `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-15-008`'s Authorized Builder Scope.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.8 (Primary; "Session Recovery/Checkpointing", new section). Referenced: RFC-0004 v1.2/v1.3 "Engineering Session" (Sprints 39/40, unmodified); RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 49 — Session Recovery/Checkpointing Foundation conforms to RFC-0004 v1.8 and `NEXUS-RAT-2026-07-15-008`'s Authorized Builder Scope. `EngineeringSessionCheckpoint` is a frozen, immutable value object wrapping an `EngineeringSessionCheckpointId`, a capture timestamp, and a defensively-copied `EngineeringSessionSnapshot` obtained by round-tripping through the existing, unmodified `EngineeringSession.fromSnapshot(...).toSnapshot()` — introducing no parallel snapshot or reconstruction model, as required. `EngineeringSessionService.createCheckpoint()` calls the existing, unmodified `EngineeringSession.toSnapshot()` and persists the result via a new `IEngineeringSessionCheckpointRepository`; `recoverFromCheckpoint()` retrieves a stored Checkpoint and reconstitutes the session via the existing, unmodified `EngineeringSession.fromSnapshot()`, throwing the new `EngineeringSessionCheckpointNotFoundError` when absent. `createKernelServices()` was touched only to construct and supply the new Checkpoint repository. Direct diff inspection confirms `EngineeringSession`'s own `toSnapshot()`/`fromSnapshot()`, snapshot structure, workflow state, timeline, and diagnostics are byte-for-byte unmodified, as are `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, and Sprint 43's/45's/46's/47's/48's advancement and execution methods. No `src/hosts` or `src/adapters` file was touched.
+
+The Sprint's central acceptance criterion — that Recovery produce a *semantically equivalent*, not byte-for-byte identical, `EngineeringSession` — is verified by `test/kernel/execution/engineering-session.service.test.ts`'s `'captures deterministic Checkpoints and recovers semantically equivalent EngineeringSessions'` test: it captures a Checkpoint, then *advances the live session's workflow position* (mutating the persisted session further), then recovers from the Checkpoint and asserts the recovered snapshot equals the pre-advancement snapshot exactly — proving Recovery reconstructs the state as captured, independent of subsequent mutation to the live session. This is a stronger and more meaningful test of the round-trip property than a same-instant round-trip alone would have been, and it satisfies `NEXUS-RAT-2026-07-15-007`'s deterministic round-trip requirement. Not-found handling is separately tested (`'rejects Recovery from a nonexistent Checkpoint'`).
+
+Independent re-validation confirms `tsc --noEmit` (clean), the targeted Sprint 49 suite (`engineering-session.service.test.ts`, `engineering-session-checkpoint.repository.test.ts`, `kernel-boundary-certification.integration.test.ts`: 33/33, matching the Builder's reported count), a full `npm run validate` run (TypeScript compile, ESLint, Vitest 76 files / 380 tests, esbuild — matching the Builder's reported count exactly), and `npm run test:extension-host:build`, all passing cleanly.
+
+Two Category 6 Observations were recorded; neither generates a Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-006-F-001 — `EngineeringSessionCheckpoint.equals()` uses `JSON.stringify` comparison instead of the established `snapshotsEqual` deep-comparison pattern
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** Internal consistency with `EngineeringSession.equals()` (`engineering-session.ts`), which delegates to a dedicated `snapshotsEqual` helper rather than string-serializing both snapshots.
+- **Summary:** `EngineeringSessionCheckpoint.equals()` (`engineering-session-checkpoint.ts`) compares `JSON.stringify(this.toSnapshot())` against `JSON.stringify(other.toSnapshot())`, whereas the sibling `EngineeringSession.equals()` uses a purpose-built deep-equality helper. Both approaches are correct for these frozen, plain-JSON-serializable snapshots (property insertion order is deterministic here), so no incorrect behavior results.
+- **Impact:** None functionally. A future snapshot field whose serialization is order-sensitive or non-JSON-safe (e.g., a `Map`/`Set`) would silently break `JSON.stringify` equality without breaking `snapshotsEqual`-style comparison; purely a maintainability/consistency note.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+#### NEXUS-REV-2026-07-15-006-F-002 — Checkpoint value-object validation reuses the EngineeringSession-scoped `InvalidEngineeringSessionDefinitionError` rather than a Checkpoint-specific error
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** Internal consistency with this Sprint's own `DuplicateEngineeringSessionCheckpointError`/`EngineeringSessionCheckpointNotFoundError`, which *were* given Checkpoint-specific names.
+- **Summary:** `EngineeringSessionCheckpointId.fromString()` and `EngineeringSessionCheckpoint.create()`'s `capturedAt` validation both throw the existing `InvalidEngineeringSessionDefinitionError` (named and originally scoped to `EngineeringSession` definition validation) rather than a new `InvalidEngineeringSessionCheckpointDefinitionError`, while this same Sprint introduces dedicated `DuplicateEngineeringSessionCheckpointError` and `EngineeringSessionCheckpointNotFoundError` classes for Checkpoint's other two error cases.
+- **Impact:** None functionally — all four error classes share the common `EngineeringSessionDomainError` base, and RFC-0004 does not define an error taxonomy. Purely a naming-consistency note within a single Sprint's own additions.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 2 (F-001, F-002) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (33/33), `npm run validate` (Vitest 76 files / 380 tests, esbuild), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 49 Deferred Concepts remain unimplemented: Concurrent Session Coordination, Multi-Agent Engineering Orchestration, automatic/background checkpointing, Checkpoint retention/pruning/expiry policy, and cross-session Checkpoint sharing. No deferred concept was silently introduced. `EngineeringSession`'s existing snapshot/reconstitution contract, workflow state, timeline, and diagnostics remain confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `EngineeringSessionCheckpoint` owns only Checkpoint identity, capture timestamp, and a defensively-copied `EngineeringSessionSnapshot`; it does not redefine `EngineeringSession`'s snapshot structure. `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint` are thin orchestration, delegating capture and reconstitution entirely to `EngineeringSession`'s existing, unmodified `toSnapshot()`/`fromSnapshot()`. Compliant with RFC-0004 v1.8 and `NEXUS-RAT-2026-07-15-008`'s Ownership Model.
+- **No duplicate reconstruction model:** Confirmed — Checkpoint capture and Recovery both route through `EngineeringSession.toSnapshot()`/`fromSnapshot()` verbatim; no independent serialization or reconstruction logic was introduced, satisfying the ratification's explicit "no duplicate snapshot or reconstruction model" restriction.
+- **Semantic equivalence, not byte-for-byte identity:** Recovery is verified to reconstruct the captured state correctly even after the live session has since diverged, which is the intended contract per `NEXUS-RAT-2026-07-15-007`'s wording refinement. Compliant.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; the only existing-file production changes are the `EngineeringSessionServiceContract` extension, two new error classes, the `EngineeringSessionService` constructor/method additions, and the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Regression safety:** `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, and Sprint 43's/45's/46's/47's/48's advancement and execution methods are confirmed byte-for-byte unmodified via `git diff`.
+- **Tests:** 2 new test files (`engineering-session-checkpoint.repository.test.ts`, plus additions to `engineering-session.service.test.ts`) covering deterministic Checkpoint capture, semantic-equivalence Recovery under intervening mutation, Recovery not-found handling, Checkpoint repository create/get/exists/enumerate/duplicate-rejection, and Kernel Boundary Certification composition continuity. Full suite 380/380 passing.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded; both findings are Category 6 Observations requiring no action. Sprint 49 satisfies its approval criteria: implementation conforms to RFC-0004 v1.8 and `NEXUS-RAT-2026-07-15-008`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 49 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0049-session-recovery-checkpointing-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 49 marked **Approved**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Multi-Agent Engineering Orchestration or Concurrent Session Coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` are Builder-owned artifacts and are intentionally left unmodified by this review; their "Implemented — Pending Reviewer Validation" status lines will be reconciled to **Approved** during the next `nexus-plan` planning pass, consistent with the Sprint 48 precedent.
+
+### Work Item State Reconciliation
+
+- Sprint 49: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
 ## NEXUS-REV-2026-07-15-005 — Sprint 48 — Assignment Policy Integration (TASK-001 Remediation Verification)
 
 - **Reviewed Sprint:** Sprint 48 — Assignment Policy Integration

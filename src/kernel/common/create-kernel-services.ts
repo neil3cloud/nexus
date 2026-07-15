@@ -12,6 +12,7 @@ import { AssignmentPolicyService } from '../execution/assignment-policy.service'
 import { createDefaultEngineeringRoleProfiles } from '../execution/default-engineering-role-profiles';
 import { InMemoryEngineeringRoleProfileRegistry } from '../execution/engineering-role-profile-registry';
 import { EngineeringRoleProfileService } from '../execution/engineering-role-profile.service';
+import { InMemoryEngineeringSessionCheckpointRepository } from '../execution/engineering-session-checkpoint.repository';
 import { InMemoryEngineeringSessionRepository } from '../execution/engineering-session.repository';
 import { EngineeringSessionService } from '../execution/engineering-session.service';
 import { InMemoryExecutionSessionRepository } from '../execution/execution-session.repository';
@@ -54,6 +55,7 @@ export function createKernelServices(
   );
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+  const engineeringSessionCheckpointRepository = new InMemoryEngineeringSessionCheckpointRepository();
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const workflowChainRepository = new InMemoryWorkflowChainRepository();
   const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
@@ -75,6 +77,7 @@ export function createKernelServices(
     adapterService,
     executionSessionService,
     assignmentPolicyService,
+    engineeringSessionCheckpointRepository,
   );
 
   return [

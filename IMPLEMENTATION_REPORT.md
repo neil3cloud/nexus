@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 49 — Session Recovery/Checkpointing Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 8 Sprint 49 Session Recovery/Checkpointing Foundation vertical slice. This sprint adds explicit Checkpoint capture and Recovery for `EngineeringSession` runtime state while preserving the existing Sprint 39 `EngineeringSession.toSnapshot()` / `EngineeringSession.fromSnapshot()` contract unchanged.
+
+Implemented scope:
+
+- Added `EngineeringSessionCheckpointId`.
+- Added `EngineeringSessionCheckpoint`, an immutable value object wrapping an existing `EngineeringSessionSnapshot`, Checkpoint identity, and capture timestamp.
+- Added `IEngineeringSessionCheckpointRepository` and `InMemoryEngineeringSessionCheckpointRepository`.
+- Added `EngineeringSessionService.createCheckpoint()` to capture the current `EngineeringSession.toSnapshot()` output and persist a named Checkpoint.
+- Added `EngineeringSessionService.recoverFromCheckpoint()` to retrieve a stored Checkpoint and reconstitute a semantically equivalent `EngineeringSession` via the existing `EngineeringSession.fromSnapshot()`.
+- Updated `createKernelServices()` only to construct and provide the Checkpoint repository to `EngineeringSessionService`.
+- Added coverage for deterministic Checkpoint capture, semantic recovery round-trip, Recovery not-found handling, repository behavior, and Kernel composition continuity.
+
+Out of scope and not implemented:
+
+- Concurrent Session Coordination.
+- Multi-Agent Engineering Orchestration.
+- Automatic or background checkpointing.
+- Checkpoint retention, pruning, or expiry policy.
+- Cross-session Checkpoint sharing.
+- Any `src/hosts` or `src/adapters` file change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 — Execution Model v1.8 (`Session Recovery/Checkpointing`).
+
+Referenced RFCs:
+
+- RFC-0004 — Execution Model v1.2/v1.3 (`Engineering Session`; existing snapshot/reconstitution contract reused).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `EngineeringSessionCheckpoint`.
+- `EngineeringSessionCheckpointId`.
+- Checkpoint capture through `EngineeringSessionService.createCheckpoint()`.
+- Checkpoint persistence through `IEngineeringSessionCheckpointRepository`.
+- Recovery through `EngineeringSessionService.recoverFromCheckpoint()` using existing `EngineeringSession.fromSnapshot()`.
+
+Deferred Concepts:
+
+- Concurrent Session Coordination.
+- Multi-Agent Engineering Orchestration.
+- Automatic/background checkpointing.
+- Checkpoint retention, pruning, expiry, or cross-session sharing.
+- Any modification to `EngineeringSession` snapshot/reconstitution semantics, workflow state, timeline, diagnostics, or existing advancement/execution operations.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-15-007`, `NEXUS-RAT-2026-07-15-008`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0049-session-recovery-checkpointing-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Recovery returns a semantically equivalent reconstituted `EngineeringSession` snapshot from the stored Checkpoint; it does not mutate or replace any in-flight `EngineeringSession` instance.
+- Checkpoints are caller-created through explicit `createCheckpoint()` calls only.
+- Checkpoint identity is the named Checkpoint reference for this vertical slice.
+
+### Known Limitations
+
+- Checkpoints are in-memory only.
+- No automatic or triggered checkpointing is implemented.
+- No retention, pruning, expiry, or cross-session sharing policy is implemented.
+- Recovery reconstructs a new `EngineeringSession` instance from a Checkpoint and returns its snapshot; it does not resume an external runtime process.
+
+### Validation Summary
+
+- TypeScript compile passed: `npm run compile -- --pretty false`.
+- Targeted Sprint 49 validation passed: `npx vitest run test/kernel/execution/engineering-session.service.test.ts test/kernel/execution/engineering-session-checkpoint.repository.test.ts test/integration/kernel-boundary-certification.integration.test.ts` (33 tests).
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest (76 files / 380 tests), and esbuild.
+- Extension-host test bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 48 — Assignment Policy Integration
 
 ### Implemented Slice

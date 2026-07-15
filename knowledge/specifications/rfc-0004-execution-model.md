@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.7
+**Version:** 1.8
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -17,6 +17,7 @@
 - v1.5 — Defines Review-Gated Advancement's gating semantics (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-001`). Introduces the **Blocking Review Outcome** / **Non-Blocking Review Outcome** classification of RFC-0006's `ReviewOutcome` values: Accepted and Accepted With Observations are Non-Blocking; Action Required and Rejected are Blocking. Review-Gated Advancement's Advancement Eligibility additionally requires a Non-Blocking Review Outcome. This amendment defines gating semantics only; it does not authorize implementation, which requires its own future Sprint Owner scope ratification. Manual Advancement, Automatic/Event-Driven Advancement, Engineering Session, Workflow Chain, and RFC-0006 are unmodified. No other section of this specification is modified.
 - v1.6 — Adds Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-003`). Defines the act of executing the Workflow Step at an Engineering Session's current workflow position — resolving the Workflow Step's Execution Role, invoking the existing Execution Strategy, and dispatching through the existing Adapter contract (explicit `adapterId` only; no Adapter Selection) — distinct from Workflow Advancement, which only moves the current workflow position. Execution is recorded through the existing Execution Session model without redefining Execution Session's own lifecycle. This amendment does not modify Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, Assignment Policy, or RFC-0006; it does not introduce Assignment Policy evaluation, Adapter Selection, Multi-Agent Orchestration, or Task lifecycle transition. No other section of this specification is modified.
 - v1.7 — Adds Assignment Policy Evaluation to Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-005`). Defines an optional consumption point at which Workflow Chain Execution, given a caller-supplied Assignment Policy reference, consults the existing Assignment Policy's existing deterministic evaluation to gate dispatch: when the resolved Workflow Step's Execution Role and supplied evaluation input do not satisfy the referenced Assignment Policy, Workflow Chain Execution SHALL reject execution before Adapter dispatch and before any Execution Session is recorded. This amendment does not modify Assignment Policy's own definition, evaluation semantics, or value objects (v1.3, unmodified); it does not introduce Adapter Selection, Adapter routing, capability scoring, automatic Assignment Policy binding/inference, Multi-Agent Orchestration, or Task lifecycle transition. When no Assignment Policy reference is supplied, Workflow Chain Execution's existing v1.6 behavior is unchanged. No other section of this specification is modified.
+- v1.8 — Adds Session Recovery/Checkpointing (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-007`). Defines a **Checkpoint** — a named, immutable, point-in-time capture of an Engineering Session's existing runtime snapshot (v1.2/v1.3, unmodified) — and **Recovery**, which reconstitutes an Engineering Session from a Checkpoint via the existing, unmodified `fromSnapshot()` reconstitution contract (Sprint 39). Recovery SHALL reconstruct an Engineering Session that is semantically equivalent to the captured Checkpoint, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants; implementation-specific object identity, memory layout, or serialization format are not part of this contract. This amendment does not modify Engineering Session's existing snapshot, reconstitution, workflow state, timeline, or diagnostics ownership; it does not introduce Concurrent Session Coordination or Multi-Agent Engineering Orchestration, both of which remain separately unauthorized. No other section of this specification is modified.
 
 ---
 
@@ -449,6 +450,38 @@ When no Assignment Policy reference is supplied, Workflow Chain Execution SHALL 
 This section SHALL NOT redefine Assignment Policy's own value objects, evaluation semantics, or determinism guarantees; those remain exclusively owned by this specification's Assignment Policy section, unmodified. This section owns only the consumption point at which that evaluation gates Workflow Chain Execution's existing dispatch step.
 
 This section SHALL NOT introduce Assignment Policy selection, inference, or automatic binding to a Workflow Step; the Assignment Policy reference SHALL be supplied explicitly by the caller.
+
+---
+
+# Session Recovery/Checkpointing
+
+Session Recovery/Checkpointing defines how an Engineering Session's runtime state MAY be captured and later reconstituted, distinct from and reusing Engineering Session's existing snapshot and reconstitution contract (v1.2/v1.3, Sprint 39, unmodified).
+
+## Architectural Responsibilities
+
+Session Recovery/Checkpointing owns:
+
+- Checkpoint capture;
+- Recovery from a Checkpoint.
+
+A **Checkpoint** is a named, immutable, point-in-time capture of an Engineering Session's existing runtime snapshot. A Checkpoint SHALL NOT itself define or duplicate Engineering Session's snapshot structure; it SHALL capture that structure exactly as Engineering Session's existing `toSnapshot()` contract produces it, together with a Checkpoint identity and capture timestamp.
+
+**Recovery** is the act of reconstituting an Engineering Session from a given Checkpoint through Engineering Session's existing, unmodified reconstitution contract (`fromSnapshot()`).
+
+Recovery SHALL reconstruct an Engineering Session that is semantically equivalent to the captured Checkpoint, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants. Implementation-specific object identity, memory layout, or serialization format are not part of this contract.
+
+Checkpoint capture and Recovery SHALL remain deterministic: capturing a Checkpoint from a given Engineering Session, then recovering from that Checkpoint, SHALL always produce a semantically equivalent Engineering Session.
+
+Session Recovery/Checkpointing SHALL NOT own:
+
+- Engineering Session's existing snapshot or reconstitution semantics, workflow state, timeline, or diagnostics, all of which remain owned by Engineering Session (v1.2/v1.3, unmodified);
+- Concurrent Session Coordination;
+- Multi-Agent Engineering Orchestration;
+- automatic or triggered checkpointing;
+- Checkpoint retention, pruning, or expiry policy;
+- cross-session Checkpoint sharing.
+
+Those remain either owned by their respective sections, unmodified, or unauthorized and reserved for future Sprint Owner scope ratification.
 
 ---
 

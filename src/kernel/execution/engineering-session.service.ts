@@ -8,17 +8,25 @@ import { AdvancementTrigger } from './advancement-trigger';
 import type { AssignmentPolicyService } from './assignment-policy.service';
 import type { AssignmentPolicyEvaluationResult } from './assignment-policy.types';
 import { EngineeringSession } from './engineering-session';
+import { EngineeringSessionCheckpoint } from './engineering-session-checkpoint';
+import {
+  InMemoryEngineeringSessionCheckpointRepository,
+  type IEngineeringSessionCheckpointRepository,
+} from './engineering-session-checkpoint.repository';
 import type {
   AdvanceEngineeringSessionWorkflowCommand,
   AdvanceEngineeringSessionWorkflowAfterReviewCommand,
   AdvanceEngineeringSessionWorkflowOnTriggerCommand,
   CloseEngineeringSessionCommand,
+  CreateEngineeringSessionCheckpointCommand,
   CreateEngineeringSessionCommand,
   EngineeringSessionServiceContract,
   ExecuteCurrentWorkflowStepCommand,
+  RecoverEngineeringSessionFromCheckpointCommand,
 } from './engineering-session.contract';
 import { EngineeringSessionId } from './engineering-session-id';
 import {
+  EngineeringSessionCheckpointNotFoundError,
   EngineeringSessionNotFoundError,
   InvalidEngineeringSessionDefinitionError,
 } from './engineering-session.errors';
@@ -26,6 +34,9 @@ import {
   InMemoryEngineeringSessionRepository,
   type IEngineeringSessionRepository,
 } from './engineering-session.repository';
+import type {
+  EngineeringSessionCheckpointSnapshot,
+} from './engineering-session-checkpoint.types';
 import type {
   EngineeringSessionSnapshot,
   EngineeringSessionWorkflowExecutionResult,
@@ -84,6 +95,8 @@ export class EngineeringSessionService
       AssignmentPolicyService,
       'evaluateAssignmentPolicy'
     >,
+    private readonly checkpointRepository: IEngineeringSessionCheckpointRepository =
+      new InMemoryEngineeringSessionCheckpointRepository(),
   ) {
     super('EngineeringSessionService');
   }
@@ -279,6 +292,37 @@ export class EngineeringSessionService
 
   public async getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot> {
     return (await this.requireEngineeringSession(engineeringSessionId)).toSnapshot();
+  }
+
+  public async createCheckpoint(
+    command: CreateEngineeringSessionCheckpointCommand,
+  ): Promise<EngineeringSessionCheckpointSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const checkpoint = EngineeringSessionCheckpoint.create({
+      id: command.checkpointId ?? this.createIdentity(),
+      engineeringSession: engineeringSession.toSnapshot(),
+      capturedAt: this.createTimestamp(),
+    });
+
+    await this.checkpointRepository.create(checkpoint);
+
+    return checkpoint.toSnapshot();
+  }
+
+  public async recoverFromCheckpoint(
+    command: RecoverEngineeringSessionFromCheckpointCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const checkpointId = normalizeCreationReference(
+      command.checkpointId,
+      'EngineeringSessionCheckpoint checkpointId',
+    );
+    const checkpoint = await this.checkpointRepository.getById(checkpointId);
+
+    if (checkpoint === undefined) {
+      throw new EngineeringSessionCheckpointNotFoundError(checkpointId);
+    }
+
+    return EngineeringSession.fromSnapshot(checkpoint.engineeringSession).toSnapshot();
   }
 
   public async enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]> {

@@ -1,6 +1,7 @@
 import type { AdvancementTriggerInput } from './advancement-trigger.types';
 import type { AdapterExecutionConstraints, AdapterRequestMetadata } from '../adapter/adapter-request';
 import type { AssignmentPolicyEvaluationInput } from './assignment-policy.types';
+import type { EngineeringSessionCheckpointSnapshot } from './engineering-session-checkpoint.types';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionMetadata,
@@ -57,6 +58,15 @@ export interface ExecuteCurrentWorkflowStepCommand {
   readonly requestMetadata?: AdapterRequestMetadata;
 }
 
+export interface CreateEngineeringSessionCheckpointCommand {
+  readonly engineeringSessionId: string;
+  readonly checkpointId?: string;
+}
+
+export interface RecoverEngineeringSessionFromCheckpointCommand {
+  readonly checkpointId: string;
+}
+
 export interface EngineeringSessionServiceContract {
   createEngineeringSession(command: CreateEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
   closeEngineeringSession(command: CloseEngineeringSessionCommand): Promise<EngineeringSessionSnapshot>;
@@ -70,6 +80,12 @@ export interface EngineeringSessionServiceContract {
   executeCurrentWorkflowStep(
     command: ExecuteCurrentWorkflowStepCommand,
   ): Promise<EngineeringSessionWorkflowExecutionResult>;
+  createCheckpoint(
+    command: CreateEngineeringSessionCheckpointCommand,
+  ): Promise<EngineeringSessionCheckpointSnapshot>;
+  recoverFromCheckpoint(
+    command: RecoverEngineeringSessionFromCheckpointCommand,
+  ): Promise<EngineeringSessionSnapshot>;
   getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot>;
   enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;
 }

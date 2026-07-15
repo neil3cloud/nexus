@@ -1637,9 +1637,9 @@ Notes:
 
 # Milestone 8 — Engineering Orchestration
 
-Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 — Assignment Policy Integration Implemented — Pending Reviewer Validation, authorized by NEXUS-RAT-2026-07-15-006)
+Status: ACTIVE (Sprint 39 Approved — NEXUS-REV-2026-07-14-017; Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018; Sprint 41 Approved — Workflow Chaining Foundation, NEXUS-REV-2026-07-14-020; Sprint 42 Approved with Findings — Engineering Session Workflow Chain Wiring, NEXUS-REV-2026-07-14-021, fully closed by NEXUS-REV-2026-07-14-022; Sprint 43 Approved — Engineering Session Manual Workflow Advancement, NEXUS-REV-2026-07-14-023; Sprint 44 Approved — Assignment Policy Foundation, NEXUS-REV-2026-07-14-024; Sprint 45 Approved — Automatic/Event-Driven Workflow Advancement, NEXUS-REV-2026-07-14-026; Sprint 46 Approved with Findings — Review-Gated Workflow Advancement, NEXUS-REV-2026-07-15-001, zero open findings; Sprint 47 Approved — Workflow Chain Execution, NEXUS-REV-2026-07-15-003, fully closed with zero open findings; Sprint 48 Approved — Assignment Policy Integration, NEXUS-REV-2026-07-15-005, fully closed with zero open findings; Sprint 49 Implemented — Pending Reviewer Validation — Session Recovery/Checkpointing Foundation, authorized by NEXUS-RAT-2026-07-15-008)
 
-Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (Sprint 46, `NEXUS-REV-2026-07-15-001`). RFC-0004 was further amended to v1.6 (`NEXUS-RAT-2026-07-15-003`) to add "Workflow Chain Execution" — executing the Workflow Step at the current position, distinct from Workflow Advancement — after governance analysis found this capability explicitly reserved but unauthorized by v1.3/v1.4. Sprint 47 (`NEXUS-RAT-2026-07-15-004`) implemented that section and is Approved (`NEXUS-REV-2026-07-15-003`, fully closed with zero open findings). During Sprint 48's planning, a Sprint Owner request to evaluate "Assignment Policy Foundation" was re-scoped after governance analysis found that capability already certified as Sprint 44; RFC-0004 was amended to v1.7 (`NEXUS-RAT-2026-07-15-005`) to add an "Assignment Policy Evaluation" subsection to Workflow Chain Execution. Sprint 48 (`NEXUS-RAT-2026-07-15-006`) is Implemented — Pending Reviewer Validation for that subsection. Remaining candidate scope after Sprint 48: Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination.
+Named by `NEXUS-RAT-2026-07-14-011` as a future milestone. Original candidate scope: Engineering Role Profiles, Workflow Chaining, Assignment Policy, Execution Sessions, Multi-agent Engineering Orchestration, and review-gated execution progression. These are execution-orchestration concerns, not Host-workflow concerns, and were intentionally excluded from Milestone 7 (now Complete, `NEXUS-RAT-2026-07-14-016`). Engineering Role Profiles shipped under Milestone 7 (Sprint 38); Execution Sessions' foundation shipped as Sprint 39's `EngineeringSession` and Sprint 40's `ExecutionSession`. RFC-0004 was amended to v1.3 (`NEXUS-RAT-2026-07-14-020`) to define Workflow Chaining, implemented by Sprint 41 as a standalone `WorkflowChain` concept and wired into `EngineeringSession` by Sprint 42. Sprint 43 (Approved, `NEXUS-REV-2026-07-14-023`) closed Sprint 42's own recorded Known Limitation by introducing deterministic, manually-invoked, single-step workflow advancement and terminal-completion detection. Sprint 44 (Approved, `NEXUS-REV-2026-07-14-024`) implements RFC-0004's existing Assignment Policy section as a standalone domain foundation. RFC-0004 was amended to v1.4 (`NEXUS-RAT-2026-07-14-025`) to define a generalized Workflow Advancement model naming three Advancement Strategies: Manual (Sprint 43), Automatic/Event-Driven (Sprint 45, `NEXUS-RAT-2026-07-14-026`), and Review-Gated (Sprint 46, `NEXUS-REV-2026-07-15-001`). RFC-0004 was further amended to v1.6 (`NEXUS-RAT-2026-07-15-003`) to add "Workflow Chain Execution" — executing the Workflow Step at the current position, distinct from Workflow Advancement — after governance analysis found this capability explicitly reserved but unauthorized by v1.3/v1.4. Sprint 47 (`NEXUS-RAT-2026-07-15-004`) implemented that section and is Approved (`NEXUS-REV-2026-07-15-003`, fully closed with zero open findings). During Sprint 48's planning, a Sprint Owner request to evaluate "Assignment Policy Foundation" was re-scoped after governance analysis found that capability already certified as Sprint 44; RFC-0004 was amended to v1.7 (`NEXUS-RAT-2026-07-15-005`) to add an "Assignment Policy Evaluation" subsection to Workflow Chain Execution. Sprint 48 (`NEXUS-RAT-2026-07-15-006`) is Approved (`NEXUS-REV-2026-07-15-005`), fully closed with zero open findings. During Sprint 49's planning, the Sprint Owner selected Session Recovery/Checkpointing from Milestone 8's remaining candidate scope (Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination); RFC-0004 was amended to v1.8 (`NEXUS-RAT-2026-07-15-007`) to add a "Session Recovery/Checkpointing" section defining Checkpoint and Recovery atop Engineering Session's existing, unmodified snapshot/reconstitution contract. Sprint 49 (`NEXUS-RAT-2026-07-15-008`) is Current, implementing that section. Remaining candidate scope after Sprint 49: Multi-Agent Engineering Orchestration, concurrent session coordination.
 
 Opened by `NEXUS-RAT-2026-07-14-018`, following the RFC-0004 v1.2 amendment (`NEXUS-RAT-2026-07-14-017`) introducing `Engineering Session` — the Kernel-owned runtime boundary for one span of AI-assisted engineering work, distinct from and containing zero or more of RFC-0004's existing, unmodified `Execution Session` records. Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, and concurrent session coordination remain explicitly deferred pending their own future scope ratifications.
 
@@ -2003,7 +2003,7 @@ Notes:
 
 ## Sprint 48 — Assignment Policy Integration
 
-Status: Implemented — Pending Reviewer Validation.
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-005` (fully closed; `TASK-001` remediation of `NEXUS-REV-2026-07-15-004-F-001` verified; zero open findings).
 
 RFC Coverage:
 
@@ -2037,6 +2037,48 @@ Notes:
 - This Sprint does not modify RFC-0006, the Kernel Canon, or any other RFC beyond `NEXUS-RAT-2026-07-15-005`'s RFC-0004 v1.7 amendment.
 - When no Assignment Policy reference is supplied, `executeCurrentWorkflowStep` SHALL behave identically to Sprint 47's certified implementation.
 - This Sprint determines Execution Role eligibility only; no Adapter Selection or role routing is introduced.
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-005`). `TASK-001` remediated the sole finding from `NEXUS-REV-2026-07-15-004`; Sprint 48 is fully closed with zero open findings.
+
+---
+
+## Sprint 49 — Session Recovery/Checkpointing Foundation
+
+Status: Implemented — Pending Reviewer Validation.
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model v1.8 (Primary; new "Session Recovery/Checkpointing" section).
+- Referenced: RFC-0004 v1.2/v1.3 "Engineering Session" (Sprints 39/40, unmodified); RFC-0010 — Kernel Boundaries.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-15-008` — governs this Sprint's entire scope: the binding Objective, the binding Architectural Responsibilities, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-15-007` — the companion RFC-0004 v1.8 amendment defining Session Recovery/Checkpointing this Sprint implements.
+
+Authorized Concepts:
+
+- `EngineeringSessionCheckpoint`, an immutable value object wrapping an Engineering Session's existing `EngineeringSessionSnapshot`, a `EngineeringSessionCheckpointId`, and a capture timestamp.
+- `EngineeringSessionService.createCheckpoint()`, calling the existing, unmodified `EngineeringSession.toSnapshot()` and persisting the resulting Checkpoint.
+- `IEngineeringSessionCheckpointRepository` and an in-memory implementation, mirroring existing Kernel repository patterns.
+- `EngineeringSessionService.recoverFromCheckpoint()`, retrieving a stored Checkpoint and reconstituting an `EngineeringSession` via the existing, unmodified `EngineeringSession.fromSnapshot()`.
+- `createKernelServices` composition updated only as strictly required to construct and register the Checkpoint repository and supply it to `EngineeringSessionService`.
+
+Deferred Concepts:
+
+- Concurrent Session Coordination, Multi-Agent Engineering Orchestration.
+- Automatic or background checkpointing, Checkpoint retention/pruning policy, cross-session Checkpoint sharing.
+- Any modification to `EngineeringSession`'s existing `toSnapshot()`, `fromSnapshot()`, snapshot structure, workflow state, timeline, or diagnostics.
+- Any modification to `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, or `AssignmentPolicyService`.
+- Any modification to Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, or Sprint 47's/48's `executeCurrentWorkflowStep()`.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0049-session-recovery-checkpointing-foundation.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify RFC-0006, the Kernel Canon, or any other RFC beyond `NEXUS-RAT-2026-07-15-007`'s RFC-0004 v1.8 amendment.
+- Recovery SHALL satisfy semantic equivalence, not byte-for-byte identity, per `NEXUS-RAT-2026-07-15-007`'s wording refinement; verified by a deterministic round-trip test: `recoverFromCheckpoint(createCheckpoint(session))` SHALL be semantically equivalent to `session` under all RFC-0004 invariants.
+- Checkpoint capture and Recovery SHALL reuse `toSnapshot()`/`fromSnapshot()` exactly as they exist; no duplicate snapshot or reconstruction model is authorized.
+- Builder implementation complete; Reviewer validation pending.
 
 ---
 
