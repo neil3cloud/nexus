@@ -32,6 +32,8 @@ import { InMemoryWorkflowChainRepository } from '../execution/workflow-chain.rep
 import { WorkflowChainService } from '../execution/workflow-chain.service';
 import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
+import { InMemoryGovernanceDecisionRepository } from '../governance/governance-decision.repository';
+import { GovernanceService } from '../governance/governance.service';
 import { InMemoryRepositoryPolicyRepository } from '../governance/repository-policy.repository';
 import { RepositoryPolicyService } from '../governance/repository-policy.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
@@ -57,6 +59,7 @@ export function createKernelServices(
   const reviewRepository = new InMemoryReviewRepository();
   const knowledgeRepository = new InMemoryKnowledgeRepository();
   const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
+  const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
   const roleRegistry = new InMemoryRoleRegistry();
   const engineeringRoleProfileRegistry = new InMemoryEngineeringRoleProfileRegistry(
     createDefaultEngineeringRoleProfiles(),
@@ -74,6 +77,11 @@ export function createKernelServices(
   const executionSessionService = new ExecutionSessionService(executionSessionRepository);
   const assignmentPolicyService = new AssignmentPolicyService(assignmentPolicyRepository);
   const repositoryPolicyService = new RepositoryPolicyService(repositoryPolicyRepository);
+  const governanceService = new GovernanceService(
+    repositoryPolicyRepository,
+    reviewRepository,
+    governanceDecisionRepository,
+  );
   const executionStrategyService = new ExecutionStrategyService(
     executionStrategyRepository,
     roleAssignmentRepository,
@@ -113,6 +121,7 @@ export function createKernelServices(
     new WorkflowChainService(workflowChainRepository),
     assignmentPolicyService,
     repositoryPolicyService,
+    governanceService,
     executionStrategyService,
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),

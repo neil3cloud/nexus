@@ -2164,7 +2164,7 @@ Notes:
 
 # Milestone 9 — Engineering Governance Automation
 
-Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; no further Milestone 9 Sprint is Current)
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-15-016`)
 
 RFC Coverage:
 
@@ -2223,6 +2223,52 @@ Reviewer Validation Result:
 
 - Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-009`). Confirmed `RepositoryPolicy`/`PolicyCriterion` are new, additive Kernel governance concepts implementing exactly RFC-0011's Repository Policy/Policy Criterion sections; confirmed the ratified Version Lineage Rules are enforced at both the aggregate and repository layers with no mutation path; confirmed `PolicyCriterion` is inert declarative data with no predicate/evaluation logic anywhere in the diff; confirmed `RepositoryPolicyService` is thin orchestration with zero Policy Evaluation, Governance Decision, Governance Escalation, Ratification-Ledger access, cross-domain access, or event publication. No `src/hosts` or `src/adapters` file was touched. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run test` (Vitest 81 files / 405 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
 - Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-009-F-001`, `-F-002`): pre-existing, systemic `kernel-service-map.md` drift predating this Sprint, and a transient process-timing flake in an unrelated, unmodified Sprint 21 test. Neither generates a Builder Task. Sprint 52 is fully closed with zero open findings.
+
+---
+
+## Sprint 53 — Policy Evaluation and Governance Decision Foundation
+
+Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-15-016`.
+
+RFC Coverage:
+
+- RFC-0011 — Engineering Governance Model v1.0 (Primary; Policy Evaluation, Governance Decision, Governance Escalation, Failure and Conflict Handling).
+- RFC-0006 — Engineering Assessment Model (Referenced; finalized Review Outcome/Finding consumption only, unmodified).
+- RFC-0005 — Domain Event Model (Referenced; Policy Events remain deferred).
+- RFC-0010 — Kernel Boundaries (Referenced).
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-15-016` — governs this Sprint's entire scope, including Final Refinement 1 (Missing Review Resolution: existing non-final/incomplete Review → Deferred; missing/unresolvable Review → Escalation Required) and Final Refinement 2 (`UnresolvedFindingMatch` explicit `expectedMatch: Present | Absent` polarity).
+- `NEXUS-RAT-2026-07-15-015` — approved the Sprint 53/54 merge in principle; formally activated by `NEXUS-RAT-2026-07-15-016`.
+
+Authorized Concepts:
+
+- `PolicyEvaluation`, `PolicyEvaluationId`, `PolicyCriterionResult`, `PolicyCriterionResultStatus`.
+- `GovernanceDecision`, `GovernanceDecisionId`, and the four canonical values (Approved, Rejected, Deferred, Escalation Required), derived via strict precedence (Escalation Required > Deferred > Rejected > Approved).
+- `GovernanceEscalation`.
+- `IGovernanceDecisionRepository` and an in-memory append-only implementation, enforcing evaluation idempotency via a deterministic evaluation key.
+- `GovernanceService` (thin orchestration only).
+- Two closed predicate kinds: `ReviewOutcomeMembership`, `UnresolvedFindingMatch` (with explicit `expectedMatch` polarity table).
+- Minimal `createKernelServices` wiring for the new repository/service.
+
+Deferred Concepts:
+
+- Evidence- and Shared Reality-consuming Policy Criteria; multi-Policy evaluation, precedence, and conflict arbitration.
+- Ratification-Ledger content/authority validation; repository-law interpretation.
+- RFC-0005 Policy Events, Domain Event publication.
+- Downstream Governance Decision consumers, policy enforcement, workflow gates, automatic remediation.
+- Host-facing/Adapter-facing governance surfaces, durable persistence.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0053-policy-evaluation-and-governance-decision-foundation.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify the Kernel Canon, RFC-0011, RFC-0006, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- This Sprint does not modify Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 9's `Review`/`Finding` behavior; both are consumed as frozen, read-only dependencies.
+- No placeholder implementation of any deferred concept is authorized, including as an unused/stubbed reference.
+- Builder implementation complete: added deterministic governance evaluation/decision domain, in-memory append-only decision repository, thin `GovernanceService`, minimal Kernel composition, and 36 Sprint 53 tests. Repository validation passed: TypeScript compile, ESLint, Vitest (82 files / 441 tests), esbuild, and extension-host bundle build.
+- TASK-001 remediation complete: narrowed `InMemoryGovernanceDecisionRepository` duplicate-registration equivalence to semantic decision content only, excluding non-semantic decision/evaluation/escalation identifiers and attribution timestamp while preserving contradictory duplicate rejection. Added regression coverage; targeted validation passed at 37 Sprint 53 tests.
 
 ---
 

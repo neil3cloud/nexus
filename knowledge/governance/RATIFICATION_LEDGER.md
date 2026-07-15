@@ -4808,3 +4808,181 @@ Milestone 9 SHALL be complete only when Nexus can deterministically:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-016
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-016
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 53 Scope Ratification — Policy Evaluation and Governance Decision Foundation. Resolves the `nexus-plan` Sprint 53 Proposal and its revised form after two Sprint Owner review cycles, authorizing implementation of RFC-0011's Policy Evaluation, Governance Decision, and Governance Escalation sections as Milestone 9's second Sprint, formally activating the "Policy Evaluation and Governance Decision Foundation" merge approved in principle by `NEXUS-RAT-2026-07-15-015`.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, returned to Changes Required for missing deterministic evaluation rules/decision precedence/identity/idempotency/predicate boundaries, revised accordingly, and then approved with two final refinements (Missing Review Resolution; `UnresolvedFindingMatch` polarity) supplied directly as binding Sprint scope by the Sprint Owner.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 53 — Policy Evaluation and Governance Decision Foundation as Milestone 9's second Sprint, implementing RFC-0011 v1.0's Policy Evaluation, Governance Decision, and Governance Escalation sections against exactly one `RepositoryPolicy` version and one `Review`, producing exactly one immutable `GovernanceDecision`. No downstream enforcement, workflow advancement, repository mutation, event publication, multi-policy arbitration, or autonomous authority is authorized.
+
+**Objective (binding):**
+
+```text
+RepositoryPolicy Version
+        +
+      Review
+        ↓
+  PolicyEvaluation
+        ↓
+Exactly One GovernanceDecision
+```
+
+Canonical Governance Decision values: **Approved, Rejected, Deferred, Escalation Required**.
+
+**RFC Coverage (binding):** Primary — RFC-0011 v1.0 (Policy Evaluation, Governance Decision, Governance Escalation, Failure and Conflict Handling). Referenced — RFC-0006 (finalized Review Outcome/Finding consumption only, unmodified), RFC-0005 (Policy Events remain deferred), RFC-0010, Sprint 52's `RepositoryPolicy` (unmodified).
+
+**Dependencies (binding):** Frozen, read-only consumption of Sprint 52's `RepositoryPolicy`/`PolicyCriterion`/`IRepositoryPolicyRepository` and Sprint 9's `Review`/`Finding`/`IReviewRepository`. Neither slice's approved behavior may be altered.
+
+**Authorized Concepts (binding):** exactly `PolicyEvaluation`, `PolicyEvaluationId`, `PolicyCriterionResult`, `PolicyCriterionResultStatus`, `GovernanceDecision`, `GovernanceDecisionId`, the four canonical Governance Decision values, `GovernanceEscalation`, `IGovernanceDecisionRepository`, an in-memory append-only Governance Decision repository, `GovernanceService`, the two closed predicate representations below, minimal Kernel composition wiring, deterministic diagnostics, unit and integration tests. No additional governance capability is authorized.
+
+**Evaluation Input Boundary (binding):** a Policy Evaluation consumes exactly one requested `RepositoryPolicyId`, one requested Policy version, one Review, its Review Outcome, its Findings, and an explicit evaluation timestamp or injected deterministic clock input. It SHALL NOT consume Evidence, Shared Reality, Knowledge, Mission internals, Execution internals, Host state, Adapter state, Ratification Ledger contents, or multiple Repository Policies. `RepositoryPolicy` and `Review` are immutable, read-only inputs.
+
+**Finalized Review Boundary and Missing Review Resolution (binding — Final Refinement 1):** Criterion evaluation consumes a finalized, terminal Review per RFC-0006. The evaluator SHALL NOT finalize, reopen, revise, replace, or otherwise modify a Review, its Outcome, or its Findings.
+
+- **Existing but non-final or incomplete Review** (has not reached a terminal Review state; lacks a finalized Review Outcome; otherwise incomplete under RFC-0006) → **Deferred**.
+- **Missing or unresolvable Review** (does not exist; cannot be resolved by identity; references an invalid/unavailable immutable state; cannot be consumed without inventing or substituting data) → **Escalation Required**, with the `GovernanceEscalation` preserving the requested Review identity, requested immutable Review version/fingerprint/finalized-state reference when supplied, requested `RepositoryPolicy` identity and version, a deterministic reason code, and the required resolution authority.
+- The implementation SHALL NOT fabricate a Review, substitute another Review, auto-select the latest Review, infer a Review Outcome, or treat a missing Review as Approved, Rejected, or Deferred.
+
+```text
+Review exists but is not final → Deferred
+Review cannot be resolved → Escalation Required
+```
+
+**Closed Predicate Model (binding):** no general policy-expression language. Exactly two predicate kinds are authorized — no other kind is authorized this Sprint. Unknown predicate kinds or unsupported schema versions produce **Escalation Required** (never ignored, guessed, coerced, or treated as an ordinary violation).
+
+- `ReviewOutcomeMembership` — descriptor contains only predicate kind, schema version, and allowed Review Outcome values. No executable logic.
+- `UnresolvedFindingMatch` — descriptor contains only predicate kind, schema version, configured Finding severity values, configured Finding status values, and an explicit `expectedMatch: Present | Absent` polarity field (**Final Refinement 2**). No executable logic.
+
+**`UnresolvedFindingMatch` Polarity (binding — Final Refinement 2):** a Finding match alone SHALL NOT implicitly mean satisfaction or violation. The evaluator determines whether at least one unresolved Finding matches the configured severity/status constraints, then resolves the Criterion result per:
+
+| Actual Match | Expected Match | Criterion Result |
+| --- | --- | --- |
+| Present | Present | Satisfied |
+| Absent | Present | Violated |
+| Present | Absent | Violated |
+| Absent | Absent | Satisfied |
+
+Unavailable/incomplete required Finding data → **Undetermined**. An invalid `expectedMatch` value, unsupported schema version, contradictory configuration, or malformed structure → **Unsupported**, which produces **Escalation Required** through the ratified precedence. Polarity SHALL NOT be inferred from Criterion descriptions, identifiers, prose, severity values, Finding statuses, or Builder assumption — no other polarity model or generic expression mechanism is authorized.
+
+**Prohibited Predicate Capabilities (binding):** arbitrary expression trees, nested logical expressions, generic boolean composition, scripting, callbacks, dynamically registered predicates/operators, free-text interpretation, regular-expression policy execution, reflection-based evaluation, provider-specific condition formats, model prompts, AI interpretation, unrestricted model judgment, executable user-defined conditions.
+
+**PolicyCriterion Compatibility (binding):** Sprint 52's `PolicyCriterion.conditionDescriptor` remains opaque, immutable data. Sprint 53 interprets only descriptors conforming exactly to the two closed, versioned schemas above; preserves the original descriptor unchanged; validates predicate kind, schema version, and required fields; deterministically rejects malformed descriptors; never rewrites or mutates Sprint 52's `RepositoryPolicy`/`PolicyCriterion` objects; never broadens the descriptor into a generic expression language. No generic evaluator framework is authorized.
+
+**PolicyCriterionResult Model (binding):** each Policy Criterion produces exactly one immutable `PolicyCriterionResult` referencing Criterion identity, predicate kind, predicate schema version, result status, relevant Review Outcome/Finding references, and a deterministic explanation code. Generated prose is never authoritative decision reasoning. Canonical statuses: **Satisfied** (deterministically evaluated and satisfied); **Violated** (deterministically evaluated and violated); **Undetermined** (a required authoritative Review input is absent, incomplete, or non-final); **Unsupported** (predicate kind/schema version unsupported, descriptor malformed/contradictory, or deterministic interpretation impossible).
+
+**Governance Decision Precedence (binding):** exactly one `GovernanceDecision` is derived via strict precedence, unaffected by evaluation order: (1) **Escalation Required** — any Criterion `Unsupported`, OR unknown Policy identity/version, missing/unresolvable Review, invalid version lineage, unsupported predicate kind/schema version, malformed/contradictory Criterion data, conflicting evaluation inputs, or deterministic interpretation impossible; takes precedence over every lower result, never resolved by guesswork/fallback/model judgment. (2) **Deferred** — no escalation condition, but the Review exists and is non-final/incomplete, required Review data is absent, or at least one Criterion is `Undetermined`; takes precedence over Rejected/Approved; never interpreted as approval or rejection. (3) **Rejected** — no Criterion Unsupported or Undetermined, and at least one Criterion Violated; a Violated Criterion never yields Rejected when a higher-precedence result exists. (4) **Approved** — every Criterion Satisfied; none Violated, Undetermined, or Unsupported; never a default.
+
+**Mixed-Result Decision Table (binding, normative):**
+
+| Policy Criterion Results | Governance Decision |
+| --- | --- |
+| Satisfied + Satisfied | Approved |
+| Satisfied + Violated | Rejected |
+| Violated + Violated | Rejected |
+| Satisfied + Undetermined | Deferred |
+| Violated + Undetermined | Deferred |
+| All Undetermined | Deferred |
+| Satisfied + Unsupported | Escalation Required |
+| Violated + Unsupported | Escalation Required |
+| Undetermined + Unsupported | Escalation Required |
+| Any Unsupported result | Escalation Required |
+
+Every Criterion is evaluated unless evaluation cannot begin because the requested `RepositoryPolicy` or `Review` cannot be resolved. Criterion ordering never alters decision precedence.
+
+**Deterministic Time (binding):** the domain evaluator never reads the system clock directly; the evaluation timestamp is supplied via an explicit evaluation input or an injected deterministic clock — attribution metadata only, never influencing the Governance Decision value. Identical inputs (Policy identity/version/Criteria, Review identity/revision-or-fingerprint/Outcome/Findings, predicate schema versions, evaluation contract version, evaluation timestamp) SHALL produce structurally equivalent `PolicyEvaluation`/`GovernanceDecision`.
+
+**Deterministic Identity and Evaluation Key (binding):** a deterministic evaluation key is derived from `RepositoryPolicy` identity, Policy version, Review identity, immutable Review revision/finalized-state version/deterministic canonical fingerprint, and evaluator contract version, uniquely representing one immutable evaluation input set. Random identity generation inside evaluation semantics is prohibited unless supplied through an injected deterministic identity source. Identifiers never change the semantic evaluation outcome.
+
+**Review State Attribution (binding):** Sprint 53 SHALL NOT invent a new RFC-0006 Review revision concept. Governance evaluation references the strongest immutable Review-state identifier already available from the approved Review implementation (an existing Review revision, immutable finalized-state version, existing immutable Review fingerprint, or a deterministic canonical fingerprint derived from the consumed finalized Review state). Any derived fingerprint SHALL be deterministic, use only immutable Review data, be documented, not modify the Review aggregate, and not redefine RFC-0006 ownership. A changed finalized Review state constitutes a new evaluation input set.
+
+**Evaluation Idempotency (binding):** repeated evaluation of the same immutable input set SHALL NOT produce conflicting decisions. `IGovernanceDecisionRepository` enforces exactly one behavior — return the existing equivalent `GovernanceDecision`, or reject duplicate registration with a deterministic duplicate diagnostic — and rejects contradictory decisions for the same evaluation key, replacement, mutation, and duplicate registration with non-equivalent content. A changed Policy version or changed Review revision/fingerprint constitutes a new evaluation input set.
+
+**PolicyEvaluation Model (binding):** immutable; contains `PolicyEvaluation` identity, `RepositoryPolicy` identity and version, Review identity and immutable revision/finalized-state/fingerprint reference, ordered `PolicyCriterionResult` collection, evaluation contract version, deterministic evaluation key, explicit evaluation timestamp, and resulting `GovernanceDecision` identity. `PolicyCriterionResult` order follows `PolicyCriterion` order from `RepositoryPolicy` for attribution/explainability/deterministic presentation only — never implying evaluation precedence, decision precedence, or short-circuiting.
+
+**GovernanceDecision Model (binding):** immutable and attributable; contains `GovernanceDecision` identity, exactly one canonical value, `RepositoryPolicy` identity and version, Review identity and immutable revision/finalized-state/fingerprint reference, `PolicyEvaluation` identity, deterministic evaluation key, ordered `PolicyCriterionResult`s or immutable references, evaluation timestamp, deterministic explanation codes, and an optional `GovernanceEscalation` reference. A recorded fact, not a command — SHALL NOT mutate Mission, Mission Plan, Task, Review, Findings, Knowledge, Evidence, Shared Reality, or Execution state; advance a Workflow; activate a Sprint; modify governance documents; create a Ratification; execute an Adapter; invoke a model; or autonomously approve architecture.
+
+**GovernanceEscalation Model (binding):** exists only when the Decision is Escalation Required; records escalation identity, deterministic reason code, affected `RepositoryPolicy` identity/version, affected Review identity, requested Review revision/fingerprint when supplied, affected Policy Criterion identities, unsupported/malformed/contradictory/conflicting/missing input references, and required authority category for resolution. SHALL NOT resolve the ambiguity, choose another Decision, invoke a model, create a Ratification, modify `RepositoryPolicy`/`Review`, mutate repository state, or trigger workflow/downstream enforcement. Resolution remains external to Sprint 53.
+
+**GovernanceService Boundary (binding):** thin application service. MAY load one requested `RepositoryPolicy` version, load one requested Review, delegate Criterion evaluation to the authorized deterministic domain evaluator, derive exactly one `GovernanceDecision`, persist it immutably, and return the result. SHALL NOT select among multiple Policies, resolve precedence, arbitrate conflicts, interpret superior repository law, access `RATIFICATION_LEDGER.md`, validate Ratification authority, consume Evidence/Shared Reality/Knowledge, publish Domain Events, enforce a Decision, advance workflows, activate Sprints, invoke Adapters or AI models, or write governance files.
+
+**Governance Decision Repository (binding):** `IGovernanceDecisionRepository` is append-only; supports deterministic registration and retrieval by Decision identity, evaluation key, Policy identity+version, or Review identity, plus enumeration; preserves all historical Decisions; rejects mutation, replacement, contradictory duplicate decisions, and duplicate registration with non-equivalent content. In-memory implementation only; no durable persistence.
+
+**Failure-Closed Requirements (binding, normative minimum mappings):**
+
+| Condition | Required Governance Decision |
+| --- | --- |
+| Every Criterion Satisfied | Approved |
+| At least one Violated; none Undetermined or Unsupported | Rejected |
+| Existing non-final Review | Deferred |
+| Existing incomplete Review | Deferred |
+| Missing required Review data | Deferred |
+| Missing or unresolvable Review | Escalation Required |
+| Any Criterion Undetermined; none Unsupported | Deferred |
+| Unsupported predicate kind | Escalation Required |
+| Unsupported predicate schema version | Escalation Required |
+| Invalid `expectedMatch` value | Escalation Required |
+| Malformed Criterion descriptor | Escalation Required |
+| Unknown RepositoryPolicy identity | Escalation Required |
+| Unknown RepositoryPolicy version | Escalation Required |
+| Contradictory evaluation inputs | Escalation Required |
+| Deterministic interpretation impossible | Escalation Required |
+| Internal non-determinism detected | Escalation Required or deterministic failure; never Approved |
+
+**Event Publication Boundary (binding):** no RFC-0005 Domain Events are authorized this Sprint (no `PolicyEvaluated`, `PolicyViolationDetected`, `GovernanceDecisionCreated`, `GovernanceEscalationCreated`, or equivalent), deferred to a future Event Publication slice following the established Foundation → Event Publication pattern.
+
+**Cross-Domain Immutability (binding):** Sprint 53 SHALL NOT modify `RepositoryPolicy`, `PolicyCriterion`, RepositoryPolicy versioning or repository behavior, the Review aggregate, Review lifecycle, Review Outcome, Finding lifecycle, or Finding semantics. No existing approved vertical slice may be redefined.
+
+## Ownership Model (ratified)
+
+Identical to RFC-0011's ratified ownership matrix (`NEXUS-RAT-2026-07-15-014`); this ratification authorizes implementation of the Policy Evaluation/Governance Decision/Governance Escalation subset against exactly one Policy version and one Review, against it.
+
+## Authorized Scope
+
+The Builder MAY introduce exactly the Authorized Concepts listed above, exactly as specified in the binding Governance Decision, Final Refinements 1 and 2, and Sprint 53's Sprint Implementation Record. No additional governance capability is authorized.
+
+## Deferred Concepts
+
+Evidence-consuming and Shared Reality-consuming Policy Criteria; Knowledge consumption/capture; multi-Policy evaluation, precedence, and conflict arbitration; repository-law interpretation; Ratification-Ledger content/authority validation; superior authority resolution; policy enforcement; workflow gates/advancement; automatic remediation; downstream Governance Decision consumers; Domain Event publication; Host-facing and Adapter-facing governance surfaces; AI deliberation/unrestricted model judgment; durable persistence; policy generation/optimization; repository-write automation. No placeholder implementation of any deferred concept is authorized.
+
+## Scope Restrictions
+
+- No Domain Event is authorized this Sprint.
+- No `src/hosts` or `src/adapters` change.
+- No modification to the Kernel Canon, RFC-0011, RFC-0006, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- No modification to Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 9's `Review`/`Finding` behavior.
+- `knowledge/reference/kernel-service-map.md`'s pre-existing incompleteness (`NEXUS-REV-2026-07-15-009-F-001`) remains out of scope; Sprint 53 SHALL NOT expand into unbounded service-map cleanup.
+
+## Related Sprint(s)
+
+- Sprint 52 — Governance Policy Model Foundation (Milestone 9's opening Sprint; immediate predecessor; frozen dependency).
+- Sprint 9 — Review Foundation (frozen dependency).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner approves Sprint 53 — Policy Evaluation and Governance Decision Foundation as Milestone 9's second Sprint, with the binding Objective, RFC Coverage, Dependencies, Authorized Concepts, Evaluation Input Boundary, Finalized Review Boundary and Missing Review Resolution (Final Refinement 1), Closed Predicate Model and `UnresolvedFindingMatch` Polarity (Final Refinement 2), Prohibited Predicate Capabilities, PolicyCriterion Compatibility, PolicyCriterionResult Model, Governance Decision Precedence, Mixed-Result Decision Table, Deterministic Time, Deterministic Identity and Evaluation Key, Review State Attribution, Evaluation Idempotency, PolicyEvaluation Model, GovernanceDecision Model, GovernanceEscalation Model, GovernanceService Boundary, Governance Decision Repository, Failure-Closed Requirements, Event Publication Boundary, and Cross-Domain Immutability rules recorded above. The Builder SHALL implement exactly the Authorized Scope and SHALL NOT implement any Deferred Concept, including as a placeholder or stub. No Domain Event, `src/hosts`, or `src/adapters` change is authorized, and no previously approved vertical slice (Sprint 52, Sprint 9) may be modified. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 53 as Current under Milestone 9, and to generate Sprint 53's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

@@ -2,6 +2,146 @@
 
 ---
 
+## NEXUS-REV-2026-07-15-011 — Sprint 53 — TASK-001 Remediation Verification (Policy Evaluation and Governance Decision Foundation)
+
+- **Reviewed Sprint:** Sprint 53 — Policy Evaluation and Governance Decision Foundation (remediation cycle)
+- **Reviewed Change:** `builder-task.md` TASK-001 — narrowing `InMemoryGovernanceDecisionRepository`'s duplicate-registration equivalence check to semantic fields only, closing `NEXUS-REV-2026-07-15-010-F-001`.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (unchanged by this remediation). Referenced: `NEXUS-RAT-2026-07-15-016` (Evaluation Idempotency, Deterministic Identity, Deterministic Time).
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+TASK-001 is correctly and completely implemented. `canonicalizeGovernanceDecision` (`src/kernel/governance/governance-decision.repository.ts`) now compares only the semantically relevant fields — `value`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `reviewStateReference`, `evaluationKey`, `criterionResults`, `explanationCodes`, and `escalation` (via a new `canonicalizeGovernanceEscalation` helper that itself excludes the escalation's own `id`) — excluding the top-level `GovernanceDecision.id`, `policyEvaluationId`, and `evaluatedAt`, exactly as required. The `register()` control flow, `evaluationKey` derivation, and every other Sprint 53 behavior (Governance Decision Precedence, Missing Review Resolution, `UnresolvedFindingMatch` polarity, `GovernanceService` orchestration) are unchanged. The pre-existing `'rejects contradictory duplicate GovernanceDecision registration for the same evaluation key'` test (asserting genuinely differing `value`s still throw) continues to pass unmodified, and a new regression test, `'treats duplicate decisions with different attribution metadata as equivalent'` (`governance.service.test.ts:552`), directly reproduces the race scenario from F-001 — two decisions sharing an evaluation key with identical semantic content but different `id`/`policyEvaluationId`/`evaluatedAt`/escalation `id` — and confirms the repository returns the original recorded decision without error and retains exactly one entry.
+
+Independent re-validation confirms `tsc --noEmit` (clean), ESLint on the changed files (clean), `npm run build` (clean), `npm run test:extension-host:build` (clean), and `npm run test` — **82 files / 442 tests**, zero failures (one more test than Sprint 53's original 441, matching the one added regression test). `git status`/`git diff` confirm the remediation touched only `src/kernel/governance/governance-decision.repository.ts`, its test file, `IMPLEMENTATION_REPORT.md`, and `IMPLEMENTATION_MANIFEST.md` (Sprint 53's Notes only) — no Sprint 52 or Sprint 9 file, and no `src/hosts` or `src/adapters` file, was touched.
+
+One new Category 4, Informational finding was identified: `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary was not fully updated to match the remediation.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-010-F-001 — Contradictory-duplicate detection compares full snapshots instead of semantic content (RESOLVED)
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Status:** **Resolved** by TASK-001. `canonicalizeGovernanceDecision`/`canonicalizeGovernanceEscalation` now compare only semantic fields; verified by the new regression test at `governance.service.test.ts:552` and by source inspection. No further Builder action required.
+
+#### NEXUS-REV-2026-07-15-011-F-001 — Stale Vitest total in IMPLEMENTATION_REPORT.md's TASK-001 remediation entry
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Implementation Report (implementation reports SHALL accurately describe validation performed).
+- **Summary:** `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary (line 95) still reads "Vitest passed: 82 files, 441 tests" after the TASK-001 remediation, even though the line above it correctly reports the file-level count as 37 Sprint 53 tests (up from 36). The true post-remediation suite total, independently confirmed, is **82 files / 442 tests**.
+- **Impact:** Cosmetic only. The actual test suite is correct and fully passing; only the reported summary figure is one test short.
+- **Required Disposition:** Documentation SHALL be reconciled. No architectural or implementation change is implied.
+- **Builder Action:** Update `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary to read "82 files, 442 tests." Recommend a Documentation Task via `nexus-sprint`, or direct correction on the next Sprint 53-related Builder touch.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings this cycle | 1 new (Documentation Drift), 1 carried finding resolved |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Documentation Drift) | 1 (`NEXUS-REV-2026-07-15-011-F-001`) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest (82 files / 442 tests via `npm run test`), `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-15-010`. TASK-001 touched only the Governance Decision repository's duplicate-equivalence logic; no Deferred Concept was introduced, and re-inspection confirms the full Sprint 53 Deferred Concept list remains unimplemented.
+
+### Architectural Compliance Summary
+
+- **Idempotency:** `IGovernanceDecisionRepository` now enforces the ratified "one deterministic behavior" rule correctly — semantically equivalent decisions for the same evaluation key are returned as the existing record; genuinely contradictory decisions continue to be rejected. Compliant with `NEXUS-RAT-2026-07-15-016`'s Evaluation Idempotency section.
+- **Scope discipline:** the remediation is narrowly confined to the repository's equivalence comparison; `evaluationKey` derivation, `GovernanceService` orchestration, the Governance Decision Precedence, the Mixed-Result Decision Table, Missing Review Resolution, and `UnresolvedFindingMatch` polarity are all byte-for-byte unchanged (confirmed by source inspection). Compliant with Approved Vertical Slice Immutability and TASK-001's Required Changes.
+- **Frozen dependencies:** Sprint 52's `RepositoryPolicy` and Sprint 9's `Review` remain untouched; no `src/hosts` or `src/adapters` file was modified. Compliant.
+- **Tests:** one new regression test added to `governance.service.test.ts` (37 total in that file); full suite 442/442 passing on independent re-run.
+
+### Builder Task Recommendation
+
+Generate one follow-up Documentation Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-011-F-001` (Informational, Category 4 — Documentation Drift): correct the Vitest total in `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary from 441 to 442 tests. This does not require a Sprint Owner ratification and does not block progression. Recommend the Sprint Owner treat Sprint 53 as **Approved with Findings**, with its sole implementation defect (`NEXUS-REV-2026-07-15-010-F-001`) now fully resolved and only a cosmetic documentation correction outstanding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0053-policy-evaluation-and-governance-decision-foundation.md`) — Reviewer Notes and Final Disposition updated to reflect TASK-001's closure and the new Documentation Drift finding.
+- `IMPLEMENTATION_PLAN.md` — Sprint 53's Reviewer Validation Result updated. No further Milestone 9 Sprint is Current.
+
+---
+
+## NEXUS-REV-2026-07-15-010 — Sprint 53 — Policy Evaluation and Governance Decision Foundation
+
+- **Reviewed Sprint:** Sprint 53 — Policy Evaluation and Governance Decision Foundation
+- **Reviewed Vertical Slice:** `PolicyEvaluation`, `PolicyEvaluationId`, `PolicyCriterionResult`, `GovernanceDecision`, `GovernanceDecisionId`, `GovernanceEscalation`, `IGovernanceDecisionRepository`/`InMemoryGovernanceDecisionRepository`, and `GovernanceService.evaluateGovernancePolicy`, per `NEXUS-RAT-2026-07-15-016`'s Authorized Scope.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Policy Evaluation, Governance Decision, Governance Escalation, Failure and Conflict Handling). Referenced: RFC-0006 (finalized Review Outcome/Finding consumption only); RFC-0005 (Policy Events not authorized this Sprint); RFC-0010 (Kernel Boundaries).
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 53 — Policy Evaluation and Governance Decision Foundation conforms to RFC-0011 v1.0 and `NEXUS-RAT-2026-07-15-016`'s Authorized Scope, including both Final Refinements. The implementation evaluates exactly one requested `RepositoryPolicy` version against exactly one `Review`, deriving `PolicyCriterionResult`s for the two closed predicate kinds (`ReviewOutcomeMembership`, `UnresolvedFindingMatch`) and producing exactly one immutable `GovernanceDecision` via the ratified strict precedence (Escalation Required > Deferred > Rejected > Approved). Source inspection and a full import-graph check confirm `src/kernel/governance/`'s new Sprint 53 files import only from `../review/*` (Sprint 9, frozen), `./repository-policy.*` (Sprint 52, frozen), `../common/kernel-error`, `../common/service-lifecycle`, and `node:crypto` — zero imports from Evidence, Shared Reality, Knowledge, Mission, Execution, the Event Bus, Adapters, or Hosts, and neither `src/kernel/review/*` nor `src/kernel/governance/repository-policy*` was modified (confirmed via `git diff --stat`).
+
+Final Refinement 1 (Missing Review Resolution) is correctly implemented: `GovernanceService.resolveInputs` distinguishes an existing-but-non-final Review (produces per-criterion `Undetermined` results via `evaluateCriterionWithoutFinalReview`, yielding **Deferred**) from a Review that cannot be resolved at all (`review === undefined`, `deriveEscalationReason` returns `MissingReview`, yielding **Escalation Required**), confirmed by dedicated tests for both paths. Final Refinement 2 (`UnresolvedFindingMatch` polarity) is correctly implemented via the explicit `Present`/`Absent` `expectedMatch` truth table in `evaluateCriterion`, confirmed by an exhaustive four-case parameterized test. The Governance Decision Precedence and the full nine-row Mixed-Result Decision Table are implemented in `deriveGovernanceDecisionValue`/`deriveEscalationReason` and independently verified by parameterized tests reproducing every row of the ratified table, plus two dedicated evaluation-order-independence tests. `GovernanceService` is confirmed thin: it loads the requested Policy version and Review, delegates predicate evaluation to free functions, derives one `GovernanceDecision`, persists it, and returns it — with a dedicated negative test confirming `enforceGovernanceDecision`, `advanceWorkflow`, `createRatification`, `invokeAdapter`, and `publishDomainEvent` are all absent from its surface. `RepositoryPolicy` and `Review` inputs are confirmed unmutated and no Domain Event is published (tested directly). The evaluation key and Review-state fingerprint are computed deterministically (canonical, key-sorted JSON serialization) with no wall-clock read anywhere in the evaluation path (confirmed by source inspection); `evaluatedAt` is caller-supplied attribution data only, consistent with the ratified Deterministic Time model. Deferred concepts (Evidence/Shared Reality/Knowledge-consuming Criteria, multi-Policy arbitration, Ratification-Ledger validation, RFC-0005 Policy Events, downstream enforcement, Host/Adapter surfaces, durable persistence) are confirmed absent, including as stubs.
+
+Independent re-validation confirms `tsc --noEmit` (clean), ESLint on all Sprint 53 files (clean), `npm run test` (Vitest 82 files / 441 tests, matching the Builder's reported count exactly), `npm run build` (esbuild, clean), and `npm run test:extension-host:build` (clean). `createKernelServices()` and `kernel-boundary-certification.integration.test.ts` were extended additively only; no other pre-existing Kernel, `src/hosts`, or `src/adapters` file was touched.
+
+One Category 1, Minor finding was identified during idempotency verification and is recorded below. It does not block approval; it is recommended for correction via a follow-up Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-010-F-001 — Contradictory-duplicate detection compares full snapshots instead of semantic content, allowing a concurrent-evaluation race to spuriously reject an equivalent decision
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `NEXUS-RAT-2026-07-15-016`, Evaluation Idempotency: "Repeated evaluation of the same immutable input set SHALL NOT produce conflicting Governance Decisions... `IGovernanceDecisionRepository` SHALL enforce one deterministic behavior: return the existing equivalent GovernanceDecision; or reject duplicate registration with a deterministic duplicate diagnostic." Sprint 53's required acceptance criteria include "repeated evaluation cannot create contradictory records," and the ratified Deterministic Identity model states "Identifiers SHALL NOT change the semantic outcome of evaluation" and that the evaluation timestamp "SHALL NOT influence the Governance Decision value."
+- **Summary:** `InMemoryGovernanceDecisionRepository.register` (`governance-decision.repository.ts:40`) determines whether two decisions sharing an evaluation key are "equivalent" by comparing `JSON.stringify` of their *entire* snapshots, which includes the randomly-generated `GovernanceDecisionId`/`PolicyEvaluationId` (default `createIdentity = randomUUID`) and the caller-supplied `evaluatedAt` timestamp — neither of which the ratification treats as semantically significant.
+- **Impact:** `GovernanceService.evaluateGovernancePolicy` checks `getByEvaluationKey` before computing and registering a new decision, so this path is unreachable for sequential (awaited) calls — repeated sequential evaluation is correctly idempotent, as directly tested. It is reachable only when two evaluations for the same evaluation key are in flight concurrently (both pass the pre-registration `getByEvaluationKey` check before either registers): the second `register()` call will spuriously throw `ContradictoryGovernanceDecisionError` even when both computed decisions have an identical `value` and identical `criterionResults`, because their `id` and/or `evaluatedAt` differ. This is not exercised by any of the 36 Sprint 53 tests, which register decisions either strictly sequentially or via directly-constructed decisions with intentionally differing `value`.
+- **Required Disposition:** Builder SHALL correct the implementation to compare only semantically relevant fields (`value`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `reviewStateReference`, `evaluationKey`, `criterionResults`, and `escalation` minus its `id`) when determining whether a duplicate registration is equivalent or contradictory, consistent with the ratified principle that identifiers and the evaluation timestamp do not affect the semantic outcome.
+- **Builder Action:** Fix via a follow-up Builder Task (`nexus-sprint`). Does not block Sprint 53 approval; no governance ratification is required to correct it.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Informational (Observation) | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest (82 files / 441 tests via `npm run test`), `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 53 Deferred Concepts remain unimplemented: Evidence-, Shared Reality-, and Knowledge-consuming Policy Criteria; multi-Policy evaluation, precedence, and conflict arbitration; Ratification-Ledger content/authority validation and repository-law interpretation; RFC-0005 Policy Events and Domain Event publication; downstream Governance Decision consumers, policy enforcement, and workflow gates; Host-facing and Adapter-facing governance surfaces; durable persistence; AI deliberation/unrestricted model judgment; repository-write automation. No deferred concept was introduced, including as a placeholder or stub. `src/hosts` and `src/adapters` are confirmed untouched.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `PolicyEvaluation`, `GovernanceDecision`, and `GovernanceEscalation` own only deterministic evaluation, decision production, and escalation recording, exactly as scoped by RFC-0011 and `NEXUS-RAT-2026-07-15-016`. `GovernanceService` contains no Policy precedence/conflict arbitration, Ratification-Ledger access, Evidence/Shared Reality/Knowledge access, event publication, or workflow orchestration, confirmed by source inspection and a dedicated negative test. Compliant.
+- **Closed predicate model:** confirmed only `ReviewOutcomeMembership` and `UnresolvedFindingMatch` are interpreted; any other `kind`, unsupported `schemaVersion`, or malformed/contradictory descriptor deterministically resolves to `Unsupported` → Escalation Required, with no expression trees, scripting, callbacks, or model judgment anywhere in the diff. Compliant.
+- **Missing Review Resolution (Final Refinement 1) and `UnresolvedFindingMatch` Polarity (Final Refinement 2):** both implemented exactly as ratified and independently verified by dedicated and parameterized tests. Compliant.
+- **Decision Precedence and Mixed-Result Table:** implemented and verified against all nine ratified rows plus two evaluation-order-independence tests. Compliant.
+- **Determinism:** no wall-clock read in the evaluation path; the evaluation key and Review-state fingerprint use canonical, key-sorted JSON serialization of policy/version/review identity and state only. Compliant with the ratified Deterministic Time and Deterministic Identity models, subject to Finding F-001 above regarding the repository's equivalence check for concurrent registration.
+- **Cross-domain isolation:** verified by full import-graph inspection — zero imports from Evidence, Shared Reality, Knowledge, Mission, Execution, the Event Bus, Adapters, or Hosts. Compliant with RFC-0010 and the Evaluation Input Boundary.
+- **Frozen dependencies:** Sprint 52's `RepositoryPolicy`/`PolicyCriterion`/`IRepositoryPolicyRepository` and Sprint 9's `Review`/`Finding`/`IReviewRepository` are confirmed byte-for-byte unmodified (`git diff --stat`); a dedicated test confirms neither aggregate is mutated by evaluation. Compliant with the Approved Vertical Slice Immutability rule.
+- **Kernel boundary:** no `src/hosts` or `src/adapters` file modified; `createKernelServices` composition extended only with the new repository/service. Compliant with RFC-0010.
+- **Event compliance:** no Domain Event is published or defined; confirmed by source inspection and a negative test asserting `publishDomainEvent` is absent from `GovernanceService`'s surface. Compliant with the Sprint's explicit event-silence requirement.
+- **Tests:** one new test file (`governance.service.test.ts`, 36 tests) plus two additive `kernel-boundary-certification.integration.test.ts` assertions. Full suite 441/441 passing on independent re-run.
+
+### Builder Task Recommendation
+
+Generate one follow-up Builder Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-010-F-001` (Minor, Category 1 — Implementation Defect): narrow `InMemoryGovernanceDecisionRepository`'s contradictory-duplicate equivalence check to semantically relevant fields only. This does not require a Sprint Owner ratification, since it corrects an implementation detail without changing any ratified rule, and does not block progression to a future Milestone 9 Sprint. Recommend the Sprint Owner treat Sprint 53 as **Approved with Findings**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0053-policy-evaluation-and-governance-decision-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 53 marked **Approved with Findings**. No further Milestone 9 Sprint is Current; the remaining provisional sequence (Ratification and Repository-Law Integration, Review-to-Governance Workflow Integration, Governance Automation Validation) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
 ## NEXUS-REV-2026-07-15-009 — Sprint 52 — Governance Policy Model Foundation
 
 - **Reviewed Sprint:** Sprint 52 — Governance Policy Model Foundation
