@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.9
+**Version:** 1.10
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -19,6 +19,7 @@
 - v1.7 — Adds Assignment Policy Evaluation to Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-005`). Defines an optional consumption point at which Workflow Chain Execution, given a caller-supplied Assignment Policy reference, consults the existing Assignment Policy's existing deterministic evaluation to gate dispatch: when the resolved Workflow Step's Execution Role and supplied evaluation input do not satisfy the referenced Assignment Policy, Workflow Chain Execution SHALL reject execution before Adapter dispatch and before any Execution Session is recorded. This amendment does not modify Assignment Policy's own definition, evaluation semantics, or value objects (v1.3, unmodified); it does not introduce Adapter Selection, Adapter routing, capability scoring, automatic Assignment Policy binding/inference, Multi-Agent Orchestration, or Task lifecycle transition. When no Assignment Policy reference is supplied, Workflow Chain Execution's existing v1.6 behavior is unchanged. No other section of this specification is modified.
 - v1.8 — Adds Session Recovery/Checkpointing (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-007`). Defines a **Checkpoint** — a named, immutable, point-in-time capture of an Engineering Session's existing runtime snapshot (v1.2/v1.3, unmodified) — and **Recovery**, which reconstitutes an Engineering Session from a Checkpoint via the existing, unmodified `fromSnapshot()` reconstitution contract (Sprint 39). Recovery SHALL reconstruct an Engineering Session that is semantically equivalent to the captured Checkpoint, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants; implementation-specific object identity, memory layout, or serialization format are not part of this contract. This amendment does not modify Engineering Session's existing snapshot, reconstitution, workflow state, timeline, or diagnostics ownership; it does not introduce Concurrent Session Coordination or Multi-Agent Engineering Orchestration, both of which remain separately unauthorized. No other section of this specification is modified.
 - v1.9 — Adds Concurrent Session Coordination (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-009`). Defines how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services: concurrent visibility of Engineering Sessions, enumeration of Engineering Sessions eligible for further progression, observation of concurrent Engineering Session lifecycle, and repository-level guarantees that operations on one Engineering Session SHALL NOT observe or mutate the runtime state of another. This amendment does not redefine Engineering Session's existing runtime state, snapshot, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), and does not introduce single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, or Multi-Agent Engineering Orchestration, all of which remain separately unauthorized. No other section of this specification is modified.
+- v1.10 — Adds Multi-Agent Engineering Orchestration Foundation (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-012`). Defines the structural relationships through which multiple independent Engineering Sessions MAY participate in a single Mission while preserving complete session independence: a **Mission Engineering Group** (the deterministic association of a Mission with the Engineering Sessions participating in it, and their enumeration), and an **Engineering Session Handoff** (an explicit, immutable record that engineering responsibility for a Mission passed from one Engineering Session/Execution Role to another, together with a deterministic Handoff lifecycle). This amendment defines orchestration structure only; it does not introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection. It does not redefine Engineering Session's existing runtime state, snapshot/reconstitution, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), Workflow Chain or Workflow Chain Execution (v1.3/v1.6/v1.7, unmodified), Assignment Policy (v1.3, unmodified), Execution Strategy, or Concurrent Session Coordination (v1.9, unmodified). No other section of this specification is modified.
 
 ---
 
@@ -522,6 +523,50 @@ Those capabilities remain owned by their previously ratified RFC sections or rem
 Multiple Engineering Sessions existing concurrently SHALL remain fully isolated from one another: an operation performed against one Engineering Session SHALL NOT observe or mutate the runtime state of another. Engineering Session visibility (enumeration and active-session discovery) SHALL remain deterministic.
 
 This specification intentionally defines architectural capabilities rather than specific APIs; public service operations exposing concurrent session visibility remain an implementation detail defined by the corresponding Sprint Implementation Record.
+
+---
+
+# Multi-Agent Engineering Orchestration Foundation
+
+Multi-Agent Engineering Orchestration Foundation defines the structural relationships through which multiple independent Engineering Sessions MAY participate in the execution of a single Mission, while preserving complete Engineering Session independence.
+
+This section establishes orchestration **structure**, not orchestration **intelligence**. It provides the minimum relationships upon which future autonomous orchestration capabilities may safely evolve; it does not itself introduce any autonomous, dynamic, or negotiated behavior.
+
+## Architectural Responsibilities
+
+Multi-Agent Engineering Orchestration Foundation owns:
+
+- **Mission Engineering Group** — the deterministic association between a Mission and the set of Engineering Sessions participating in it;
+- enumeration of a Mission's participating Engineering Sessions;
+- **Engineering Session Handoff** — an explicit, immutable record that engineering responsibility for a Mission passed from one Engineering Session (and its assigned Execution Role) to another;
+- deterministic Handoff lifecycle state (for example, recorded and reconciled with the participating Engineering Sessions);
+- orchestration visibility (observing which Engineering Sessions participate in a Mission and the Handoffs recorded between them);
+- orchestration diagnostics for invalid or unauthorized Handoff attempts.
+
+A Mission Engineering Group SHALL NOT duplicate, override, or supersede any individual Engineering Session's existing runtime state, workflow position, timeline, or diagnostics (v1.2/v1.3, unmodified). It is a structural association only.
+
+An Engineering Session Handoff SHALL reference two existing, unmodified Engineering Sessions; it SHALL NOT itself execute a Workflow Step, advance a workflow position, evaluate an Assignment Policy, or dispatch an Adapter. Recording a Handoff is an observational, structural fact — not an orchestration action.
+
+Multi-Agent Engineering Orchestration Foundation SHALL NOT own:
+
+- Engineering Session's existing runtime state, snapshot/reconstitution semantics, workflow state, timeline, or diagnostics (v1.2/v1.3, unmodified);
+- Session Recovery/Checkpointing's Checkpoint capture or Recovery semantics (v1.8, unmodified);
+- Concurrent Session Coordination's visibility and isolation guarantees (v1.9, unmodified);
+- Workflow Chain, Workflow Advancement, or Workflow Chain Execution (v1.3/v1.4/v1.6/v1.7, unmodified);
+- Assignment Policy or Assignment Policy Evaluation (v1.3/v1.7, unmodified);
+- Execution Strategy or Execution Session (unmodified);
+- autonomous planning, dynamic workflow generation, or AI deliberation;
+- agent-to-agent messaging or negotiation;
+- scheduling algorithms, load balancing, or parallel execution semantics;
+- distributed orchestration or execution synchronization primitives;
+- dynamic Assignment Policy or automatic Adapter Selection;
+- Governance Engine capabilities.
+
+Those capabilities remain owned by their previously ratified RFC sections or remain explicitly deferred, unauthorized, and reserved for future Sprint Owner scope ratification.
+
+Multiple Engineering Sessions participating in a shared Mission Engineering Group SHALL remain as fully isolated from one another as required by Concurrent Session Coordination (v1.9): recording a Mission Engineering Group association, enumerating it, or recording an Engineering Session Handoff SHALL NOT mutate or observe any participating Engineering Session's runtime state.
+
+This specification intentionally defines architectural capabilities rather than specific APIs; public service operations exposing Mission Engineering Group and Handoff behavior remain an implementation detail defined by the corresponding Sprint Implementation Record.
 
 ---
 

@@ -20,6 +20,11 @@ import { ExecutionSessionService } from '../execution/execution-session.service'
 import { InMemoryExecutionStrategyRepository } from '../execution/execution-strategy.repository';
 import { ExecutionStrategyService } from '../execution/execution-strategy.service';
 import { ExecutionService } from '../execution/execution.service';
+import {
+  InMemoryEngineeringSessionHandoffRepository,
+  InMemoryMissionEngineeringGroupRepository,
+} from '../execution/mission-engineering-orchestration.repository';
+import { MissionEngineeringOrchestrationService } from '../execution/mission-engineering-orchestration.service';
 import { InMemoryRoleAssignmentRepository } from '../execution/role-assignment.repository';
 import { InMemoryRoleRegistry } from '../execution/role-registry';
 import { RoleService } from '../execution/role.service';
@@ -56,6 +61,8 @@ export function createKernelServices(
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
   const engineeringSessionCheckpointRepository = new InMemoryEngineeringSessionCheckpointRepository();
+  const missionEngineeringGroupRepository = new InMemoryMissionEngineeringGroupRepository();
+  const engineeringSessionHandoffRepository = new InMemoryEngineeringSessionHandoffRepository();
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const workflowChainRepository = new InMemoryWorkflowChainRepository();
   const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
@@ -79,6 +86,13 @@ export function createKernelServices(
     assignmentPolicyService,
     engineeringSessionCheckpointRepository,
   );
+  const missionEngineeringOrchestrationService = new MissionEngineeringOrchestrationService(
+    missionEngineeringGroupRepository,
+    engineeringSessionHandoffRepository,
+    engineeringSessionRepository,
+    randomUUID,
+    () => new Date().toISOString(),
+  );
 
   return [
     adapterService,
@@ -90,6 +104,7 @@ export function createKernelServices(
     new RoleService(roleRegistry, roleAssignmentRepository),
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     engineeringSessionService,
+    missionEngineeringOrchestrationService,
     executionSessionService,
     new WorkflowChainService(workflowChainRepository),
     assignmentPolicyService,

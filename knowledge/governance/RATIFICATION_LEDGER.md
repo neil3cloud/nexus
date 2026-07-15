@@ -4388,3 +4388,166 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-011
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-011
+
+## Date
+
+2026-07-15
+
+## Subject
+
+RFC-0004 v1.10 Amendment — Multi-Agent Engineering Orchestration Foundation. Defines the structural relationships (Mission Engineering Group, Engineering Session Handoff) through which multiple independent Engineering Sessions MAY participate in a single Mission while preserving complete session independence.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal presented after Sprint 50's closure. Sprint 50's Final Disposition recorded Multi-Agent Engineering Orchestration as Milestone 8's sole remaining candidate direction, requiring its own future Sprint Owner scope ratification. The planner found no existing normative definition of Multi-Agent Engineering Orchestration anywhere in RFC-0004, the Kernel Canon, or `knowledge/reference/`, and presented the Sprint Owner with candidate foundational framings (Mission-scoped session grouping; cross-role handoff; cross-session Workflow Chain distribution). The Sprint Owner selected a combined scope — Mission Engineering Grouping and cross-role Handoff as two complementary aspects of one architectural concern — to serve as Milestone 8's concluding Sprint, and explicitly rejected Workflow Chain distribution as out of scope.
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.9 to Version 1.10, adding a new "Multi-Agent Engineering Orchestration Foundation" section.
+
+Multi-Agent Engineering Orchestration Foundation formalizes two structural relationships: a **Mission Engineering Group** (the deterministic association of a Mission with the Engineering Sessions participating in it, and their enumeration) and an **Engineering Session Handoff** (an explicit, immutable record that engineering responsibility for a Mission passed from one Engineering Session/Execution Role to another, with a deterministic Handoff lifecycle). This amendment defines orchestration structure only — it does not introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection.
+
+The RFC intentionally defines architectural capabilities rather than specific APIs; public service operations exposing Mission Engineering Group and Handoff behavior remain an implementation detail for the corresponding Sprint Implementation Record.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, workflow position, timeline, diagnostics | `EngineeringSession` (Sprints 39/40, unmodified) |
+| Checkpoint capture, Recovery | RFC-0004 "Session Recovery/Checkpointing" (Sprint 49, unmodified) |
+| Concurrent visibility, active-session enumeration, cross-session isolation guarantee | RFC-0004 "Concurrent Session Coordination" (Sprint 50, unmodified) |
+| Mission ↔ Engineering Session association; Mission Engineering Group enumeration; Engineering Session Handoff record and lifecycle; orchestration visibility and diagnostics | RFC-0004 "Multi-Agent Engineering Orchestration Foundation" (this amendment) |
+| Autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, automatic Adapter Selection, Governance Engine | Unauthorized; reserved for future Sprint Owner scope ratification |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.9 to 1.10; Amendment History entry; new "Multi-Agent Engineering Orchestration Foundation" section.
+- Proceed to draft a Sprint 51 scope ratification authorizing implementation of Multi-Agent Engineering Orchestration Foundation, consuming this amendment.
+
+`nexus-plan` SHALL NOT:
+
+- Modify Engineering Session's existing runtime state, snapshot/reconstitution semantics, Session Recovery/Checkpointing, Concurrent Session Coordination, Workflow Chain, Workflow Advancement, Workflow Chain Execution, Assignment Policy, Execution Strategy, Execution Session, or any other RFC or the Kernel Canon.
+- Introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection, all of which remain separately unauthorized.
+- Treat this ratification as authorizing implementation; implementation remains separately deferred pending its own Sprint scope ratification.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only.
+- No Kernel Canon change. No modification to Engineering Session's existing runtime/snapshot/reconstitution contract, Session Recovery/Checkpointing, or Concurrent Session Coordination. No autonomous orchestration, messaging, scheduling, or distributed coordination is introduced or implied.
+- No source code or test change is authorized by this ratification alone.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (referenced; unaffected).
+- Sprint 49 — Session Recovery/Checkpointing Foundation (referenced; unaffected).
+- Sprint 50 — Concurrent Session Coordination (most recently closed Sprint; referenced; unaffected).
+- Future Multi-Agent Engineering Orchestration Foundation implementation Sprint (Sprint 51; not yet implemented; will consume this amendment).
+
+## Related Review(s)
+
+- None.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies that Multi-Agent Engineering Orchestration Foundation — formalizing the structural relationships (Mission Engineering Group; Engineering Session Handoff) through which multiple independent Engineering Sessions MAY participate in a single Mission while preserving complete session independence — SHALL be defined by RFC-0004 as a new section. RFC-0004 SHALL be amended to Version 1.10. This amendment SHALL NOT redefine Engineering Session's existing runtime state, snapshot/reconstitution, Session Recovery/Checkpointing, or Concurrent Session Coordination ownership, and SHALL NOT introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection, all of which remain separately unauthorized. The RFC defines architectural capabilities rather than specific APIs; public service operations remain an implementation detail for the Sprint Implementation Record. This ratification authorizes the RFC-0004 amendment only; implementation remains subject to its own future Sprint Owner scope ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-012
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-012
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 51 Scope Ratification — Multi-Agent Engineering Orchestration Foundation. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-15-011` amended RFC-0004 to v1.10, authorizing implementation of Multi-Agent Engineering Orchestration Foundation and designating it as Milestone 8's concluding Sprint.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved by the Sprint Owner.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 51 — Multi-Agent Engineering Orchestration Foundation as Milestone 8's next and concluding Sprint, implementing RFC-0004 v1.10's Multi-Agent Engineering Orchestration Foundation section only.
+
+**Objective (binding):** Introduce the minimum Kernel capabilities required to model multiple Engineering Sessions collaborating toward a common Mission through deterministic orchestration relationships — Mission Engineering Grouping and explicit cross-role Handoff — introducing orchestration structure only, no autonomous orchestration behavior.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, workflow position, timeline, diagnostics | `EngineeringSession` (Sprints 39/40, unmodified) |
+| Checkpoint capture, Recovery | `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint` (Sprint 49, unmodified) |
+| Concurrent visibility, active-session enumeration, cross-session isolation guarantee | `EngineeringSessionService.enumerateActiveEngineeringSessions` (Sprint 50, unmodified) |
+| Mission ↔ Engineering Session association, Mission Engineering Group enumeration, Engineering Session Handoff record and lifecycle, orchestration visibility and diagnostics | New Kernel concepts (this Sprint) |
+| Workflow position, Workflow Advancement, Workflow Chain Execution, Assignment Policy Evaluation, Execution Strategy | Unmodified (Sprints 41/43/45/46/47/48) |
+
+## Ownership Model (ratified)
+
+Identical to `NEXUS-RAT-2026-07-15-011`'s Ownership Model; this ratification authorizes implementation against it.
+
+## Authorized Scope
+
+The Builder MAY:
+
+- Introduce a `MissionEngineeringGroup` (or equivalently named canonical Kernel concept) recording the deterministic association between a Mission and the Engineering Sessions participating in it, together with a repository contract and in-memory implementation mirroring existing Kernel repository patterns.
+- Add a Kernel service operation enumerating a Mission's participating Engineering Sessions (Mission Engineering Group enumeration), reusing existing Mission and Engineering Session identity references without accessing either aggregate's internals beyond published contracts.
+- Introduce an `EngineeringSessionHandoff` (or equivalently named canonical Kernel concept): an explicit, immutable record that engineering responsibility for a Mission passed from one existing, unmodified Engineering Session to another, together with a deterministic Handoff lifecycle state, a repository contract, and an in-memory implementation.
+- Add Kernel service operation(s) for recording a Handoff and enumerating Handoffs for orchestration visibility, and deterministic diagnostics for invalid or unauthorized Handoff attempts (for example: unknown Engineering Session reference, Handoff between Engineering Sessions not both members of the same Mission Engineering Group, duplicate Handoff).
+- Extend `createKernelServices` composition only as strictly required to construct and register the new repositories/services.
+- Add unit and integration tests covering: multiple Engineering Sessions participating in one Mission Engineering Group; deterministic enumeration; recording a Handoff between two participating Engineering Sessions; Handoff lifecycle determinism; rejection diagnostics; and that recording a Mission Engineering Group association, enumerating it, or recording a Handoff never mutates or is observable through any participating Engineering Session's own runtime state.
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`'s existing runtime state, snapshot/reconstitution semantics, workflow state, timeline, or diagnostics.
+- Modify `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `createCheckpoint()`, or `recoverFromCheckpoint()` (Sprint 49).
+- Modify `EngineeringSessionService.enumerateActiveEngineeringSessions()` or Concurrent Session Coordination's isolation guarantee (Sprint 50).
+- Modify `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, or `AssignmentPolicyService`.
+- Modify Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, or Sprint 47's/48's `executeCurrentWorkflowStep()`.
+- Introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection, in any form, including as an unused/stubbed reference.
+- Have a Handoff or Mission Engineering Group operation execute a Workflow Step, advance a workflow position, evaluate an Assignment Policy, or dispatch an Adapter.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- No modification to any previously certified aggregate, service, or repository beyond the additive `createKernelServices` wiring strictly required for the new repositories/services.
+- Mission Engineering Group and Engineering Session Handoff are structural/observational records only; no orchestration behavior, scheduling, or automatic triggering is authorized.
+- No Kernel Canon change; no RFC-0004 change beyond what `NEXUS-RAT-2026-07-15-011` already authorized; no other RFC change.
+- Upon this Sprint's certification (Approved, zero open Critical/Major/Minor findings), Milestone 8 — Engineering Orchestration SHALL be considered Complete.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (referenced; unaffected).
+- Sprint 49 — Session Recovery/Checkpointing Foundation (referenced; unaffected).
+- Sprint 50 — Concurrent Session Coordination (most recently closed Sprint; this Sprint's immediate predecessor).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 51 — Multi-Agent Engineering Orchestration Foundation, authorizing the Builder to introduce a Mission Engineering Group concept (deterministic Mission-to-Engineering-Session association and enumeration) and an Engineering Session Handoff concept (an explicit, immutable record that engineering responsibility passed between two existing, unmodified Engineering Sessions, with a deterministic lifecycle), each with its own repository contract and in-memory implementation, reusing existing Mission and Engineering Session identity references without modifying either aggregate. The Builder SHALL NOT modify EngineeringSession's existing runtime/snapshot/reconstitution semantics, EngineeringSessionCheckpoint, Concurrent Session Coordination's enumeration operation, WorkflowChain, WorkflowStep, WorkflowChainService, ExecutionStrategy, AdapterService, AdapterRegistry, ExecutionSession, ExecutionSessionService, ReviewService, Review, Finding, AssignmentPolicy, AssignmentPolicyService, or any existing Advancement/Execution/Recovery/Coordination method, and SHALL NOT introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling, load balancing, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, automatic Adapter Selection, or any src/hosts or src/adapters change. Cross-session isolation SHALL be preserved and verified by automated test. Upon this Sprint's Approval with zero open Critical/Major/Minor findings, Milestone 8 — Engineering Orchestration SHALL be considered Complete.
+
+## Current Status
+
+Active
+
+---
