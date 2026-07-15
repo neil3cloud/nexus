@@ -4234,3 +4234,157 @@ The Builder SHALL NOT:
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-009
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-009
+
+## Date
+
+2026-07-15
+
+## Subject
+
+RFC-0004 v1.9 Amendment — Concurrent Session Coordination. Defines how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal presented after Sprint 49's closure, evaluating Milestone 8's two remaining candidate directions (Multi-Agent Engineering Orchestration, Concurrent Session Coordination) named by RFC-0004 v1.6 line 438's "future compatibility" reservation and carried forward, unauthorized, through Sprints 44-49. The Sprint Owner selected Concurrent Session Coordination, then refined the planner's initial draft scope to remove single-session concurrency/locking semantics and to state the amendment capability-first rather than API-first.
+
+## Governance Decision
+
+The Sprint Owner ratifies an amendment to `knowledge/specifications/rfc-0004-execution-model.md`, incrementing it from Version 1.8 to Version 1.9, adding a new "Concurrent Session Coordination" section.
+
+Concurrent Session Coordination formalizes concurrent session visibility and coordination: multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services. It does not redefine Engineering Session's existing runtime state, snapshot, or Recovery ownership (v1.2/v1.3, Sprint 39, unmodified; v1.8, Sprint 49, unmodified).
+
+The RFC intentionally defines architectural capabilities rather than specific APIs; public service operations exposing concurrent session visibility remain an implementation detail for the corresponding Sprint Implementation Record, per the Sprint Owner's capability-first refinement.
+
+## Ownership Model (ratified)
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, workflow position, timeline, diagnostics | `EngineeringSession` (Sprints 39/40, unmodified) |
+| Checkpoint capture, Recovery | RFC-0004 "Session Recovery/Checkpointing" (Sprint 49, unmodified) |
+| Concurrent visibility of Engineering Sessions; enumeration of Engineering Sessions eligible for further progression; observation of concurrent Engineering Session lifecycle; repository-level cross-session isolation guarantee | RFC-0004 "Concurrent Session Coordination" (this amendment) |
+| Single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, Multi-Agent Engineering Orchestration | Unauthorized; reserved for future Sprint Owner scope ratification |
+
+## Authorized Scope
+
+`nexus-plan` MAY:
+
+- Apply the amendment text to `knowledge/specifications/rfc-0004-execution-model.md`: Version 1.8 to 1.9; Amendment History entry; new "Concurrent Session Coordination" section.
+- Proceed to draft a Sprint 50 scope ratification authorizing implementation of Concurrent Session Coordination, consuming this amendment.
+
+`nexus-plan` SHALL NOT:
+
+- Modify Engineering Session's existing runtime state, snapshot/reconstitution semantics, Workflow Chain, Workflow Advancement, Workflow Chain Execution, Assignment Policy, Execution Session, Session Recovery/Checkpointing, or any other RFC or the Kernel Canon.
+- Introduce single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, or Multi-Agent Engineering Orchestration, all of which remain separately unauthorized.
+- Treat this ratification as authorizing implementation; implementation remains separately deferred pending its own Sprint scope ratification.
+
+## Scope Restrictions
+
+- This is a documentation/specification change only.
+- No Kernel Canon change. No modification to Engineering Session's existing runtime, snapshot/reconstitution, or Session Recovery/Checkpointing contracts. No single-session locking, distributed coordination, or Multi-Agent Orchestration is introduced or implied.
+- No source code or test change is authorized by this ratification alone.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (referenced; unaffected).
+- Sprint 49 — Session Recovery/Checkpointing Foundation (most recently closed Sprint; referenced; unaffected).
+- Future Concurrent Session Coordination implementation Sprint (Sprint 50; not yet implemented; will consume this amendment).
+
+## Related Review(s)
+
+- None.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies that Concurrent Session Coordination — formalizing how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services, including concurrent visibility, eligible-for-progression enumeration, concurrent lifecycle observation, and a repository-level cross-session isolation guarantee — SHALL be defined by RFC-0004 as a new section. RFC-0004 SHALL be amended to Version 1.9. This amendment SHALL NOT redefine Engineering Session's existing runtime state, snapshot/reconstitution, or Session Recovery/Checkpointing ownership, and SHALL NOT introduce single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, or Multi-Agent Engineering Orchestration, all of which remain separately unauthorized. The RFC defines architectural capabilities rather than specific APIs; public service operations remain an implementation detail for the Sprint Implementation Record. This ratification authorizes the RFC-0004 amendment only; implementation remains subject to its own future Sprint Owner scope ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-15-010
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-010
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 50 Scope Ratification — Concurrent Session Coordination. Resolves the `nexus-plan` Sprint Proposal presented after `NEXUS-RAT-2026-07-15-009` amended RFC-0004 to v1.9, authorizing implementation of Concurrent Session Coordination.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal, approved by the Sprint Owner.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 50 — Concurrent Session Coordination as Milestone 8's next Sprint, implementing RFC-0004 v1.9's Concurrent Session Coordination section only.
+
+**Objective (binding):** Introduce the minimum Kernel capability required to expose multiple concurrent Engineering Sessions while preserving complete isolation between them, reusing the existing `EngineeringSessionRepository` and `EngineeringSessionService`.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, workflow position, timeline, diagnostics | `EngineeringSession` (Sprints 39/40, unmodified) |
+| Checkpoint capture, Recovery | `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint` (Sprint 49, unmodified) |
+| Concurrent visibility, active-session enumeration, cross-session isolation guarantee | `EngineeringSessionService` (this Sprint, new operation(s) only) |
+| Workflow position, Workflow Advancement, Workflow Chain Execution, Assignment Policy Evaluation | Unmodified (Sprints 43/45/46/47/48) |
+
+## Ownership Model (ratified)
+
+Identical to `NEXUS-RAT-2026-07-15-009`'s Ownership Model table; this ratification authorizes implementation against it.
+
+## Authorized Scope
+
+The Builder MAY:
+
+- Add one new `EngineeringSessionService` operation exposing active/eligible-for-progression Engineering Session discovery (for example, an active-session query), reusing the existing `IEngineeringSessionRepository`/`enumerate()` without introducing a new aggregate or a new repository.
+- Add tests demonstrating: multiple Engineering Sessions may exist concurrently; Engineering Sessions remain fully isolated; operations against one Engineering Session never mutate or observe another Engineering Session's runtime state; Engineering Session visibility is deterministic.
+- Extend `createKernelServices` composition only as strictly required, if at all, to support the new operation (no new collaborator is anticipated; the existing repository is reused).
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`'s existing runtime state, snapshot/reconstitution semantics, workflow state, timeline, or diagnostics.
+- Modify `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `createCheckpoint()`, or `recoverFromCheckpoint()` (Sprint 49).
+- Modify `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, or `AssignmentPolicyService`.
+- Modify Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, or Sprint 47's/48's `executeCurrentWorkflowStep()`.
+- Introduce a new `EngineeringSession`-family aggregate or repository; the new operation SHALL be a thin, reused-repository query.
+- Introduce single-session mutation ordering, optimistic concurrency, locking primitives, distributed/durable coordination, orchestration, runtime scheduling, or Multi-Agent Engineering Orchestration, in any form, including as an unused/stubbed reference.
+- Modify any `src/hosts` or `src/adapters` file.
+
+## Scope Restrictions
+
+- No new aggregate. No new repository. No locking primitive. No orchestration. No runtime scheduling.
+- Cross-session isolation is a repository-level guarantee to be demonstrated by test, not a new enforcement mechanism; the existing per-ID `IEngineeringSessionRepository` already isolates Engineering Sessions structurally.
+- No Kernel Canon change; no RFC-0004 change beyond what `NEXUS-RAT-2026-07-15-009` already authorized; no RFC-0006 change.
+
+## Related Sprint(s)
+
+- Sprint 39 — Engineering Sessions Foundation (referenced; unaffected).
+- Sprint 49 — Session Recovery/Checkpointing Foundation (most recently closed Sprint; this Sprint's immediate predecessor).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies Sprint 50 — Concurrent Session Coordination, authorizing the Builder to add one new thin `EngineeringSessionService` operation exposing active/eligible-for-progression Engineering Session discovery, reusing the existing, unmodified `IEngineeringSessionRepository` without introducing a new aggregate, repository, locking primitive, orchestration mechanism, or runtime scheduler. The Builder SHALL NOT modify EngineeringSession's existing runtime/snapshot/reconstitution semantics, EngineeringSessionCheckpoint, WorkflowChain, WorkflowStep, WorkflowChainService, ExecutionStrategy, AdapterService, AdapterRegistry, ExecutionSession, ExecutionSessionService, ReviewService, Review, Finding, AssignmentPolicy, AssignmentPolicyService, or any existing Advancement/Execution/Recovery method, and SHALL NOT introduce single-session concurrency control, distributed coordination, Multi-Agent Orchestration, or any src/hosts or src/adapters change. Cross-session isolation SHALL be verified by automated test, not by a new enforcement mechanism.
+
+## Current Status
+
+Active
+
+---

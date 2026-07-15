@@ -2820,4 +2820,82 @@ See `knowledge/implementation/sprints/sprint-0049-session-recovery-checkpointing
 Reviewer Validation Result
 
 - Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-006`). Confirmed the Checkpoint capture/Recovery pair is thin orchestration reusing Sprint 39's unmodified `EngineeringSession.toSnapshot()`/`fromSnapshot()` verbatim, with no duplicate snapshot or reconstruction model introduced; confirmed `EngineeringSession`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, Sprint 43's/45's/46's/47's/48's advancement and execution methods, and `src/hosts`/`src/adapters` are all byte-for-byte unmodified. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run validate` (Vitest 76 files / 380 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly.
-- Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-006-F-001`, `-F-002`): a `JSON.stringify`-based `equals()` versus the sibling `EngineeringSession.equals()`'s dedicated comparison helper, and reuse of an EngineeringSession-scoped error class for Checkpoint validation. Neither generates a Builder Task. Sprint 49 is fully closed with zero open findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Multi-Agent Engineering Orchestration or Concurrent Session Coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-15-006-F-001`, `-F-002`): a `JSON.stringify`-based `equals()` versus the sibling `EngineeringSession.equals()`'s dedicated comparison helper, and reuse of an EngineeringSession-scoped error class for Checkpoint validation. Neither generates a Builder Task. Sprint 49 is fully closed with zero open findings.
+
+---
+
+## Sprint 50 — Concurrent Session Coordination
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-007` (fully closed; one Category 6 Observation, zero Builder Tasks; zero open findings).
+
+Objective
+
+Introduce the minimum Kernel capability required to expose multiple concurrent Engineering Sessions while preserving complete isolation between them, reusing the existing `EngineeringSessionRepository` and `EngineeringSessionService`, per RFC-0004 v1.9's new "Concurrent Session Coordination" section.
+
+RFC Coverage
+
+Primary
+
+- RFC-0004 v1.9 — Execution Model ("Concurrent Session Coordination", new section)
+
+Referenced
+
+- RFC-0004 v1.2/v1.3 — "Engineering Session" (Sprints 39/40, unmodified)
+- RFC-0004 v1.8 — "Session Recovery/Checkpointing" (Sprint 49, unmodified)
+- RFC-0010 — Kernel Boundaries
+
+No RFC ownership changes are authorized beyond `NEXUS-RAT-2026-07-15-009`'s RFC-0004 v1.9 amendment.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-15-010` — Sprint 50 scope ratification: governs this Sprint's entire scope, the binding Objective, the binding Architectural Responsibilities, authorized Builder scope, and scope restrictions.
+- `NEXUS-RAT-2026-07-15-009` — the companion RFC-0004 v1.9 amendment defining Concurrent Session Coordination this Sprint implements.
+
+Architectural Responsibilities (binding, from `NEXUS-RAT-2026-07-15-010`)
+
+| Concern | Owner |
+| --- | --- |
+| Engineering Session runtime state, workflow position, timeline, diagnostics | `EngineeringSession` (Sprints 39/40, unmodified) |
+| Checkpoint capture, Recovery | `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint` (Sprint 49, unmodified) |
+| Concurrent visibility, active-session enumeration, cross-session isolation guarantee | `EngineeringSessionService` (this Sprint, new operation(s) only) |
+| Workflow position, Workflow Advancement, Workflow Chain Execution, Assignment Policy Evaluation | Unmodified (Sprints 43/45/46/47/48) |
+
+Authorized Vertical Slice
+
+- Add one new thin `EngineeringSessionService` operation exposing active/eligible-for-progression Engineering Session discovery, reusing the existing `IEngineeringSessionRepository`/`enumerate()`; no new aggregate, no new repository.
+- Extend `createKernelServices` composition only as strictly required, if at all.
+- Unit/integration tests demonstrating: multiple Engineering Sessions may exist concurrently; Engineering Sessions remain fully isolated; operations against one Engineering Session never mutate or observe another Engineering Session's runtime state; Engineering Session visibility is deterministic.
+
+Deferred Concepts
+
+- Multi-Agent Engineering Orchestration.
+- Single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination.
+- Any modification to `EngineeringSession`'s existing runtime state, snapshot/reconstitution semantics, workflow state, timeline, or diagnostics.
+- Any modification to `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `createCheckpoint()`, or `recoverFromCheckpoint()` (Sprint 49).
+- Any modification to `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, or `AssignmentPolicyService`.
+- Any modification to Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, or Sprint 47's/48's `executeCurrentWorkflowStep()`.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- `EngineeringSession`, `EngineeringSessionCheckpoint`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService` remain unmodified.
+- Sprint 43/45/46/47/48/49 advancement, execution, and Checkpoint/Recovery methods remain unmodified.
+- No new `EngineeringSession`-family aggregate or repository is introduced; the new operation is a thin, reused-repository query.
+- No locking primitive, orchestration, or runtime scheduling is introduced.
+- Cross-session isolation is demonstrated by automated test, not by a new enforcement mechanism.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0050-concurrent-session-coordination.md` for the complete Sprint Implementation Record.
+
+Implementation Notes:
+
+- Added `EngineeringSessionService.enumerateActiveEngineeringSessions()` as the one authorized thin active/eligible Engineering Session discovery query, reusing the existing `IEngineeringSessionRepository.enumerate()` contract.
+- Added unit coverage for deterministic active-session visibility, lifecycle eligibility changes, and cross-session isolation across lifecycle, advancement, Checkpoint/Recovery, and WorkflowStep execution operations.
+- Updated the Sprint 18 Kernel boundary certification composition assertion to include the new service operation.
+- No `EngineeringSession`, Checkpoint/Recovery, Workflow Chain, advancement/execution, Assignment Policy, Adapter, Host, or additional repository behavior was modified.
+
+Reviewer Validation Result
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-15-007`). Confirmed `enumerateActiveEngineeringSessions()` is thin orchestration reusing Sprint 39's unmodified `IEngineeringSessionRepository.enumerate()` verbatim, with no new aggregate, repository, locking primitive, or orchestration mechanism introduced; confirmed `EngineeringSession`, `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, Sprint 43's/45's/46's/47's/48's advancement and execution methods, `createKernelServices`, and `src/hosts`/`src/adapters` are all byte-for-byte unmodified. Independent re-validation confirmed `tsc --noEmit`, ESLint, `npm run validate` (Vitest 76 files / 383 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly.
+- One Category 6, Informational Observation recorded (`NEXUS-REV-2026-07-15-007-F-001`): the active-session filter compares `EngineeringSessionStatus.toString()` to a string literal rather than the `.state` accessor idiom used elsewhere in `EngineeringSession`. No Builder Task generated. Sprint 50 is fully closed with zero open findings. No further Milestone 8 Sprint is currently planned to advance to Current; the sole remaining Milestone 8 direction (Multi-Agent Engineering Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.

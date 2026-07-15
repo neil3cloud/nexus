@@ -182,6 +182,131 @@ describe('EngineeringSessionService', () => {
     await expect(service.enumerateEngineeringSessions()).resolves.toEqual([closed]);
   });
 
+  it('discovers active EngineeringSessions deterministically without mutating repository state', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'unused-generated-session-id',
+      createTimestampSequence([
+        '2026-07-15T01:00:00.000Z',
+        '2026-07-15T01:01:00.000Z',
+        '2026-07-15T01:02:00.000Z',
+        '2026-07-15T01:03:00.000Z',
+      ]),
+    );
+
+    const sessionB = await service.createEngineeringSession({
+      id: 'engineering-session-b',
+      engineeringRuntimeContextReference: 'runtime-context-b',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+    });
+    const sessionA = await service.createEngineeringSession({
+      id: 'engineering-session-a',
+      engineeringRuntimeContextReference: 'runtime-context-a',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+    });
+    const sessionC = await service.createEngineeringSession({
+      id: 'engineering-session-c',
+      engineeringRuntimeContextReference: 'runtime-context-c',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+    });
+
+    await expect(service.enumerateActiveEngineeringSessions()).resolves.toEqual([
+      sessionA,
+      sessionB,
+      sessionC,
+    ]);
+
+    const closedSessionB = await service.closeEngineeringSession({
+      engineeringSessionId: sessionB.id,
+    });
+
+    await expect(service.enumerateActiveEngineeringSessions()).resolves.toEqual([
+      sessionA,
+      sessionC,
+    ]);
+    await expect(service.enumerateEngineeringSessions()).resolves.toEqual([
+      sessionA,
+      closedSessionB,
+      sessionC,
+    ]);
+  });
+
+  it('keeps concurrent EngineeringSessions isolated across lifecycle, advancement, and Checkpoint operations', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'unused-generated-session-id',
+      createTimestampSequence([
+        '2026-07-15T02:00:00.000Z',
+        '2026-07-15T02:01:00.000Z',
+        '2026-07-15T02:02:00.000Z',
+        '2026-07-15T02:03:00.000Z',
+      ]),
+    );
+    const source = await service.createEngineeringSession({
+      id: 'engineering-session-source',
+      engineeringRuntimeContextReference: 'runtime-context-source',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+    });
+    const peer = await service.createEngineeringSession({
+      id: 'engineering-session-peer',
+      engineeringRuntimeContextReference: 'runtime-context-peer',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+      diagnostics: [
+        {
+          code: 'peer-diagnostic',
+          message: 'Peer diagnostic remains isolated.',
+          recordedAt: '2026-07-15T02:01:30.000Z',
+        },
+      ],
+      collaborationMetadata: {
+        owner: 'peer',
+      },
+    });
+
+    const advancedSource = await service.advanceWorkflow({
+      engineeringSessionId: source.id,
+    });
+    const checkpoint = await service.createCheckpoint({
+      engineeringSessionId: source.id,
+      checkpointId: 'checkpoint-source-only',
+    });
+    const closedSource = await service.closeEngineeringSession({
+      engineeringSessionId: source.id,
+    });
+
+    expect(advancedSource.currentWorkflowStepId).toBe('1');
+    expect(checkpoint.engineeringSession).toEqual(advancedSource);
+    expect(closedSource.status).toBe('Closed');
+    await expect(service.getEngineeringSession(peer.id)).resolves.toEqual(peer);
+    await expect(service.enumerateActiveEngineeringSessions()).resolves.toEqual([peer]);
+    await expect(service.recoverFromCheckpoint({ checkpointId: checkpoint.id })).resolves.toEqual(
+      advancedSource,
+    );
+    await expect(service.getEngineeringSession(peer.id)).resolves.toEqual(peer);
+  });
+
   it('reports not-found and invalid-transition diagnostics without hiding domain failures', async () => {
     const service = new EngineeringSessionService(
       new InMemoryEngineeringSessionRepository(),
@@ -844,6 +969,50 @@ describe('EngineeringSessionService', () => {
       },
     });
     expect(harness.adapter.requests).toHaveLength(1);
+  });
+
+  it('keeps concurrent EngineeringSessions isolated during WorkflowStep execution', async () => {
+    const harness = await createWorkflowExecutionHarness();
+    const workflow = await createReadyWorkflowExecutionScenario(harness, 'concurrent-execution');
+    const peer = await harness.service.createEngineeringSession({
+      id: 'engineering-session-workflow-execution-peer',
+      engineeringRuntimeContextReference: 'runtime-context-workflow-execution-peer',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+      diagnostics: [
+        {
+          code: 'peer-execution-diagnostic',
+          message: 'Peer execution diagnostic remains isolated.',
+          recordedAt: '2026-07-15T00:14:30.000Z',
+        },
+      ],
+      collaborationMetadata: {
+        owner: 'peer-execution',
+      },
+    });
+
+    const result = await harness.service.executeCurrentWorkflowStep({
+      engineeringSessionId: workflow.engineeringSessionId,
+      executionStrategyId: workflow.executionStrategyId,
+      missionPlanId: workflow.missionPlanId,
+      taskId: workflow.taskId,
+      adapterId: 'recording-adapter',
+      contextPackageReference: `context-package-${workflow.missionId}`,
+      consumedProjectionVersion: 'projection-v1',
+    });
+
+    expect(result.engineeringSession.id).toBe(workflow.engineeringSessionId);
+    await expect(harness.service.getEngineeringSession(peer.id)).resolves.toEqual(peer);
+    await expect(
+      harness.executionSessionService.enumerateExecutionSessions(peer.id),
+    ).resolves.toEqual([]);
+    await expect(harness.service.enumerateActiveEngineeringSessions()).resolves.toEqual([
+      result.engineeringSession,
+      peer,
+    ]);
   });
 
   it('rejects AssignmentPolicy evaluation when an AssignmentPolicy reference is supplied without evaluation input', async () => {

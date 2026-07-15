@@ -333,6 +333,14 @@ export class EngineeringSessionService
     );
   }
 
+  public async enumerateActiveEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]> {
+    return Object.freeze(
+      (await this.repository.enumerate())
+        .filter((engineeringSession) => engineeringSession.status.toString() === 'Open')
+        .map((engineeringSession) => engineeringSession.toSnapshot()),
+    );
+  }
+
   private async requireEngineeringSession(
     engineeringSessionId: EngineeringSessionId | string,
   ): Promise<EngineeringSession> {

@@ -88,4 +88,5 @@ export interface EngineeringSessionServiceContract {
   ): Promise<EngineeringSessionSnapshot>;
   getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot>;
   enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;
+  enumerateActiveEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]>;
 }

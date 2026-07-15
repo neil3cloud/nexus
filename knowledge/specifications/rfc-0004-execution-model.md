@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.8
+**Version:** 1.9
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -18,6 +18,7 @@
 - v1.6 — Adds Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-003`). Defines the act of executing the Workflow Step at an Engineering Session's current workflow position — resolving the Workflow Step's Execution Role, invoking the existing Execution Strategy, and dispatching through the existing Adapter contract (explicit `adapterId` only; no Adapter Selection) — distinct from Workflow Advancement, which only moves the current workflow position. Execution is recorded through the existing Execution Session model without redefining Execution Session's own lifecycle. This amendment does not modify Engineering Session, Workflow Chain, Workflow Advancement, Review-Gated Advancement, Execution Strategy, Execution Session, Assignment Policy, or RFC-0006; it does not introduce Assignment Policy evaluation, Adapter Selection, Multi-Agent Orchestration, or Task lifecycle transition. No other section of this specification is modified.
 - v1.7 — Adds Assignment Policy Evaluation to Workflow Chain Execution (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-005`). Defines an optional consumption point at which Workflow Chain Execution, given a caller-supplied Assignment Policy reference, consults the existing Assignment Policy's existing deterministic evaluation to gate dispatch: when the resolved Workflow Step's Execution Role and supplied evaluation input do not satisfy the referenced Assignment Policy, Workflow Chain Execution SHALL reject execution before Adapter dispatch and before any Execution Session is recorded. This amendment does not modify Assignment Policy's own definition, evaluation semantics, or value objects (v1.3, unmodified); it does not introduce Adapter Selection, Adapter routing, capability scoring, automatic Assignment Policy binding/inference, Multi-Agent Orchestration, or Task lifecycle transition. When no Assignment Policy reference is supplied, Workflow Chain Execution's existing v1.6 behavior is unchanged. No other section of this specification is modified.
 - v1.8 — Adds Session Recovery/Checkpointing (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-007`). Defines a **Checkpoint** — a named, immutable, point-in-time capture of an Engineering Session's existing runtime snapshot (v1.2/v1.3, unmodified) — and **Recovery**, which reconstitutes an Engineering Session from a Checkpoint via the existing, unmodified `fromSnapshot()` reconstitution contract (Sprint 39). Recovery SHALL reconstruct an Engineering Session that is semantically equivalent to the captured Checkpoint, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants; implementation-specific object identity, memory layout, or serialization format are not part of this contract. This amendment does not modify Engineering Session's existing snapshot, reconstitution, workflow state, timeline, or diagnostics ownership; it does not introduce Concurrent Session Coordination or Multi-Agent Engineering Orchestration, both of which remain separately unauthorized. No other section of this specification is modified.
+- v1.9 — Adds Concurrent Session Coordination (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-009`). Defines how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services: concurrent visibility of Engineering Sessions, enumeration of Engineering Sessions eligible for further progression, observation of concurrent Engineering Session lifecycle, and repository-level guarantees that operations on one Engineering Session SHALL NOT observe or mutate the runtime state of another. This amendment does not redefine Engineering Session's existing runtime state, snapshot, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), and does not introduce single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, or Multi-Agent Engineering Orchestration, all of which remain separately unauthorized. No other section of this specification is modified.
 
 ---
 
@@ -482,6 +483,45 @@ Session Recovery/Checkpointing SHALL NOT own:
 - cross-session Checkpoint sharing.
 
 Those remain either owned by their respective sections, unmodified, or unauthorized and reserved for future Sprint Owner scope ratification.
+
+---
+
+# Concurrent Session Coordination
+
+Concurrent Session Coordination defines how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services.
+
+This amendment formalizes concurrent session visibility and coordination. It SHALL NOT redefine Engineering Session ownership, runtime semantics, or snapshot/Recovery behavior established by previously approved vertical slices (v1.2/v1.3, Sprint 39, unmodified; v1.8 Session Recovery/Checkpointing, Sprint 49, unmodified).
+
+## Architectural Responsibilities
+
+Concurrent Session Coordination owns:
+
+- concurrent visibility of Engineering Sessions;
+- enumeration of Engineering Sessions that remain eligible for further progression;
+- observation of concurrent Engineering Session lifecycle;
+- provider-neutral coordination of multiple independent Engineering Sessions;
+- repository-level guarantees that operations on one Engineering Session SHALL NOT observe or mutate the runtime state of another Engineering Session.
+
+Concurrent Session Coordination SHALL NOT own:
+
+- Engineering Session's existing runtime state, workflow position, timeline, or diagnostics (v1.2/v1.3, unmodified);
+- Workflow Chain ownership;
+- Workflow Advancement;
+- Assignment Policy;
+- Execution Strategy;
+- Execution Session lifecycle;
+- Session Recovery/Checkpointing's Checkpoint capture or Recovery semantics (v1.8, unmodified);
+- single-session mutation ordering;
+- optimistic concurrency or locking semantics;
+- distributed coordination;
+- Multi-Agent Engineering Orchestration;
+- cross-session synchronization.
+
+Those capabilities remain owned by their previously ratified RFC sections or remain explicitly deferred, unauthorized, and reserved for future Sprint Owner scope ratification.
+
+Multiple Engineering Sessions existing concurrently SHALL remain fully isolated from one another: an operation performed against one Engineering Session SHALL NOT observe or mutate the runtime state of another. Engineering Session visibility (enumeration and active-session discovery) SHALL remain deterministic.
+
+This specification intentionally defines architectural capabilities rather than specific APIs; public service operations exposing concurrent session visibility remain an implementation detail defined by the corresponding Sprint Implementation Record.
 
 ---
 
