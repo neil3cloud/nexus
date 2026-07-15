@@ -4986,3 +4986,109 @@ Evidence-consuming and Shared Reality-consuming Policy Criteria; Knowledge consu
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-15-017
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-15-017
+
+## Date
+
+2026-07-15
+
+## Subject
+
+Sprint 54 Scope Ratification — Ratification Attribution Validation Foundation. Resolves the `nexus-plan` Sprint 54 Proposal after two Sprint Owner review cycles (Changes Required — scope bundling; Changes Required — Snapshot cardinality and explicit Effective status), authorizing implementation of a standalone Ratification Attribution Validation capability as Milestone 9's third Sprint.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal cycle, not from a Reviewer finding.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 54 — Ratification Attribution Validation Foundation as Milestone 9's third Sprint: deterministic validation of the Ratification attribution recorded by exactly one immutable `RepositoryPolicy` version against an immutable collection of structured Ratification Authority Records, producing exactly one of three closed outcomes — **Valid**, **Invalid**, or **Unresolvable**. No semantic Ratification interpretation, Governance Decision integration, or repository-law precedence implementation is authorized.
+
+**Objective (binding):**
+
+```text
+RepositoryPolicy Ratification Reference
+        +
+Immutable Ratification Authority Snapshot
+        ↓
+Ratification Attribution Validation
+        ↓
+    Valid
+      or
+Invalid / Unresolvable
+```
+
+**RFC Coverage (binding):** Primary — RFC-0011 v1.0 (Repository Policy § "attributable"). Referenced — RFC-0011 Authority Hierarchy § (tier-4 `RATIFICATION_LEDGER.md` relationship, referenced only, not implemented), `IMPLEMENTATION_CONSTITUTION.md` § Sprint Owner Ratifications (explicit supersession/withdrawal documentation requirement; identifier uniqueness/immutability rules).
+
+**Dependencies (binding):** Frozen, read-only consumption of Sprint 52's `RepositoryPolicy` (its existing Ratification reference field only). Sprint 52 and Sprint 53's approved behavior SHALL NOT be modified.
+
+**Snapshot Cardinality (binding):** `RatificationAuthoritySnapshot` (or equivalently named canonical concept) SHALL represent an immutable **collection** of structured `RatificationAuthorityRecord` entries captured from one authority source. It SHALL NOT represent only one Ratification. This collection boundary is required to deterministically detect missing identifiers, duplicate identifiers, supersession relationships, and withdrawal relationships. Each record within the collection remains independently immutable.
+
+**RatificationAuthorityRecord Fields (binding):** identifier; date; subject; and any *explicitly documented* lifecycle relationship (superseded-by reference, withdrawn-by reference, when present) as recorded in the authority source. No field SHALL be inferred from prose, intent, or Builder assumption.
+
+**Closed Lifecycle Statuses (binding):** at minimum `Effective`, `Superseded`, `Withdrawn`. No other status is authorized this Sprint without a superseding ratification. No default lifecycle status is permitted — a record's status SHALL be explicit, never inferred merely from the absence of a supersession or withdrawal marker.
+
+**Required Outcome Mapping (binding, normative):**
+
+| Condition | Required Outcome |
+| --- | --- |
+| Exactly one structurally valid record, canonical lifecycle status explicitly `Effective` | Valid |
+| Record explicitly `Superseded` | Invalid |
+| Record explicitly `Withdrawn` | Invalid |
+| Contradictory record (e.g., simultaneously marked `Superseded` and `Withdrawn`, or conflicting explicit statuses) | Invalid |
+| Structurally malformed record (missing required fields) | Invalid |
+| No matching record found | Unresolvable |
+| Duplicate identifier (more than one record resolves to the same reference) | Unresolvable |
+| Unknown/unrecognized lifecycle status | Unresolvable |
+| Malformed Ratification reference on the `RepositoryPolicy` | Unresolvable |
+| Snapshot source unavailable | Unresolvable |
+
+No outcome other than the three closed values (`Valid`, `Invalid`, `Unresolvable`) is authorized. No default outcome is permitted; every condition not explicitly listed above that the Builder encounters SHALL be treated as `Unresolvable` rather than guessed toward `Valid`.
+
+**Authorized Concepts (binding):** exactly `RatificationAuthoritySnapshot` (or equivalently named canonical concept), `RatificationAuthorityRecord`, `RatificationAttributionValidation` (or equivalently named canonical capability) producing exactly the three closed outcomes above, a repository contract and in-memory implementation for the Snapshot source, deterministic diagnostics distinguishing each sub-condition in the Required Outcome Mapping table, minimal `createKernelServices` wiring. No additional governance capability is authorized.
+
+**Scope Boundary (binding):** the capability SHALL NOT interpret Ratification prose or intent; SHALL NOT judge whether a Ratification semantically authorizes a `RepositoryPolicy`'s content; SHALL NOT detect contradictions across multiple distinct Ratifications or Policies beyond the single-record contradiction case in the Required Outcome Mapping table; SHALL NOT perform general repository-law interpretation or precedence resolution; SHALL NOT integrate with, be consumed by, or otherwise wire into `PolicyEvaluation`, `GovernanceDecision`, or `GovernanceService` — this Sprint's output is standalone; SHALL NOT publish Domain Events; SHALL NOT modify `src/hosts` or `src/adapters`; SHALL NOT modify Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 53's `PolicyEvaluation`/`GovernanceDecision`/`GovernanceEscalation` behavior.
+
+## Ownership Model (ratified)
+
+Identical to RFC-0011's ratified ownership matrix (`NEXUS-RAT-2026-07-15-014`); this ratification authorizes implementation of a standalone Ratification Attribution Validation capability against exactly one `RepositoryPolicy` version's Ratification reference, against it.
+
+## Authorized Scope
+
+The Builder MAY introduce exactly the Authorized Concepts listed above, exactly as specified in the binding Governance Decision, Snapshot Cardinality, RatificationAuthorityRecord Fields, Closed Lifecycle Statuses, and Required Outcome Mapping rules, and Sprint 54's Sprint Implementation Record. No additional governance capability is authorized.
+
+## Deferred Concepts
+
+Ratification prose/intent interpretation; semantic applicability of a Ratification to Policy content; contradiction detection across multiple distinct Ratifications or Policies; general repository-law interpretation or precedence; integration with `PolicyEvaluation`/`GovernanceDecision`/`GovernanceService`; Domain Event publication; Host-facing/Adapter-facing governance surfaces; durable persistence; automatic Ratification-Ledger ingestion beyond the Snapshot source contract. No placeholder implementation of any deferred concept is authorized.
+
+## Scope Restrictions
+
+- No Domain Event is authorized this Sprint.
+- No `src/hosts` or `src/adapters` change.
+- No modification to the Kernel Canon, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- No modification to Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 53's `PolicyEvaluation`/`GovernanceDecision`/`GovernanceEscalation` behavior.
+- No integration with `GovernanceService` or the Governance Decision path.
+
+## Related Sprint(s)
+
+- Sprint 52 — Governance Policy Model Foundation (frozen dependency — `RepositoryPolicy`'s Ratification reference field).
+- Sprint 53 — Policy Evaluation and Governance Decision Foundation (immediate predecessor; frozen, unintegrated dependency).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner approves Sprint 54 — Ratification Attribution Validation Foundation as Milestone 9's third Sprint, with the binding Objective, RFC Coverage, Dependencies, Snapshot Cardinality, RatificationAuthorityRecord Fields, Closed Lifecycle Statuses, Required Outcome Mapping, Authorized Concepts, and Scope Boundary rules recorded above. The Builder SHALL implement exactly the Authorized Scope and SHALL NOT implement any Deferred Concept, including as a placeholder or stub. No Domain Event, `src/hosts`, or `src/adapters` change is authorized, no integration with `PolicyEvaluation`/`GovernanceDecision`/`GovernanceService` is authorized, and no previously approved vertical slice (Sprint 52, Sprint 53) may be modified. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 54 as Current under Milestone 9, and to generate Sprint 54's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

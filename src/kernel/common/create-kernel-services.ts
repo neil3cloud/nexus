@@ -34,6 +34,8 @@ import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { InMemoryGovernanceDecisionRepository } from '../governance/governance-decision.repository';
 import { GovernanceService } from '../governance/governance.service';
+import { InMemoryRatificationAuthoritySnapshotRepository } from '../governance/ratification-authority.repository';
+import { RatificationAttributionValidationService } from '../governance/ratification-attribution-validation';
 import { InMemoryRepositoryPolicyRepository } from '../governance/repository-policy.repository';
 import { RepositoryPolicyService } from '../governance/repository-policy.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
@@ -60,6 +62,7 @@ export function createKernelServices(
   const knowledgeRepository = new InMemoryKnowledgeRepository();
   const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
+  const ratificationAuthoritySnapshotRepository = new InMemoryRatificationAuthoritySnapshotRepository();
   const roleRegistry = new InMemoryRoleRegistry();
   const engineeringRoleProfileRegistry = new InMemoryEngineeringRoleProfileRegistry(
     createDefaultEngineeringRoleProfiles(),
@@ -81,6 +84,9 @@ export function createKernelServices(
     repositoryPolicyRepository,
     reviewRepository,
     governanceDecisionRepository,
+  );
+  const ratificationAttributionValidationService = new RatificationAttributionValidationService(
+    ratificationAuthoritySnapshotRepository,
   );
   const executionStrategyService = new ExecutionStrategyService(
     executionStrategyRepository,
@@ -122,6 +128,7 @@ export function createKernelServices(
     assignmentPolicyService,
     repositoryPolicyService,
     governanceService,
+    ratificationAttributionValidationService,
     executionStrategyService,
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),

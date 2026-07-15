@@ -23,6 +23,7 @@ import { RoleService } from '../../src/kernel/execution/role.service';
 import { WorkflowChainService } from '../../src/kernel/execution/workflow-chain.service';
 import { Kernel } from '../../src/kernel/kernel';
 import { GovernanceService } from '../../src/kernel/governance/governance.service';
+import { RatificationAttributionValidationService } from '../../src/kernel/governance/ratification-attribution-validation';
 import { RepositoryPolicyService } from '../../src/kernel/governance/repository-policy.service';
 import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../src/kernel/mission/mission-execution.service';
@@ -59,6 +60,7 @@ interface KernelHarness {
   readonly assignmentPolicyService: AssignmentPolicyService;
   readonly repositoryPolicyService: RepositoryPolicyService;
   readonly governanceService: GovernanceService;
+  readonly ratificationAttributionValidationService: RatificationAttributionValidationService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
@@ -82,6 +84,7 @@ const expectedKernelServiceNames = [
   'AssignmentPolicyService',
   'RepositoryPolicyService',
   'GovernanceService',
+  'RatificationAttributionValidationService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
@@ -418,6 +421,12 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'GovernanceService',
       (service): service is GovernanceService => service instanceof GovernanceService,
+    ),
+    ratificationAttributionValidationService: requireService(
+      services,
+      'RatificationAttributionValidationService',
+      (service): service is RatificationAttributionValidationService =>
+        service instanceof RatificationAttributionValidationService,
     ),
     executionStrategyService: requireService(
       services,

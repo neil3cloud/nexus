@@ -2164,7 +2164,7 @@ Notes:
 
 # Milestone 9 — Engineering Governance Automation
 
-Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-15-016`)
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-15-017`)
 
 RFC Coverage:
 
@@ -2228,7 +2228,7 @@ Reviewer Validation Result:
 
 ## Sprint 53 — Policy Evaluation and Governance Decision Foundation
 
-Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-15-016`.
+Status: ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012` (fully closed; one Category 1, Minor finding resolved by TASK-001; one Category 4, Informational documentation finding resolved by DOC-001; zero open findings of any category). Authorized by `NEXUS-RAT-2026-07-15-016`.
 
 RFC Coverage:
 
@@ -2269,6 +2269,50 @@ Notes:
 - No placeholder implementation of any deferred concept is authorized, including as an unused/stubbed reference.
 - Builder implementation complete: added deterministic governance evaluation/decision domain, in-memory append-only decision repository, thin `GovernanceService`, minimal Kernel composition, and 36 Sprint 53 tests. Repository validation passed: TypeScript compile, ESLint, Vitest (82 files / 442 tests), esbuild, and extension-host bundle build.
 - TASK-001 remediation complete: narrowed `InMemoryGovernanceDecisionRepository` duplicate-registration equivalence to semantic decision content only, excluding non-semantic decision/evaluation/escalation identifiers and attribution timestamp while preserving contradictory duplicate rejection. Added regression coverage; targeted validation passed at 37 Sprint 53 tests.
+- DOC-001 documentation correction complete: `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary corrected to "82 files, 442 tests." Verified by `NEXUS-REV-2026-07-15-012`. Sprint 53 is fully closed with zero open findings of any category across `NEXUS-REV-2026-07-15-010`, `-011`, and `-012`.
+
+---
+
+## Sprint 54 — Ratification Attribution Validation Foundation
+
+Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-15-017`.
+
+RFC Coverage:
+
+- RFC-0011 — Engineering Governance Model v1.0 (Primary; Repository Policy § "attributable").
+- RFC-0011 — Authority Hierarchy § (Referenced; tier-4 `RATIFICATION_LEDGER.md` relationship, not implemented this Sprint).
+- `IMPLEMENTATION_CONSTITUTION.md` § Sprint Owner Ratifications (Referenced).
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-15-017` — governs this Sprint's entire binding scope: the Objective diagram, Snapshot Cardinality (immutable collection, not single-record), RatificationAuthorityRecord Fields, Closed Lifecycle Statuses (`Effective`/`Superseded`/`Withdrawn`), the Required Outcome Mapping table (Valid/Invalid/Unresolvable), Authorized Concepts, and Scope Boundary. Issued following two Sprint Owner "Changes Required" review cycles on the originating `nexus-plan` proposal.
+
+Planned Concepts:
+
+- `RatificationAuthoritySnapshot` (or equivalently named canonical concept) — an immutable collection of `RatificationAuthorityRecord` entries.
+- `RatificationAuthorityRecord` — identifier, date, subject, and any explicitly documented supersession/withdrawal reference.
+- `RatificationAttributionValidation` (or equivalently named canonical capability) producing exactly Valid, Invalid, or Unresolvable per the ratified Required Outcome Mapping table.
+- Repository contract and in-memory implementation for the Snapshot source.
+- Minimal `createKernelServices` wiring for the new repository/capability.
+
+Deferred Concepts:
+
+- Ratification prose/intent interpretation; semantic applicability of a Ratification to Policy content.
+- Contradiction detection across multiple distinct Ratifications or Policies (beyond a single record's internal contradiction).
+- General repository-law interpretation or precedence.
+- Integration with `PolicyEvaluation`, `GovernanceDecision`, or `GovernanceService`.
+- Domain Event publication.
+- Host-facing/Adapter-facing governance surfaces, durable persistence, automatic Ratification-Ledger ingestion beyond the Snapshot source contract.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0054-ratification-attribution-validation-foundation.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify the Kernel Canon, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- This Sprint does not modify Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 53's `PolicyEvaluation`/`GovernanceDecision`/`GovernanceEscalation` behavior; both are consumed/left frozen and unintegrated.
+- This Sprint's output is standalone; no downstream consumer exists yet.
+- No placeholder implementation of any deferred concept is authorized.
+- Builder implementation complete: added immutable Ratification Authority Snapshot/Record domain, standalone Ratification Attribution Validation service, in-memory Snapshot source repository, deterministic diagnostics for every Required Outcome Mapping condition, minimal Kernel composition wiring, and 14 Sprint 54 tests. Repository validation passed: TypeScript compile, ESLint, Vitest (83 files / 456 tests), esbuild, and extension-host bundle build.
 
 ---
 

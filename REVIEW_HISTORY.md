@@ -2,6 +2,76 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-001 — Sprint 54 — Ratification Attribution Validation Foundation
+
+- **Reviewed Sprint:** Sprint 54 — Ratification Attribution Validation Foundation
+- **Reviewed Vertical Slice:** Deterministic validation of the Ratification attribution recorded by exactly one immutable `RepositoryPolicy` version against an immutable collection of structured Ratification Authority Records, producing exactly one of three closed outcomes (`Valid`, `Invalid`, `Unresolvable`).
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Repository Policy § "attributable"). Referenced: RFC-0011 Authority Hierarchy §; `IMPLEMENTATION_CONSTITUTION.md` § Sprint Owner Ratifications.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 54 implements exactly `NEXUS-RAT-2026-07-15-017`'s Authorized Scope: `RatificationAuthoritySnapshot` as an immutable **collection** of `RatificationAuthorityRecord` entries (not a single-Ratification model, satisfying the ratified Snapshot Cardinality correction), a closed three-value lifecycle status set (`Effective`/`Superseded`/`Withdrawn`), and `RatificationAttributionValidationService` producing exactly `Valid`, `Invalid`, or `Unresolvable` — never a default, never inferred from the absence of a supersession/withdrawal marker. Every row of the ratified Required Outcome Mapping table is implemented and independently covered by a dedicated test: exactly-one-`Effective` → Valid; explicitly `Superseded`/`Withdrawn`/contradictory/structurally-malformed → Invalid; no match/duplicate identifier/unknown status/malformed reference/unavailable Snapshot source → Unresolvable. A dedicated negative test confirms the service exposes no `GovernanceDecision`, `PolicyEvaluation`, event-publication, host, or adapter surface, and `createKernelServices()` composes it as a fully standalone Kernel service alongside, but never wired into, `GovernanceService`/`RepositoryPolicyService`. A full import-graph inspection of the six new `src/kernel/governance/ratification-*.ts` files confirms imports limited to `ServiceLifecycle`, `KernelError`, and Sprint 52's already-public `RepositoryPolicyId`/`RepositoryPolicySnapshot` types only — no import of `GovernanceService`, `PolicyEvaluation`, `GovernanceDecision`, the Event Bus, or any `src/hosts`/`src/adapters` module. `git diff --stat` confirms Sprint 52's `repository-policy*.ts` and Sprint 53's `governance*.ts`/`policy-evaluation*.ts` files are byte-for-byte untouched; only `create-kernel-services.ts` and `kernel-boundary-certification.integration.test.ts` were extended additively.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; `eslint src test` clean; targeted `npx vitest run test/kernel/governance/ratification-attribution-validation.test.ts test/integration/kernel-boundary-certification.integration.test.ts` (19/19 passing, matching the Builder's reported count); full `npm run test` (83 files / 456 tests, matching `IMPLEMENTATION_REPORT.md`'s Validation Summary) with one pre-existing, unrelated transient failure (see Findings); `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-001-F-001 — Pre-existing transient process-timing flake in an unrelated Sprint 21 test (recurred)
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — no specification violation.
+- **Evidence:** `npm run test` failed `test/integration/local-process-runtime.integration.test.ts:100` (`status: 'Failed'`/`processTerminationReason: 'TimedOut'` instead of `'Completed'`/`'Exited'`) during one full-suite run. Re-running the same file in isolation three consecutive times passed cleanly each time. `git diff --stat` confirms this file was not touched by Sprint 54.
+- **Rationale:** This is the same class of pre-existing, systemic process-timing flake already acknowledged in `NEXUS-REV-2026-07-15-009-F-001` (Sprint 52) as unrelated to that Sprint's diff. It recurred here for the same reason: a timing-sensitive process-termination assertion under full-suite parallel load, not a Sprint 54 regression.
+- **Recommended Disposition:** No Builder Task. No Sprint Owner ratification required. Recorded for continuity with the prior Observation.
+- **Builder Action:** None.
+
+#### NEXUS-REV-2026-07-16-001-F-002 — `ValidateRatificationAttributionCommand` accepts the full `RepositoryPolicySnapshot` rather than only the ratified "Ratification reference field"
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-15-017` § Dependencies ("Frozen, read-only consumption of Sprint 52's `RepositoryPolicy` (its existing Ratification reference field only)").
+- **Evidence:** `ratification-attribution-validation.ts`'s `normalizeRepositoryPolicy()` accepts and round-trips the entire `RepositoryPolicySnapshot` (`id`, `version`, `name`, `description`, `criteria`, `predecessorVersion`, `ratificationId`), and uses Sprint 52's `RepositoryPolicyId.fromString()` to normalize the `id` field. Only `ratificationId`, `id`, and `version` are actually read; `name`, `description`, `criteria`, and `predecessorVersion` are accepted but never inspected.
+- **Rationale:** The literal Dependencies wording scopes consumption to the Ratification reference field only. The Builder's broader input type is read-only, does not touch Sprint 52's `RepositoryPolicy` aggregate or repository, does not interpret `criteria`/`name`/`description`, and is reasonably necessary to attribute the validation result to a specific Policy identity/version in `RatificationAttributionValidationSnapshot` — mirroring the explainability pattern Sprint 53 already established for `PolicyEvaluation`. This does not constitute an architectural violation; it is a minor scope-wording precision gap between the Ratification's Dependencies clause and the Authorized Concepts' implicit need for attributable output.
+- **Recommended Disposition:** No Builder Task; no Sprint Owner ratification required. A future Ratification drafted by `nexus-plan` MAY tighten this wording (e.g., "the Ratification reference field, plus Policy identity and version for attribution") to remove the ambiguity for future Sprints.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 2 |
+
+Zero Builder Tasks generated. Zero open findings of any blocking category.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: Ratification prose/intent interpretation; semantic applicability of a Ratification to `RepositoryPolicy` content; contradiction detection across multiple distinct Ratifications or Policies (only single-record internal contradiction is implemented, exactly as ratified); general repository-law interpretation or precedence; integration with `PolicyEvaluation`, `GovernanceDecision`, or `GovernanceService`; RFC-0005 Domain Event publication; Host-facing/Adapter-facing governance surfaces; durable persistence; automatic `RATIFICATION_LEDGER.md` ingestion (verified by grep — no filesystem or ledger-parsing code exists; the Snapshot source is exclusively an injected repository contract).
+
+### Architectural Compliance Summary
+
+- `RatificationAuthoritySnapshot` is an immutable collection (`readonly RatificationAuthorityRecordSnapshot[]`), satisfying the ratified Snapshot Cardinality correction; each `RatificationAuthorityRecord` is independently immutable (`Object.freeze`).
+- The closed lifecycle status set (`Effective`/`Superseded`/`Withdrawn`) is enforced via `ratificationAuthorityLifecycleStatuses`; an unrecognized status never defaults toward `Valid` — it produces `Unresolvable`.
+- All ten rows of the ratified Required Outcome Mapping table are implemented and individually tested.
+- No integration with `GovernanceService`, `PolicyEvaluation`, `GovernanceDecision`, or `GovernanceEscalation` exists; confirmed by source inspection, import-graph check, and a dedicated negative test.
+- No Domain Event, `src/hosts`, or `src/adapters` change exists.
+- Sprint 52's `RepositoryPolicy`/`PolicyCriterion` and Sprint 53's `PolicyEvaluation`/`GovernanceDecision`/`GovernanceEscalation` are confirmed byte-for-byte unmodified.
+- `createKernelServices()` and the Kernel boundary certification test were extended additively only.
+
+### Builder Task Recommendation
+
+None. Sprint 54 is fully closed with zero open findings of any blocking category (Category 1–5). The two recorded Category 6 Observations require no Builder action and do not block approval.
+
+---
+
 ## NEXUS-REV-2026-07-15-012 — Sprint 53 — DOC-001 Documentation Correction Verification (Policy Evaluation and Governance Decision Foundation)
 
 - **Reviewed Sprint:** Sprint 53 — Policy Evaluation and Governance Decision Foundation (documentation-correction cycle)
