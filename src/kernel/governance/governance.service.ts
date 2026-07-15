@@ -30,14 +30,18 @@ import type {
   UnresolvedFindingExpectedMatch,
 } from './governance.types';
 import { unresolvedFindingExpectedMatches } from './governance.types';
+import type { RatificationAttributionValidationServiceContract } from './ratification-attribution.contract';
+import { RatificationAttributionValidationService } from './ratification-attribution-validation';
+import type { RatificationAttributionValidationSnapshot } from './ratification-attribution.types';
 import {
   InMemoryRepositoryPolicyRepository,
   type IRepositoryPolicyRepository,
 } from './repository-policy.repository';
 import type { RepositoryPolicySnapshot } from './repository-policy.types';
 
-const evaluationContractVersion = 'Sprint53PolicyEvaluation.v1';
+const evaluationContractVersion = 'Sprint55PolicyEvaluation.v1';
 const unresolvedReviewStateReference = 'unresolved-review-state';
+const unresolvedAuthoritySnapshotFingerprint = 'RatificationAuthoritySnapshot:unresolved-repository-policy';
 
 interface EvaluationInputs {
   readonly command: EvaluateGovernancePolicyCommand;
@@ -46,6 +50,7 @@ interface EvaluationInputs {
   readonly review?: ReviewSnapshot;
   readonly findings?: readonly Finding[];
   readonly reviewStateReference: string;
+  readonly ratificationAttribution?: RatificationAttributionValidationSnapshot;
   readonly evaluationKey: string;
 }
 
@@ -63,6 +68,7 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
     private readonly reviewRepository: IReviewRepository = new InMemoryReviewRepository(),
     private readonly governanceDecisionRepository: IGovernanceDecisionRepository = new InMemoryGovernanceDecisionRepository(),
     private readonly createIdentity: () => string = randomUUID,
+    private readonly ratificationAttributionValidationService: RatificationAttributionValidationServiceContract = new RatificationAttributionValidationService(),
   ) {
     super('GovernanceService');
   }
@@ -100,26 +106,43 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
       reviewSnapshot === undefined
         ? command.reviewStateReference ?? unresolvedReviewStateReference
         : createReviewStateReference(reviewSnapshot);
+    const repositoryPolicySnapshot = repositoryPolicy?.toSnapshot();
+    const ratificationAttribution =
+      repositoryPolicySnapshot === undefined
+        ? undefined
+        : await this.ratificationAttributionValidationService.validateRepositoryPolicyRatificationAttribution(
+            {
+              repositoryPolicy: repositoryPolicySnapshot,
+            },
+          );
 
     return {
       command,
-      ...(repositoryPolicy === undefined ? {} : { repositoryPolicy: repositoryPolicy.toSnapshot() }),
+      ...(repositoryPolicySnapshot === undefined ? {} : { repositoryPolicy: repositoryPolicySnapshot }),
       repositoryPolicyIdentityExists,
       ...(reviewSnapshot === undefined ? {} : { review: reviewSnapshot }),
       ...(findings === undefined ? {} : { findings }),
       reviewStateReference,
+      ...(ratificationAttribution === undefined ? {} : { ratificationAttribution }),
       evaluationKey: createEvaluationKey({
         repositoryPolicyId: command.repositoryPolicyId,
         repositoryPolicyVersion: command.repositoryPolicyVersion,
         reviewId: command.reviewId,
         reviewStateReference,
+        ratificationAuthoritySnapshotFingerprint:
+          ratificationAttribution?.authoritySnapshotFingerprint ??
+          unresolvedAuthoritySnapshotFingerprint,
       }),
     };
   }
 
   private async createDecision(inputs: EvaluationInputs): Promise<GovernanceDecision> {
-    const criterionResults = createCriterionResults(inputs);
-    const escalationReason = deriveEscalationReason(inputs, criterionResults);
+    const criterionResults = shouldEvaluatePolicyCriteria(inputs)
+      ? createCriterionResults(inputs)
+      : Object.freeze<PolicyCriterionResult[]>([]);
+    const escalationReason =
+      deriveRatificationAttributionEscalationReason(inputs.ratificationAttribution) ??
+      deriveEscalationReason(inputs, criterionResults);
     const value = deriveGovernanceDecisionValue(escalationReason, criterionResults);
     const escalation =
       value === 'Escalation Required'
@@ -135,6 +158,7 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
             ),
             inputReferences: createEscalationInputReferences(inputs, criterionResults),
             requiredAuthority: 'Sprint Owner',
+            ...createRatificationAttributionEscalationFields(inputs.ratificationAttribution),
           })
         : undefined;
     const policyEvaluationId = inputs.command.policyEvaluationId ?? this.createIdentity();
@@ -163,10 +187,22 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
       evaluationKey: inputs.evaluationKey,
       criterionResults,
       evaluatedAt: inputs.command.evaluatedAt,
-      explanationCodes: createExplanationCodes(value, criterionResults, escalation),
+      explanationCodes: createExplanationCodes(
+        value,
+        criterionResults,
+        escalation,
+        inputs.ratificationAttribution,
+      ),
       ...(escalation === undefined ? {} : { escalation }),
     });
   }
+}
+
+function shouldEvaluatePolicyCriteria(inputs: EvaluationInputs): boolean {
+  return (
+    inputs.ratificationAttribution === undefined ||
+    inputs.ratificationAttribution.outcome === 'Valid'
+  );
 }
 
 function createCriterionResults(inputs: EvaluationInputs): readonly PolicyCriterionResult[] {
@@ -432,6 +468,18 @@ function deriveEscalationReason(
   return explanationCodeToEscalationReason(unsupportedResult.explanationCode);
 }
 
+function deriveRatificationAttributionEscalationReason(
+  ratificationAttribution: RatificationAttributionValidationSnapshot | undefined,
+): GovernanceEscalationReasonCode | undefined {
+  if (ratificationAttribution === undefined || ratificationAttribution.outcome === 'Valid') {
+    return undefined;
+  }
+
+  return ratificationAttribution.outcome === 'Invalid'
+    ? 'InvalidRatificationAttribution'
+    : 'UnresolvableRatificationAttribution';
+}
+
 function explanationCodeToEscalationReason(
   explanationCode: string,
 ): GovernanceEscalationReasonCode {
@@ -480,19 +528,58 @@ function createEscalationInputReferences(
     ...criterionResults
       .filter((result) => result.status === 'Unsupported')
       .map((result) => `PolicyCriterion:${result.toSnapshot().policyCriterionId}`),
+    ...(inputs.ratificationAttribution === undefined
+      ? []
+      : [
+          `Ratification:${inputs.ratificationAttribution.ratificationId}`,
+          `RatificationAttribution:${inputs.ratificationAttribution.outcome}`,
+          `RatificationAuthoritySnapshot:${inputs.ratificationAttribution.authoritySnapshotFingerprint}`,
+          ...inputs.ratificationAttribution.diagnostics.map(
+            (diagnostic) => `RatificationAttributionDiagnostic:${diagnostic.code}`,
+          ),
+        ]),
   ];
 
   return Object.freeze(references);
+}
+
+function createRatificationAttributionEscalationFields(
+  ratificationAttribution: RatificationAttributionValidationSnapshot | undefined,
+): Pick<
+  Parameters<typeof GovernanceEscalation.create>[0],
+  | 'ratificationId'
+  | 'ratificationAttributionOutcome'
+  | 'ratificationAttributionDiagnostics'
+  | 'ratificationAuthoritySnapshotFingerprint'
+> {
+  if (ratificationAttribution === undefined || ratificationAttribution.outcome === 'Valid') {
+    return {};
+  }
+
+  return {
+    ratificationId: ratificationAttribution.ratificationId,
+    ratificationAttributionOutcome: ratificationAttribution.outcome,
+    ratificationAttributionDiagnostics: ratificationAttribution.diagnostics,
+    ratificationAuthoritySnapshotFingerprint:
+      ratificationAttribution.authoritySnapshotFingerprint,
+  };
 }
 
 function createExplanationCodes(
   value: GovernanceDecisionValue,
   criterionResults: readonly PolicyCriterionResult[],
   escalation: GovernanceEscalation | undefined,
+  ratificationAttribution: RatificationAttributionValidationSnapshot | undefined,
 ): readonly string[] {
   return Object.freeze([
     `governance-decision-${value.toLowerCase().replaceAll(' ', '-')}`,
     ...criterionResults.map((result) => result.explanationCode),
+    ...(ratificationAttribution === undefined || ratificationAttribution.outcome === 'Valid'
+      ? []
+      : [
+          `ratification-attribution-${ratificationAttribution.outcome.toLowerCase()}`,
+          ...ratificationAttribution.diagnostics.map((diagnostic) => diagnostic.code),
+        ]),
     ...(escalation === undefined
       ? []
       : [`governance-escalation-${escalation.toSnapshot().reasonCode}`]),
@@ -508,6 +595,7 @@ function createEvaluationKey(input: {
   readonly repositoryPolicyVersion: number;
   readonly reviewId: string;
   readonly reviewStateReference: string;
+  readonly ratificationAuthoritySnapshotFingerprint: string;
 }): string {
   return createCanonicalFingerprint({
     contract: evaluationContractVersion,
@@ -515,6 +603,7 @@ function createEvaluationKey(input: {
     repositoryPolicyVersion: input.repositoryPolicyVersion,
     reviewId: input.reviewId,
     reviewStateReference: input.reviewStateReference,
+    ratificationAuthoritySnapshotFingerprint: input.ratificationAuthoritySnapshotFingerprint,
   });
 }
 

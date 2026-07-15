@@ -5092,3 +5092,116 @@ Ratification prose/intent interpretation; semantic applicability of a Ratificati
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-16-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-001
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 55 Scope Ratification — Ratification and Repository-Law Integration. Resolves the `nexus-plan` Sprint 55 Proposal, approved with mandatory refinements, authorizing integration of Sprint 54's standalone `RatificationAttributionValidationService` into Sprint 53's Governance Decision production path, as Milestone 9's fourth Sprint.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal cycle, not from a Reviewer finding.
+
+## Governance Decision
+
+The Sprint Owner authorizes Sprint 55 — Ratification and Repository-Law Integration as Milestone 9's fourth Sprint: `GovernanceService` gains a single additive precondition that consults Sprint 54's `RatificationAttributionValidationService` for the `RepositoryPolicy` version under evaluation, before any Policy Criteria are evaluated, per RFC-0011's Authority Hierarchy (tier 4, `RATIFICATION_LEDGER.md`) and Failure and Conflict Handling table.
+
+**Validation Ordering (binding):** `RatificationAttributionValidationService` SHALL be invoked before Policy Criteria evaluation, for every `GovernanceDecision` production.
+
+- `Valid` → continue through the existing Sprint 53 Policy Evaluation and decision-precedence logic, unchanged.
+- `Invalid` or `Unresolvable` → Policy Criteria SHALL NOT be evaluated; exactly one `GovernanceDecision` with outcome `Escalation Required` SHALL be produced.
+
+Governance SHALL NOT evaluate a `RepositoryPolicy` whose authority has not been validated.
+
+**Escalation Attribution (binding):** an attribution-driven `GovernanceEscalation` SHALL preserve, at minimum:
+
+- `RepositoryPolicy` identity and version;
+- the referenced Ratification identity;
+- the attribution-validation result (`Invalid` or `Unresolvable`);
+- the deterministic attribution diagnostic (from Sprint 54's `RatificationAttributionDiagnostic`);
+- the Ratification Authority Snapshot fingerprint or version consulted.
+
+No Ratification prose or intent interpretation is authorized as part of this attribution or its diagnostic.
+
+**Determinism and Idempotency (binding):** the complete deterministic input to a Sprint 55 Governance Decision SHALL include: the `RepositoryPolicy` version; the Review identity/version; and the Ratification Authority Snapshot fingerprint. Repeated evaluation using an identical complete input SHALL produce the identical `GovernanceDecision`, preserve the identical diagnostic, and avoid duplicate append-only decision records (consistent with Sprint 53's existing evaluation-key idempotency mechanism, extended to include the Snapshot fingerprint). A changed Ratification Authority Snapshot constitutes a changed governance input and MAY produce a different decision for the same `RepositoryPolicy`/Review pair — this is not a contradiction.
+
+**RFC Coverage (binding):** Primary — RFC-0011 v1.0, Authority Hierarchy § (tier-4 `RATIFICATION_LEDGER.md` relationship) and Failure and Conflict Handling § ("Referenced Repository Policy version does not exist or has no ratified version" / "Applicable Ratifications are contradictory" → `Escalation Required`). Referenced — Sprint 53's `GovernanceDecision`/`PolicyEvaluation`/`GovernanceEscalation` (frozen structure, additively extended only); Sprint 54's `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot` (frozen, consumed read-only for the first time).
+
+**Dependencies (binding):** Frozen, read-only consumption of Sprint 54's `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot` and Sprint 53's `GovernanceDecision`/`PolicyEvaluation`/`GovernanceEscalation`/`GovernanceService`. Neither may be modified in existing shape or existing behavior — only additively extended.
+
+**Authorized Concepts (binding):** exactly — an additive `GovernanceService` precondition step invoking `RatificationAttributionValidationService`; the two-branch outcome mapping above; extension of the existing evaluation-key/idempotency mechanism to incorporate the Ratification Authority Snapshot fingerprint; extension of `GovernanceEscalation`'s existing attributable fields to include the attribution-driven fields listed above; minimal `createKernelServices` wiring change to supply `GovernanceService` with its new dependency. No additional governance capability is authorized.
+
+**Architectural Boundaries (binding):** Sprint 55 SHALL NOT:
+
+- modify the four-value `GovernanceDecision` model;
+- modify the Mixed-Result Decision Table;
+- modify existing Policy Criterion predicates (`ReviewOutcomeMembership`, `UnresolvedFindingMatch`);
+- interpret `RATIFICATION_LEDGER.md`;
+- detect cross-Policy or cross-Ratification contradictions beyond Sprint 54's existing single-record scope;
+- introduce general repository-law precedence resolution;
+- publish RFC-0005 Domain Events;
+- modify `src/hosts` or `src/adapters`.
+
+Sprint 53 and Sprint 54 contracts remain frozen and may only be consumed or additively wired, never redefined.
+
+**Required Test Matrix (binding, normative):** Sprint 55 tests SHALL cover at minimum:
+
+1. Valid attribution + Approved criteria → Approved.
+2. Valid attribution + Rejected criteria → Rejected.
+3. Valid attribution + Deferred criteria → Deferred.
+4. Valid attribution + escalation criterion → Escalation Required.
+5. Invalid attribution → Escalation Required without criterion evaluation.
+6. Unresolvable attribution → Escalation Required without criterion evaluation.
+7. Identical complete inputs → identical decision and no duplicate persistence.
+8. Changed Authority Snapshot → independently evaluated deterministic result.
+9. Existing Sprint 53 behavior remains unchanged when attribution is Valid.
+10. Full repository validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build).
+
+## Ownership Model (ratified)
+
+Identical to RFC-0011's ratified ownership matrix (`NEXUS-RAT-2026-07-15-014`); this ratification authorizes `GovernanceService` to additively consume Sprint 54's standalone Ratification Attribution Validation capability as a precondition to Policy Evaluation, without redefining ownership of either capability.
+
+## Authorized Scope
+
+The Builder MAY introduce exactly the Authorized Concepts listed above, exactly as specified in the binding Governance Decision, Validation Ordering, Escalation Attribution, Determinism and Idempotency, and Architectural Boundaries rules, and Sprint 55's Sprint Implementation Record. No additional governance capability is authorized.
+
+## Deferred Concepts
+
+Contradiction detection across multiple distinct Ratifications or Policies beyond Sprint 54's existing single-record scope; general repository-law interpretation or precedence; automatic `RATIFICATION_LEDGER.md` ingestion; RFC-0005 Domain Event publication; Host-facing/Adapter-facing governance surfaces; durable persistence; any change to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates. No placeholder implementation of any deferred concept is authorized.
+
+## Scope Restrictions
+
+- No Domain Event is authorized this Sprint.
+- No `src/hosts` or `src/adapters` change.
+- No modification to the Kernel Canon, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- No modification to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates.
+- No modification to Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` behavior.
+- No `RATIFICATION_LEDGER.md` prose interpretation.
+
+## Related Sprint(s)
+
+- Sprint 53 — Policy Evaluation and Governance Decision Foundation (frozen dependency — `GovernanceService`/`PolicyEvaluation`/`GovernanceDecision`/`GovernanceEscalation`).
+- Sprint 54 — Ratification Attribution Validation Foundation (frozen dependency — `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot`, first-time integration).
+
+## Related Review(s)
+
+- None yet. Pending Reviewer certification following Builder implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner approves Sprint 55 — Ratification and Repository-Law Integration as Milestone 9's fourth Sprint, with the binding Governance Decision, Validation Ordering, Escalation Attribution, Determinism and Idempotency, RFC Coverage, Dependencies, Authorized Concepts, Architectural Boundaries, and Required Test Matrix rules recorded above. The Builder SHALL implement exactly the Authorized Scope and SHALL NOT implement any Deferred Concept, including as a placeholder or stub. No Domain Event, `src/hosts`, or `src/adapters` change is authorized, no modification to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates is authorized, and no previously approved vertical slice (Sprint 52, Sprint 53, Sprint 54) may be redefined. The Sprint Owner authorizes `nexus-plan` to update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 55 as Current under Milestone 9, and to generate Sprint 55's Sprint Implementation Record as the Builder's authoritative implementation contract.
+
+## Current Status
+
+Active
+
+---

@@ -2,6 +2,68 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-002 — Sprint 55 — Ratification and Repository-Law Integration
+
+- **Reviewed Sprint:** Sprint 55 — Ratification and Repository-Law Integration
+- **Reviewed Vertical Slice:** Integration of Sprint 54's standalone `RatificationAttributionValidationService` into Sprint 53's `GovernanceService` as an additive precondition to Policy Evaluation, per RFC-0011's Authority Hierarchy (tier 4, `RATIFICATION_LEDGER.md`) and Failure and Conflict Handling table.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Authority Hierarchy §, Failure and Conflict Handling §). Referenced: Sprint 53's `GovernanceDecision`/`PolicyEvaluation`/`GovernanceEscalation`; Sprint 54's `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 55 implements exactly `NEXUS-RAT-2026-07-16-001`'s Authorized Scope: `GovernanceService` now invokes Sprint 54's `RatificationAttributionValidationService` for the `RepositoryPolicy` version under evaluation before any Policy Criteria are evaluated (Validation Ordering). `Valid` attribution proceeds through Sprint 53's existing Policy Evaluation and decision-precedence logic completely unchanged; `Invalid`/`Unresolvable` attribution short-circuits to exactly one `Escalation Required` `GovernanceDecision` without evaluating Policy Criteria at all (`shouldEvaluatePolicyCriteria` in `governance.service.ts`). `GovernanceEscalation` is additively extended with the five ratified Escalation Attribution fields (Policy identity/version via existing fields, referenced Ratification identity, attribution outcome, attribution diagnostics, Snapshot fingerprint), and the deterministic evaluation key now incorporates a canonical Ratification Authority Snapshot fingerprint, extending — not replacing — Sprint 53's existing evaluation-key idempotency mechanism. All ten rows of the ratified Required Test Matrix are implemented and independently verified by dedicated tests, including exact-repeat idempotency (no duplicate persisted record) and independent re-evaluation on a changed Snapshot fingerprint.
+
+A full diff and source inspection confirms the four-value `GovernanceDecision` model, the Mixed-Result Decision Table (`deriveGovernanceDecisionValue`), and both existing Policy Criterion predicates (`ReviewOutcomeMembership`, `UnresolvedFindingMatch`) are byte-for-byte unmodified in logic; only two new `GovernanceEscalationReasonCode` values were added to the existing extensible enum to attribute the new escalation branch. No RFC-0005 Domain Event, no `src/hosts`, and no `src/adapters` file was touched (confirmed by `git diff --stat`). `createKernelServices()` was extended additively to wire the shared `RatificationAttributionValidationService` into `GovernanceService`'s constructor.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; `eslint src test` clean; targeted `npx vitest run test/kernel/governance/governance.service.test.ts test/kernel/governance/ratification-attribution-validation.test.ts test/integration/kernel-boundary-certification.integration.test.ts` (64/64 passing); full `npm run test` (83 files / 464 tests, matching the Builder's reported count and `IMPLEMENTATION_REPORT.md`'s Validation Summary); `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-002-F-001 — `NEXUS-RAT-2026-07-16-001` contains an internal wording tension between "Architectural Boundaries" and "Scope Restrictions" regarding Sprint 54 file modification
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-16-001` § Architectural Boundaries ("Sprint 53 and Sprint 54 contracts remain frozen and may only be consumed or additively wired, never redefined") versus § Scope Restrictions ("No modification to Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` behavior").
+- **Evidence:** The Builder added one new required field, `authoritySnapshotFingerprint`, to Sprint 54's `RatificationAttributionValidationSnapshot` (`ratification-attribution.types.ts`) and populated it via a new canonical-fingerprint helper in `ratification-attribution-validation.ts`. This is a textual modification to two Sprint 54 files. However, it is strictly additive: every existing Sprint 54 outcome, diagnostic code, and lifecycle-status rule is byte-for-byte unchanged, and Sprint 54's own pre-existing test file (`test/kernel/governance/ratification-attribution-validation.test.ts`) required zero modification and passes unmodified (confirmed — this file does not appear in `git diff --stat`'s changed-file list).
+- **Rationale:** The Ratification's own binding Determinism and Idempotency clause required "the Ratification Authority Snapshot fingerprint" to enter the deterministic evaluation key, which is only obtainable, without duplicating Sprint 54's internal fingerprinting logic inside `GovernanceService`, by exposing it on `RatificationAttributionValidationService`'s existing output. The Architectural Boundaries clause explicitly contemplates "additively wired" extension of Sprint 54's contract; the Builder's change is exactly that — additive, non-breaking, and necessary to satisfy the same Ratification's own binding Determinism requirement. This is not an architectural violation; it is a precision gap in the Ratification text itself (the same class of gap recorded as `NEXUS-REV-2026-07-16-001-F-002` for the prior Ratification).
+- **Recommended Disposition:** No Builder Task; no Sprint Owner ratification required. A future Ratification drafted by `nexus-plan` MAY tighten the Scope Restrictions wording (e.g., "no modification to Sprint 54's existing outcome/diagnostic logic; purely additive field exposure for Sprint 55's determinism requirement is permitted") to remove the ambiguity for future Sprints.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 |
+
+Zero Builder Tasks generated. Zero open findings of any blocking category.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: contradiction detection across multiple distinct Ratifications or Policies beyond Sprint 54's existing single-record scope; general repository-law interpretation or precedence; automatic `RATIFICATION_LEDGER.md` ingestion; RFC-0005 Domain Event publication; Host-facing/Adapter-facing governance surfaces; durable persistence; any change to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates (verified by source diff — `deriveGovernanceDecisionValue`, `evaluateCriterion`, `resolveDescriptor`, and both predicate validators are unchanged from Sprint 53).
+
+### Architectural Compliance Summary
+
+- Validation Ordering is enforced exactly as ratified: `shouldEvaluatePolicyCriteria` returns `false` whenever attribution is `Invalid`/`Unresolvable`, and `createCriterionResults` is never invoked in that branch, confirmed by dedicated tests asserting `criterionResults` is empty and criteria that would otherwise throw/violate are never reached.
+- Escalation Attribution fields are populated exactly as ratified and are subject to the existing normalization/immutability discipline (`GovernanceEscalation.create`/`toSnapshot`), verified by a dedicated diagnostics-equality test.
+- Determinism and Idempotency: the evaluation key now canonically incorporates the Snapshot fingerprint; repeated identical-input evaluation returns the identical persisted decision (no duplicate registration, verified via `decisionRepository.enumerate()` length assertions); a changed Snapshot fingerprint independently re-evaluates and persists a second decision, exactly as ratified.
+- No modification to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates.
+- No RFC-0005 Domain Event, `src/hosts`, or `src/adapters` change exists.
+- Sprint 52's `RepositoryPolicy`/`PolicyCriterion` are confirmed byte-for-byte unmodified; Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` outcome/diagnostic logic is confirmed unmodified (only one new additive field, see Finding F-001).
+- `createKernelServices()` was extended additively only.
+
+### Builder Task Recommendation
+
+None. Sprint 55 is fully closed with zero open findings of any blocking category (Category 1–5). The one recorded Category 6 Observation requires no Builder action and does not block approval.
+
+---
+
 ## NEXUS-REV-2026-07-16-001 — Sprint 54 — Ratification Attribution Validation Foundation
 
 - **Reviewed Sprint:** Sprint 54 — Ratification Attribution Validation Foundation

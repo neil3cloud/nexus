@@ -3,6 +3,10 @@ import type {
   ReviewOutcomeValue,
   SeverityValue,
 } from '../review/review.types';
+import type {
+  RatificationAttributionDiagnostic,
+  RatificationAttributionValidationOutcome,
+} from './ratification-attribution.types';
 
 export const governanceDecisionValues = [
   'Approved',
@@ -35,6 +39,8 @@ export const governanceEscalationReasonCodes = [
   'UnknownRepositoryPolicy',
   'UnknownRepositoryPolicyVersion',
   'MissingReview',
+  'InvalidRatificationAttribution',
+  'UnresolvableRatificationAttribution',
   'UnsupportedPredicateKind',
   'UnsupportedPredicateSchemaVersion',
   'MalformedPredicateDescriptor',
@@ -82,6 +88,10 @@ export interface GovernanceEscalationSnapshot {
   readonly policyCriterionIds: readonly string[];
   readonly inputReferences: readonly string[];
   readonly requiredAuthority: string;
+  readonly ratificationId?: string;
+  readonly ratificationAttributionOutcome?: RatificationAttributionValidationOutcome;
+  readonly ratificationAttributionDiagnostics?: readonly RatificationAttributionDiagnostic[];
+  readonly ratificationAuthoritySnapshotFingerprint?: string;
 }
 
 export interface PolicyEvaluationSnapshot {

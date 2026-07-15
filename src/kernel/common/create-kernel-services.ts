@@ -80,13 +80,15 @@ export function createKernelServices(
   const executionSessionService = new ExecutionSessionService(executionSessionRepository);
   const assignmentPolicyService = new AssignmentPolicyService(assignmentPolicyRepository);
   const repositoryPolicyService = new RepositoryPolicyService(repositoryPolicyRepository);
+  const ratificationAttributionValidationService = new RatificationAttributionValidationService(
+    ratificationAuthoritySnapshotRepository,
+  );
   const governanceService = new GovernanceService(
     repositoryPolicyRepository,
     reviewRepository,
     governanceDecisionRepository,
-  );
-  const ratificationAttributionValidationService = new RatificationAttributionValidationService(
-    ratificationAuthoritySnapshotRepository,
+    randomUUID,
+    ratificationAttributionValidationService,
   );
   const executionStrategyService = new ExecutionStrategyService(
     executionStrategyRepository,

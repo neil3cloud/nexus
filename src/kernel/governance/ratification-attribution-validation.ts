@@ -49,6 +49,7 @@ export class RatificationAttributionValidationService
         code: 'unresolvable-snapshot-source-unavailable',
         message: 'RatificationAuthoritySnapshot source is unavailable.',
         ratificationId: repositoryPolicy.ratificationId,
+        authoritySnapshotFingerprint: 'RatificationAuthoritySnapshot:unavailable',
       });
     }
 
@@ -60,6 +61,7 @@ function evaluateAgainstSnapshot(
   repositoryPolicy: RepositoryPolicySnapshot,
   snapshot: RatificationAuthoritySnapshot,
 ): RatificationAttributionValidationSnapshot {
+  const authoritySnapshotFingerprint = createCanonicalFingerprint(snapshot.toSnapshot());
   const matchingRecords = snapshot.records.filter(
     (record) => record.identifier === repositoryPolicy.ratificationId,
   );
@@ -69,6 +71,7 @@ function evaluateAgainstSnapshot(
       code: 'unresolvable-no-matching-record',
       message: 'No RatificationAuthorityRecord resolves to the RepositoryPolicy ratificationId.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -77,6 +80,7 @@ function evaluateAgainstSnapshot(
       code: 'unresolvable-duplicate-identifier',
       message: 'More than one RatificationAuthorityRecord resolves to the RepositoryPolicy ratificationId.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -87,6 +91,7 @@ function evaluateAgainstSnapshot(
       code: 'unresolvable-no-matching-record',
       message: 'No RatificationAuthorityRecord resolves to the RepositoryPolicy ratificationId.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -95,6 +100,7 @@ function evaluateAgainstSnapshot(
       code: 'invalid-structurally-malformed-record',
       message: 'RatificationAuthorityRecord is missing one or more required fields.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -105,6 +111,7 @@ function evaluateAgainstSnapshot(
       code: 'unresolvable-unknown-lifecycle-status',
       message: 'RatificationAuthorityRecord has an unrecognized lifecycle status.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -113,6 +120,7 @@ function evaluateAgainstSnapshot(
       code: 'invalid-contradictory-record',
       message: 'RatificationAuthorityRecord contains contradictory lifecycle markers.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -123,6 +131,7 @@ function evaluateAgainstSnapshot(
       code: 'valid-effective-record',
       message: 'RatificationAuthorityRecord resolves uniquely with explicit Effective status.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -131,6 +140,7 @@ function evaluateAgainstSnapshot(
       code: 'invalid-superseded-record',
       message: 'RatificationAuthorityRecord is explicitly Superseded.',
       ratificationId: repositoryPolicy.ratificationId,
+      authoritySnapshotFingerprint,
     });
   }
 
@@ -138,6 +148,7 @@ function evaluateAgainstSnapshot(
     code: 'invalid-withdrawn-record',
     message: 'RatificationAuthorityRecord is explicitly Withdrawn.',
     ratificationId: repositoryPolicy.ratificationId,
+    authoritySnapshotFingerprint,
   });
 }
 
@@ -209,6 +220,7 @@ function createValidation(
     readonly code: RatificationAttributionDiagnosticCode;
     readonly message: string;
     readonly ratificationId: string;
+    readonly authoritySnapshotFingerprint?: string;
   },
 ): RatificationAttributionValidationSnapshot {
   return Object.freeze({
@@ -223,6 +235,31 @@ function createValidation(
         ratificationId: diagnostic.ratificationId,
       }),
     ]),
+    authoritySnapshotFingerprint:
+      diagnostic.authoritySnapshotFingerprint ?? 'RatificationAuthoritySnapshot:unavailable',
   });
 }
 
+function createCanonicalFingerprint(value: unknown): string {
+  return JSON.stringify(sortForCanonicalSerialization(value));
+}
+
+function sortForCanonicalSerialization(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortForCanonicalSerialization);
+  }
+
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, sortForCanonicalSerialization(item)]),
+    );
+  }
+
+  return value;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}

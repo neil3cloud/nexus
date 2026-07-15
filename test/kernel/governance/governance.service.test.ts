@@ -14,6 +14,10 @@ import { GovernanceService } from '../../../src/kernel/governance/governance.ser
 import { RepositoryPolicy } from '../../../src/kernel/governance/repository-policy';
 import { InMemoryRepositoryPolicyRepository } from '../../../src/kernel/governance/repository-policy.repository';
 import type { PolicyCriterionInput } from '../../../src/kernel/governance/repository-policy.types';
+import { InMemoryRatificationAuthoritySnapshotRepository } from '../../../src/kernel/governance/ratification-authority.repository';
+import { RatificationAuthoritySnapshot } from '../../../src/kernel/governance/ratification-authority-snapshot';
+import { RatificationAttributionValidationService } from '../../../src/kernel/governance/ratification-attribution-validation';
+import type { RatificationAuthorityRecordInput } from '../../../src/kernel/governance/ratification-attribution.types';
 
 class TestLogger implements KernelLogger {
   public info(): void {}
@@ -24,6 +28,7 @@ const metadata = Object.freeze({
   eventId: 'event-1',
   timestamp: '2026-07-15T00:00:00.000Z',
 });
+const defaultRatificationId = 'NEXUS-RAT-2026-07-15-016';
 
 function outcomeDescriptor(allowedReviewOutcomes: readonly ReviewOutcomeValue[]): string {
   return JSON.stringify({
@@ -64,7 +69,30 @@ function createPolicy(criteria: readonly PolicyCriterionInput[] = [
     name: 'Review Closure Policy',
     description: 'Governs Review closure.',
     criteria,
-    ratificationId: 'NEXUS-RAT-2026-07-15-016',
+    ratificationId: defaultRatificationId,
+  });
+}
+
+function ratificationRecord(
+  overrides: RatificationAuthorityRecordInput = {},
+): RatificationAuthorityRecordInput {
+  return {
+    identifier: defaultRatificationId,
+    date: '2026-07-15',
+    subject: 'Sprint 53 Scope Ratification.',
+    lifecycleStatus: 'Effective',
+    ...overrides,
+  };
+}
+
+function createAuthoritySnapshot(input: {
+  readonly records?: readonly RatificationAuthorityRecordInput[];
+  readonly capturedAt?: string;
+} = {}): RatificationAuthoritySnapshot {
+  return RatificationAuthoritySnapshot.create({
+    source: 'RATIFICATION_LEDGER.md',
+    capturedAt: input.capturedAt ?? '2026-07-16T00:00:00.000Z',
+    records: input.records ?? [ratificationRecord()],
   });
 }
 
@@ -145,22 +173,42 @@ async function createHarness(input: {
   readonly policy?: RepositoryPolicy;
   readonly review?: Review;
   readonly identities?: readonly string[];
+  readonly authorityRecords?: readonly RatificationAuthorityRecordInput[];
+  readonly authorityCapturedAt?: string;
+  readonly omitAuthoritySnapshot?: boolean;
 } = {}): Promise<{
   readonly service: GovernanceService;
   readonly policyRepository: InMemoryRepositoryPolicyRepository;
   readonly reviewRepository: InMemoryReviewRepository;
   readonly decisionRepository: InMemoryGovernanceDecisionRepository;
+  readonly ratificationAuthorityRepository: InMemoryRatificationAuthoritySnapshotRepository;
 }> {
   const policyRepository = new InMemoryRepositoryPolicyRepository();
   const reviewRepository = new InMemoryReviewRepository();
   const decisionRepository = new InMemoryGovernanceDecisionRepository();
+  const ratificationAuthorityRepository = new InMemoryRatificationAuthoritySnapshotRepository();
+  const ratificationAttributionValidationService = new RatificationAttributionValidationService(
+    ratificationAuthorityRepository,
+  );
   const identities = [...(input.identities ?? ['evaluation-1', 'decision-1', 'escalation-1'])];
   const service = new GovernanceService(
     policyRepository,
     reviewRepository,
     decisionRepository,
     () => identities.shift() ?? `generated-${identities.length}`,
+    ratificationAttributionValidationService,
   );
+
+  if (input.omitAuthoritySnapshot !== true) {
+    await ratificationAuthorityRepository.recordSnapshot(
+      createAuthoritySnapshot({
+        ...(input.authorityRecords === undefined ? {} : { records: input.authorityRecords }),
+        ...(input.authorityCapturedAt === undefined
+          ? {}
+          : { capturedAt: input.authorityCapturedAt }),
+      }),
+    );
+  }
 
   if (input.policy !== undefined) {
     await policyRepository.registerInitialVersion(input.policy);
@@ -170,7 +218,13 @@ async function createHarness(input: {
     await reviewRepository.create(input.review);
   }
 
-  return { service, policyRepository, reviewRepository, decisionRepository };
+  return {
+    service,
+    policyRepository,
+    reviewRepository,
+    decisionRepository,
+    ratificationAuthorityRepository,
+  };
 }
 
 async function evaluate(service: GovernanceService, overrides: Partial<{
@@ -235,6 +289,117 @@ describe('GovernanceService', () => {
       'Satisfied',
       'Violated',
     ]);
+  });
+
+  it('preserves valid attribution with Approved criteria as Approved', async () => {
+    const { service } = await createHarness({
+      policy: createPolicy([criterion('review-accepted', outcomeDescriptor(['Accepted']))]),
+      review: createReview(),
+    });
+
+    const decision = await evaluate(service);
+
+    expect(decision.value).toBe('Approved');
+    expect(decision.criterionResults.map((result) => result.status)).toEqual(['Satisfied']);
+    expect(decision.explanationCodes).toEqual([
+      'governance-decision-approved',
+      'review-outcome-membership-satisfied',
+    ]);
+  });
+
+  it('preserves valid attribution with Rejected criteria as Rejected', async () => {
+    const { service } = await createHarness({
+      policy: createPolicy([criterion('review-rejected', outcomeDescriptor(['Rejected']))]),
+      review: createReview(),
+    });
+
+    const decision = await evaluate(service);
+
+    expect(decision.value).toBe('Rejected');
+    expect(decision.criterionResults.map((result) => result.status)).toEqual(['Violated']);
+  });
+
+  it('preserves valid attribution with Deferred criteria as Deferred', async () => {
+    const { service } = await createHarness({
+      policy: createPolicy([criterion('review-accepted', outcomeDescriptor(['Accepted']))]),
+      review: createInProgressReview(),
+    });
+
+    const decision = await evaluate(service);
+
+    expect(decision.value).toBe('Deferred');
+    expect(decision.criterionResults.map((result) => result.status)).toEqual(['Undetermined']);
+  });
+
+  it('preserves valid attribution with an escalation criterion as Escalation Required', async () => {
+    const { service } = await createHarness({
+      policy: createPolicy([criterion('unsupported', JSON.stringify({ kind: 'Unknown', schemaVersion: 1 }))]),
+      review: createReview(),
+    });
+
+    const decision = await evaluate(service);
+
+    expect(decision.value).toBe('Escalation Required');
+    expect(decision.criterionResults.map((result) => result.status)).toEqual(['Unsupported']);
+    expect(decision.escalation?.reasonCode).toBe('UnsupportedPredicateKind');
+  });
+
+  it('escalates Invalid attribution without evaluating Policy Criteria', async () => {
+    const { service } = await createHarness({
+      policy: createPolicy([criterion('would-throw-if-evaluated', '{not-json')]),
+      review: createReview(),
+      authorityRecords: [
+        ratificationRecord({
+          lifecycleStatus: 'Superseded',
+          supersededByRatificationId: 'NEXUS-RAT-2026-07-16-001',
+        }),
+      ],
+    });
+
+    const decision = await evaluate(service);
+
+    expect(decision.value).toBe('Escalation Required');
+    expect(decision.criterionResults).toEqual([]);
+    expect(decision.escalation).toMatchObject({
+      reasonCode: 'InvalidRatificationAttribution',
+      ratificationId: defaultRatificationId,
+      ratificationAttributionOutcome: 'Invalid',
+    });
+    expect(decision.escalation?.ratificationAttributionDiagnostics).toEqual([
+      {
+        code: 'invalid-superseded-record',
+        message: 'RatificationAuthorityRecord is explicitly Superseded.',
+        ratificationId: defaultRatificationId,
+      },
+    ]);
+    expect(decision.escalation?.ratificationAuthoritySnapshotFingerprint).toContain(
+      'RATIFICATION_LEDGER.md',
+    );
+  });
+
+  it('escalates Unresolvable attribution without evaluating Policy Criteria', async () => {
+    const { service } = await createHarness({
+      policy: createPolicy([criterion('would-violate-if-evaluated', outcomeDescriptor(['Rejected']))]),
+      review: createReview(),
+      authorityRecords: [
+        ratificationRecord({
+          identifier: 'NEXUS-RAT-2026-07-16-001',
+        }),
+      ],
+    });
+
+    const decision = await evaluate(service);
+
+    expect(decision.value).toBe('Escalation Required');
+    expect(decision.criterionResults).toEqual([]);
+    expect(decision.escalation).toMatchObject({
+      reasonCode: 'UnresolvableRatificationAttribution',
+      ratificationId: defaultRatificationId,
+      ratificationAttributionOutcome: 'Unresolvable',
+    });
+    expect(decision.escalation?.ratificationAttributionDiagnostics?.[0]?.code).toBe(
+      'unresolvable-no-matching-record',
+    );
   });
 
   it('defers an existing non-final Review without fabricating an outcome', async () => {
@@ -496,6 +661,51 @@ describe('GovernanceService', () => {
 
     expect(second).toEqual(first);
     expect(await decisionRepository.enumerate()).toHaveLength(1);
+  });
+
+  it('preserves identical attribution diagnostics and no duplicate persistence for identical complete inputs', async () => {
+    const { service, decisionRepository } = await createHarness({
+      policy: createPolicy(),
+      review: createReview(),
+      identities: [
+        'evaluation-1',
+        'decision-1',
+        'escalation-1',
+        'evaluation-2',
+        'decision-2',
+        'escalation-2',
+      ],
+      omitAuthoritySnapshot: true,
+    });
+
+    const first = await evaluate(service);
+    const second = await evaluate(service, { evaluatedAt: '2026-07-15T02:00:00.000Z' });
+
+    expect(second).toEqual(first);
+    expect(second.escalation?.ratificationAttributionDiagnostics).toEqual(
+      first.escalation?.ratificationAttributionDiagnostics,
+    );
+    expect(await decisionRepository.enumerate()).toHaveLength(1);
+  });
+
+  it('evaluates a changed Ratification Authority Snapshot as a changed deterministic input', async () => {
+    const { service, decisionRepository, ratificationAuthorityRepository } = await createHarness({
+      policy: createPolicy(),
+      review: createReview(),
+      identities: ['evaluation-1', 'decision-1', 'evaluation-2', 'decision-2'],
+    });
+
+    const first = await evaluate(service);
+
+    await ratificationAuthorityRepository.recordSnapshot(
+      createAuthoritySnapshot({ capturedAt: '2026-07-16T01:00:00.000Z' }),
+    );
+
+    const second = await evaluate(service, { evaluatedAt: '2026-07-15T02:00:00.000Z' });
+
+    expect(second.value).toBe('Approved');
+    expect(second.evaluationKey).not.toBe(first.evaluationKey);
+    expect(await decisionRepository.enumerate()).toHaveLength(2);
   });
 
   it('rejects contradictory duplicate GovernanceDecision registration for the same evaluation key', async () => {

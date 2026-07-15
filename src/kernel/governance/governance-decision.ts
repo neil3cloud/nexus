@@ -17,6 +17,14 @@ import {
   governanceEscalationReasonCodes,
   policyCriterionResultStatuses,
 } from './governance.types';
+import {
+  ratificationAttributionDiagnosticCodes,
+  ratificationAttributionValidationOutcomes,
+} from './ratification-attribution.types';
+import type {
+  RatificationAttributionDiagnostic,
+  RatificationAttributionValidationOutcome,
+} from './ratification-attribution.types';
 
 export interface PolicyCriterionResultInput {
   readonly policyCriterionId: string;
@@ -38,6 +46,10 @@ export interface GovernanceEscalationInput {
   readonly policyCriterionIds?: readonly string[];
   readonly inputReferences?: readonly string[];
   readonly requiredAuthority: string;
+  readonly ratificationId?: string;
+  readonly ratificationAttributionOutcome?: RatificationAttributionValidationOutcome;
+  readonly ratificationAttributionDiagnostics?: readonly RatificationAttributionDiagnostic[];
+  readonly ratificationAuthoritySnapshotFingerprint?: string;
 }
 
 export interface PolicyEvaluationInput {
@@ -176,6 +188,38 @@ export class GovernanceEscalation {
           input.requiredAuthority,
           'GovernanceEscalation requiredAuthority',
         ),
+        ...(input.ratificationId === undefined
+          ? {}
+          : {
+              ratificationId: normalizeNonEmptyString(
+                input.ratificationId,
+                'GovernanceEscalation ratificationId',
+              ),
+            }),
+        ...(input.ratificationAttributionOutcome === undefined
+          ? {}
+          : {
+              ratificationAttributionOutcome: normalizeAllowed(
+                input.ratificationAttributionOutcome,
+                ratificationAttributionValidationOutcomes,
+                'GovernanceEscalation ratificationAttributionOutcome',
+              ),
+            }),
+        ...(input.ratificationAttributionDiagnostics === undefined
+          ? {}
+          : {
+              ratificationAttributionDiagnostics: normalizeRatificationAttributionDiagnostics(
+                input.ratificationAttributionDiagnostics,
+              ),
+            }),
+        ...(input.ratificationAuthoritySnapshotFingerprint === undefined
+          ? {}
+          : {
+              ratificationAuthoritySnapshotFingerprint: normalizeNonEmptyString(
+                input.ratificationAuthoritySnapshotFingerprint,
+                'GovernanceEscalation ratificationAuthoritySnapshotFingerprint',
+              ),
+            }),
       }),
     );
   }
@@ -189,6 +233,15 @@ export class GovernanceEscalation {
       ...this.snapshotValue,
       policyCriterionIds: Object.freeze([...this.snapshotValue.policyCriterionIds]),
       inputReferences: Object.freeze([...this.snapshotValue.inputReferences]),
+      ...(this.snapshotValue.ratificationAttributionDiagnostics === undefined
+        ? {}
+        : {
+            ratificationAttributionDiagnostics: Object.freeze(
+              this.snapshotValue.ratificationAttributionDiagnostics.map((diagnostic) =>
+                normalizeRatificationAttributionDiagnostic(diagnostic, 'GovernanceEscalation'),
+              ),
+            ),
+          }),
     });
   }
 }
@@ -336,6 +389,41 @@ function normalizeStringList(values: readonly string[], label: string): readonly
   return Object.freeze(
     values.map((value, index) => normalizeNonEmptyString(value, `${label}[${index}]`)),
   );
+}
+
+function normalizeRatificationAttributionDiagnostics(
+  diagnostics: readonly RatificationAttributionDiagnostic[],
+): readonly RatificationAttributionDiagnostic[] {
+  return Object.freeze(
+    diagnostics.map((diagnostic, index) =>
+      normalizeRatificationAttributionDiagnostic(
+        diagnostic,
+        `GovernanceEscalation ratificationAttributionDiagnostics[${index}]`,
+      ),
+    ),
+  );
+}
+
+function normalizeRatificationAttributionDiagnostic(
+  diagnostic: RatificationAttributionDiagnostic,
+  label: string,
+): RatificationAttributionDiagnostic {
+  return Object.freeze({
+    code: normalizeAllowed(
+      diagnostic.code,
+      ratificationAttributionDiagnosticCodes,
+      `${label} code`,
+    ),
+    message: normalizeNonEmptyString(diagnostic.message, `${label} message`),
+    ...(diagnostic.ratificationId === undefined
+      ? {}
+      : {
+          ratificationId: normalizeNonEmptyString(
+            diagnostic.ratificationId,
+            `${label} ratificationId`,
+          ),
+        }),
+  });
 }
 
 function normalizeNonEmptyString(value: string, label: string): string {

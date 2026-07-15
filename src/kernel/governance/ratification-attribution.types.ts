@@ -76,9 +76,9 @@ export interface RatificationAttributionValidationSnapshot {
   readonly ratificationId: string;
   readonly outcome: RatificationAttributionValidationOutcome;
   readonly diagnostics: readonly RatificationAttributionDiagnostic[];
+  readonly authoritySnapshotFingerprint: string;
 }
 
 export interface ValidateRatificationAttributionCommand {
   readonly repositoryPolicy: RepositoryPolicySnapshot;
 }
-

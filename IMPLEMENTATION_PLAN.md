@@ -3001,7 +3001,62 @@ Status
 - RFC-0011 drafted (`knowledge/specifications/rfc-0011-engineering-governance-model.md`), pre-ratification reviewed (RFC Ratification Report), revised to v0.2 to resolve a `Blocked`/RFC-0004 terminology collision and add explicit Authority Hierarchy, Decision Semantics, and Failure/Conflict Handling, and ratified Final as v1.0 by `NEXUS-RAT-2026-07-15-014`.
 - Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings), authorized by `NEXUS-RAT-2026-07-15-015`.
 - Sprint 53 — Policy Evaluation and Governance Decision Foundation is **✅ Approved** (`NEXUS-REV-2026-07-15-010`; one Category 1, Minor finding resolved by TASK-001 and verified by `NEXUS-REV-2026-07-15-011`; one Category 4, Informational documentation finding resolved by DOC-001 and verified by `NEXUS-REV-2026-07-15-012`; fully closed with zero open findings of any category), formally activating the provisional Sprint 53/54 merge approved in principle by `NEXUS-RAT-2026-07-15-015`, following two Sprint Owner review cycles (Changes Required, then Approved With Final Refinements) and ratified by `NEXUS-RAT-2026-07-15-016`.
-- Sprint 54 — Ratification Attribution Validation Foundation is **✅ Approved** (`NEXUS-REV-2026-07-16-001`; two Category 6, Informational Observations, zero Builder Tasks; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-15-017` following two Sprint Owner review cycles (Changes Required — scope bundling across seven distinct concerns; Changes Required — Snapshot cardinality and explicit Effective status). Validates the Ratification attribution recorded by one `RepositoryPolicy` version against an immutable collection of Ratification Authority Records, producing exactly one of three closed outcomes (Valid, Invalid, Unresolvable). Standalone this Sprint — no integration with `PolicyEvaluation`/`GovernanceDecision`/`GovernanceService`. No further Milestone 9 Sprint is Current; the remaining provisional sequence requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- Sprint 54 — Ratification Attribution Validation Foundation is **✅ Approved** (`NEXUS-REV-2026-07-16-001`; two Category 6, Informational Observations, zero Builder Tasks; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-15-017` following two Sprint Owner review cycles (Changes Required — scope bundling across seven distinct concerns; Changes Required — Snapshot cardinality and explicit Effective status). Validates the Ratification attribution recorded by one `RepositoryPolicy` version against an immutable collection of Ratification Authority Records, producing exactly one of three closed outcomes (Valid, Invalid, Unresolvable). Standalone this Sprint — no integration with `PolicyEvaluation`/`GovernanceDecision`/`GovernanceService`.
+- Sprint 55 — Ratification and Repository-Law Integration is **✅ Approved** (`NEXUS-REV-2026-07-16-002`; one Category 6, Informational Observation, zero Builder Tasks; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-001` (Approved With Changes on the originating `nexus-plan` proposal). Integrates Sprint 54's standalone `RatificationAttributionValidationService` into `GovernanceService` as an additive precondition to Policy Evaluation: `Valid` attribution proceeds through existing Sprint 53 evaluation/precedence logic unchanged; `Invalid`/`Unresolvable` attribution unconditionally yields `Escalation Required` without Policy Criteria evaluation. Milestone 9's fourth Sprint. No further Milestone 9 Sprint is Current; the remaining provisional sequence requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## Sprint 55 — Ratification and Repository-Law Integration
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-16-002` (fully closed; one Category 6 Observation, zero Builder Tasks; zero open findings). Authorized by `NEXUS-RAT-2026-07-16-001`. Milestone 9's fourth Sprint.
+
+Objective
+
+Integrate Sprint 54's standalone `RatificationAttributionValidationService` into Sprint 53's Governance Decision production path as a single additive precondition to Policy Evaluation, per RFC-0011's Authority Hierarchy (tier 4, `RATIFICATION_LEDGER.md`) and Failure and Conflict Handling table.
+
+RFC Coverage
+
+- RFC-0011 — Engineering Governance Model v1.0 (Primary; Authority Hierarchy §, Failure and Conflict Handling §).
+- Referenced: Sprint 53's `GovernanceDecision`/`PolicyEvaluation`/`GovernanceEscalation` (frozen structure, additively extended only); Sprint 54's `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot` (frozen, consumed read-only for the first time).
+
+Ratification
+
+- `NEXUS-RAT-2026-07-16-001` — governs this Sprint's entire binding scope: Validation Ordering (attribution check precedes Policy Criteria evaluation), Escalation Attribution (required fields on an attribution-driven `GovernanceEscalation`), Determinism and Idempotency (Ratification Authority Snapshot fingerprint included in the deterministic evaluation key), Architectural Boundaries, and the Required Test Matrix. Approved With Changes following one Sprint Owner review cycle on the originating `nexus-plan` proposal.
+
+Authorized Vertical Slice
+
+- `GovernanceService` invokes `RatificationAttributionValidationService` for the `RepositoryPolicy` version under evaluation, before any Policy Criteria are evaluated.
+- `Valid` attribution → existing Sprint 53 Policy Evaluation and decision-precedence logic proceeds unchanged.
+- `Invalid`/`Unresolvable` attribution → Policy Criteria SHALL NOT be evaluated; exactly one `GovernanceDecision` with outcome `Escalation Required` is produced.
+- `GovernanceEscalation` extended additively to preserve `RepositoryPolicy` identity/version, the referenced Ratification identity, the attribution-validation result, the deterministic attribution diagnostic, and the Ratification Authority Snapshot fingerprint/version consulted, for attribution-driven escalations.
+- The deterministic evaluation key/idempotency mechanism extended to incorporate the Ratification Authority Snapshot fingerprint.
+- Minimal `createKernelServices` wiring change supplying `GovernanceService` its new dependency.
+
+Deferred Concepts
+
+- Contradiction detection across multiple distinct Ratifications or Policies beyond Sprint 54's existing single-record scope.
+- General repository-law interpretation or precedence.
+- Automatic `RATIFICATION_LEDGER.md` ingestion.
+- RFC-0005 Domain Event publication.
+- Host-facing/Adapter-facing governance surfaces, durable persistence.
+- Any change to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- Valid attribution + Approved/Rejected/Deferred/Escalation-Required criteria results all pass through unchanged from Sprint 53.
+- Invalid or Unresolvable attribution always yields `Escalation Required`, without Policy Criteria evaluation.
+- Identical complete inputs (`RepositoryPolicy` version, Review identity/version, Ratification Authority Snapshot fingerprint) yield identical decisions/diagnostics and no duplicate persisted records; a changed Snapshot fingerprint may yield a different decision.
+- No modification to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, existing Policy Criterion predicates, or Sprint 52/54's existing behavior.
+- No Domain Event, `src/hosts`, or `src/adapters` change.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0055-ratification-and-repository-law-integration.md` for the complete Sprint Implementation Record.
+
+Reviewer Validation Result
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-16-002`). Confirmed Validation Ordering, Escalation Attribution, and Determinism and Idempotency are implemented exactly as `NEXUS-RAT-2026-07-16-001` requires, each independently covered by a dedicated test reproducing every row of the Required Test Matrix, including exact-repeat idempotency and independent re-evaluation on a changed Snapshot fingerprint. Confirmed via source diff that the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, and both existing Policy Criterion predicates are byte-for-byte unmodified, and that no RFC-0005 Domain Event, `src/hosts`, or `src/adapters` file was touched. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (64/64), `npm run test` (83 files / 464 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+- One Category 6, Informational Observation recorded (`NEXUS-REV-2026-07-16-002-F-001`): a wording tension in `NEXUS-RAT-2026-07-16-001` between its Architectural Boundaries clause (permitting additive wiring of Sprint 54's contract) and its Scope Restrictions clause (prohibiting modification of Sprint 54's files), surfaced by one strictly additive field added to Sprint 54's `RatificationAttributionValidationSnapshot` to satisfy this Sprint's own binding Determinism requirement. Sprint 54's existing outcome/diagnostic logic and its own pre-existing test file remain unmodified. Does not generate a Builder Task. Sprint 55 is fully closed with zero open findings.
 
 ---
 

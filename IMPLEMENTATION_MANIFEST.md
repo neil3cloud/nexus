@@ -2273,6 +2273,48 @@ Notes:
 
 ---
 
+## Sprint 55 — Ratification and Repository-Law Integration
+
+Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-16-001`.
+
+RFC Coverage:
+
+- RFC-0011 — Engineering Governance Model v1.0 (Primary; Authority Hierarchy §, Failure and Conflict Handling §).
+- Referenced: Sprint 53's `GovernanceDecision`/`PolicyEvaluation`/`GovernanceEscalation`; Sprint 54's `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot`.
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-16-001` — governs this Sprint's entire binding scope: Validation Ordering, Escalation Attribution, Determinism and Idempotency, Architectural Boundaries, and the Required Test Matrix. Issued following one Sprint Owner "Approve With Changes" review cycle on the originating `nexus-plan` proposal.
+
+Implemented Concepts:
+
+- Additive `GovernanceService` precondition step invoking `RatificationAttributionValidationService` for the `RepositoryPolicy` version under evaluation, before Policy Criteria evaluation.
+- Two-branch outcome mapping: `Valid` → existing Sprint 53 evaluation/precedence logic unchanged; `Invalid`/`Unresolvable` → `Escalation Required` without Policy Criteria evaluation.
+- `GovernanceEscalation` extended additively with attribution-driven fields (Policy identity/version, referenced Ratification identity, attribution-validation result, attribution diagnostic, Snapshot fingerprint/version).
+- Deterministic evaluation key/idempotency mechanism extended to incorporate the Ratification Authority Snapshot fingerprint.
+- Minimal `createKernelServices` wiring change.
+
+Deferred Concepts:
+
+- Contradiction detection across multiple distinct Ratifications or Policies beyond Sprint 54's existing single-record scope.
+- General repository-law interpretation or precedence.
+- Automatic `RATIFICATION_LEDGER.md` ingestion.
+- RFC-0005 Domain Event publication.
+- Host-facing/Adapter-facing governance surfaces, durable persistence.
+- Any change to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0055-ratification-and-repository-law-integration.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify the Kernel Canon, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- This Sprint does not modify Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` behavior; both are consumed read-only.
+- This Sprint does not modify the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates — only additive extension is authorized.
+- No placeholder implementation of any deferred concept is authorized.
+- Builder implementation complete: added attribution validation as a `GovernanceService` precondition, attribution-driven escalation fields, Snapshot fingerprint-based evaluation-key determinism, minimal Kernel composition wiring, and Sprint 55 test coverage. Repository validation passed: TypeScript compile, ESLint, Vitest (83 files / 464 tests), esbuild, and extension-host bundle build.
+
+---
+
 ## Sprint 54 — Ratification Attribution Validation Foundation
 
 Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-15-017`.

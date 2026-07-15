@@ -156,6 +156,21 @@ function canonicalizeGovernanceEscalation(
     policyCriterionIds: escalation.policyCriterionIds,
     inputReferences: escalation.inputReferences,
     requiredAuthority: escalation.requiredAuthority,
+    ...(escalation.ratificationId === undefined
+      ? {}
+      : { ratificationId: escalation.ratificationId }),
+    ...(escalation.ratificationAttributionOutcome === undefined
+      ? {}
+      : { ratificationAttributionOutcome: escalation.ratificationAttributionOutcome }),
+    ...(escalation.ratificationAttributionDiagnostics === undefined
+      ? {}
+      : { ratificationAttributionDiagnostics: escalation.ratificationAttributionDiagnostics }),
+    ...(escalation.ratificationAuthoritySnapshotFingerprint === undefined
+      ? {}
+      : {
+          ratificationAuthoritySnapshotFingerprint:
+            escalation.ratificationAuthoritySnapshotFingerprint,
+        }),
   };
 }
 
