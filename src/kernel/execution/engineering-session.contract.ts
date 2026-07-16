@@ -44,6 +44,12 @@ export interface AdvanceEngineeringSessionWorkflowAfterReviewCommand {
   readonly reviewOutcome: string;
 }
 
+export interface AdvanceEngineeringSessionWorkflowAfterGovernanceDecisionCommand {
+  readonly engineeringSessionId: string;
+  readonly governanceDecisionId: string;
+  readonly currentWorkflowStepId: string;
+}
+
 export interface ExecuteCurrentWorkflowStepCommand {
   readonly engineeringSessionId: string;
   readonly executionStrategyId: string;
@@ -76,6 +82,9 @@ export interface EngineeringSessionServiceContract {
   ): Promise<EngineeringSessionSnapshot>;
   advanceWorkflowAfterReview(
     command: AdvanceEngineeringSessionWorkflowAfterReviewCommand,
+  ): Promise<EngineeringSessionSnapshot>;
+  advanceWorkflowAfterGovernanceDecision(
+    command: AdvanceEngineeringSessionWorkflowAfterGovernanceDecisionCommand,
   ): Promise<EngineeringSessionSnapshot>;
   executeCurrentWorkflowStep(
     command: ExecuteCurrentWorkflowStepCommand,

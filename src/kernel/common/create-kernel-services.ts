@@ -15,6 +15,7 @@ import { EngineeringRoleProfileService } from '../execution/engineering-role-pro
 import { InMemoryEngineeringSessionCheckpointRepository } from '../execution/engineering-session-checkpoint.repository';
 import { InMemoryEngineeringSessionRepository } from '../execution/engineering-session.repository';
 import { EngineeringSessionService } from '../execution/engineering-session.service';
+import { GovernanceGatedWorkflowAdvancementConsumer } from '../execution/governance-gated-workflow-advancement.consumer';
 import { InMemoryExecutionSessionRepository } from '../execution/execution-session.repository';
 import { ExecutionSessionService } from '../execution/execution-session.service';
 import { InMemoryExecutionStrategyRepository } from '../execution/execution-strategy.repository';
@@ -106,6 +107,8 @@ export function createKernelServices(
     executionSessionService,
     assignmentPolicyService,
     engineeringSessionCheckpointRepository,
+    governanceDecisionRepository,
+    reviewRepository,
   );
   const missionEngineeringOrchestrationService = new MissionEngineeringOrchestrationService(
     missionEngineeringGroupRepository,
@@ -125,6 +128,7 @@ export function createKernelServices(
     new RoleService(roleRegistry, roleAssignmentRepository),
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     engineeringSessionService,
+    new GovernanceGatedWorkflowAdvancementConsumer(engineeringSessionService),
     missionEngineeringOrchestrationService,
     executionSessionService,
     new WorkflowChainService(workflowChainRepository),

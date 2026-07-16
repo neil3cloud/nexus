@@ -2,6 +2,7 @@ import { EngineeringSessionId } from './engineering-session-id';
 import { EngineeringSessionStatus } from './engineering-session-status';
 import { AdvancementTrigger } from './advancement-trigger';
 import { ReviewOutcome } from '../review/review-values';
+import type { GovernanceDecisionSnapshot } from '../governance/governance.types';
 import type {
   EngineeringSessionDiagnosticInput,
   EngineeringSessionDiagnosticSnapshot,
@@ -228,6 +229,26 @@ export class EngineeringSession {
     this.advanceWorkflow(workflowChain);
   }
 
+  public advanceWorkflowAfterGovernanceDecision(
+    reviewOutcome: ReviewOutcome,
+    governanceDecision: GovernanceDecisionSnapshot,
+    workflowChain: WorkflowChain | undefined,
+    currentWorkflowStepId: string,
+  ): void {
+    const governedWorkflowStepPosition = normalizeWorkflowStepPosition(
+      currentWorkflowStepId,
+      'EngineeringSession Governance-Gated Advancement currentWorkflowStepId',
+    );
+
+    if (this.currentWorkflowStepIdValue !== governedWorkflowStepPosition.toString()) {
+      return;
+    }
+
+    assertNonBlockingReviewOutcome(reviewOutcome);
+    assertNonBlockingGovernanceDecision(governanceDecision);
+    this.advanceWorkflow(workflowChain);
+  }
+
   public executeCurrentWorkflowStep(
     workflowChain: WorkflowChain | undefined,
   ): EngineeringSessionCurrentWorkflowStepExecutionTarget {
@@ -359,6 +380,18 @@ function assertNonBlockingReviewOutcome(reviewOutcome: ReviewOutcome): void {
 
   throw new InvalidEngineeringSessionDefinitionError(
     `EngineeringSession Review-Gated Advancement requires a Non-Blocking Review Outcome; received '${outcome}'.`,
+  );
+}
+
+function assertNonBlockingGovernanceDecision(
+  governanceDecision: GovernanceDecisionSnapshot,
+): void {
+  if (governanceDecision.value === 'Approved') {
+    return;
+  }
+
+  throw new InvalidEngineeringSessionDefinitionError(
+    'EngineeringSession Governance-Gated Advancement requires a Non-Blocking Governance Decision.',
   );
 }
 

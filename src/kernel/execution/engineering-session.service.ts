@@ -4,6 +4,8 @@ import { ServiceLifecycle } from '../common/service-lifecycle';
 import { AdapterRequest } from '../adapter/adapter-request';
 import type { AdapterService } from '../adapter/adapter.service';
 import { KernelError } from '../common/kernel-error';
+import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
+import type { IReviewRepository } from '../review/review.repository';
 import { AdvancementTrigger } from './advancement-trigger';
 import type { AssignmentPolicyService } from './assignment-policy.service';
 import type { AssignmentPolicyEvaluationResult } from './assignment-policy.types';
@@ -15,6 +17,7 @@ import {
 } from './engineering-session-checkpoint.repository';
 import type {
   AdvanceEngineeringSessionWorkflowCommand,
+  AdvanceEngineeringSessionWorkflowAfterGovernanceDecisionCommand,
   AdvanceEngineeringSessionWorkflowAfterReviewCommand,
   AdvanceEngineeringSessionWorkflowOnTriggerCommand,
   CloseEngineeringSessionCommand,
@@ -97,6 +100,8 @@ export class EngineeringSessionService
     >,
     private readonly checkpointRepository: IEngineeringSessionCheckpointRepository =
       new InMemoryEngineeringSessionCheckpointRepository(),
+    private readonly governanceDecisionRepository?: Pick<IGovernanceDecisionRepository, 'getById'>,
+    private readonly reviewRepository?: Pick<IReviewRepository, 'getById'>,
   ) {
     super('EngineeringSessionService');
   }
@@ -182,6 +187,47 @@ export class EngineeringSessionService
     const reviewOutcome = ReviewOutcome.fromString(command.reviewOutcome);
 
     engineeringSession.advanceWorkflowAfterReview(reviewOutcome, workflowChain);
+    await this.repository.save(engineeringSession);
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflowAfterGovernanceDecision(
+    command: AdvanceEngineeringSessionWorkflowAfterGovernanceDecisionCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const governanceDecisionRepository = this.requireGovernanceDecisionRepository();
+    const reviewRepository = this.requireReviewRepository();
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const governanceDecisionId = normalizeCreationReference(
+      command.governanceDecisionId,
+      'EngineeringSession governanceDecisionId',
+    );
+    const governanceDecision = await governanceDecisionRepository.getById(governanceDecisionId);
+
+    if (governanceDecision === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        `EngineeringSession Governance-Gated Advancement requires a produced GovernanceDecision '${governanceDecisionId}'.`,
+      );
+    }
+
+    const governanceDecisionSnapshot = governanceDecision.toSnapshot();
+    const review = await reviewRepository.getById(governanceDecisionSnapshot.reviewId);
+    const reviewOutcome = review?.outcome;
+
+    if (reviewOutcome === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        `EngineeringSession Governance-Gated Advancement requires a completed Review '${governanceDecisionSnapshot.reviewId}'.`,
+      );
+    }
+
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+
+    engineeringSession.advanceWorkflowAfterGovernanceDecision(
+      reviewOutcome,
+      governanceDecisionSnapshot,
+      workflowChain,
+      command.currentWorkflowStepId,
+    );
     await this.repository.save(engineeringSession);
 
     return engineeringSession.toSnapshot();
@@ -532,6 +578,26 @@ export class EngineeringSessionService
     }
 
     return this.assignmentPolicyService;
+  }
+
+  private requireGovernanceDecisionRepository(): Pick<IGovernanceDecisionRepository, 'getById'> {
+    if (this.governanceDecisionRepository === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Governance-Gated Advancement requires GovernanceDecision repository.',
+      );
+    }
+
+    return this.governanceDecisionRepository;
+  }
+
+  private requireReviewRepository(): Pick<IReviewRepository, 'getById'> {
+    if (this.reviewRepository === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Governance-Gated Advancement requires Review repository.',
+      );
+    }
+
+    return this.reviewRepository;
   }
 }
 

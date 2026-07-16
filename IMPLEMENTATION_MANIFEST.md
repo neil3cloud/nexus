@@ -2164,7 +2164,7 @@ Notes:
 
 # Milestone 9 — Engineering Governance Automation
 
-Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-001`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-017`; Sprint 55 — Ratification and Repository-Law Integration is ✅ Approved — `NEXUS-REV-2026-07-16-002`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-16-001`; Sprint 56 — Governance Decision Domain Event Publication is Second Recovery Remediation Implemented — Pending Recovery Review, authorized by `NEXUS-RAT-2026-07-16-002` and remediated under `NEXUS-RAT-2026-07-16-003`/`NEXUS-RAT-2026-07-16-004`)
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-001`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-017`; Sprint 55 — Ratification and Repository-Law Integration is ✅ Approved — `NEXUS-REV-2026-07-16-002`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-16-001`; Sprint 56 — Governance Decision Domain Event Publication is ✅ Approved with Findings — `NEXUS-REV-2026-07-16-006`, fully closed with one Category 4, Informational finding and zero open findings of any blocking category, authorized by `NEXUS-RAT-2026-07-16-002` and remediated under `NEXUS-RAT-2026-07-16-003`/`NEXUS-RAT-2026-07-16-004`; Sprint 57 — Governance-Gated Workflow Advancement is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-16-006`)
 
 RFC Coverage:
 
@@ -2270,6 +2270,40 @@ Notes:
 - Builder implementation complete: added deterministic governance evaluation/decision domain, in-memory append-only decision repository, thin `GovernanceService`, minimal Kernel composition, and 36 Sprint 53 tests. Repository validation passed: TypeScript compile, ESLint, Vitest (82 files / 442 tests), esbuild, and extension-host bundle build.
 - TASK-001 remediation complete: narrowed `InMemoryGovernanceDecisionRepository` duplicate-registration equivalence to semantic decision content only, excluding non-semantic decision/evaluation/escalation identifiers and attribution timestamp while preserving contradictory duplicate rejection. Added regression coverage; targeted validation passed at 37 Sprint 53 tests.
 - DOC-001 documentation correction complete: `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary corrected to "82 files, 442 tests." Verified by `NEXUS-REV-2026-07-15-012`. Sprint 53 is fully closed with zero open findings of any category across `NEXUS-REV-2026-07-15-010`, `-011`, and `-012`.
+
+---
+
+## Sprint 57 — Governance-Gated Workflow Advancement
+
+Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-16-006`; RFC-0004 amended to v1.11 by `NEXUS-RAT-2026-07-16-005`.
+
+RFC Coverage:
+
+- RFC-0004 v1.11 — Execution Model (Primary; Workflow Advancement § Governance-Gated Advancement; Non-Blocking/Blocking Governance Decision classification).
+- RFC-0011 v1.1 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only and unmodified).
+- RFC-0010 — Kernel Boundaries (Referenced).
+
+Authorized Concepts:
+
+- `EngineeringSession.advanceWorkflowAfterGovernanceDecision`, preserving existing Manual, Automatic/Event-Driven, and Review-Gated advancement operations.
+- `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision`, retrieving an already-produced persisted `GovernanceDecision`, resolving the associated completed Review outcome, delegating eligibility/mutation to `EngineeringSession`, and persisting only the resulting Engineering Session state.
+- `GovernanceGatedWorkflowAdvancementConsumer`, a narrowly scoped `GovernanceDecisionRecorded` event consumer that extracts the persisted Governance Decision identity and delegates to `EngineeringSessionService`.
+- Minimal `createKernelServices` wiring for the new consumer and the existing Governance Decision / Review repository dependencies.
+
+Deferred Concepts:
+
+- Recovery Requirement records; recovery-plan generation.
+- Differentiated Engineering Session state for Rejected, Deferred, or Escalation Required Governance Decisions.
+- Governed Mission Completion or Mission completion precondition changes.
+- General-purpose event subscription/routing, Host or Adapter surfacing, and any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- `Approved` is the only Non-Blocking Governance Decision for Governance-Gated Advancement.
+- `Rejected`, `Deferred`, and `Escalation Required` produce the same uniform Advancement Failure and do not advance the workflow position.
+- Repeated invocation or duplicate `GovernanceDecisionRecorded` handling for the same governed WorkflowStep is idempotent and produces no duplicate advancement.
+- `GovernanceService`, `GovernanceDecision`, `EventBusContract`, `DomainEvent`, `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, and `AssignmentPolicy` remain unmodified.
+- Builder implementation complete: targeted Sprint 57 validation passed (61 tests); repository validation passed with TypeScript compile, ESLint, Vitest (83 files / 482 tests), esbuild, and extension-host bundle build.
 
 ---
 

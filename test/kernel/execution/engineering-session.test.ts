@@ -11,6 +11,7 @@ import { EngineeringSessionStatus } from '../../../src/kernel/execution/engineer
 import type { EngineeringSessionInput } from '../../../src/kernel/execution/engineering-session.types';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { WorkflowChainId } from '../../../src/kernel/execution/workflow-chain-id';
+import type { GovernanceDecisionSnapshot } from '../../../src/kernel/governance/governance.types';
 import { ReviewOutcome } from '../../../src/kernel/review/review-values';
 
 const workflowChain = WorkflowChain.create({
@@ -353,6 +354,74 @@ describe('EngineeringSession domain', () => {
     expect(left.toSnapshot()).toEqual(right.toSnapshot());
   });
 
+  it('advances once for Non-Blocking Review and Governance decisions', () => {
+    const session = createSession();
+
+    session.advanceWorkflowAfterGovernanceDecision(
+      ReviewOutcome.fromString('Accepted'),
+      createGovernanceDecisionSnapshot('Approved'),
+      workflowChain,
+      '0',
+    );
+
+    expect(session.currentWorkflowStepId).toBe('1');
+  });
+
+  it.each(['Rejected', 'Deferred', 'Escalation Required'] as const)(
+    'rejects Blocking Governance Decision %s with a uniform Advancement Failure',
+    (governanceDecisionValue) => {
+      const session = createSession();
+
+      expect(() =>
+        session.advanceWorkflowAfterGovernanceDecision(
+          ReviewOutcome.fromString('Accepted'),
+          createGovernanceDecisionSnapshot(governanceDecisionValue),
+          workflowChain,
+          '0',
+        ),
+      ).toThrow(
+        new InvalidEngineeringSessionDefinitionError(
+          'EngineeringSession Governance-Gated Advancement requires a Non-Blocking Governance Decision.',
+        ),
+      );
+      expect(session.currentWorkflowStepId).toBe('0');
+    },
+  );
+
+  it('rejects Governance approval without Review-Gated eligibility', () => {
+    const session = createSession();
+
+    expect(() =>
+      session.advanceWorkflowAfterGovernanceDecision(
+        ReviewOutcome.fromString('Action Required'),
+        createGovernanceDecisionSnapshot('Approved'),
+        workflowChain,
+        '0',
+      ),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(session.currentWorkflowStepId).toBe('0');
+  });
+
+  it('treats duplicate GovernanceDecisionRecorded delivery as idempotent for the governed WorkflowStep', () => {
+    const session = createSession();
+    const governanceDecision = createGovernanceDecisionSnapshot('Approved');
+
+    session.advanceWorkflowAfterGovernanceDecision(
+      ReviewOutcome.fromString('Accepted'),
+      governanceDecision,
+      workflowChain,
+      '0',
+    );
+    session.advanceWorkflowAfterGovernanceDecision(
+      ReviewOutcome.fromString('Accepted'),
+      governanceDecision,
+      workflowChain,
+      '0',
+    );
+
+    expect(session.currentWorkflowStepId).toBe('1');
+  });
+
   it('rejects invalid session definitions deterministically', () => {
     expect(() =>
       EngineeringSession.create(createSessionInput({ id: '' }), workflowChain),
@@ -455,4 +524,23 @@ describe('EngineeringSession domain', () => {
       currentWorkflowStepId: '2',
     });
   });
+
+  function createGovernanceDecisionSnapshot(
+    value: GovernanceDecisionSnapshot['value'],
+  ): GovernanceDecisionSnapshot {
+    return Object.freeze({
+      id: 'governance-decision-1',
+      missionId: 'mission-1',
+      value,
+      repositoryPolicyId: 'repository-policy-1',
+      repositoryPolicyVersion: 1,
+      reviewId: 'review-1',
+      reviewStateReference: 'review-state-1',
+      policyEvaluationId: 'policy-evaluation-1',
+      evaluationKey: 'repository-policy-1:1:mission-1:review-1:review-state-1',
+      criterionResults: Object.freeze([]),
+      evaluatedAt: '2026-07-16T00:00:00.000Z',
+      explanationCodes: Object.freeze(['governance-decision.test']),
+    });
+  }
 });

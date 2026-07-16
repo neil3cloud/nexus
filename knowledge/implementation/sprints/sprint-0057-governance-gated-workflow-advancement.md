@@ -1,6 +1,6 @@
 # Sprint 57 — Governance-Gated Workflow Advancement
 
-**Status:** 🟡 Authorized — Awaiting Implementation. RFC-0004 amended to v1.11 by `NEXUS-RAT-2026-07-16-005`; Sprint scope authorized by `NEXUS-RAT-2026-07-16-006`, narrowed from a broader initially-proposed scope following `nexus-plan`'s Governance Report. Milestone 9's sixth Sprint.
+**Status:** ✅ Approved — `NEXUS-REV-2026-07-16-008` (TASK-001 Resolution Verification; fully closed with zero open findings of any category). Originally Approved with Findings under `NEXUS-REV-2026-07-16-007` (one Category 1, Minor finding, `NEXUS-REV-2026-07-16-007-F-001`, resolved via TASK-001 Option B). RFC-0004 amended to v1.11 by `NEXUS-RAT-2026-07-16-005`; Sprint scope authorized by `NEXUS-RAT-2026-07-16-006`, narrowed from a broader initially-proposed scope following `nexus-plan`'s Governance Report. Milestone 9's sixth Sprint.
 
 ---
 
@@ -197,15 +197,55 @@ These are implementation boundaries, not defects.
 
 ### Builder Results
 
-Pending Builder implementation.
+Implemented — Pending Reviewer Validation.
+
+Implemented scope:
+
+- Added `EngineeringSession.advanceWorkflowAfterGovernanceDecision`, reusing existing Review-Gated eligibility and workflow-position advancement semantics while adding RFC-0004 v1.11's Governance Decision eligibility check.
+- Added `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision`, which retrieves the persisted `GovernanceDecision`, resolves its completed Review outcome, delegates mutation to the aggregate, and persists the resulting Engineering Session.
+- Added `GovernanceGatedWorkflowAdvancementConsumer` for narrowly scoped `GovernanceDecisionRecorded` handling; the consumer extracts the persisted Governance Decision identity and delegates all eligibility/mutation to the service operation.
+- Added minimal `createKernelServices` wiring for the new consumer and existing repository dependencies.
+- Added tests covering Approved/Approved advancement, Rejected/Deferred/Escalation Required blocking, Governance approval without Review eligibility, Review approval without a produced Governance Decision, duplicate event/idempotency behavior, and preservation of Manual, Automatic/Event-Driven, and Review-Gated advancement behavior.
+
+Validation summary:
+
+- Targeted Sprint 57 tests passed: `engineering-session.test.ts` and `engineering-session.service.test.ts` (61 tests).
+- Repository validation passed: TypeScript compile, ESLint, Vitest (83 files / 482 tests), and esbuild.
+- Extension-host bundle build passed.
+
+No architectural deviations.
 
 ### Reviewer Notes
 
-Pending Reviewer review.
+**Status:** PASS WITH FINDINGS
+
+Reviewer validation complete (`NEXUS-REV-2026-07-16-007`). Confirmed `EngineeringSession.advanceWorkflowAfterGovernanceDecision` reuses the existing `assertNonBlockingReviewOutcome` unchanged, adds a new `assertNonBlockingGovernanceDecision` classifying exactly `Approved` as Non-Blocking and `Rejected`/`Deferred`/`Escalation Required` identically as uniform Blocking (no differentiated treatment, record, or state per value), and delegates position mutation to the existing, unmodified `advanceWorkflow`. Confirmed `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision` and `GovernanceGatedWorkflowAdvancementConsumer` own no eligibility logic themselves. Confirmed via `git diff --stat` and source inspection that `GovernanceService`, `GovernanceDecision`, `GovernanceEscalation`, `EventBusContract`, `DomainEvent`, `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, `AssignmentPolicy`, `src/hosts`, and `src/adapters` are all byte-for-byte unmodified, and that Manual, Automatic/Event-Driven, and Review-Gated Advancement are unaffected (confirmed by a dedicated regression test). All ten Required Test Matrix rows are covered, including idempotent duplicate delivery at both the aggregate and consumer level. Independent re-validation confirmed `tsc --noEmit`, `npm run lint`, `npm run test` (83 files / 482 tests, matching the Builder's reported count), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+
+One Category 1, Minor finding recorded (`NEXUS-REV-2026-07-16-007-F-001`): the new, optional `IReviewRepository`/`IGovernanceDecisionRepository` dependencies added to `EngineeringSessionService` this Sprint diverge from Sprint 46's established precedent of a caller-supplied `reviewOutcome` string with no Review repository coupling. This is a design-consistency observation, not a correctness defect; it does not block approval and does not require Sprint Owner ratification to leave as implemented.
+
+See `REVIEW_HISTORY.md` § `NEXUS-REV-2026-07-16-007` for the complete review, including the full Architectural Compliance Summary and Deferred Concept Validation.
 
 ### Final Disposition
 
-Pending.
+**Approved with Findings.** Sprint 57 is approved. One Category 1, Minor finding (`NEXUS-REV-2026-07-16-007-F-001`) is non-blocking and does not require remediation before approval; an optional harmonization Builder Task may be generated via `nexus-sprint` at the Sprint Owner's discretion. No further Milestone 9 Sprint is Current: Sprint 58 (Governance Recovery and Blocking-State Foundation) and Sprint 59 (Governed Mission Completion) each remain unauthorized pending their own future RFC amendment and Sprint Owner scope ratification via `nexus-plan`.
+
+Date: 2026-07-16
+Reviewer: Reviewer AI (Claude Code)
+Review Reference: `NEXUS-REV-2026-07-16-007`
+
+### TASK-001 Resolution Verification Notes — `NEXUS-REV-2026-07-16-008`
+
+**Status:** PASS
+
+TASK-001 Resolution Verification complete. The Builder selected Option B: `IMPLEMENTATION_REPORT.md`'s Sprint 57 § Architectural Assumptions now documents the rationale for accepting direct repository resolution as the go-forward design for Governance-Gated Advancement, diverging intentionally from Sprint 46's caller-supplied-outcome pattern because the persisted `GovernanceDecision` (not the Review alone) is this Strategy's authoritative trigger. Confirmed via `git diff --stat` that no source or test file was modified — only `IMPLEMENTATION_REPORT.md` changed (one line). Independent re-validation confirmed `tsc --noEmit`, `npm run lint`, `npm run test` (83 files / 482 tests, unchanged), `npm run build`, and `npm run test:extension-host:build` all pass cleanly. `NEXUS-REV-2026-07-16-007-F-001` is confirmed **Resolved**. No new finding is identified.
+
+### TASK-001 Resolution Verification Final Disposition
+
+**Approved.** Sprint 57 is now fully closed with zero open findings of any category. No further Milestone 9 Sprint is Current: Sprint 58 and Sprint 59 each remain unauthorized pending their own future RFC amendment and Sprint Owner scope ratification via `nexus-plan`.
+
+Date: 2026-07-16
+Reviewer: Reviewer AI (Claude Code)
+Review Reference: `NEXUS-REV-2026-07-16-008`
 
 ---
 
@@ -216,7 +256,7 @@ Pending.
 | Sprint | Sprint 57 |
 | Primary RFCs | RFC-0004 v1.11 (amended by `NEXUS-RAT-2026-07-16-005`), RFC-0011 v1.1 (Referenced, unmodified) |
 | Ratifications | `NEXUS-RAT-2026-07-16-005` (RFC-0004 v1.11 amendment), `NEXUS-RAT-2026-07-16-006` (Sprint 57 scope, narrowed) |
-| Reviews | Pending |
+| Reviews | `NEXUS-REV-2026-07-16-007` (Approved with Findings), `NEXUS-REV-2026-07-16-008` (TASK-001 Resolution Verification; **Approved**, fully closed) |
 | Implementation Plan | `IMPLEMENTATION_PLAN.md` |
 | Implementation Manifest | `IMPLEMENTATION_MANIFEST.md` |
 | Implementation Report | `IMPLEMENTATION_REPORT.md` |

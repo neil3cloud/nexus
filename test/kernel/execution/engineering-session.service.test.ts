@@ -18,6 +18,8 @@ import {
 } from '../../../src/kernel/execution/engineering-session.errors';
 import { InvalidAdvancementTriggerDefinitionError } from '../../../src/kernel/execution/advancement-trigger.errors';
 import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
+import { GovernanceGatedWorkflowAdvancementConsumer } from '../../../src/kernel/execution/governance-gated-workflow-advancement.consumer';
+import { InMemoryEngineeringSessionCheckpointRepository } from '../../../src/kernel/execution/engineering-session-checkpoint.repository';
 import { InMemoryEngineeringSessionRepository } from '../../../src/kernel/execution/engineering-session.repository';
 import { EngineeringSessionService } from '../../../src/kernel/execution/engineering-session.service';
 import { ExecutionSessionService } from '../../../src/kernel/execution/execution-session.service';
@@ -29,9 +31,16 @@ import { InMemoryRoleRegistry } from '../../../src/kernel/execution/role-registr
 import { RoleService } from '../../../src/kernel/execution/role.service';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { InMemoryWorkflowChainRepository } from '../../../src/kernel/execution/workflow-chain.repository';
+import { GovernanceDecision } from '../../../src/kernel/governance/governance-decision';
+import { InMemoryGovernanceDecisionRepository } from '../../../src/kernel/governance/governance-decision.repository';
+import { createGovernanceDecisionRecordedEvent } from '../../../src/kernel/governance/governance.events';
+import type { GovernanceDecisionValue } from '../../../src/kernel/governance/governance.types';
 import { InMemoryMissionRepository } from '../../../src/kernel/mission/mission.repository';
 import { MissionPlanningService } from '../../../src/kernel/mission/mission-planning.service';
 import { MissionService } from '../../../src/kernel/mission/mission.service';
+import { Review } from '../../../src/kernel/review/review.aggregate';
+import { InMemoryReviewRepository } from '../../../src/kernel/review/review.repository';
+import type { ReviewOutcomeValue } from '../../../src/kernel/review/review.types';
 
 class TestEventBus implements EventBusContract {
   private readonly events: EventBusEvent[] = [];
@@ -789,6 +798,135 @@ describe('EngineeringSessionService', () => {
     });
   });
 
+  it('advances after an Approved Review and Approved GovernanceDecision', async () => {
+    const harness = await createGovernanceGatedAdvancementHarness();
+
+    const advanced = await harness.service.advanceWorkflowAfterGovernanceDecision({
+      engineeringSessionId: harness.engineeringSessionId,
+      governanceDecisionId: harness.governanceDecisionId,
+      currentWorkflowStepId: '0',
+    });
+
+    expect(advanced.currentWorkflowStepId).toBe('1');
+  });
+
+  it.each(['Rejected', 'Deferred', 'Escalation Required'] as const)(
+    'rejects Governance-Gated Advancement for Blocking GovernanceDecision %s',
+    async (governanceDecisionValue) => {
+      const harness = await createGovernanceGatedAdvancementHarness({
+        governanceDecisionValue,
+      });
+
+      await expect(
+        harness.service.advanceWorkflowAfterGovernanceDecision({
+          engineeringSessionId: harness.engineeringSessionId,
+          governanceDecisionId: harness.governanceDecisionId,
+          currentWorkflowStepId: '0',
+        }),
+      ).rejects.toThrow(
+        new InvalidEngineeringSessionDefinitionError(
+          'EngineeringSession Governance-Gated Advancement requires a Non-Blocking Governance Decision.',
+        ),
+      );
+      await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+        currentWorkflowStepId: '0',
+      });
+    },
+  );
+
+  it('rejects Governance approval without Review-Gated Advancement eligibility', async () => {
+    const harness = await createGovernanceGatedAdvancementHarness({
+      reviewOutcome: 'Action Required',
+    });
+
+    await expect(
+      harness.service.advanceWorkflowAfterGovernanceDecision({
+        engineeringSessionId: harness.engineeringSessionId,
+        governanceDecisionId: harness.governanceDecisionId,
+        currentWorkflowStepId: '0',
+      }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('rejects Review approval without a produced GovernanceDecision', async () => {
+    const harness = await createGovernanceGatedAdvancementHarness({
+      registerGovernanceDecision: false,
+    });
+
+    await expect(
+      harness.service.advanceWorkflowAfterGovernanceDecision({
+        engineeringSessionId: harness.engineeringSessionId,
+        governanceDecisionId: harness.governanceDecisionId,
+        currentWorkflowStepId: '0',
+      }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('handles duplicate GovernanceDecisionRecorded delivery without duplicate advancement', async () => {
+    const harness = await createGovernanceGatedAdvancementHarness();
+    const consumer = new GovernanceGatedWorkflowAdvancementConsumer(harness.service);
+    const event = createGovernanceDecisionRecordedEvent(harness.governanceDecision, {
+      eventId: 'event-governance-decision-recorded',
+      timestamp: '2026-07-16T00:00:00.000Z',
+    });
+
+    const first = await consumer.handleGovernanceDecisionRecorded({
+      event,
+      engineeringSessionId: harness.engineeringSessionId,
+      currentWorkflowStepId: '0',
+    });
+    const duplicate = await consumer.handleGovernanceDecisionRecorded({
+      event,
+      engineeringSessionId: harness.engineeringSessionId,
+      currentWorkflowStepId: '0',
+    });
+
+    expect(first.currentWorkflowStepId).toBe('1');
+    expect(duplicate.currentWorkflowStepId).toBe('1');
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '1',
+    });
+  });
+
+  it('keeps existing Manual, Automatic/Event-Driven, and Review-Gated advancement behavior unchanged', async () => {
+    const service = new EngineeringSessionService(
+      new InMemoryEngineeringSessionRepository(),
+      await createWorkflowChainRepository(),
+      () => 'unused-generated-session-id',
+      createTimestampSequence([
+        '2026-07-16T00:00:00.000Z',
+        '2026-07-16T00:01:00.000Z',
+        '2026-07-16T00:02:00.000Z',
+      ]),
+    );
+
+    await createEngineeringSessionForAdvancement(service, 'manual-session');
+    await createEngineeringSessionForAdvancement(service, 'automatic-session');
+    await createEngineeringSessionForAdvancement(service, 'review-session');
+
+    await expect(
+      service.advanceWorkflow({ engineeringSessionId: 'manual-session' }),
+    ).resolves.toMatchObject({ currentWorkflowStepId: '1' });
+    await expect(
+      service.advanceWorkflowOnTrigger({
+        engineeringSessionId: 'automatic-session',
+        trigger: { fact: 'workflow-position-eligible' },
+      }),
+    ).resolves.toMatchObject({ currentWorkflowStepId: '1' });
+    await expect(
+      service.advanceWorkflowAfterReview({
+        engineeringSessionId: 'review-session',
+        reviewOutcome: 'Accepted With Observations',
+      }),
+    ).resolves.toMatchObject({ currentWorkflowStepId: '1' });
+  });
+
   it('executes the current WorkflowStep through strategy readiness, explicit Adapter dispatch, and ExecutionSession recording', async () => {
     const harness = await createWorkflowExecutionHarness();
     const workflow = await createReadyWorkflowExecutionScenario(harness, 'success');
@@ -1465,6 +1603,103 @@ async function createWorkflowExecutionHarness(
     executionStrategyService,
     adapter,
   };
+}
+
+async function createGovernanceGatedAdvancementHarness(input: {
+  readonly reviewOutcome?: ReviewOutcomeValue;
+  readonly governanceDecisionValue?: GovernanceDecisionValue;
+  readonly registerGovernanceDecision?: boolean;
+} = {}): Promise<{
+  readonly service: EngineeringSessionService;
+  readonly governanceDecision: GovernanceDecision;
+  readonly governanceDecisionId: string;
+  readonly engineeringSessionId: string;
+}> {
+  const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+  const workflowChainRepository = await createWorkflowChainRepository();
+  const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
+  const reviewRepository = new InMemoryReviewRepository();
+  const service = new EngineeringSessionService(
+    engineeringSessionRepository,
+    workflowChainRepository,
+    () => 'unused-generated-session-id',
+    createTimestampSequence(['2026-07-16T00:00:00.000Z']),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    new InMemoryEngineeringSessionCheckpointRepository(),
+    governanceDecisionRepository,
+    reviewRepository,
+  );
+  const review = createCompletedReview(input.reviewOutcome ?? 'Accepted');
+  const governanceDecision = createGovernanceDecision(input.governanceDecisionValue ?? 'Approved');
+  const engineeringSessionId = 'engineering-session-governance-gated';
+
+  await reviewRepository.create(review);
+  if (input.registerGovernanceDecision ?? true) {
+    await governanceDecisionRepository.register(governanceDecision);
+  }
+  await createEngineeringSessionForAdvancement(service, engineeringSessionId);
+
+  return {
+    service,
+    governanceDecision,
+    governanceDecisionId: governanceDecision.id.toString(),
+    engineeringSessionId,
+  };
+}
+
+async function createEngineeringSessionForAdvancement(
+  service: EngineeringSessionService,
+  id: string,
+): Promise<void> {
+  await service.createEngineeringSession({
+    id,
+    engineeringRuntimeContextReference: `runtime-context-${id}`,
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
+    participatingRoleIds: ['builder', 'reviewer'],
+    workflowState: 'active',
+  });
+}
+
+function createCompletedReview(outcome: ReviewOutcomeValue): Review {
+  const review = Review.create({
+    id: 'review-governance-gated',
+    missionId: 'mission-governance-gated',
+    missionPlanRevision: 'mission-plan-revision-governance-gated',
+    reviewCriteria: [{ id: 'review-criteria-1', description: 'Review criteria.' }],
+    evidenceReferences: ['evidence-1'],
+  });
+  const metadata = {
+    eventId: 'event-review-governance-gated',
+    timestamp: '2026-07-16T00:00:00.000Z',
+  };
+
+  review.start(metadata);
+  review.complete(outcome, metadata, metadata);
+  review.pullDomainEvents();
+
+  return review;
+}
+
+function createGovernanceDecision(value: GovernanceDecisionValue): GovernanceDecision {
+  return GovernanceDecision.fromSnapshot({
+    id: 'governance-decision-governance-gated',
+    missionId: 'mission-governance-gated',
+    value,
+    repositoryPolicyId: 'repository-policy-governance-gated',
+    repositoryPolicyVersion: 1,
+    reviewId: 'review-governance-gated',
+    reviewStateReference: 'review-state-governance-gated',
+    policyEvaluationId: 'policy-evaluation-governance-gated',
+    evaluationKey: 'repository-policy-governance-gated:1:mission-governance-gated',
+    criterionResults: [],
+    evaluatedAt: '2026-07-16T00:00:00.000Z',
+    explanationCodes: ['governance-gated-advancement.test'],
+  });
 }
 
 function createSatisfiedAssignmentPolicyEvaluationInput(): {

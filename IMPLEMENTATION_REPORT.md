@@ -1,5 +1,91 @@
 # Nexus Implementation Report
 
+## Sprint 57 — Governance-Gated Workflow Advancement
+
+### Implemented Slice
+
+Implemented the Milestone 9 Sprint 57 Governance-Gated Workflow Advancement vertical slice. This sprint adds RFC-0004 v1.11's Governance-Gated Advancement Strategy to `EngineeringSession` while consuming RFC-0011 `GovernanceDecision` as immutable, read-only input.
+
+Implemented scope:
+
+- Added `EngineeringSession.advanceWorkflowAfterGovernanceDecision`.
+- Added `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision`.
+- Added `GovernanceGatedWorkflowAdvancementConsumer` for narrowly scoped `GovernanceDecisionRecorded` event handling.
+- Wired the new consumer through `createKernelServices`.
+- Added tests for Approved advancement, all three uniform Blocking Governance Decision values, missing Governance Decision, Review-Gated ineligibility, duplicate event/idempotency behavior, and preservation of existing non-governance advancement behavior.
+
+Out of scope and not implemented:
+
+- Recovery Requirement records, recovery-plan generation, differentiated Rejected/Deferred/Escalation-Required Engineering Session state, Governed Mission Completion, Host/Adapter surfacing, and general-purpose event routing.
+- Any change to `GovernanceService`, `GovernanceDecision`, `EventBusContract`, `DomainEvent`, `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, `AssignmentPolicy`, `src/hosts`, or `src/adapters`.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 v1.11 — Execution Model, Workflow Advancement § Governance-Gated Advancement.
+
+Referenced RFCs:
+
+- RFC-0011 v1.1 — Engineering Governance Model (`GovernanceDecision` consumed read-only and unmodified).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- Governance-Gated Advancement operation on `EngineeringSession`.
+- Non-Blocking Governance Decision classification: `Approved`.
+- Uniform Blocking Governance Decision classification: `Rejected`, `Deferred`, `Escalation Required`.
+- Idempotent duplicate handling for the same governed WorkflowStep.
+- Narrow `GovernanceDecisionRecorded` consumer delegation.
+
+Deferred Concepts:
+
+- Recovery Requirement records; recovery-plan generation.
+- Differentiated Engineering Session state for Rejected, Deferred, or Escalation Required Governance Decisions.
+- Governed Mission Completion or Mission completion precondition changes.
+- General-purpose event subscription/routing and Host/Adapter surfaces.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-005`, `NEXUS-RAT-2026-07-16-006`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0057-governance-gated-workflow-advancement.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Existing Review-Gated eligibility is represented by the persisted Review outcome associated with the persisted `GovernanceDecision.reviewId`.
+- Because `GovernanceService` exposes evaluation but no read operation, and Sprint 57 forbids modifying `GovernanceService`, the service operation retrieves the already-produced `GovernanceDecision` through the existing `IGovernanceDecisionRepository` contract.
+- TASK-001 Option B resolution: direct repository resolution is accepted for Governance-Gated Advancement because its authoritative trigger is a persisted `GovernanceDecision`, not a caller-supplied Review-only gate. This intentionally diverges from Sprint 46's caller-supplied `reviewOutcome` precedent only for this strategy: the Review outcome is resolved from the persisted Governance Decision's `reviewId` so the Governance Decision and Review eligibility inputs remain coupled to the same recorded governing evaluation.
+- `GovernanceDecisionRecorded` does not carry an Engineering Session identity; the narrow consumer therefore requires the caller to supply the target Engineering Session and governed WorkflowStep context, and performs no eligibility or mutation logic itself.
+
+### Known Limitations
+
+- Governance-Gated Advancement gates workflow advancement only.
+- The consumer is narrowly scoped and does not introduce a general event subscription/routing framework.
+- Host/Adapter surfacing remains deferred.
+
+### Validation Summary
+
+- Targeted Sprint 57 validation passed: `npm run test -- test/kernel/execution/engineering-session.test.ts test/kernel/execution/engineering-session.service.test.ts` (61 tests).
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 83 files, 482 tests.
+- Extension-host bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 56 — Governance Decision Domain Event Publication
 
 ### Implemented Slice
