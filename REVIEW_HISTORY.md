@@ -2,6 +2,113 @@
 
 ---
 
+## NEXUS-REV-2026-07-17-010 — Sprint 71 — Governance Decision Applicability Correction (RFC-0001 §15a Correction Verification)
+
+- **Reviewed Sprint:** Sprint 71 — Governance Decision Applicability Correction (Milestone 11, opening Sprint). Follow-up cycle verifying `nexus-plan`'s correction of `NEXUS-REV-2026-07-17-009` Finding F-001.
+- **Reviewed Change:** `knowledge/specifications/rfc-0001-mission-model.md` § 15a (retitled "(v1.2)"; body replaced with the exact Supersession Rule text ratified by `NEXUS-RAT-2026-07-17-009`, removing the contradictory v1.1 "out of scope"/"blocks unconditionally" sentence); `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-009`'s Related Review(s) section records the correction); Sprint 71 record Status updated by `nexus-plan` to "Corrected — Awaiting Reviewer Re-Certification". Confirmed via `git diff --name-only -- src test` that no source or test file changed since `NEXUS-REV-2026-07-17-009` — this cycle re-certifies the same, previously-verified implementation against the now-corrected RFC document.
+- **RFC Coverage:** RFC-0001 v1.2 (Amended; § 15a body now internally consistent with its Version header and Amendment History — see Executive Summary); RFC-0004 v1.16, RFC-0011 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently confirmed `git status`/`git diff --name-only -- src test` show zero source or test changes since `NEXUS-REV-2026-07-17-009`'s FAIL cycle — only `knowledge/specifications/rfc-0001-mission-model.md`, `knowledge/governance/RATIFICATION_LEDGER.md`, and the Sprint 71 record's Status line changed, all `nexus-plan`-owned artifacts, consistent with F-001's Required Disposition ("a mechanical synchronization of a decision already made by the Sprint Owner ... a `nexus-plan`/Sprint Owner action"). Independently read `rfc-0001-mission-model.md` § 15a in full: it is now headed "(v1.2)"; the "applicable" definition explicitly incorporates the Supersession Rule; the seven-condition Supersession Rule is reproduced in full, matching `NEXUS-RAT-2026-07-17-009`'s ratified text exactly (same seven conditions, same non-transitivity/non-chronology-only/no-globally-latest-decision constraints); the v1.1 sentence declaring Recovery Requirement consideration "explicitly out of scope" and Rejected/Deferred/Escalation-Required decisions blocking "unconditionally ... regardless of any Recovery Requirement" is gone, replaced with a paragraph correctly scoping `RecoveryRequirement` consumption to the Supersession Rule only. No stray "(v1.1)" heading or contradictory sentence remains anywhere in the document (`grep` for both returned zero matches). The Version header (1.2), Amendment History (v1.2 entry, unchanged from the prior cycle and already accurate), and § 15a body now agree. Re-verified, independent of F-001, everything `NEXUS-REV-2026-07-17-009` already confirmed about the implementation itself: `mission-completion-eligibility.ts`'s supersession filter implements all seven conditions correctly; all ten Required Test Matrix items are present and passing; `tsc --noEmit`, ESLint, the full repository suite (630/630 tests, 90 files), and `npm run build` are all independently re-executed clean; `git diff --name-only -- src` returns exactly the three Sprint-71-authorized files with zero `src/hosts`/`src/adapters` drift. `NEXUS-REV-2026-07-17-009-F-001` is fully Resolved. No new findings of any category.
+
+### Findings
+
+None of Category 1 through 5. No new Category 6 Observations. `NEXUS-REV-2026-07-17-009-F-001` (Category 3, Critical) is Resolved — see Executive Summary.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 (F-001 Resolved) |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-009`: RFC-0012 drafting, Planning Policy, Proposed Mission Plan, and every other Milestone 11 Deferred Concept remain correctly unimplemented. No generalized decision-supersession framework was introduced. No new Domain Event, aggregate, lifecycle state, persistence write path, event consumer, projection, Host surface, or Adapter surface exists. `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `EngineeringDecisionCorrelation`, and Review remain unmodified.
+
+### Architectural Compliance Summary
+
+- **RFC-0001 Internal Consistency:** Compliant (corrected). Version header, Amendment History, and § 15a body now agree; no contradictory v1.1 text remains.
+- **Supersession Rule Fidelity:** Compliant. Unchanged from `NEXUS-REV-2026-07-17-009`'s independent verification; the RFC document's § 15a text now also matches the implementation exactly.
+- **Required Test Matrix (ten items):** Compliant. Unchanged; independently re-executed passing.
+- **Production Source Restrictions:** Compliant. Zero `src`/`test` drift since the prior review cycle; `git diff --name-only -- src` still returns exactly the three Sprint-71-authorized files.
+- **Approved Vertical Slice Immutability:** Compliant. Sprint 1–70 production contracts unmodified.
+- **Tests (Gate 11):** Compliant. Full repository suite (90 files / 630 tests) passes; `tsc --noEmit`, ESLint, and `npm run build` all independently re-executed clean.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** Compliant. `IMPLEMENTATION_REPORT.md`'s Sprint 71 section is unchanged and remains accurate; `RATIFICATION_LEDGER.md` now records the correction under `NEXUS-RAT-2026-07-17-009`'s Related Review(s).
+
+### Builder Task Recommendation
+
+None. Sprint 71 is fully closed. Milestone 11's opening Sprint is Approved; the next Milestone 11 Initial Capability Sequence step (RFC-0012 drafting and ratification) is reserved for the next authorized `nexus-plan` cycle.
+
+---
+
+## NEXUS-REV-2026-07-17-009 — Sprint 71 — Governance Decision Applicability Correction
+
+- **Reviewed Sprint:** Sprint 71 — Governance Decision Applicability Correction (Milestone 11, opening Sprint). Authorized by `NEXUS-RAT-2026-07-17-009`.
+- **Reviewed Change:** `src/kernel/mission/mission-completion-eligibility.ts` (new supersession-filtering logic: `applicableGovernanceDecisions`, `isSupersededRejectedGovernanceDecision`, `isSupersedingGovernanceDecision`, `findUniqueCorrelationForGovernanceDecision`, `findResolvedRecoveryRequirement`); `src/kernel/mission/mission-execution.service.ts` (optional, read-only constructor-injected `IEngineeringDecisionCorrelationRepository`/`IRecoveryRequirementRepository`, threaded into eligibility evaluation); `src/kernel/common/create-kernel-services.ts` (wiring the existing in-memory correlation/recovery repositories into `MissionExecutionService`); `test/kernel/mission/mission-execution.service.test.ts` (ten new/updated tests covering the full Required Test Matrix; obsolete Sprint 4/61-era "does not reference recovery symbols" test correctly removed as superseded by the ratified amendment); `test/integration/autonomous-engineering-integration-validation.integration.test.ts` and `test/integration/governance-automation-integration-validation.integration.test.ts` (production-drift allowlists extended to the three authorized files above). `knowledge/specifications/rfc-0001-mission-model.md` (Amendment History and Version header only); `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and `knowledge/governance/RATIFICATION_LEDGER.md` reviewed for consistency with `NEXUS-RAT-2026-07-17-009`.
+- **RFC Coverage:** RFC-0001 (claimed v1.2 — see F-001; the operative §15a section body remains unmodified v1.1 text, directly conflicting with the Version header, Amendment History, and this Sprint's own implemented and ratified behavior); RFC-0004 v1.16, RFC-0011 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Independently verified that the Sprint 71 source code, tests, and Sprint Implementation Record are fully correct, complete, and precisely conform to the Governance Decision Applicability and Supersession rule as ratified by `NEXUS-RAT-2026-07-17-009`. `mission-completion-eligibility.ts`'s new supersession filter implements all seven conditions of the ratified rule exactly: exact governed-position matching via a *unique* `EngineeringDecisionCorrelation` per `GovernanceDecision` (failing closed on zero or ambiguous correlations); `D1` outcome `Rejected`; a `RecoveryRequirement` caused by `D1` (`governanceDecisionId` match) for the identical governed position; that `RecoveryRequirement` `Resolved`; `D2` outcome `Approved`; `D2.evaluatedAt` strictly after both `D1.evaluatedAt` and the Recovery Requirement's `resolution.resolvedAt`; and non-transitive, non-chronology-only, position-scoped supersession. All ten Required Test Matrix items from the Sprint 71 record are present as dedicated tests and independently re-executed passing, alongside the full repository suite (630/630 tests, 90 files), `tsc --noEmit`, ESLint, and `npm run build`, all clean. `git diff --name-only -- src` confirms exactly the three authorized files changed, with zero `src/hosts`/`src/adapters` drift — the two integration-suite allowlist extensions correctly and narrowly reflect this ratified scope, unlike the self-authorization pattern rejected in `NEXUS-REV-2026-07-17-007`. However, independently reading `knowledge/specifications/rfc-0001-mission-model.md` in full found that only the Version header (bumped to 1.2) and the Amendment History entry were updated; the operative § 15a section — still titled "(v1.1)" — was never amended. § 15a's body retains, verbatim and unmodified, the v1.1 sentence "**Recovery Requirement override is explicitly out of scope of this section** ... A Rejected, Deferred, or Escalation Required `GovernanceDecision` therefore blocks Mission Completion unconditionally under this amendment, regardless of any Recovery Requirement that may exist." This directly and irreconcilably contradicts both the Amendment History entry three lines above it and the supersession behavior this very Sprint implements and tests. RFC-0001 — the highest-ranked authority this review must certify conformance against — is therefore internally self-contradictory on the exact rule under review. This is a Critical Category 3 — Specification Conflict finding (F-001), and it is not a defect in Sprint 71's source code, tests, or Sprint Implementation Record, all three of which correctly implement the already-ratified rule; it is an incomplete amendment application to the RFC document, evidently made during the prior `nexus-plan` cycle. Per this review's Blocking Rules, a conflicting RFC requirement is reported, not resolved by the Reviewer.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-009-F-001 — RFC-0001 § 15a body was never amended to v1.2; contradicts its own Amendment History and Version header
+
+- **Category:** Category 3 — Specification Conflict
+- **Severity:** Critical
+- **Authority:** `knowledge/specifications/rfc-0001-mission-model.md` (Version header, Amendment History, § 15a body — internally conflicting); `NEXUS-RAT-2026-07-17-009` (Governance Decision, § "RFC-0001 amended to v1.2 (ratified)", reproducing the exact required replacement text in full).
+- **Summary:** `rfc-0001-mission-model.md`'s Version header reads `1.2` and its Amendment History contains a v1.2 entry describing a narrowed "applicable `GovernanceDecision`" definition with an exact-attribution supersession rule. The operative normative section, however, is still headed `# 15a. Governance-Gated Mission Completion (v1.1)` and its body is byte-for-byte the pre-amendment v1.1 text, including the explicit sentence: "Recovery Requirement override is explicitly out of scope of this section. ... A Rejected, Deferred, or Escalation Required `GovernanceDecision` therefore blocks Mission Completion unconditionally under this amendment, regardless of any Recovery Requirement that may exist." `NEXUS-RAT-2026-07-17-009`'s Governance Decision § "RFC-0001 amended to v1.2 (ratified)" already contains the complete, Sprint-Owner-approved replacement § 15a text (the seven-condition Supersession Rule, with all four Sprint Owner corrections incorporated) — this text was never transcribed into the RFC document.
+- **Evidence:** `rfc-0001-mission-model.md:20` (`**Version:** 1.2`); `rfc-0001-mission-model.md:30` (v1.2 Amendment History entry); `rfc-0001-mission-model.md:408` (`# 15a. Governance-Gated Mission Completion (v1.1)`, unmodified section heading); `rfc-0001-mission-model.md:425` (unmodified v1.1 prohibition sentence, verbatim); `knowledge/governance/RATIFICATION_LEDGER.md` § `NEXUS-RAT-2026-07-17-009` (the complete, already-ratified replacement § 15a text).
+- **Impact:** RFC-0001 (Review Authority rank 2, above the Implementation Constitution, Plan, Manifest, Report, Sprint Record, and Source Code) is self-contradictory on the precise rule Sprint 71 implements. A reader consulting only § 15a's body — the section's actual normative text — would conclude Recovery Requirement consideration is entirely out of scope and any Rejected decision blocks completion unconditionally, the opposite of Sprint 71's correctly ratified and implemented behavior. This is not a hypothetical risk: it is the exact failure mode RFC documents exist to prevent, and it means "the implementation conforms to RFC-0001" cannot currently be certified as a coherent claim, independent of the implementation's own correctness.
+- **Required Disposition:** Apply the already-ratified `NEXUS-RAT-2026-07-17-009` replacement text to `rfc-0001-mission-model.md` § 15a's body (retitling the section "(v1.2)" and replacing the superseded v1.1 prohibition sentence), so the document's Version header, Amendment History, and operative section body agree. This is a mechanical synchronization of a decision already made by the Sprint Owner — it does not require a new Ratification or a new governance decision. Per this review's role boundaries, the Reviewer SHALL NOT make this correction (RFCs are outside Reviewer write scope); per Sprint 71's own Architectural Boundaries, the Builder SHALL NOT make it either (RFCs are outside Builder write scope). Correction is a `nexus-plan`/Sprint Owner action.
+- **Builder Action:** None. Not a Builder Task — no source, test, or Sprint Implementation Record change is required or authorized. Route to `nexus-plan` for RFC document correction, then resubmit Sprint 71 for Reviewer re-certification.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 (F-001, Critical) |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented: RFC-0012 drafting, Planning Policy, Proposed Mission Plan, and every other Milestone 11 Deferred Concept named in the Sprint 71 record. Confirmed no generalized decision-supersession framework was introduced — the implemented rule is scoped exactly to Mission Completion applicability, position-exact, and causality-exact, matching the ratified text. Confirmed no new Domain Event, aggregate, lifecycle state, persistence write path, event consumer, projection, Host surface, or Adapter surface was introduced. Confirmed `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `EngineeringDecisionCorrelation`, and Review remain unmodified (read-only consumption only).
+
+### Architectural Compliance Summary
+
+- **RFC-0001 Internal Consistency:** **Not Compliant.** See F-001 — Version header and Amendment History disagree with the operative § 15a body.
+- **Supersession Rule Fidelity (against the ratified text in `NEXUS-RAT-2026-07-17-009`, independent of F-001):** Compliant. All seven conditions independently verified present and correctly gated in `mission-completion-eligibility.ts`.
+- **Required Test Matrix (ten items):** Compliant. All ten items present as dedicated tests; independently re-executed passing.
+- **Non-transitivity / cross-position independence:** Compliant. Distinct Mission, Engineering Session, and Workflow Step boundaries are each independently tested and enforced; no chronology-only shortcut exists.
+- **Production Source Restrictions:** Compliant. `git diff --name-only -- src` returns exactly `create-kernel-services.ts`, `mission-completion-eligibility.ts`, `mission-execution.service.ts` — the three files Sprint 71 authorized. Zero `src/hosts`/`src/adapters` drift.
+- **Self-Authorization Pattern:** Compliant, and distinguishable from `NEXUS-REV-2026-07-17-007`'s F-001: the two integration-suite drift-check allowlist extensions name exactly the three files this Sprint's own ratification authorizes, nothing more.
+- **Approved Vertical Slice Immutability:** Compliant. Sprint 1–70 production contracts unmodified; the obsolete Sprint 4/61-era test asserting the eligibility file never references recovery symbols was correctly removed as directly superseded by the ratified amendment, not silently left contradicting the new behavior.
+- **Tests (Gate 11):** Compliant. Full repository suite (90 files / 630 tests) passes; `tsc --noEmit`, ESLint, and `npm run build` all independently re-executed clean.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md`'s Sprint 71 section, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` accurately describe the implemented scope and correctly cite `NEXUS-RAT-2026-07-17-009`; they inherit F-001's RFC-0001 v1.2 mischaracterization only insofar as they cite the Ratification's amendment, which is itself accurate — the defect is confined to the RFC document.
+
+### Builder Task Recommendation
+
+No Builder Task. F-001 requires a `nexus-plan`/Sprint Owner-directed correction to `knowledge/specifications/rfc-0001-mission-model.md` § 15a's body, applying the exact replacement text already recorded in `NEXUS-RAT-2026-07-17-009` — a mechanical application of an already-ratified decision, not a new governance decision or new Sprint scope. Once corrected, Sprint 71 SHALL be resubmitted for Reviewer re-certification; given the source code, tests, and Sprint Implementation Record already fully and correctly conform to the ratified rule, re-certification is expected to confirm PASS without further implementation change.
+
+---
+
 ## NEXUS-REV-2026-07-17-008 — Sprint 70 — Autonomous Engineering Integration Validation (BT-070-001 Resolution Verification)
 
 - **Reviewed Sprint:** Sprint 70 — Autonomous Engineering Integration Validation (Milestone 10, Initial Capability Sequence Step 4, closing Sprint). Follow-up cycle verifying Builder completion of `BT-070-001`, generated by `nexus-sprint` from `NEXUS-REV-2026-07-17-007` Finding F-001 (Category 2 — Architectural Violation, Critical).

@@ -1,5 +1,93 @@
 # Nexus Implementation Report
 
+## Sprint 71 — Governance Decision Applicability Correction
+
+### Implemented Slice
+
+Implemented the Milestone 11 Sprint 71 vertical slice authorized by `NEXUS-RAT-2026-07-17-009`.
+
+Implemented scope:
+
+- Added RFC-0001 v1.2 supersession filtering to `src/kernel/mission/mission-completion-eligibility.ts`.
+- Narrowed the applicable `GovernanceDecision` set only for a Rejected `D1` with an exact-position Resolved `RecoveryRequirement` caused by `D1` and a later Approved `D2` correlated to the same Mission, Engineering Session, and Workflow Step after recovery resolution.
+- Extended `MissionExecutionService` with optional, read-only Engineering Decision Correlation and Recovery Requirement repository inputs for Mission Completion eligibility evaluation.
+- Updated `createKernelServices()` to pass the existing in-memory Engineering Decision Correlation and Recovery Requirement repositories into `MissionExecutionService`.
+- Added Sprint 71 tests covering all ten Required Test Matrix items and preserving existing independent-satisfaction behavior for non-superseded decisions.
+
+Out of scope and not implemented:
+
+- New production capability, Domain Event, aggregate, lifecycle state, event consumer, projection, persistence write path, Host surface, or Adapter surface.
+- Generalized Governance Decision supersession, latest-decision-wins behavior, or supersession across distinct governed positions.
+- Any modification to `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `EngineeringDecisionCorrelation`, Review, event consumers, projections, Host, or Adapters.
+- RFC-0012 drafting, Planning Policy, Proposed Mission Plan, and all future Milestone 11 planning concepts.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0001 v1.2 — Mission Model; implemented the narrowed applicable `GovernanceDecision` supersession rule for Mission Completion.
+
+Referenced:
+
+- RFC-0004 v1.16 — Execution Model; consumed `EngineeringDecisionCorrelation` and `RecoveryRequirement` snapshots read-only.
+- RFC-0011 — Engineering Governance Model; consumed `GovernanceDecision` snapshots read-only.
+- RFC-0010 — Kernel Boundaries; preserved Kernel-only capability boundaries and Host/Adapter independence.
+
+Implemented Concepts:
+
+- Exact governed-position supersession filtering for Mission Completion eligibility.
+- Read-only Mission Completion eligibility inputs from existing correlation and recovery repositories.
+- Required Sprint 71 test matrix.
+
+Deferred Concepts:
+
+- RFC-0012 drafting; Planning Policy; Proposed Mission Plan; Proposed Plan Revision; Planner Attribution; Structural Plan Validation; Planning Diagnostics; Proposal Lifecycle; Proposal Review/Activation Eligibility; Governed Plan Generation; Plan Review/Governance/Activation; Autonomous Planning Integration Validation.
+- Any generalized "decision supersession" framework beyond RFC-0001 v1.2's exact Mission Completion applicability rule.
+- Event publication for supersession determination.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-009`).
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0071-governance-decision-applicability-correction.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `GovernanceDecisionSnapshot.evaluatedAt` is the authoritative ordering signal for D1/D2 comparison, as specified by Sprint 71.
+- `RecoveryRequirementSnapshot.resolution.resolvedAt` is the authoritative recovery-resolution ordering signal for determining whether D2 was evaluated after recovery resolution.
+- An ambiguous or missing correlation does not establish supersession; the implementation fails closed by keeping D1 applicable.
+
+### Known Limitations
+
+- Supersession applies only to the exact governed-position, exact-causality path specified by RFC-0001 v1.2 and Sprint 71.
+- Durable persistence, multi-process delivery, and Host/Adapter-integrated behavior remain outside this Sprint.
+
+### Validation Summary
+
+- Targeted Sprint 71 Mission validation passed: `npm test -- --run test/kernel/mission/mission-execution.service.test.ts`.
+- Affected integration validation passed: `npm test -- --run test/integration/autonomous-engineering-integration-validation.integration.test.ts test/integration/governance-automation-integration-validation.integration.test.ts`.
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Repository Vitest suite passed serialized: `npm exec vitest run -- --exclude "test/extension-host/**" --maxWorkers=1 --testTimeout=10000` (90 files / 630 tests).
+- Build passed: `npm run build`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 70 — Autonomous Engineering Integration Validation
 
 ### Implemented Slice

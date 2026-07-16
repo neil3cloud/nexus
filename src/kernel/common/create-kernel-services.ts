@@ -154,6 +154,8 @@ export function createKernelServices(
     randomUUID,
     () => new Date().toISOString(),
     governanceDecisionRepository,
+    engineeringDecisionCorrelationRepository,
+    recoveryRequirementRepository,
   );
   const governanceStateProjectionService = new GovernanceStateProjectionService(
     governanceStateProjectionRepository,

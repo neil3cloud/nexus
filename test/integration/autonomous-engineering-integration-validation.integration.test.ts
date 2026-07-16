@@ -531,7 +531,12 @@ describe('Sprint 70 autonomous engineering integration validation', () => {
     await expect(harness.requireMissionStatus()).resolves.toBe('Reviewing');
   });
 
-  it('confirms Sprint 70 leaves production, Host, and Adapter sources unmodified', () => {
+  it('confirms production changes are limited to authorized current-sprint paths', () => {
+    const authorizedProductionPaths = new Set([
+      'src/kernel/common/create-kernel-services.ts',
+      'src/kernel/mission/mission-completion-eligibility.ts',
+      'src/kernel/mission/mission-execution.service.ts',
+    ]);
     const changedProductionPaths = execFileSync(
       'git',
       ['--no-pager', 'diff', '--name-only', '--', 'src'],
@@ -539,7 +544,7 @@ describe('Sprint 70 autonomous engineering integration validation', () => {
     )
       .split(/\r?\n/)
       .filter((path) => path.length > 0)
-      .filter((path) => path.length > 0);
+      .filter((path) => !authorizedProductionPaths.has(path));
     const changedHostOrAdapterPaths = execFileSync(
       'git',
       ['--no-pager', 'diff', '--name-only', '--', 'src/hosts', 'src/adapters'],

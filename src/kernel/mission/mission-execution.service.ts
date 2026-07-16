@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 
 import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
+import type { IEngineeringDecisionCorrelationRepository } from '../execution/engineering-decision-correlation.repository';
+import type { IRecoveryRequirementRepository } from '../execution/recovery-requirement.repository';
 import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
 import { Mission } from './mission.aggregate';
 import { assertGovernanceGatedMissionCompletionEligible } from './mission-completion-eligibility';
@@ -26,6 +28,14 @@ export class MissionExecutionService extends ServiceLifecycle {
     private readonly createTimestamp: () => string = () => new Date().toISOString(),
     private readonly governanceDecisionRepository?: Pick<
       IGovernanceDecisionRepository,
+      'enumerate'
+    >,
+    private readonly engineeringDecisionCorrelationRepository?: Pick<
+      IEngineeringDecisionCorrelationRepository,
+      'enumerate'
+    >,
+    private readonly recoveryRequirementRepository?: Pick<
+      IRecoveryRequirementRepository,
       'enumerate'
     >,
   ) {
@@ -142,9 +152,23 @@ export class MissionExecutionService extends ServiceLifecycle {
     const applicableGovernanceDecisions = (await this.governanceDecisionRepository.enumerate())
       .map((governanceDecision) => governanceDecision.toSnapshot())
       .filter((governanceDecision) => governanceDecision.missionId === missionId);
+    const engineeringDecisionCorrelations =
+      this.engineeringDecisionCorrelationRepository === undefined
+        ? []
+        : (await this.engineeringDecisionCorrelationRepository.enumerate()).map(
+            (correlation) => correlation.toSnapshot(),
+          );
+    const recoveryRequirements =
+      this.recoveryRequirementRepository === undefined
+        ? []
+        : (await this.recoveryRequirementRepository.enumerate()).map((requirement) =>
+            requirement.toSnapshot(),
+          );
 
     assertGovernanceGatedMissionCompletionEligible({
       governanceDecisions: applicableGovernanceDecisions,
+      engineeringDecisionCorrelations,
+      recoveryRequirements,
     });
   }
 

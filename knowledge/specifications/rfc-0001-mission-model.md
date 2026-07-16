@@ -17,7 +17,7 @@
 
 **Category:** Kernel Specification
 
-**Version:** 1.1
+**Version:** 1.2
 
 **Authority:** Nexus Kernel Canon
 
@@ -27,6 +27,7 @@
 
 - v1.0 — Original specification.
 - v1.1 — Adds Governance-Gated Mission Completion (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-012`). Before a Mission may transition `Reviewing → Completed`, the existing Mission completion preconditions (§ 8 Invariant 7, § 9 Lifecycle, § 10 Operations — unmodified) SHALL first be satisfied; Governance eligibility is then evaluated, additively, against every `GovernanceDecision` (RFC-0011) attributed to that Mission, using RFC-0004's existing Blocking/Non-Blocking classification (v1.11, unmodified): Approved is Non-blocking; Rejected, Deferred, and Escalation Required are uniformly Blocking. When no `GovernanceDecision` is attributed to the Mission, existing Mission completion behavior (Sprint 4) is unchanged. Recovery Requirement override is explicitly **not** part of this amendment: RFC-0004 v1.12's Recovery Requirement attribution key is scoped to (Mission, Engineering Session, Workflow Step, `GovernanceDecision`), and Mission Completion has no authoritative Engineering Session or Workflow Step context to supply that key — this amendment SHALL NOT weaken that attribution matching, infer missing workflow context, or introduce new cross-subsystem plumbing bridging Mission Completion to Engineering Session/Workflow Step. Recovery-aware Mission completion is deferred to its own future RFC amendment. This amendment does not modify RFC-0004, RFC-0011, `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, or `EngineeringSession`; does not introduce Review-outcome or Knowledge-requirement completion gating, Withdrawn Recovery Requirement eligibility, `MissionPaused` lifecycle semantics, event publication/subscription, or any Host/Adapter surface — each remains explicitly unauthorized pending its own future Sprint Owner scope ratification. No other section of this specification is modified.
+- v1.2 — Narrows the definition of "applicable `GovernanceDecision`" in § 15a to exclude a precisely superseded Rejected decision (Sprint Owner Ratification, Milestone 10 closure / Milestone 11 opening cycle). A blocking `GovernanceDecision` may become superseded only through the existing Recovery-Gated Re-Advancement path (RFC-0004, Sprint 60/69), scoped to one exact governed position (Mission, Engineering Session, Workflow Step) via existing `EngineeringDecisionCorrelation` (RFC-0004, Sprint 67) attribution. This amendment does not authorize selecting one globally latest `GovernanceDecision`, does not permit supersession across distinct governed positions, and does not modify RFC-0004, RFC-0011, `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, or `EngineeringDecisionCorrelation`. No other section of this specification is modified.
 
 ---
 
@@ -404,11 +405,11 @@ Failure to satisfy any mandatory requirement constitutes non-conformance.
 
 ---
 
-# 15a. Governance-Gated Mission Completion (v1.1)
+# 15a. Governance-Gated Mission Completion (v1.2)
 
 This section defines an additive Mission completion precondition. It does not redefine § 8 Invariant 7, § 9 Lifecycle, or § 10 Operations; the existing `Reviewing → Completed` transition and its existing Task-completion precondition (Sprint 4) SHALL first be satisfied before this section's evaluation begins.
 
-A `GovernanceDecision` (RFC-0011) is **applicable** to a Mission when it is attributed to that Mission. Mission completion evaluation SHALL consider every applicable `GovernanceDecision`; it SHALL NOT consider only one arbitrarily selected `GovernanceDecision`.
+A `GovernanceDecision` (RFC-0011) is **applicable** to a Mission when it is attributed to that Mission and has not been superseded under the Supersession Rule below. Mission completion evaluation SHALL consider every applicable `GovernanceDecision`; it SHALL NOT consider only one arbitrarily selected `GovernanceDecision`.
 
 For each applicable `GovernanceDecision`, Mission Completion eligibility SHALL be determined by the following matrix, using RFC-0004's existing Blocking/Non-Blocking Governance Decision classification (v1.11, unmodified):
 
@@ -421,11 +422,23 @@ For each applicable `GovernanceDecision`, Mission Completion eligibility SHALL b
 
 Mission Completion SHALL be rejected when any applicable `GovernanceDecision` is Blocking under the matrix above. Every applicable `GovernanceDecision` SHALL independently satisfy the matrix before Mission Completion may proceed.
 
-**Recovery Requirement override is explicitly out of scope of this section.** RFC-0004 v1.12's Recovery Requirement attribution key is scoped to (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) — the full four-part key, unmodified. Mission Completion has no authoritative Engineering Session or Workflow Step context to supply that key. This section SHALL NOT weaken that attribution matching, infer missing Engineering Session or Workflow Step context, or introduce new cross-subsystem plumbing bridging Mission Completion to Engineering Session/Workflow Step. A Rejected, Deferred, or Escalation Required `GovernanceDecision` therefore blocks Mission Completion unconditionally under this amendment, regardless of any Recovery Requirement that may exist. Recovery-aware Mission completion requires its own future RFC amendment and Sprint Owner ratification.
+**Supersession Rule (v1.2).** A blocking `GovernanceDecision` `D1` is superseded by a later `GovernanceDecision` `D2` if, and only if, all of the following hold:
+
+1. `D1` and `D2` are attributed to the same governed position, consisting of the same Mission, the same Engineering Session, and the same Workflow Step, as established by their respective authoritative `EngineeringDecisionCorrelation` (RFC-0004) records.
+2. `D1` has outcome `Rejected`.
+3. A `RecoveryRequirement` (RFC-0004/RFC-0011) was created from `D1` for that exact governed position.
+4. That `RecoveryRequirement` reached `Resolved` through an authoritative accepted recovery outcome.
+5. `D2` was produced by a subsequent governance re-evaluation of that same governed position after the `RecoveryRequirement` was resolved.
+6. `D2` has outcome `Approved`.
+7. `D2` is later than `D1` according to the authoritative governance decision ordering.
+
+Supersession SHALL NOT be inferred from chronological order alone. Supersession SHALL NOT cross Mission, Engineering Session, or Workflow Step boundaries. A `GovernanceDecision` concerning a different governed position remains independently applicable regardless of when it was recorded. Mission completion evaluation SHALL exclude superseded `GovernanceDecision`s from the applicable decision set; every remaining applicable `GovernanceDecision` SHALL independently satisfy the matrix above. This rule SHALL NOT be interpreted as authorizing selection of one globally latest `GovernanceDecision`.
+
+RFC-0004 v1.12's Recovery Requirement attribution key remains scoped to (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) — the full four-part key, unmodified. This section reads `RecoveryRequirement` state only to evaluate the Supersession Rule above; it does not weaken Recovery Requirement attribution matching, does not introduce Mission-level Recovery Requirement projection or aggregation, and does not otherwise generalize Recovery-aware Mission completion beyond the exact Supersession Rule stated above.
 
 When no `GovernanceDecision` is attributed to the Mission, this section does not apply and existing Mission completion behavior (Sprint 4, unmodified) governs unchanged.
 
-This section does not modify `GovernanceDecision`, `GovernanceService`, `RecoveryRequirement`, `RecoveryRequirementService`, the Recovery Resolution Contract, or the Recovery Withdrawal Contract (RFC-0004/RFC-0011, unmodified); does not modify `WorkflowChain`, `WorkflowStep`, or `EngineeringSession`; does not introduce Review-outcome or Knowledge-requirement completion gating, Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, Mission-level Recovery Requirement projection or aggregation, Engineering Session/Workflow Step attribution bridging, or any resolution of the `MissionPaused` lifecycle inconsistency (§ 13); and does not introduce event publication/subscription or any Host/Adapter surface. Mission remains the sole owner of Mission Completion; Governance input is consumed read-only.
+This section does not modify `GovernanceDecision`, `GovernanceService`, `RecoveryRequirement`, `RecoveryRequirementService`, `EngineeringDecisionCorrelation`, the Recovery Resolution Contract, or the Recovery Withdrawal Contract (RFC-0004/RFC-0011, unmodified); does not modify `WorkflowChain`, `WorkflowStep`, or `EngineeringSession`; does not introduce Review-outcome or Knowledge-requirement completion gating, Withdrawn Recovery Requirement eligibility, Mission-level Recovery Requirement projection or aggregation, Engineering Session/Workflow Step attribution bridging beyond the exact Supersession Rule above, or any resolution of the `MissionPaused` lifecycle inconsistency (§ 13); and does not introduce event publication/subscription or any Host/Adapter surface. Mission remains the sole owner of Mission Completion; Governance and Recovery input are consumed read-only.
 
 ---
 

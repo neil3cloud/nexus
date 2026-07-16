@@ -7447,3 +7447,119 @@ None yet. Sprint 70 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-009
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-009
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Milestone 10 formal closure; RFC-0001 v1.2 Governance Decision Applicability and Supersession amendment; Milestone 11 — Autonomous Engineering Planning Readiness opening (with RFC-0012 authorization); Sprint 71 — Governance Decision Applicability Correction authorization.
+
+## Originating Request
+
+Following Sprint 70's PASS certification (`NEXUS-REV-2026-07-17-008`) and `builder-task.md`'s confirmation of zero Open, Blocked, or Documentation Builder Tasks, `nexus-plan` presented a Governance Report identifying an unresolved ambiguity: `NEXUS-RAT-2026-07-17-008`'s binding Milestone 10 Completion Conditions were literally satisfied, yet Sprint 70's own record recommended "Not Ready pending future governance resolution" for the historical-decision-superseding Mission Completion gap it discovered (a historical Rejected `GovernanceDecision` remains independently blocking under RFC-0001 v1.1 §15a even after Recovery Requirement resolution, re-advancement, and a later Approved `GovernanceDecision` for the same governed position). The Sprint Owner resolved this in two decision rounds: (1) close Milestone 10 now, carrying the gap forward as a documented Known Limitation rather than a closure blocker; (2) require an RFC-0001 ownership analysis and corrective amendment before any autonomous-planning activation work, and authorize a new RFC-0012 for the distinct Autonomous Engineering Planning domain. `nexus-plan`'s RFC-0001 ownership analysis (consulting RFC-0001 §15a and RFC-0011's explicit disclaimer of Mission-completion-consumption ownership) confirmed RFC-0001 is the owning specification for the "applicable `GovernanceDecision`" definition. `nexus-plan` drafted an RFC-0001 v1.2 amendment; the Sprint Owner returned four required corrections (D2 must be Approved; corrected recovery-then-re-evaluation lifecycle ordering; exact recovery causality tracing to `D1`; preserved non-transitive, non-chronological independent satisfaction) and supplied final replacement text, incorporated into RFC-0001 v1.2 by `nexus-plan` prior to this ratification.
+
+## Governance Decision
+
+**APPROVED, AS DIRECTED, IN FULL.**
+
+### 1. Milestone 10 — Autonomous Engineering Readiness: COMPLETE
+
+All `NEXUS-RAT-2026-07-17-008` binding Completion Conditions are satisfied: all eight Required Validation Scenarios and the composed Lifecycle Certification Flow pass; zero Category 1–5 findings remain; the unratified latest-decision Mission Completion change was fully reverted and RFC-0001 v1.1 §15a's independent-satisfaction behavior was restored and independently verified (`NEXUS-REV-2026-07-17-008`); all Milestone 10 capabilities compose through public contracts; repository state is synchronized; no open Builder Task remains. The historical-decision-superseding gap is **not** a Category 1–5 finding — it was explicitly and correctly classified as a documented Known Limitation, discovered and disclosed rather than concealed, requiring its own future architectural resolution. It therefore does not block closure under `NEXUS-RAT-2026-07-17-008`'s literal Completion Conditions, consistent with the Milestone 9 / Sprint 62 closure precedent (`NEXUS-RAT-2026-07-16-014`), where deferred concepts did not block closure.
+
+**Carried-Forward Known Limitation (binding, permanent record):** Under RFC-0001 v1.1 §15a, historical Rejected `GovernanceDecision`s remain independently blocking; Recovery Requirement resolution does not by itself change `GovernanceDecision` applicability; a later Approved `GovernanceDecision` does not automatically supersede an earlier Rejected decision; "latest decision wins" is explicitly unauthorized. This limitation is resolved by RFC-0001 v1.2, below, and by Sprint 71's implementation of it — it is retained here for traceability of the governance history, not as an open item.
+
+### 2. RFC-0001 amended to v1.2 (ratified)
+
+RFC-0001 § 15a's definition of "applicable `GovernanceDecision`" is narrowed by the supersession rule now recorded in `knowledge/specifications/rfc-0001-mission-model.md` (Amendment History v1.2 and § 15a body), incorporating the Sprint Owner's four required corrections in full:
+
+1. The superseding decision `D2` SHALL have outcome `Approved`.
+2. The lifecycle order is: `D1` Rejected → `RecoveryRequirement` created from `D1` → authoritative accepted recovery outcome → `RecoveryRequirement` Resolved → governance re-evaluation of the same governed position produces `D2` → `D2` Approved → Recovery-Gated Re-Advancement becomes eligible. Governance re-evaluation produces `D2`; Recovery-Gated Re-Advancement consumes the resolved recovery and `D2`, and does not itself produce a `GovernanceDecision`.
+3. The resolved `RecoveryRequirement` SHALL have been created from `D1`, for the exact same governed position, and SHALL be the recovery basis for the re-evaluation producing `D2`. A `RecoveryRequirement` resolved for unrelated work does not permit supersession.
+4. Supersession is scoped to one exact governed position (same Mission, same Engineering Session, same Workflow Step, established by `EngineeringDecisionCorrelation`), is non-transitive across distinct governed positions, is never inferred from chronological order alone, and never overrides a `GovernanceDecision` for a different governed position. "Latest decision wins" globally remains explicitly prohibited.
+
+This amendment does not modify RFC-0004, RFC-0011, `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, or `EngineeringDecisionCorrelation` — all are Referenced and consumed read-only, through their existing, frozen public contracts.
+
+### 3. Milestone 11 — Autonomous Engineering Planning Readiness: OPENED
+
+**Objective (binding):** Enable governed, human-reviewed autonomous Mission Plan proposal, built on the corrected Mission Completion baseline established by RFC-0001 v1.2 and Sprint 71.
+
+**Architectural Boundary (binding):** Milestone 11 SHALL NOT redefine Mission, active Mission Plan, Task, Task Graph, Mission completion, Governance Decision, Review, or Shared Reality. RFC-0001 remains the sole owner of active Mission Plan semantics and executable Mission state. No end-to-end autonomous planning integration certification (the sequence's closing step) SHALL proceed until Sprint 71 is Reviewer-certified and the corrected Mission Completion lifecycle is validated.
+
+**RFC-0012 — Autonomous Engineering Planning Model (authorized for future drafting, after Sprint 71):** SHALL own Planning Policy, Proposed Mission Plan, Proposed Plan Revision, Planner Attribution, Structural Plan Validation, Planning Diagnostics, Proposal Lifecycle, Proposal Review Eligibility, and Proposal Activation Eligibility. SHALL NOT redefine Mission, active Mission Plan, Task, Task Graph, Mission completion, Governance Decision, Review, or Shared Reality. Integration boundary: Proposed Mission Plan → Review → Governance → Approved exact proposal revision → RFC-0001 Mission Plan activation.
+
+**Initial Capability Sequence (binding, sequencing only — each future step requires its own Sprint scope ratification):**
+
+1. **Governance Decision Applicability Correction** (Sprint 71, authorized below) — implements RFC-0001 v1.2.
+2. **RFC-0012 drafting and ratification.**
+3. **Planning Policy and Proposed Plan Foundation.**
+4. **Governed Plan Generation.**
+5. **Plan Review, Governance, and Activation.**
+6. **Autonomous Planning Integration Validation.**
+
+This sequence governs ordering only; it does not pre-authorize any step beyond Sprint 71 below. The provisional compression of steps 3–6 into four Sprints remains subject to revision once RFC-0012 analysis confirms step 5 can safely combine review, governance, and activation without violating ownership boundaries.
+
+### 4. Sprint 71 — Governance Decision Applicability Correction (authorized)
+
+Sprint 71 SHALL implement RFC-0001 v1.2's Governance Decision applicability and supersession semantics by excluding only a precisely superseded Rejected decision from Mission completion evaluation, strictly in `src/kernel/mission/mission-completion-eligibility.ts` and its direct collaborators. No other production file, event, consumer, projection, Host, or Adapter SHALL be modified.
+
+**Required Test Matrix (binding, minimum):**
+
+1. Rejected `D1` → exact `RecoveryRequirement` (created from `D1`) resolved → subsequent Approved `D2` for the same governed position → `D1` excluded from the applicable set; Mission Completion permitted (subject to all other applicable decisions and existing Task-completion rules).
+2. A later Rejected `D2` for the same governed position does not supersede `D1`.
+3. A later Deferred `D2` for the same governed position does not supersede `D1`.
+4. A later Escalation Required `D2` for the same governed position does not supersede `D1`.
+5. An Approved decision for a different Workflow Step does not supersede `D1`.
+6. An Approved decision for a different Engineering Session does not supersede `D1`.
+7. An Approved decision for a different Mission does not supersede `D1`.
+8. A `RecoveryRequirement` not caused by `D1` does not permit supersession, even if Resolved.
+9. An unresolved or Withdrawn `RecoveryRequirement` does not permit supersession.
+10. Existing independent-satisfaction behavior (Sprint 61/62, frozen) is unchanged for every non-superseded `GovernanceDecision`.
+
+## RFC Coverage
+
+- RFC-0001 — Mission Model (Amended to v1.2 by this ratification)
+- RFC-0004 v1.16 — Execution Model (Referenced; `EngineeringDecisionCorrelation`, `RecoveryRequirement`, Recovery-Gated Re-Advancement consumed read-only, unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification declares one Milestone complete, amends one RFC at the Constitutional tier (narrowly, additively, per the Sprint Owner's exact corrected text), opens one new Milestone with a binding Objective and Architectural Boundary, and authorizes one Sprint's scope at the Implementation Plan tier. It redefines no previously approved vertical slice: Sprint 61/62's independent-satisfaction behavior remains unmodified for every non-superseded `GovernanceDecision`, and every Sprint 1–70 frozen contract remains unmodified.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification; mark Milestone 10 Complete in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`; open Milestone 11 in the same artifacts with its Objective and Architectural Boundary; generate the Sprint 71 Sprint Implementation Record reproducing this ratification's full binding detail; activate Sprint 71; and prepare Builder handoff. RFC-0012 drafting is explicitly **not** authorized by this ratification — it requires its own future `nexus-plan` cycle after Sprint 71 is Reviewer-certified.
+
+## Deferred Concepts
+
+RFC-0012 drafting; Planning Policy; Proposed Mission Plan; Proposed Plan Revision; Planner Attribution; Structural Plan Validation; Planning Diagnostics; Proposal Lifecycle; Proposal Review/Activation Eligibility; Governed Plan Generation; Plan Review/Governance/Activation; Autonomous Planning Integration Validation — each requires its own future Sprint or ratification cycle, gated on Sprint 71's certification.
+
+## Related Sprint(s)
+
+- Sprint 70 — Autonomous Engineering Integration Validation (frozen; consumed read-only; discovered the gap resolved by this ratification).
+- Sprint 71 — Governance Decision Applicability Correction (this ratification's authorized implementation scope).
+- Sprint 60 — Recovery-Gated Re-Advancement Eligibility (frozen; consumed read-only).
+- Sprint 61 — Governance-Gated Mission Completion (frozen; consumed read-only; independent-satisfaction behavior preserved unmodified).
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen; consumed read-only).
+- Sprint 69 — Recovery Workflow Automation (frozen; consumed read-only).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-17-009` — FAIL. Zero defects found in Sprint 71's source, tests, or Sprint Implementation Record; one Critical Category 3 finding (F-001) that this ratification's RFC-0001 v1.2 replacement text for § 15a had not been transcribed into `knowledge/specifications/rfc-0001-mission-model.md` — only the Version header and Amendment History were updated, leaving the operative section body self-contradictory. Corrected by `nexus-plan` post-review: § 15a's body now carries this ratification's exact Supersession Rule text, retitled "(v1.2)". No change to this ratification's substance was required or made. Sprint 71 is resubmitted for Reviewer re-certification.
+
+## Full Ratification Text
+
+> The Sprint Owner declares Milestone 10 — Autonomous Engineering Readiness COMPLETE, carrying forward the historical-decision-superseding Mission Completion gap as a documented Known Limitation rather than a closure blocker, consistent with the Milestone 9 / Sprint 62 precedent. The Sprint Owner ratifies RFC-0001 v1.2, narrowing § 15a's "applicable `GovernanceDecision`" definition to exclude a Rejected decision precisely superseded by a later Approved decision for the exact same governed position (Mission, Engineering Session, Workflow Step), reached only through the existing Recovery-Gated Re-Advancement path with recovery causality traced back to the superseded decision — never by chronology alone, never across distinct governed positions, and never by selecting one globally latest decision. The Sprint Owner opens Milestone 11 — Autonomous Engineering Planning Readiness, with the binding Objective of enabling governed, human-reviewed autonomous Mission Plan proposal without redefining Mission, active Mission Plan, Task, Task Graph, Mission completion, Governance Decision, Review, or Shared Reality, and authorizes a future RFC-0012 — Autonomous Engineering Planning Model to own the new Planning domain once Sprint 71 is certified. The Sprint Owner authorizes Sprint 71 — Governance Decision Applicability Correction to implement RFC-0001 v1.2 strictly within `mission-completion-eligibility.ts` and its direct collaborators, against the ten-item Required Test Matrix above. `nexus-plan` SHALL record this ratification, synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for Milestone 10 closure and Milestone 11 opening, generate the Sprint 71 Sprint Implementation Record, activate Sprint 71, and issue Builder handoff. RFC-0012 drafting is deferred to a future `nexus-plan` cycle.
+
+## Current Status
+
+Active
+
+---

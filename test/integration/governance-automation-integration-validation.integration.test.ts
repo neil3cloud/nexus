@@ -322,6 +322,8 @@ describe('Sprint 62 governance automation integration validation', () => {
       'src/kernel/governance/governance-state-projection.service.ts',
       'src/kernel/governance/governance-state-projection.ts',
       'src/kernel/governance/governance-state-projection.types.ts',
+      'src/kernel/mission/mission-completion-eligibility.ts',
+      'src/kernel/mission/mission-execution.service.ts',
     ]);
     const changedProductionPaths = execFileSync(
       'git',
