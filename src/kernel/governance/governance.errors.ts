@@ -29,3 +29,10 @@ export class ContradictoryGovernanceDecisionError extends GovernanceDecisionDoma
     this.name = 'ContradictoryGovernanceDecisionError';
   }
 }
+
+export class GovernanceEventPublisherUnavailableError extends GovernanceDecisionDomainError {
+  public constructor() {
+    super('GovernanceService requires an EventBusContract to publish GovernanceDecision domain events.');
+    this.name = 'GovernanceEventPublisherUnavailableError';
+  }
+}

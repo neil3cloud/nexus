@@ -89,6 +89,7 @@ export function createKernelServices(
     governanceDecisionRepository,
     randomUUID,
     ratificationAttributionValidationService,
+    eventBus,
   );
   const executionStrategyService = new ExecutionStrategyService(
     executionStrategyRepository,

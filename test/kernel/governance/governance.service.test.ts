@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { EventBusEvent } from '../../../src/kernel/common/event-bus-contract';
 import { EventBus } from '../../../src/kernel/events/event-bus';
 import { createKernelServices } from '../../../src/kernel/common/create-kernel-services';
 import type { KernelLogger } from '../../../src/kernel/common/kernel-logger';
@@ -100,10 +101,11 @@ function createReview(
   id = 'review-1',
   outcome: ReviewOutcomeValue = 'Accepted',
   findings: readonly Finding[] = [],
+  missionId = 'mission-1',
 ): Review {
   const review = Review.create({
     id,
-    missionId: 'mission-1',
+    missionId,
     missionPlanRevision: 'revision-1',
     reviewCriteria: [{ id: 'criteria-1', description: 'Review criteria.' }],
     evidenceReferences: ['evidence-1'],
@@ -121,10 +123,10 @@ function createReview(
   return review;
 }
 
-function createInProgressReview(id = 'review-1'): Review {
+function createInProgressReview(id = 'review-1', missionId = 'mission-1'): Review {
   const review = Review.create({
     id,
-    missionId: 'mission-1',
+    missionId,
     missionPlanRevision: 'revision-1',
     reviewCriteria: [{ id: 'criteria-1', description: 'Review criteria.' }],
     evidenceReferences: ['evidence-1'],
@@ -182,6 +184,7 @@ async function createHarness(input: {
   readonly reviewRepository: InMemoryReviewRepository;
   readonly decisionRepository: InMemoryGovernanceDecisionRepository;
   readonly ratificationAuthorityRepository: InMemoryRatificationAuthoritySnapshotRepository;
+  readonly eventBus: CollectingEventBus;
 }> {
   const policyRepository = new InMemoryRepositoryPolicyRepository();
   const reviewRepository = new InMemoryReviewRepository();
@@ -190,13 +193,15 @@ async function createHarness(input: {
   const ratificationAttributionValidationService = new RatificationAttributionValidationService(
     ratificationAuthorityRepository,
   );
-  const identities = [...(input.identities ?? ['evaluation-1', 'decision-1', 'escalation-1'])];
+  const eventBus = new CollectingEventBus();
+  const identities = [...(input.identities ?? ['evaluation-1', 'decision-1', 'escalation-1', 'event-1'])];
   const service = new GovernanceService(
     policyRepository,
     reviewRepository,
     decisionRepository,
     () => identities.shift() ?? `generated-${identities.length}`,
     ratificationAttributionValidationService,
+    eventBus,
   );
 
   if (input.omitAuthoritySnapshot !== true) {
@@ -224,10 +229,12 @@ async function createHarness(input: {
     reviewRepository,
     decisionRepository,
     ratificationAuthorityRepository,
+    eventBus,
   };
 }
 
 async function evaluate(service: GovernanceService, overrides: Partial<{
+  readonly missionId: string;
   readonly repositoryPolicyId: string;
   readonly repositoryPolicyVersion: number;
   readonly reviewId: string;
@@ -235,6 +242,7 @@ async function evaluate(service: GovernanceService, overrides: Partial<{
   readonly evaluatedAt: string;
 }> = {}) {
   return service.evaluateGovernancePolicy({
+    missionId: overrides.missionId ?? 'mission-1',
     repositoryPolicyId: overrides.repositoryPolicyId ?? 'repository-policy-1',
     repositoryPolicyVersion: overrides.repositoryPolicyVersion ?? 1,
     reviewId: overrides.reviewId ?? 'review-1',
@@ -247,7 +255,7 @@ async function evaluate(service: GovernanceService, overrides: Partial<{
 
 describe('GovernanceService', () => {
   it('approves when every PolicyCriterion is satisfied', async () => {
-    const { service } = await createHarness({
+    const { service, eventBus } = await createHarness({
       policy: createPolicy([
         criterion('review-accepted', outcomeDescriptor(['Accepted'])),
         criterion(
@@ -265,6 +273,26 @@ describe('GovernanceService', () => {
     const decision = await evaluate(service);
 
     expect(decision.value).toBe('Approved');
+    expect(eventBus.publishedEvents).toHaveLength(1);
+    expect(eventBus.publishedEvents[0]).toMatchObject({
+      eventId: expect.any(String),
+      missionId: 'mission-1',
+      eventType: 'GovernanceDecisionRecorded',
+      timestamp: '2026-07-15T01:00:00.000Z',
+      causality: [],
+      attribution: {
+        missionId: 'mission-1',
+      },
+      payload: {
+        governanceDecisionId: decision.id,
+        governanceDecisionValue: 'Approved',
+        repositoryPolicyId: 'repository-policy-1',
+        repositoryPolicyVersion: 1,
+        reviewId: 'review-1',
+        policyEvaluationId: decision.policyEvaluationId,
+        evaluationKey: decision.evaluationKey,
+      },
+    });
     expect(decision.criterionResults.map((result) => result.status)).toEqual([
       'Satisfied',
       'Satisfied',
@@ -274,7 +302,7 @@ describe('GovernanceService', () => {
   });
 
   it('rejects when at least one Criterion is violated and no higher-precedence result exists', async () => {
-    const { service } = await createHarness({
+    const { service, eventBus } = await createHarness({
       policy: createPolicy([
         criterion('review-accepted', outcomeDescriptor(['Accepted'])),
         criterion('no-rejected-outcome', outcomeDescriptor(['Rejected'])),
@@ -285,6 +313,9 @@ describe('GovernanceService', () => {
     const decision = await evaluate(service);
 
     expect(decision.value).toBe('Rejected');
+    expect(eventBus.publishedEvents.map((event) => event.eventType)).toEqual([
+      'GovernanceDecisionRecorded',
+    ]);
     expect(decision.criterionResults.map((result) => result.status)).toEqual([
       'Satisfied',
       'Violated',
@@ -320,7 +351,7 @@ describe('GovernanceService', () => {
   });
 
   it('preserves valid attribution with Deferred criteria as Deferred', async () => {
-    const { service } = await createHarness({
+    const { service, eventBus } = await createHarness({
       policy: createPolicy([criterion('review-accepted', outcomeDescriptor(['Accepted']))]),
       review: createInProgressReview(),
     });
@@ -328,11 +359,14 @@ describe('GovernanceService', () => {
     const decision = await evaluate(service);
 
     expect(decision.value).toBe('Deferred');
+    expect(eventBus.publishedEvents.map((event) => event.eventType)).toEqual([
+      'GovernanceDecisionRecorded',
+    ]);
     expect(decision.criterionResults.map((result) => result.status)).toEqual(['Undetermined']);
   });
 
   it('preserves valid attribution with an escalation criterion as Escalation Required', async () => {
-    const { service } = await createHarness({
+    const { service, eventBus } = await createHarness({
       policy: createPolicy([criterion('unsupported', JSON.stringify({ kind: 'Unknown', schemaVersion: 1 }))]),
       review: createReview(),
     });
@@ -340,12 +374,15 @@ describe('GovernanceService', () => {
     const decision = await evaluate(service);
 
     expect(decision.value).toBe('Escalation Required');
+    expect(eventBus.publishedEvents.map((event) => event.eventType)).toEqual([
+      'GovernanceDecisionRecorded',
+    ]);
     expect(decision.criterionResults.map((result) => result.status)).toEqual(['Unsupported']);
     expect(decision.escalation?.reasonCode).toBe('UnsupportedPredicateKind');
   });
 
   it('escalates Invalid attribution without evaluating Policy Criteria', async () => {
-    const { service } = await createHarness({
+    const { service, eventBus } = await createHarness({
       policy: createPolicy([criterion('would-throw-if-evaluated', '{not-json')]),
       review: createReview(),
       authorityRecords: [
@@ -359,6 +396,9 @@ describe('GovernanceService', () => {
     const decision = await evaluate(service);
 
     expect(decision.value).toBe('Escalation Required');
+    expect(eventBus.publishedEvents.map((event) => event.eventType)).toEqual([
+      'GovernanceDecisionRecorded',
+    ]);
     expect(decision.criterionResults).toEqual([]);
     expect(decision.escalation).toMatchObject({
       reasonCode: 'InvalidRatificationAttribution',
@@ -416,20 +456,88 @@ describe('GovernanceService', () => {
     expect(decision.escalation).toBeUndefined();
   });
 
-  it('escalates a missing Review and never treats it as Deferred, Approved, or Rejected', async () => {
-    const { service } = await createHarness({ policy: createPolicy() });
+  it('escalates a resolved Review Mission mismatch with the requested Mission identity', async () => {
+    const { service, eventBus } = await createHarness({
+      policy: createPolicy(),
+      review: createReview('review-1', 'Accepted', [], 'review-mission'),
+    });
+
+    const decision = await evaluate(service, { missionId: 'evaluation-mission' });
+
+    expect(decision.value).toBe('Escalation Required');
+    expect(decision.missionId).toBe('evaluation-mission');
+    expect(decision.criterionResults).toEqual([]);
+    expect(decision.escalation).toMatchObject({
+      reasonCode: 'ReviewMissionMismatch',
+      reviewId: 'review-1',
+    });
+    expect(eventBus.publishedEvents).toHaveLength(1);
+    expect(eventBus.publishedEvents[0]).toMatchObject({
+      missionId: 'evaluation-mission',
+      attribution: {
+        missionId: 'evaluation-mission',
+      },
+      payload: {
+        governanceDecisionId: decision.id,
+        governanceDecisionValue: 'Escalation Required',
+        reviewId: 'review-1',
+      },
+    });
+  });
+
+  it('escalates a missing Review with explicit Mission identity and never treats it as Deferred, Approved, or Rejected', async () => {
+    const { service, eventBus } = await createHarness({ policy: createPolicy() });
 
     const decision = await evaluate(service, {
+      missionId: 'evaluation-mission',
       reviewId: 'missing-review',
       reviewStateReference: 'requested-review-state-1',
     });
 
     expect(decision.value).toBe('Escalation Required');
+    expect(decision.missionId).toBe('evaluation-mission');
     expect(decision.criterionResults).toEqual([]);
     expect(decision.escalation).toMatchObject({
       reasonCode: 'MissingReview',
       reviewId: 'missing-review',
       reviewStateReference: 'requested-review-state-1',
+    });
+    expect(eventBus.publishedEvents).toHaveLength(1);
+    expect(eventBus.publishedEvents[0]).toMatchObject({
+      missionId: 'evaluation-mission',
+      attribution: {
+        missionId: 'evaluation-mission',
+      },
+    });
+  });
+
+  it('escalates an unresolvable Review with explicit Mission identity and publishes a Mission-scoped event', async () => {
+    const { service, eventBus } = await createHarness({ policy: createPolicy() });
+
+    const decision = await evaluate(service, {
+      missionId: 'evaluation-mission',
+      reviewId: 'unresolvable-review',
+    });
+
+    expect(decision.value).toBe('Escalation Required');
+    expect(decision.missionId).toBe('evaluation-mission');
+    expect(decision.escalation).toMatchObject({
+      reasonCode: 'MissingReview',
+      reviewId: 'unresolvable-review',
+      reviewStateReference: 'unresolved-review-state',
+    });
+    expect(eventBus.publishedEvents).toHaveLength(1);
+    expect(eventBus.publishedEvents[0]).toMatchObject({
+      missionId: 'evaluation-mission',
+      eventType: 'GovernanceDecisionRecorded',
+      attribution: {
+        missionId: 'evaluation-mission',
+      },
+      payload: {
+        governanceDecisionId: decision.id,
+        governanceDecisionValue: 'Escalation Required',
+        reviewId: 'unresolvable-review',
+      },
     });
   });
 
@@ -650,10 +758,10 @@ describe('GovernanceService', () => {
   });
 
   it('returns the existing GovernanceDecision for repeated evaluation of the same immutable input set', async () => {
-    const { service, decisionRepository } = await createHarness({
+    const { service, decisionRepository, eventBus } = await createHarness({
       policy: createPolicy(),
       review: createReview(),
-      identities: ['evaluation-1', 'decision-1', 'evaluation-2', 'decision-2'],
+      identities: ['evaluation-1', 'decision-1', 'event-1', 'evaluation-2', 'decision-2', 'event-2'],
     });
 
     const first = await evaluate(service);
@@ -661,6 +769,7 @@ describe('GovernanceService', () => {
 
     expect(second).toEqual(first);
     expect(await decisionRepository.enumerate()).toHaveLength(1);
+    expect(eventBus.publishedEvents).toHaveLength(1);
   });
 
   it('preserves identical attribution diagnostics and no duplicate persistence for identical complete inputs', async () => {
@@ -712,6 +821,7 @@ describe('GovernanceService', () => {
     const repository = new InMemoryGovernanceDecisionRepository();
     const decision = GovernanceDecision.fromSnapshot({
       id: 'decision-1',
+      missionId: 'mission-1',
       value: 'Approved',
       repositoryPolicyId: 'repository-policy-1',
       repositoryPolicyVersion: 1,
@@ -741,6 +851,7 @@ describe('GovernanceService', () => {
     const repository = new InMemoryGovernanceDecisionRepository();
     const decision = GovernanceDecision.fromSnapshot({
       id: 'decision-1',
+      missionId: 'mission-1',
       value: 'Approved',
       repositoryPolicyId: 'repository-policy-1',
       repositoryPolicyVersion: 1,
@@ -763,6 +874,7 @@ describe('GovernanceService', () => {
     const repository = new InMemoryGovernanceDecisionRepository();
     const decision = GovernanceDecision.fromSnapshot({
       id: 'decision-1',
+      missionId: 'mission-1',
       value: 'Escalation Required',
       repositoryPolicyId: 'repository-policy-1',
       repositoryPolicyVersion: 1,
@@ -830,18 +942,65 @@ describe('GovernanceService', () => {
     expect((await decisionRepository.enumerate())).toHaveLength(1);
   });
 
-  it('does not mutate RepositoryPolicy or Review inputs and publishes no Domain Events', async () => {
+  it('does not mutate RepositoryPolicy or Review inputs while publishing only GovernanceDecisionRecorded', async () => {
     const policy = createPolicy();
     const review = createReview();
     const policySnapshot = policy.toSnapshot();
     const reviewSnapshot = review.toSnapshot();
-    const { service } = await createHarness({ policy, review });
+    const { service, eventBus } = await createHarness({ policy, review });
 
     await evaluate(service);
 
     expect(policy.toSnapshot()).toEqual(policySnapshot);
     expect(review.toSnapshot()).toEqual(reviewSnapshot);
     expect(review.pullDomainEvents()).toEqual([]);
+    expect(eventBus.publishedEvents.map((event) => event.eventType)).toEqual([
+      'GovernanceDecisionRecorded',
+    ]);
+  });
+
+  it('stores missionId on the persisted GovernanceDecision and publishes from the persisted decision', async () => {
+    const { service, decisionRepository, reviewRepository, eventBus } = await createHarness({
+      policy: createPolicy(),
+      review: createReview(),
+    });
+
+    const decision = await evaluate(service);
+    const persistedDecision = await decisionRepository.getById(decision.id);
+    const events = collectGovernanceDecisionRecordedEvents(eventBus);
+
+    await reviewRepository.create(createReview('review-2'));
+
+    expect(persistedDecision?.toSnapshot().missionId).toBe('mission-1');
+    expect(events[0]?.missionId).toBe(persistedDecision?.toSnapshot().missionId);
+    expect(events[0]?.attribution.missionId).toBe(persistedDecision?.toSnapshot().missionId);
+  });
+
+  it('persists GovernanceDecision before publishing so publication failure does not roll back the decision', async () => {
+    const policyRepository = new InMemoryRepositoryPolicyRepository();
+    const reviewRepository = new InMemoryReviewRepository();
+    const decisionRepository = new InMemoryGovernanceDecisionRepository();
+    const ratificationAuthorityRepository = new InMemoryRatificationAuthoritySnapshotRepository();
+    const ratificationAttributionValidationService = new RatificationAttributionValidationService(
+      ratificationAuthorityRepository,
+    );
+    const failingEventBus = new FailingEventBus();
+    const service = new GovernanceService(
+      policyRepository,
+      reviewRepository,
+      decisionRepository,
+      createIdentitySequence(['evaluation-1', 'decision-1', 'event-1']),
+      ratificationAttributionValidationService,
+      failingEventBus,
+    );
+
+    await ratificationAuthorityRepository.recordSnapshot(createAuthoritySnapshot());
+    await policyRepository.registerInitialVersion(createPolicy());
+    await reviewRepository.create(createReview());
+
+    await expect(evaluate(service)).rejects.toThrow('publish failed');
+    expect(await decisionRepository.enumerate()).toHaveLength(1);
+    expect(failingEventBus.publishedEvents).toHaveLength(1);
   });
 
   it('records GovernanceEscalation only for Escalation Required decisions', async () => {
@@ -849,6 +1008,7 @@ describe('GovernanceService', () => {
       policy: createPolicy(),
       review: createReview(),
     });
+
     const escalationHarness = await createHarness({
       policy: createPolicy([criterion('unsupported', JSON.stringify({ kind: 'Unknown', schemaVersion: 1 }))]),
       review: createReview(),
@@ -893,4 +1053,40 @@ describe('GovernanceService', () => {
 
 function requiresOutcomeMetadata(outcome: ReviewOutcomeValue): boolean {
   return outcome === 'Accepted' || outcome === 'Accepted With Observations' || outcome === 'Rejected';
+}
+
+class FailingEventBus extends EventBus {
+  public readonly publishedEvents: EventBusEvent[] = [];
+
+  public constructor() {
+    super(new TestLogger());
+  }
+
+  public override async publish(event: EventBusEvent): Promise<void> {
+    this.publishedEvents.push(event);
+    throw new Error('publish failed');
+  }
+}
+
+function createIdentitySequence(identities: readonly string[]): () => string {
+  const queue = [...identities];
+
+  return () => queue.shift() ?? `generated-${queue.length}`;
+}
+
+class CollectingEventBus extends EventBus {
+  public readonly publishedEvents: EventBusEvent[] = [];
+
+  public constructor() {
+    super(new TestLogger());
+  }
+
+  public override async publish(event: EventBusEvent): Promise<void> {
+    await super.publish(event);
+    this.publishedEvents.push(event);
+  }
+}
+
+function collectGovernanceDecisionRecordedEvents(eventBus: CollectingEventBus): readonly EventBusEvent[] {
+  return eventBus.publishedEvents.filter((event) => event.eventType === 'GovernanceDecisionRecorded');
 }

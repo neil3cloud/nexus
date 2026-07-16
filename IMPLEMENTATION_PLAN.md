@@ -2966,7 +2966,7 @@ Reviewer Validation Result
 
 # Milestone 9 — Engineering Governance Automation
 
-Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-001`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-017`; no further Milestone 9 Sprint is Current)
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-001`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-017`; Sprint 55 — Ratification and Repository-Law Integration is ✅ Approved — `NEXUS-REV-2026-07-16-002`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-16-001`; Sprint 56 — Governance Decision Domain Event Publication is ✅ Approved with Findings — `NEXUS-REV-2026-07-16-006`, fully closed with one Category 4, Informational finding and zero open findings of any blocking category, authorized by `NEXUS-RAT-2026-07-16-002` and remediated under `NEXUS-RAT-2026-07-16-003`/`NEXUS-RAT-2026-07-16-004`; Sprint 57 — Governance-Gated Workflow Advancement is 🟡 Authorized — Awaiting Implementation, RFC-0004 amended to v1.11 by `NEXUS-RAT-2026-07-16-005`, Sprint scope narrowed and authorized by `NEXUS-RAT-2026-07-16-006`; Sprint 57 is Current)
 
 Objective
 
@@ -2989,12 +2989,14 @@ Governance automation SHALL NOT redefine Mission objectives; autonomously create
 
 Provisional Capability Sequence (non-binding; subject to `nexus-plan` dependency validation and re-sequencing before any Sprint is proposed)
 
-- Sprint 52 — Governance Policy Model Foundation
-- Sprint 53 — Policy Evaluation Foundation
-- Sprint 54 — Governance Decision and Escalation
-- Sprint 55 — Ratification and Repository-Law Integration
-- Sprint 56 — Review-to-Governance Workflow Integration
-- Sprint 57 — Governance Automation Validation
+- Sprint 52 — Governance Policy Model Foundation (implemented as proposed)
+- Sprint 53 — Policy Evaluation Foundation (implemented, merged with the provisional Sprint 54 scope, as "Policy Evaluation and Governance Decision Foundation")
+- Sprint 54 — Ratification Attribution Validation Foundation (re-sequenced from the provisional "Governance Decision and Escalation" naming; Governance Decision/Escalation were delivered by Sprint 53's merge instead)
+- Sprint 55 — Ratification and Repository-Law Integration (implemented as proposed)
+- Sprint 56 — Governance Decision Domain Event Publication (re-sequenced from the provisional "Review-to-Governance Workflow Integration"; Domain Event publication is the smaller, foundational prerequisite — workflow integration/consumption remains a later, still-unscheduled provisional item)
+- Sprint 57 — Governance-Gated Workflow Advancement (re-sequenced and re-scoped from the provisional "Governance Automation Validation"; the Sprint Owner determined the next required capability was operational integration — a `GovernanceDecision`-gated RFC-0004 Advancement Strategy — not further validation of already-certified Sprints 52–56; authorized by `NEXUS-RAT-2026-07-16-005`/`-006`, narrowed from a broader initially-proposed scope that exceeded ratified RFC text)
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (unscheduled; requires its own future RFC amendment owning Recovery Requirement and any differentiated Rejected/Deferred/Escalation-Required Engineering Session state — not authorized for implementation)
+- Sprint 59 — Governed Mission Completion (unscheduled; requires an RFC-0001 amendment defining expanded Mission completion preconditions — not authorized for implementation)
 
 Status
 
@@ -3002,7 +3004,129 @@ Status
 - Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009` (fully closed; two Category 6 Observations, zero Builder Tasks; zero open findings), authorized by `NEXUS-RAT-2026-07-15-015`.
 - Sprint 53 — Policy Evaluation and Governance Decision Foundation is **✅ Approved** (`NEXUS-REV-2026-07-15-010`; one Category 1, Minor finding resolved by TASK-001 and verified by `NEXUS-REV-2026-07-15-011`; one Category 4, Informational documentation finding resolved by DOC-001 and verified by `NEXUS-REV-2026-07-15-012`; fully closed with zero open findings of any category), formally activating the provisional Sprint 53/54 merge approved in principle by `NEXUS-RAT-2026-07-15-015`, following two Sprint Owner review cycles (Changes Required, then Approved With Final Refinements) and ratified by `NEXUS-RAT-2026-07-15-016`.
 - Sprint 54 — Ratification Attribution Validation Foundation is **✅ Approved** (`NEXUS-REV-2026-07-16-001`; two Category 6, Informational Observations, zero Builder Tasks; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-15-017` following two Sprint Owner review cycles (Changes Required — scope bundling across seven distinct concerns; Changes Required — Snapshot cardinality and explicit Effective status). Validates the Ratification attribution recorded by one `RepositoryPolicy` version against an immutable collection of Ratification Authority Records, producing exactly one of three closed outcomes (Valid, Invalid, Unresolvable). Standalone this Sprint — no integration with `PolicyEvaluation`/`GovernanceDecision`/`GovernanceService`.
-- Sprint 55 — Ratification and Repository-Law Integration is **✅ Approved** (`NEXUS-REV-2026-07-16-002`; one Category 6, Informational Observation, zero Builder Tasks; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-001` (Approved With Changes on the originating `nexus-plan` proposal). Integrates Sprint 54's standalone `RatificationAttributionValidationService` into `GovernanceService` as an additive precondition to Policy Evaluation: `Valid` attribution proceeds through existing Sprint 53 evaluation/precedence logic unchanged; `Invalid`/`Unresolvable` attribution unconditionally yields `Escalation Required` without Policy Criteria evaluation. Milestone 9's fourth Sprint. No further Milestone 9 Sprint is Current; the remaining provisional sequence requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- Sprint 55 — Ratification and Repository-Law Integration is **✅ Approved** (`NEXUS-REV-2026-07-16-002`; one Category 6, Informational Observation, zero Builder Tasks; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-001` (Approved With Changes on the originating `nexus-plan` proposal). Integrates Sprint 54's standalone `RatificationAttributionValidationService` into `GovernanceService` as an additive precondition to Policy Evaluation: `Valid` attribution proceeds through existing Sprint 53 evaluation/precedence logic unchanged; `Invalid`/`Unresolvable` attribution unconditionally yields `Escalation Required` without Policy Criteria evaluation. Milestone 9's fourth Sprint.
+- Sprint 56 — Governance Decision Domain Event Publication is **✅ Approved with Findings** (`NEXUS-REV-2026-07-16-006`; one Category 4, Informational finding, zero Builder Tasks blocking; fully closed with zero open findings of any blocking category), originally authorized by `NEXUS-RAT-2026-07-16-002`, first remediated under `NEXUS-RAT-2026-07-16-003` (Mission Identity Rule, since withdrawn), and second remediated under `NEXUS-RAT-2026-07-16-004` (RFC-0011 v1.1 Mission-Scoped Governance Evaluation) after `NEXUS-REV-2026-07-16-004`. Milestone 9's fifth Sprint: publishes exactly one `GovernanceDecisionRecorded` Domain Event (RFC-0005's "Policy Events" category) per persisted `GovernanceDecision`; governance evaluation is Mission-scoped per RFC-0011 v1.1, so `missionId` is required on the evaluation request, retained by every `GovernanceDecision`, and always present on the event envelope with no unsafe cast. See `knowledge/implementation/sprints/sprint-0056-governance-decision-domain-event-publication.md` for the complete Sprint Implementation Record.
+- Sprint 57 — Governance-Gated Workflow Advancement is 🟡 **Authorized — Awaiting Implementation** (`NEXUS-RAT-2026-07-16-006`, narrowed from a broader Sprint Owner-proposed scope per `nexus-plan`'s Governance Report). RFC-0004 was amended to v1.11 (`NEXUS-RAT-2026-07-16-005`) to add Governance-Gated Advancement as a fourth Advancement Strategy: a `GovernanceDecision` classifies as Non-Blocking (Approved) or Blocking (Rejected, Deferred, Escalation Required) solely for this Strategy's Advancement Eligibility. Milestone 9's sixth Sprint; the first Sprint integrating Governance (RFC-0011) with the Engineering Workflow (RFC-0004). Sprint 57 is Current. See `knowledge/implementation/sprints/sprint-0057-governance-gated-workflow-advancement.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 57 — Governance-Gated Workflow Advancement
+
+Status: 🟡 Authorized — Awaiting Implementation. RFC-0004 amended to v1.11 by `NEXUS-RAT-2026-07-16-005`; Sprint scope authorized (narrowed from a broader initially-proposed scope) by `NEXUS-RAT-2026-07-16-006`. Milestone 9's sixth Sprint. Sprint 57 is Current.
+
+Objective
+
+Implement the Governance-Gated Advancement Strategy authorized by RFC-0004 v1.11: an `EngineeringSession` advancement operation that consumes an already-produced, immutable `GovernanceDecision` (RFC-0011) and advances the current workflow position only when the `GovernanceDecision` is Approved, all existing Review-Gated Advancement requirements are satisfied, and all existing advancement prerequisites are satisfied. This is the first Sprint integrating the Governance capability (RFC-0011, Sprints 52–56) with the Engineering Workflow (RFC-0004, Sprints 39–51).
+
+RFC Coverage
+
+Primary
+
+- RFC-0004 v1.11 — Execution Model ("Workflow Advancement" § Governance-Gated Advancement, new Advancement Strategy)
+
+Referenced
+
+- RFC-0011 — Engineering Governance Model v1.1 (`GovernanceDecision` consumed as immutable, read-only input; RFC-0011 unmodified)
+- RFC-0010 — Kernel Boundaries
+
+No RFC ownership changes are authorized beyond `NEXUS-RAT-2026-07-16-005`'s RFC-0004 v1.11 amendment.
+
+Ratification
+
+- `NEXUS-RAT-2026-07-16-006` — Sprint 57 scope ratification: governs this Sprint's entire authorized scope (Authorized Vertical Slice, Explicitly Unauthorized list, Required Test Matrix), narrowed by the Sprint Owner from a broader initially-proposed scope following `nexus-plan`'s Governance Report.
+- `NEXUS-RAT-2026-07-16-005` — the companion RFC-0004 v1.11 amendment (Governance-Gated Advancement, Non-Blocking/Blocking classification) this Sprint implements.
+
+Architectural Responsibilities (binding, mirroring Sprint 46's split)
+
+| Concern | Owner |
+| --- | --- |
+| `GovernanceDecision` production, meaning, lifecycle | RFC-0011 / `GovernanceService` (unmodified) |
+| Advancement eligibility, Non-Blocking/Blocking classification, workflow position advancement | RFC-0004 (this Sprint, consuming `NEXUS-RAT-2026-07-16-005`) |
+
+Authorized Vertical Slice
+
+- A new `EngineeringSession` operation (e.g. `advanceWorkflowAfterGovernanceDecision`) consuming an existing, already-produced `GovernanceDecision` (via existing, unmodified `GovernanceService` retrieval) as immutable input, classifying it per RFC-0004 v1.11 (Approved → Non-Blocking; Rejected/Deferred/Escalation Required → uniform Blocking, no sub-classification), and reusing Sprint 43/45/46's existing Advancement Eligibility, Result, and Failure semantics unchanged, extended only by the Governance-Gated eligibility check alongside the existing Review-Gated check.
+- A corresponding thin `EngineeringSessionService` orchestration operation, mirroring Sprint 46's pattern (repository lookup, aggregate delegation, persistence only).
+- A narrowly scoped `GovernanceDecisionRecorded` consumer that retrieves the persisted `GovernanceDecision` and delegates all eligibility/mutation to the above operation; the consumer itself owns no eligibility or mutation logic and remains deterministic and idempotent.
+- Unit/integration tests covering the ten-row Required Test Matrix in `NEXUS-RAT-2026-07-16-006`.
+
+Deferred Concepts
+
+- Recovery Requirement records; recovery-plan generation (Sprint 58 candidate, unscheduled, requires its own RFC amendment).
+- Any new Engineering Session state distinguishing Rejected/Deferred/Escalation Required beyond RFC-0004 v1.11's uniform Blocking classification (Sprint 58 candidate).
+- Governed Mission Completion or any Mission completion precondition change (Sprint 59 candidate, unscheduled, requires an RFC-0001 amendment).
+- `WorkflowChain` topology mutation; `GovernanceDecision` reinterpretation; any `GovernanceService` side effect.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- `GovernanceDecision` is treated as immutable input; this Sprint does not modify or persist Governance state.
+- Advancement preserves Sprint 43/45/46's existing Advancement Eligibility, Result, and Failure semantics unchanged, adding only the Governance-Gated eligibility check.
+- Only `Approved` permits advancement; `Rejected`, `Deferred`, and `Escalation Required` all produce an identical, uniform Advancement Failure (no differentiated treatment).
+- Existing approved advancement behavior (Sprint 43 Manual, Sprint 45 Automatic/Event-Driven, Sprint 46 Review-Gated) remains byte-for-byte identical for all non-governance-gated scenarios.
+- Repeated invocation or duplicate `GovernanceDecisionRecorded` delivery produces no duplicate advancement.
+- `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, `AssignmentPolicy`, `GovernanceService`, `GovernanceDecision`, `EventBusContract`, and `DomainEvent` remain unmodified.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0057-governance-gated-workflow-advancement.md` for the complete Sprint Implementation Record.
+
+---
+
+## Sprint 56 — Governance Decision Domain Event Publication
+
+Status: ✅ Approved with Findings — `NEXUS-REV-2026-07-16-006` (fully closed; one Category 4, Informational finding, zero Builder Tasks blocking; zero open findings of any blocking category). Authorized by `NEXUS-RAT-2026-07-16-002`; remediations authorized by `NEXUS-RAT-2026-07-16-003` (Mission Identity Rule, since withdrawn) and `NEXUS-RAT-2026-07-16-004` (RFC-0011 v1.1 Mission-Scoped Governance Evaluation). Milestone 9's fifth Sprint.
+
+Objective
+
+Publish exactly one Domain Event, `GovernanceDecisionRecorded`, for every persisted `GovernanceDecision`, reusing RFC-0005's reserved "Policy Events" category, per RFC-0011's Dependencies § requirement that Governance Decisions be published as Domain Events.
+
+RFC Coverage
+
+- RFC-0005 — Domain Event Model v1.0 (Primary; Domain Event, Event Identity/Attribution/Causality/Correlation, "Policy Events" category).
+- RFC-0011 — Engineering Governance Model v1.1 (Primary; Dependencies § Domain Event publication requirement; Mission-Scoped Governance Evaluation §).
+
+Ratification
+
+- `NEXUS-RAT-2026-07-16-002` — governs this Sprint's entire binding scope: Event Model, Mission Identity, Publication Semantics, RFC Coverage, Dependencies, Authorized Concepts, Architectural Boundaries, and the Required Test Matrix.
+
+Authorized Concepts
+
+- `GovernanceDecisionRecorded` Domain Event type (single event, unchanged four-value outcome).
+- Required `missionId` on the governance-evaluation request and `GovernanceDecision`, populated from the evaluation request.
+- Resolved Review Mission mismatch validation producing `Escalation Required`.
+- `EventBusContract` wiring into `GovernanceService`.
+- Persist-before-publish event draining, mirroring the existing `ReviewService` pattern.
+- Minimal `createKernelServices` wiring change.
+
+Deferred Concepts
+
+- Downstream consumption of `GovernanceDecisionRecorded` by any workflow gate, repository-write automation, or Host/Adapter surface.
+- Evidence- or Shared-Reality-consuming Policy Criteria.
+- Multi-Policy or multi-Ratification conflict arbitration beyond Sprint 55's existing scope.
+- Any change to the four-value `GovernanceDecision` model's outcome semantics or the Mixed-Result Decision Table.
+- Any change to `EventBusContract` or the `DomainEvent` envelope.
+- Any `src/hosts` or `src/adapters` change.
+
+Definition of Done
+
+- Every `GovernanceDecision` production (all four outcomes, including both criterion-driven and attribution-driven Escalation Required) publishes exactly one `GovernanceDecisionRecorded` event with a correctly populated envelope.
+- Idempotent re-evaluation publishes no duplicate event.
+- `missionId` is obtained directly from the persisted `GovernanceDecision`, never resolved indirectly through the Review at publication time.
+- `GovernanceDecision` is persisted before its event is recorded or published.
+- No modification to the four-value `GovernanceDecision` model's existing outcome semantics, the Mixed-Result Decision Table, existing Policy Criterion predicates, `EventBusContract`, or `DomainEvent`.
+- No `src/hosts` or `src/adapters` file is modified.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+See `knowledge/implementation/sprints/sprint-0056-governance-decision-domain-event-publication.md` for the complete Sprint Implementation Record.
+
+Reviewer Validation Result
+
+- First review (`NEXUS-REV-2026-07-16-003`): **FAIL**. One Category 2, Critical finding (`-F-001`): an unratified `EvaluateGovernancePolicyCommand.missionId` fallback broke Sprint 53's frozen "missing Review → `Escalation Required`" guarantee. One Category 4, Minor finding (`-F-002`): `IMPLEMENTATION_REPORT.md` mischaracterized this as a "Known Limitation."
+- First Recovery Review (`NEXUS-REV-2026-07-16-004`), after `NEXUS-RAT-2026-07-16-003` (Mission Identity Optionality) remediation: `-F-001`/`-F-002` confirmed Resolved, but implementing "`missionId` MAY be absent" surfaced a new Category 3, Critical finding (`NEXUS-REV-2026-07-16-004-F-001`): RFC-0005's unconditional Event Attribution requirement conflicted with the ratified Mission Identity Rule, realized via an unsound `as GovernanceDomainEvent` cast. **FAIL.**
+- Sprint Owner resolution (`NEXUS-RAT-2026-07-16-004`): amended RFC-0011 to v1.1, adding a binding "Mission-Scoped Governance Evaluation" section — mandatory `missionId` on every governance evaluation request, independent of Review resolution; Review Mission mismatch and missing/unresolvable Review both produce `Escalation Required` retaining the requested Mission identity; `GovernanceDecisionRecorded` obtains `missionId` from the persisted `GovernanceDecision` with no cast. Withdrew `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule in its entirety.
+- Second Recovery Review (`NEXUS-REV-2026-07-16-006`): **Approved with Findings**. Confirmed all twelve items of `NEXUS-RAT-2026-07-16-004`'s Authorized Builder Remediation implemented exactly as specified, including removal of the unsound cast at its root cause (verified via direct inspection of `governance.events.ts` and a repository-wide search confirming no `as GovernanceDomainEvent` cast or absent-Mission-attribution test assertion remains anywhere in `src/`/`test/`). Confirmed `EventBusContract`, `DomainEvent`, `src/hosts`, `src/adapters`, the Mixed-Result Decision Table, and existing Policy Criterion predicates are unmodified, and that RFC-0011 was not further modified by the Builder beyond the `nexus-plan`-authored v1.1 amendment. Independent re-validation confirmed `tsc --noEmit`, targeted Vitest (49/49), `npm run test` (83 files / 468 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+- One Category 4, Informational finding recorded (`NEXUS-REV-2026-07-16-006-F-001`): `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary reports 467 tests where two independent re-runs both confirm 468. Cosmetic only; does not generate a blocking Builder Task. Sprint 56 is fully closed with zero open findings of any blocking category.
 
 ---
 

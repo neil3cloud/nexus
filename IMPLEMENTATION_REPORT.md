@@ -1,5 +1,106 @@
 # Nexus Implementation Report
 
+## Sprint 56 — Governance Decision Domain Event Publication
+
+### Implemented Slice
+
+Implemented the Milestone 9 Sprint 56 Governance Decision Domain Event Publication vertical slice and its second recovery remediation under `NEXUS-RAT-2026-07-16-004`. This sprint additively publishes exactly one `GovernanceDecisionRecorded` Domain Event for each newly persisted `GovernanceDecision`, now using RFC-0011 v1.1 Mission-scoped governance evaluation.
+
+Implemented scope:
+
+- Added `GovernanceDecisionRecorded` as the single RFC-0005 Policy-category event for all four existing `GovernanceDecision` values.
+- Added required `missionId` to the governance-evaluation request contract and every `GovernanceDecision`, populated from the evaluation request.
+- Validated resolved Review Mission identity against the requested evaluation Mission identity; Mission mismatch produces `Escalation Required`.
+- Restored missing/unresolvable Review behavior as Mission-scoped fail-closed decisions: `Escalation Required` retains the requested `missionId` and throws no Mission-availability error.
+- Wired `EventBusContract` into `GovernanceService` and `createKernelServices()`.
+- Published events only after `GovernanceDecision` repository registration succeeds.
+- Published `GovernanceDecisionRecorded` with structurally required `missionId` and `attribution.missionId` from the persisted `GovernanceDecision`, with no unsafe `GovernanceDomainEvent` cast.
+- Preserved idempotent re-evaluation by returning existing decisions without duplicate publication.
+- Preserved Sprint 53/55 evaluation precedence, attribution-driven escalation, and existing Policy Criterion predicates.
+- Added tests covering approved, rejected, deferred, criterion-driven escalation, attribution-driven escalation, resolved Review Mission match, resolved Review Mission mismatch, missing/unresolvable Review with explicit Mission identity, idempotent no-duplicate publication, persisted-decision mission identity, persist-before-publish ordering, and existing behavior preservation.
+- TASK-001 remediation removed the unratified `EvaluateGovernancePolicyCommand.missionId` fallback and `GovernanceDecisionMissionUnavailableError`, restoring Sprint 53's missing/unresolvable Review → `Escalation Required` guarantee.
+- TASK-002 remediation superseded the first remediation's optional event-envelope Mission rule with RFC-0011 v1.1 Mission-scoped evaluation, satisfying RFC-0005 Event Attribution structurally.
+
+Out of scope and not implemented:
+
+- Downstream event consumers, workflow gates, repository-write automation, Host/Adapter surfaces, Evidence/Shared-Reality-consuming Policy Criteria, multi-Policy or multi-Ratification conflict arbitration, and durable persistence.
+- Any change to `EventBusContract`, `DomainEvent`, RFC-0005, RFC-0011 text, Kernel Canon, `src/hosts`, or `src/adapters`.
+
+### RFC Coverage
+
+Primary RFCs:
+
+- RFC-0005 — Domain Event Model v1.0 (Domain Event, Event Identity, Event Attribution, Event Causality, Event Correlation, Policy Events).
+- RFC-0011 — Engineering Governance Model v1.1 (Dependencies § Domain Event publication requirement; Mission-Scoped Governance Evaluation §).
+
+Referenced authorities:
+
+- `NEXUS-RAT-2026-07-16-002` — Sprint 56 Scope Ratification.
+- `NEXUS-RAT-2026-07-16-003` — Sprint 56 first remediation ratification; its Mission Identity Rule was withdrawn by `NEXUS-RAT-2026-07-16-004`.
+- `NEXUS-RAT-2026-07-16-004` — RFC-0011 v1.1 Mission-Scoped Governance Evaluation amendment and second remediation authorization.
+- Sprint 53 — approved `GovernanceDecision`/`GovernanceEscalation`/`GovernanceService` foundation.
+- Sprint 55 — approved attribution-driven `Escalation Required` path.
+
+Implemented Concepts:
+
+- `GovernanceDecisionRecorded` Domain Event.
+- Required governance-evaluation `missionId` and required `GovernanceDecision.missionId`.
+- Mission mismatch validation producing `Escalation Required`.
+- `GovernanceService` EventBus publication after persistence.
+- Idempotent no-duplicate publication for existing evaluation keys.
+- Missing/unresolvable Review fail-closed behavior retaining the explicit evaluation Mission identity.
+
+Deferred Concepts:
+
+- Downstream consumption of `GovernanceDecisionRecorded`; workflow gates; repository-write automation; Host/Adapter surfaces; Evidence/Shared-Reality-consuming Policy Criteria; multi-Policy or multi-Ratification conflict arbitration; durable persistence.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-15-013`, `NEXUS-RAT-2026-07-15-014`, `NEXUS-RAT-2026-07-16-002`, `NEXUS-RAT-2026-07-16-003`, `NEXUS-RAT-2026-07-16-004`).
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0056-governance-decision-domain-event-publication.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `GovernanceDecisionRecorded` carries the persisted decision identity, value, policy reference, review reference, policy-evaluation identity, evaluation key, explanation codes, and escalation identity when present.
+- Governance evaluation is Mission-scoped: the request supplies explicit Mission identity, every `GovernanceDecision` retains it, and publication reads Mission identity only from the persisted `GovernanceDecision`.
+- Missing/unresolvable Review decisions and Review Mission mismatch decisions produce `Escalation Required` with the explicit evaluation Mission identity; no synthetic or inferred Mission identity is used.
+- Publication failure after repository registration surfaces to the caller but does not roll back the in-memory persisted decision.
+
+### Known Limitations
+
+- No downstream consumer exists for `GovernanceDecisionRecorded`.
+- Governance persistence remains in-memory and process-local.
+
+### Validation Summary
+
+- Targeted Sprint 56 TASK-002 validation passed: `governance.service.test.ts` (49 tests).
+- TypeScript compile passed.
+- ESLint passed.
+- Full Vitest suite passed: 83 files, 468 tests.
+- esbuild passed.
+- Extension-host bundle build passed.
+
+### Deviations
+
+Architectural deviation identified by `NEXUS-REV-2026-07-16-003-F-001`: the original Sprint 56 implementation introduced an unratified `EvaluateGovernancePolicyCommand.missionId` fallback and `GovernanceDecisionMissionUnavailableError`, breaking Sprint 53's frozen missing/unresolvable Review → `Escalation Required` guarantee.
+
+Resolved by TASK-001 under `NEXUS-RAT-2026-07-16-003`: the command fallback and error behavior were removed; missing/unresolvable Review again produces `Escalation Required`; `missionId` is optional only on the `GovernanceDecisionRecorded` event-envelope path and is omitted rather than synthesized when Review cannot resolve.
+
+Second-cycle specification conflict identified by `NEXUS-REV-2026-07-16-004-F-001`: `NEXUS-RAT-2026-07-16-003`'s optional event-envelope Mission rule conflicted with RFC-0005's unconditional Event Attribution requirement.
+
+Resolved by TASK-002 under `NEXUS-RAT-2026-07-16-004`: RFC-0011 v1.1 makes governance evaluation Mission-scoped, `missionId` is required on the evaluation request and `GovernanceDecision`, Review Mission mismatch fails closed to `Escalation Required`, missing/unresolvable Review retains the requested Mission identity, and `GovernanceDecisionRecorded` is structurally RFC-0005-conformant with no unsafe Domain Event cast. No remaining architectural deviations.
+
+---
+
 ## Sprint 55 — Ratification and Repository-Law Integration
 
 ### Implemented Slice

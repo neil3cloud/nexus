@@ -128,6 +128,7 @@ function freezeDecisions(snapshots: readonly GovernanceDecisionSnapshot[]): read
 
 function canonicalizeGovernanceDecision(snapshot: GovernanceDecisionSnapshot): string {
   return JSON.stringify({
+    missionId: snapshot.missionId,
     value: snapshot.value,
     repositoryPolicyId: snapshot.repositoryPolicyId,
     repositoryPolicyVersion: snapshot.repositoryPolicyVersion,

@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.10
+**Version:** 1.11
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -20,6 +20,7 @@
 - v1.8 — Adds Session Recovery/Checkpointing (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-007`). Defines a **Checkpoint** — a named, immutable, point-in-time capture of an Engineering Session's existing runtime snapshot (v1.2/v1.3, unmodified) — and **Recovery**, which reconstitutes an Engineering Session from a Checkpoint via the existing, unmodified `fromSnapshot()` reconstitution contract (Sprint 39). Recovery SHALL reconstruct an Engineering Session that is semantically equivalent to the captured Checkpoint, preserving all RFC-defined state, workflow progression, workflow execution history, timeline, diagnostics, and architectural invariants; implementation-specific object identity, memory layout, or serialization format are not part of this contract. This amendment does not modify Engineering Session's existing snapshot, reconstitution, workflow state, timeline, or diagnostics ownership; it does not introduce Concurrent Session Coordination or Multi-Agent Engineering Orchestration, both of which remain separately unauthorized. No other section of this specification is modified.
 - v1.9 — Adds Concurrent Session Coordination (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-009`). Defines how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services: concurrent visibility of Engineering Sessions, enumeration of Engineering Sessions eligible for further progression, observation of concurrent Engineering Session lifecycle, and repository-level guarantees that operations on one Engineering Session SHALL NOT observe or mutate the runtime state of another. This amendment does not redefine Engineering Session's existing runtime state, snapshot, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), and does not introduce single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, or Multi-Agent Engineering Orchestration, all of which remain separately unauthorized. No other section of this specification is modified.
 - v1.10 — Adds Multi-Agent Engineering Orchestration Foundation (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-012`). Defines the structural relationships through which multiple independent Engineering Sessions MAY participate in a single Mission while preserving complete session independence: a **Mission Engineering Group** (the deterministic association of a Mission with the Engineering Sessions participating in it, and their enumeration), and an **Engineering Session Handoff** (an explicit, immutable record that engineering responsibility for a Mission passed from one Engineering Session/Execution Role to another, together with a deterministic Handoff lifecycle). This amendment defines orchestration structure only; it does not introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection. It does not redefine Engineering Session's existing runtime state, snapshot/reconstitution, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), Workflow Chain or Workflow Chain Execution (v1.3/v1.6/v1.7, unmodified), Assignment Policy (v1.3, unmodified), Execution Strategy, or Concurrent Session Coordination (v1.9, unmodified). No other section of this specification is modified.
+- v1.11 — Adds Governance-Gated Advancement as RFC-0004's fourth Advancement Strategy (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-005`). Advancement is contingent upon an already-produced, immutable `GovernanceDecision` (RFC-0011), consumed as read-only input; Advancement Eligibility for this Strategy additionally requires that a `GovernanceDecision` has in fact been produced for the governing evaluation (its absence is an Advancement Eligibility failure, not a classification value). A `GovernanceDecision` is classified as exactly one of: **Non-Blocking Governance Decision** — Approved (advancement MAY proceed); **Blocking Governance Decision** — Rejected, Deferred, Escalation Required (advancement SHALL NOT proceed, producing an Advancement Failure). This classification is owned by RFC-0004 for the sole purpose of Governance-Gated Advancement's Advancement Eligibility; it does not modify RFC-0011's `GovernanceDecision` values, semantics, lifecycle, or production, and does not modify Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement, Engineering Session, Workflow Chain, or Workflow Chain Execution. This amendment defines gating semantics only; it does not authorize Recovery Requirement records, new Engineering Session states distinguishing Rejected/Deferred/Escalation Required beyond uniform Blocking treatment, or any Mission completion precondition change — each remains explicitly unauthorized pending its own future Sprint Owner scope ratification. No other section of this specification is modified.
 
 ---
 
@@ -375,11 +376,12 @@ Workflow Advancement owns:
 - Advancement Result
 - Advancement Failure
 
-An **Advancement Strategy** is a named mechanism by which an Engineering Session's current workflow position advances. RFC-0004 defines exactly three Advancement Strategies:
+An **Advancement Strategy** is a named mechanism by which an Engineering Session's current workflow position advances. RFC-0004 defines exactly four Advancement Strategies:
 
 - **Manual Advancement** — an explicit, caller-invoked request to advance exactly one workflow position. Implemented by Sprint 43; unmodified and unexpanded by this amendment.
 - **Automatic/Event-Driven Advancement** — advancement evaluated deterministically in response to an Advancement Trigger, without the caller itself deciding or requesting the specific advancement. Not yet implemented; requires its own future Sprint Owner scope ratification.
-- **Review-Gated Advancement** — advancement contingent upon a Review Outcome (RFC-0006). Advancement Eligibility for this Strategy additionally requires a **Non-Blocking Review Outcome** (defined below). Gating semantics are defined by this amendment (v1.5); implementation is not yet authorized and requires its own future Sprint Owner scope ratification.
+- **Review-Gated Advancement** — advancement contingent upon a Review Outcome (RFC-0006). Advancement Eligibility for this Strategy additionally requires a **Non-Blocking Review Outcome** (defined below). Gating semantics are defined by v1.5; implemented by Sprint 46.
+- **Governance-Gated Advancement** — advancement contingent upon a `GovernanceDecision` (RFC-0011). Advancement Eligibility for this Strategy additionally requires that a `GovernanceDecision` has been produced for the governing evaluation and that it classifies as a **Non-Blocking Governance Decision** (defined below). Gating semantics are defined by this amendment (v1.11); implementation requires its own future Sprint Owner scope ratification.
 
 A **ReviewOutcome** (RFC-0006) is classified as exactly one of:
 
@@ -387,6 +389,13 @@ A **ReviewOutcome** (RFC-0006) is classified as exactly one of:
 - **Blocking Review Outcome** — Action Required, Rejected. A workflow position gated by Review-Gated Advancement SHALL NOT advance when the governing Review reaches a Blocking Review Outcome; the attempt SHALL produce an Advancement Failure.
 
 This classification is owned by RFC-0004 for the sole purpose of Review-Gated Advancement's Advancement Eligibility. It does not modify RFC-0006's `ReviewOutcome` values, semantics, or lifecycle.
+
+A `GovernanceDecision` (RFC-0011) is classified as exactly one of:
+
+- **Non-Blocking Governance Decision** — Approved. A workflow position gated by Governance-Gated Advancement MAY advance when the governing `GovernanceDecision` is Approved and all other eligibility requirements are satisfied.
+- **Blocking Governance Decision** — Rejected, Deferred, Escalation Required. A workflow position gated by Governance-Gated Advancement SHALL NOT advance when the governing `GovernanceDecision` is any of these three values; the attempt SHALL produce an Advancement Failure. Rejected, Deferred, and Escalation Required remain semantically distinct `GovernanceDecision` values under RFC-0011 — this amendment classifies all three identically only for the narrow purpose of Governance-Gated Advancement's Blocking/Non-Blocking eligibility test; it does not collapse, rename, or reinterpret their distinct RFC-0011 meanings, and does not authorize any differentiated downstream treatment (such as a Recovery Requirement record or a persisted Deferred/Escalation-Required Engineering Session state) without its own future Sprint Owner scope ratification.
+
+This classification is owned by RFC-0004 for the sole purpose of Governance-Gated Advancement's Advancement Eligibility. It does not modify RFC-0011's `GovernanceDecision` values, semantics, lifecycle, or production, and does not permit `GovernanceService` to mutate Engineering Session state as a side effect of producing a `GovernanceDecision`.
 
 An **Advancement Trigger** is the deterministic condition or reported fact that causes an Advancement Strategy to evaluate Advancement Eligibility.
 
@@ -400,7 +409,7 @@ An **Advancement Failure** is the deterministic rejection of an ineligible advan
 
 Workflow Advancement SHALL remain deterministic: equivalent Engineering Session state and equivalent Advancement Trigger input SHALL always produce equivalent Advancement Results or Advancement Failures.
 
-Workflow Advancement SHALL NOT define Assignment Policy evaluation, Review Outcome semantics, Multi-Agent Orchestration, Adapter dispatch, or Task lifecycle transition; those remain owned by their respective sections.
+Workflow Advancement SHALL NOT define Assignment Policy evaluation, Review Outcome semantics, Governance Decision semantics or production, Multi-Agent Orchestration, Adapter dispatch, or Task lifecycle transition; those remain owned by their respective sections.
 
 This section does not modify Engineering Session's existing ownership of runtime progression (current workflow position, workflow state, workflow execution history), established by v1.2 and v1.3; it organizes and names the strategies by which that progression occurs.
 

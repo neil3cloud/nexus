@@ -46,6 +46,7 @@ export const governanceEscalationReasonCodes = [
   'MalformedPredicateDescriptor',
   'ContradictoryPredicateDescriptor',
   'InvalidExpectedMatch',
+  'ReviewMissionMismatch',
 ] as const;
 export type GovernanceEscalationReasonCode =
   (typeof governanceEscalationReasonCodes)[number];
@@ -109,6 +110,7 @@ export interface PolicyEvaluationSnapshot {
 
 export interface GovernanceDecisionSnapshot {
   readonly id: string;
+  readonly missionId: string;
   readonly value: GovernanceDecisionValue;
   readonly repositoryPolicyId: string;
   readonly repositoryPolicyVersion: number;

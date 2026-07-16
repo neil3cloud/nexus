@@ -2,6 +2,266 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-006 — Sprint 56 — Governance Decision Domain Event Publication (Recovery Review — TASK-002)
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication (Recovery Review, limited to TASK-002's authorized remediation changes)
+- **Reviewed Vertical Slice:** Implementation of RFC-0011 v1.1's Mission-Scoped Governance Evaluation, per `NEXUS-RAT-2026-07-16-004`: mandatory `missionId` on the governance-evaluation request; every `GovernanceDecision` retains that Mission identity; Review Mission mismatch and missing/unresolvable Review both produce `Escalation Required` retaining the requested Mission identity; `GovernanceDecisionRecorded` obtains `missionId` from the persisted `GovernanceDecision` with no unsafe type cast.
+- **RFC Coverage:** RFC-0005 — Domain Event Model v1.0 (Primary; Event Attribution §). RFC-0011 — Engineering Governance Model v1.1 (Primary; Mission-Scoped Governance Evaluation §, added by this amendment). Referenced: `NEXUS-RAT-2026-07-15-016` (Sprint 53, frozen); `NEXUS-RAT-2026-07-16-004`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+TASK-002 is correctly implemented against RFC-0011 v1.1 and `NEXUS-RAT-2026-07-16-004`'s twelve-item Authorized Builder Remediation, verified item by item. `EvaluateGovernancePolicyCommand.missionId` and `GovernanceDecision.missionId`/`GovernanceDecisionSnapshot.missionId` are all now required, non-optional `string` fields (`governance.contract.ts`, `governance-decision.ts`, `governance.types.ts`), confirmed by source diff — no `GovernanceDecisionMissionUnavailableError`-style fallback error was reintroduced. `resolveInputs` normalizes and requires `command.missionId` unconditionally; `createDecision` no longer has any code path that can throw before constructing a `GovernanceDecision`. A new `hasReviewMissionMismatch` check compares a resolved Review's own `missionId` against the requested `missionId`, short-circuiting Policy Criteria evaluation and producing a new `ReviewMissionMismatch` escalation reason code (added to the existing extensible `governanceEscalationReasonCode` enum) on mismatch — verified by a dedicated test asserting `Escalation Required`, the correct reason code, and that the event retains the *requested* Mission identity, not the Review's. Missing- and unresolvable-Review scenarios are now tested with an explicit evaluation-request `missionId` and produce `Escalation Required` with no thrown error, exactly as RFC-0011 v1.1 requires.
+
+Critically, `governance.events.ts`'s `createGovernanceDecisionRecordedEvent` no longer contains the `snapshot.missionId === undefined` branch or its `as GovernanceDomainEvent` cast from the prior cycle — confirmed by direct file inspection; the function now unconditionally constructs a structurally conformant `DomainEvent`/`GovernanceDomainEvent` with `missionId` and `attribution.missionId` always present, resolving `NEXUS-REV-2026-07-16-004-F-001` at its root cause rather than working around it. A repository-wide search confirms no `as GovernanceDomainEvent` cast and no `.not.toHaveProperty('missionId')`-style assertion exists anywhere in `src/` or `test/` for Governance. `EventBusContract`, `DomainEvent`, `src/hosts`, and `src/adapters` are all confirmed byte-for-byte unmodified by `git diff --stat`; `knowledge/specifications/rfc-0011-engineering-governance-model.md` shows no further Builder modification beyond the `nexus-plan`-authored v1.1 amendment.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; targeted `npx vitest run test/kernel/governance/governance.service.test.ts` (49/49); full `npm run test` (83 files, **468** tests — see Finding F-001 below); `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-006-F-001 — `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary understates the Vitest total by one test
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Implementation Report — implementation reports SHALL accurately describe validation performed.
+- **Evidence:** `IMPLEMENTATION_REPORT.md`'s Sprint 56 § Validation Summary states "Full Vitest suite passed: 83 files, 467 tests." Two independent `npx vitest run` executions during this review both report `Tests 468 passed (468)` across the same 83 passing files (plus the one pre-existing, unrelated `vscode`-module extension-host suite failure noted in every prior Sprint 56 review).
+- **Impact:** Cosmetic only. Does not indicate a missing or failing test; the targeted Sprint 56 count (49 tests in `governance.service.test.ts`) is independently confirmed correct.
+- **Recommended Disposition:** Documentation SHALL be reconciled. No architectural or implementation change is implied.
+- **Builder Action:** Documentation Task — correct "467 tests" to "468 tests" in `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 1 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+`NEXUS-REV-2026-07-16-004-F-001` is confirmed **Resolved** at its root cause (no cast, no omitted required field — structural RFC-0005 conformance restored). One Category 4, Informational finding does not block approval.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: downstream consumption of `GovernanceDecisionRecorded`; workflow gates; repository-write automation; Host/Adapter surfaces; Evidence/Shared-Reality-consuming Policy Criteria; multi-Policy/multi-Ratification conflict arbitration; durable event storage or retry behavior; any change to the Mixed-Result Decision Table or existing Policy Criterion predicates; any change to `EventBusContract` or `DomainEvent`'s type declarations.
+
+### Architectural Compliance Summary
+
+All twelve Authorized Builder Remediation items verified:
+
+1. Required `missionId` on `EvaluateGovernancePolicyCommand` — confirmed.
+2. `GovernanceDecision` retains that Mission identity — confirmed (required field, no fallback).
+3. Resolved Review Mission identity validated against the requested Mission identity — confirmed (`hasReviewMissionMismatch`).
+4. `Escalation Required` for missing Review, unresolvable Review, and Mission mismatch — confirmed, each independently tested.
+5. Sprint 53 decision precedence and fail-closed behavior preserved — confirmed; existing Sprint 53/55 tests pass unchanged.
+6. `GovernanceDecisionRecorded.missionId` populated from the persisted `GovernanceDecision` — confirmed.
+7. All unsafe `DomainEvent` casts removed — confirmed by direct inspection and repository-wide search.
+8. Structural RFC-0005 conformance restored — confirmed; every published event satisfies `DomainEvent`'s required fields without a cast.
+9. Tests asserting absent Mission attribution removed — confirmed, none remain.
+10. Required test scenarios added — confirmed (Mission match, Mission mismatch, missing Review with explicit Mission, unresolvable Review with explicit Mission, all four `GovernanceDecision` outcomes, idempotency, no-duplicate-publication, persist-before-publish).
+11. Sprint 56 implementation and governance documentation updated — confirmed, with one Informational count discrepancy (F-001).
+12. Full repository validation pipeline run — independently re-confirmed clean.
+
+Scope Restrictions: `GovernanceDecision`'s and `GovernanceEscalation`'s existing model changed only as authorized (mandatory `missionId`, new `ReviewMissionMismatch` reason code within the existing extensible enum); Policy Evaluation precedence, `EventBusContract`, `DomainEvent`, Host, and Adapter code confirmed unmodified; no new Mission lookup service or Policy/Ratification-inferred Mission identity introduced; no durable storage or retry behavior introduced; RFC-0011 confirmed not further modified by the Builder beyond the `nexus-plan`-authored v1.1 amendment.
+
+### Builder Task Recommendation
+
+One Documentation Task: correct `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary from "467 tests" to "468 tests." Does not block approval; MAY be handled via `nexus-sprint` or directly. Sprint 56 is **Approved with Findings**. The Milestone 9 Sprint sequence advances: per `IMPLEMENTATION_PLAN.md`'s provisional sequence, no further Milestone 9 Sprint is Current, and the remaining provisional sequence (Sprint 57 — Governance Automation Validation) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-16-005 — Sprint 56 — Governance Decision Domain Event Publication (Status Confirmation)
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication
+- **Reviewed Vertical Slice:** None new. This is a status-confirmation review requested after a Sprint Owner Governance Decision was recorded in `builder-task.md` (2026-07-16, "RFC Amendment Required — Governance Evaluation SHALL Be Mission-Scoped"), to determine whether any new Builder remediation exists to certify.
+- **RFC Coverage:** Unchanged from `NEXUS-REV-2026-07-16-004`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged — reconfirms `NEXUS-REV-2026-07-16-004`)
+
+### Executive Summary
+
+Independent inspection confirms `git diff --stat` for every implementation file (`src/kernel/governance/*.ts`, `test/kernel/governance/governance.service.test.ts`, `IMPLEMENTATION_REPORT.md`) is byte-for-byte identical to the state reviewed in `NEXUS-REV-2026-07-16-004`. No RFC-0011 amendment exists (`knowledge/specifications/rfc-0011-engineering-governance-model.md` § Amendment History still ends at v1.0; no v1.1 or later entry). No new Ratification exists in `knowledge/governance/RATIFICATION_LEDGER.md` beyond `NEXUS-RAT-2026-07-16-003`. `builder-task.md` records the Sprint Owner's governance decision and its required sequencing (RFC-0011 amendment via `nexus-plan` → updated Sprint Implementation Record → superseding Builder Task via `nexus-sprint` → implementation → Recovery Review) but confirms BLOCKED-002 remains blocked; no implementation was authorized or performed against it.
+
+Since no Builder remediation exists beyond what `NEXUS-REV-2026-07-16-004` already reviewed, this review performs no new analysis and generates no new finding. `NEXUS-REV-2026-07-16-004-F-001` (Category 3 — Specification Conflict, Critical) remains open and unresolved for the reasons already recorded in that review: `governance.events.ts` still constructs `GovernanceDecisionRecorded` events lacking `missionId`/`attribution.missionId` via an `as GovernanceDomainEvent` cast when Review resolution fails, which still conflicts with RFC-0005's unconditional Event Attribution requirement. The Sprint Owner's decision to resolve this via RFC-0011 amendment (Mission-scoped governance evaluation, mandatory explicit `MissionId` input) is a valid path forward, but a ratified decision to amend is not itself the amendment — the RFC-0011 text is unchanged, and no Builder Task implementing that direction has been authorized or completed.
+
+### Findings
+
+No new findings. `NEXUS-REV-2026-07-16-004-F-001` remains open, unresolved, and blocking, under its original evidence and classification (see `NEXUS-REV-2026-07-16-004`).
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 (carried forward, unresolved: `NEXUS-REV-2026-07-16-004-F-001`) |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-16-004`. No new deferred concept was implemented, and none was expected, since no new implementation occurred.
+
+### Architectural Compliance Summary
+
+Unchanged from `NEXUS-REV-2026-07-16-004`. `NEXUS-REV-2026-07-16-003-F-001` and `-F-002` remain Resolved. `NEXUS-REV-2026-07-16-004-F-001` remains open.
+
+### Builder Task Recommendation
+
+No new Builder Task. `builder-task.md` already correctly reflects the current state: BLOCKED-002 remains BLOCKED pending, in order, an RFC-0011 amendment drafted and ratified via `nexus-plan`, an updated Sprint 56 Sprint Implementation Record, a superseding Builder Task from `nexus-sprint`, Builder implementation, and a further Recovery Review. This review confirms that sequence has not yet advanced past step zero (the Sprint Owner's ratified governance decision to pursue that path) and recommends no change to `builder-task.md`.
+
+---
+
+## NEXUS-REV-2026-07-16-004 — Sprint 56 — Governance Decision Domain Event Publication (Recovery Review)
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication (Recovery Review, limited to the authorized remediation changes)
+- **Reviewed Vertical Slice:** TASK-001/DOC-002 remediation of `NEXUS-REV-2026-07-16-003-F-001`/`-F-002`, per `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule: removal of the unratified `EvaluateGovernancePolicyCommand.missionId` fallback, restoration of Sprint 53's missing/unresolvable Review → `Escalation Required` guarantee, and optional `missionId` on the `GovernanceDecisionRecorded` event envelope.
+- **RFC Coverage:** RFC-0005 — Domain Event Model v1.0 (Primary; Event Attribution §). RFC-0011 — Engineering Governance Model v1.0 (Primary; Failure and Conflict Handling §). Referenced: `NEXUS-RAT-2026-07-15-016` (Sprint 53, frozen); `NEXUS-RAT-2026-07-16-003`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+The remediation correctly resolves both findings from `NEXUS-REV-2026-07-16-003` on their own narrow terms. `NEXUS-REV-2026-07-16-003-F-001` is verified **Resolved**: `EvaluateGovernancePolicyCommand.missionId` and `GovernanceDecisionMissionUnavailableError` are removed (confirmed absent from `governance.contract.ts`/`governance.errors.ts`); a missing Review (`governance.service.test.ts:456`) and an unresolvable Review (`governance.service.test.ts:477`) both now produce `GovernanceDecision.value === 'Escalation Required'` with no thrown error, restoring Sprint 53's frozen guarantee exactly. `NEXUS-REV-2026-07-16-003-F-002` is verified **Resolved**: `IMPLEMENTATION_REPORT.md`'s Sprint 56 § Deviations now accurately records the original architectural deviation and its resolution rather than "No architectural deviations."
+
+However, implementing `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule ("`missionId` MAY be absent" from the event envelope) surfaces a new, deeper Category 3 — Specification Conflict (see F-001 below): RFC-0005 § Event Attribution states, unconditionally and without a "(when applicable)" qualifier used for Task/Execution Session/Adapter, "Every Domain Event SHALL identify its origin. Attribution SHALL include: Mission." `NEXUS-RAT-2026-07-16-003` is a Sprint-tier Ratification, not an RFC-0005 amendment, and per this skill's own Review Authority ordering and RFC-0011's Authority Hierarchy ("A Ratification that authorizes Sprint scope operates at the Implementation Plan tier... Lower authority SHALL NOT override higher authority"), it cannot validly waive an unconditional RFC-0005 requirement. `governance.events.ts`'s `createGovernanceDecisionRecordedEvent` realizes the missing-Mission-identity path by constructing an object that omits `missionId` and sets `attribution: {}` (no `attribution.missionId`), then force-casts it with `as GovernanceDomainEvent` — producing a runtime value that does not structurally satisfy the `DomainEvent`/`GovernanceDomainEvent` interface's required `missionId: string` field, silently, via an unsound type assertion that `tsc --noEmit` does not (and structurally cannot) catch.
+
+Independent re-validation confirmed: `tsc --noEmit` clean (the unsound cast compiles without error, consistent with the finding); targeted `npx vitest run test/kernel/governance/governance.service.test.ts` (48/48, matching the Builder's reported count); full `npm run test` (83 files / 467 tests, matching `IMPLEMENTATION_REPORT.md`'s Validation Summary; the one failing extension-host suite file is the same pre-existing, unrelated `vscode` module-resolution issue noted in the prior review); `npm run build` and `npm run test:extension-host:build` both clean. All other Authorized Builder Changes (items 1–8, 10) are verified correctly implemented; item 9 (documentation correction) is also verified correct.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-003-F-001 — Unratified `missionId` command fallback breaks Sprint 53's frozen "missing Review → Escalation Required" fail-closed guarantee
+
+- **Status:** **Resolved.**
+- **Verification:** `EvaluateGovernancePolicyCommand` no longer has a `missionId` field (`governance.contract.ts` diff confirmed clean of the field); `GovernanceDecisionMissionUnavailableError` no longer exists (`governance.errors.ts`); `governance.service.ts` no longer has a `requireMissionId` function or any code path that throws before decision construction. A missing Review and an unresolvable Review both independently produce `GovernanceDecision.value === 'Escalation Required'`, verified by dedicated tests (`governance.service.test.ts:456`, `:477`) that no longer rely on any caller-supplied `missionId`.
+
+#### NEXUS-REV-2026-07-16-003-F-002 — `IMPLEMENTATION_REPORT.md` Sprint 56 Deviations section mischaracterized F-001 as a non-deviating "Known Limitation"
+
+- **Status:** **Resolved.**
+- **Verification:** `IMPLEMENTATION_REPORT.md`'s Sprint 56 § Deviations now reads: "Architectural deviation identified by `NEXUS-REV-2026-07-16-003-F-001`... Resolved by TASK-001 under `NEXUS-RAT-2026-07-16-003`..." — no longer states "No architectural deviations." § Known Limitations no longer references a caller-supplied Mission identity requirement.
+
+#### NEXUS-REV-2026-07-16-004-F-001 — `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule conflicts with RFC-0005's unconditional Event Attribution requirement, realized through an unsound type cast
+
+- **Category:** Category 3 — Specification Conflict
+- **Severity:** Critical
+- **Authority:** RFC-0005 § Event Attribution ("Every Domain Event SHALL identify its origin. Attribution SHALL include: Mission" — listed without the "(when applicable)" qualifier explicitly attached to Task, Execution Session, and Adapter in the same list, and reinforced by § Event Stream: "Each Mission SHALL maintain an append-only Event Stream" and `domain-event.ts`'s own `missionId` doc comment, "Canonical Mission stream identifier"). `NEXUS-RAT-2026-07-16-003` § Mission Identity Rule ("`missionId` MAY be absent"). This skill's § Review Authority ("RFC Specification Suite" ranks above governance-artifact tiers; "Lower authority SHALL NOT override higher authority"); RFC-0011 § Authority Hierarchy ("A Ratification that authorizes Sprint scope operates at the Implementation Plan tier" — below the RFC Suite — and cannot amend RFC text without RFC-tier authority, which `NEXUS-RAT-2026-07-16-003` does not claim).
+- **Evidence:** `src/kernel/events/domain-event.ts` declares `DomainEvent.missionId: string` (required, not optional) and `DomainEventAttribution.missionId: string` (required). `src/kernel/governance/governance.events.ts`'s `createGovernanceDecisionRecordedEvent`, when `snapshot.missionId === undefined`, returns `{ eventId, eventType, timestamp, causality, attribution: {}, payload } as GovernanceDomainEvent` — an object literal that omits `missionId` entirely and supplies an `attribution` object missing its own required `missionId`, force-cast past the type system. `tsc --noEmit` compiles this without error (confirmed by independent re-run), because the `as` assertion suppresses TypeScript's normal missing-required-property diagnostics for this object literal. Two dedicated tests (`governance.service.test.ts:473-474`, `:500-501`) explicitly assert `expect(eventBus.publishedEvents[0]).not.toHaveProperty('missionId')` and `.attribution).not.toHaveProperty('missionId')`, confirming this is deliberate, not accidental. `src/kernel/events/event-bus.ts` (unmodified by this Sprint) happens to already tolerate a missing `missionId` at runtime (`eventsByMissionId = new Map<string | undefined, EventBusEvent[]>()`; `assertMissionAttribution` returns early when both `event.missionId` and `event.attribution.missionId` are `undefined`), which is why no runtime exception occurs — but this pre-existing tolerance does not resolve the type-level and RFC-level contract violation.
+- **Impact:** A `GovernanceDecisionRecorded` event published for a missing/unresolvable Review violates RFC-0005's unconditional Event Attribution requirement and cannot be retrieved via `EventBusContract.replay(missionId)` for any specific Mission — it is stored under the `undefined` key, indistinguishable from any other Mission-less event ever published. Any future consumer of `DomainEvent`/`GovernanceDomainEvent` that trusts the declared type (`missionId: string`) and dereferences it without a defensive `undefined` check will encounter a silent runtime gap the type system claims cannot exist. This is not a defect introduced by careless implementation — the Sprint Owner's own ratified Mission Identity Rule requires exactly this outcome — but the ratification did not have RFC-tier authority to relax RFC-0005's Event Attribution requirement, and the tension between "missionId MAY be absent" and the same ratification's own Scope Restriction ("No modification to... the `DomainEvent` envelope structure") was not reconcilable without either an unsafe cast (what happened) or an RFC-0005 amendment (what did not happen).
+- **Recommended Disposition:** Implementation SHALL stop on this point. Per this skill's Blocking Rules ("conflicting RFC requirements exist... The Reviewer SHALL report the conflict. The Reviewer SHALL NOT resolve it"), this conflict SHALL be referred to the Sprint Owner for governance resolution. Candidate directions (not prescribed): (a) an RFC-0005 amendment, explicitly and narrowly qualifying Mission attribution as "(when applicable)" for a defined category of Governance-produced events where no Mission can be determined, restoring type/RFC conformance for the now-legitimate optional case; (b) reversing `NEXUS-RAT-2026-07-16-003`'s "missionId MAY be absent" clause and finding another way to satisfy Sprint 53's fail-closed guarantee that does not require publishing a Domain Event without Mission attribution (for example, recording the `Escalation Required` `GovernanceDecision` without a corresponding Domain Event in this specific case, if RFC-0011's "SHALL be published as Domain Events" requirement can tolerate that narrow exception — itself requiring RFC-0011 clarification); or (c) another mechanism the Sprint Owner determines. The Builder SHALL NOT independently re-resolve this via further casting or type-suppression.
+- **Builder Action:** Blocked Builder Task — await Sprint Owner governance resolution via `nexus-plan` (likely requiring RFC-0005 and/or RFC-0011 amendment authority, not merely a Sprint-scope Ratification) before further implementation.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+One Category 3, Critical finding is blocking. `NEXUS-REV-2026-07-16-003-F-001` and `-F-002` are Resolved. Sprint 56 is not approved.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: downstream consumption of `GovernanceDecisionRecorded`; workflow gates; repository-write automation; Host/Adapter surfaces; Evidence/Shared-Reality-consuming Policy Criteria; multi-Policy/multi-Ratification conflict arbitration; durable event storage or retry behavior; any change to `EventBusContract`'s or `DomainEvent`'s type declarations (confirmed by empty `git diff` on both files — the conflict in F-001 arises from producing non-conforming instances via a cast, not from editing the type declarations themselves); any change to `GovernanceDecision`'s or `GovernanceEscalation`'s existing model beyond the additive optional `missionId` field; any change to Policy Evaluation precedence.
+
+### Architectural Compliance Summary
+
+- Authorized Builder Changes 1–3 (remove command field, remove error, restore fail-closed missing/unresolvable-Review behavior): fully conformant, verified by dedicated tests.
+- Authorized Builder Change 4 (optional `missionId` on the event-envelope path only): conformant to `NEXUS-RAT-2026-07-16-003`'s letter, but see F-001 — the underlying `DomainEvent`/RFC-0005 contract does not actually permit this without either a type change (not authorized) or an unsound cast (what was used).
+- Authorized Builder Changes 5–6 (populate from Review when resolved; publish without `missionId` when unresolved): implemented as specified.
+- Authorized Builder Change 7 (remove masking test-helper default): confirmed — `evaluate()`'s helper no longer defaults `missionId`; Mission identity now flows only through `createReview()`'s own `missionId` field.
+- Authorized Builder Change 8 (four required test scenarios): all four present and passing (`governance.service.test.ts:456`, `:477`, plus existing resolved-Review and idempotency coverage).
+- Authorized Builder Change 9 (documentation correction): confirmed correct.
+- Authorized Builder Change 10 (full validation pipeline): independently re-confirmed clean.
+- Scope Restrictions: `GovernanceDecision`/`GovernanceEscalation` models unchanged beyond the additive optional `missionId`; Policy Evaluation precedence, `EventBusContract`, `DomainEvent` type declarations, Host, and Adapter code all unmodified (confirmed by `git diff --stat`); no new Mission lookup service or Policy/Ratification-inferred Mission identity introduced; no durable storage or retry behavior introduced.
+
+### Builder Task Recommendation
+
+One Blocked Builder Task, pending Sprint Owner governance resolution of `NEXUS-REV-2026-07-16-004-F-001` via `nexus-plan` — likely requiring RFC-0005 and/or RFC-0011 amendment authority rather than a further Sprint-scope Ratification alone. Sprint 56 SHALL NOT be considered Approved, and the Milestone 9 Sprint sequence SHALL NOT advance, until this conflict is resolved and Sprint 56 is re-reviewed.
+
+---
+
+## NEXUS-REV-2026-07-16-003 — Sprint 56 — Governance Decision Domain Event Publication
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication
+- **Reviewed Vertical Slice:** Publication of exactly one `GovernanceDecisionRecorded` Domain Event (RFC-0005's "Policy Events" category) for every persisted `GovernanceDecision`, with an additive `missionId` field on `GovernanceDecision` obtained directly from the persisted decision at publication time.
+- **RFC Coverage:** RFC-0005 — Domain Event Model v1.0 (Primary; Domain Event, Event Identity/Attribution/Causality/Correlation, "Policy Events" category). RFC-0011 — Engineering Governance Model v1.0 (Primary; Dependencies § Domain Event publication requirement; Failure and Conflict Handling §). Referenced: Sprint 53's `GovernanceDecision`/`GovernanceEscalation`/`GovernanceService`; Sprint 55's attribution-driven `Escalation Required` path.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Sprint 56 correctly implements the majority of `NEXUS-RAT-2026-07-16-002`'s Authorized Scope: a single `GovernanceDecisionRecorded` Domain Event type carrying the unchanged four-value outcome (`governance.events.ts`), a correctly populated RFC-0005 envelope (Event Identity, `missionId`, Attribution, Causality, Correlation — verified by dedicated envelope-shape assertions), `EventBusContract` wired additively into `GovernanceService`'s constructor and `createKernelServices()`, strict persist-before-publish ordering (verified by a dedicated `FailingEventBus` test confirming the decision remains persisted even when publication throws), and idempotent no-duplicate-publication on repeated identical-input evaluation. The four-value `GovernanceDecision` model, the Mixed-Result Decision Table, existing Policy Criterion predicates, `EventBusContract`, and `DomainEvent` are confirmed byte-for-byte unmodified by source diff, and no `src/hosts`/`src/adapters` file was touched.
+
+However, the Mission Identity mechanism as actually implemented introduces one Critical, blocking defect (see F-001): `GovernanceService` now requires a resolvable `missionId` to construct **any** `GovernanceDecision`, including an `Escalation Required` decision for a missing/unresolvable Review — the exact case Sprint 53's frozen, previously Approved contract (`NEXUS-RAT-2026-07-15-016`) and RFC-0011's Failure and Conflict Handling table require to deterministically produce `Escalation Required`, never an exception. Because a missing Review yields no `missionId` to derive from, the Builder added an un-ratified `missionId?: string` field directly to `EvaluateGovernancePolicyCommand` as a caller-supplied fallback — a command-contract expansion outside `NEXUS-RAT-2026-07-16-002`'s enumerated Authorized Concepts ("exactly... an additive `missionId` field on `GovernanceDecision`, populated... from the evaluated Review's Mission identity... No additional governance capability is authorized"). Where a caller does not (or cannot) supply this new field and the Review is unresolvable, `evaluateGovernancePolicy` now throws `GovernanceDecisionMissionUnavailableError` instead of producing the required `Escalation Required` decision. This is not merely undertested — the single "missing Review" test in `governance.service.test.ts` cannot detect the regression because the shared `evaluate()` test helper unconditionally defaults `missionId: 'mission-1'` on every call, masking the exact input combination the Sprint 53 guarantee exists for.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; targeted `npx vitest run test/kernel/governance/governance.service.test.ts` (47/47 passing, matching the Builder's reported count); full `npm run test` (83 files / 466 tests, matching `IMPLEMENTATION_REPORT.md`'s Validation Summary; the one failing extension-host suite file is a pre-existing, unrelated `vscode` module-resolution issue outside this Sprint's diff); `npm run build` and `npm run test:extension-host:build` both clean. All reported validation is genuine — the defect is a specification-conformance gap, not a build or test-execution failure.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-003-F-001 — Unratified `missionId` command fallback breaks Sprint 53's frozen "missing Review → Escalation Required" fail-closed guarantee
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `NEXUS-RAT-2026-07-16-002` § Mission Identity ("populated by `GovernanceService` from the Review under evaluation at decision-production time... The implementation SHALL NOT resolve Mission identity indirectly through the referenced Review at publication time" — silent on any other source) and § Authorized Concepts ("exactly... No additional governance capability is authorized"); RFC-0011 § Failure and Conflict Handling ("Referenced Repository Policy version does not exist or has no ratified version" / equivalent missing-input conditions → a deterministic decision, never an unhandled failure) and § Conformance ("escalates every non-deterministic case rather than resolving it silently"); `NEXUS-RAT-2026-07-15-016` (Sprint 53, frozen) Definition of Done ("missing/unresolvable Review → Escalation Required (never Deferred, Approved, or Rejected)"); Kernel Canon 12 — Human Authority (ambiguity SHALL be escalated, never silently defaulted or crashed past).
+- **Evidence:** `src/kernel/governance/governance.contract.ts` adds `readonly missionId?: string;` to `EvaluateGovernancePolicyCommand` — a field absent from every Authorized Concept enumerated by `NEXUS-RAT-2026-07-16-002`. `src/kernel/governance/governance.service.ts` (`resolveInputs`) populates `inputs.missionId` only from `reviewSnapshot.missionId` or, failing that, `command.missionId`; when the Review does not resolve (`review === undefined`) and the caller supplies no `missionId`, `inputs.missionId` remains `undefined`. `createDecision` unconditionally calls `requireMissionId(inputs)` (governance.service.ts) for **every** decision value including `Escalation Required`, which throws `GovernanceDecisionMissionUnavailableError` (`governance.errors.ts`) before any `GovernanceDecision` is constructed or persisted. The sole "missing Review" test (`governance.service.test.ts:458`, "escalates a missing Review and never treats it as Deferred, Approved, or Rejected") passes only because the shared `evaluate()` helper (`governance.service.test.ts:235-253`) unconditionally defaults `missionId: overrides.missionId ?? 'mission-1'` on every invocation — no test exercises a missing/unresolvable Review with no caller-supplied `missionId`, the precise combination the Sprint 53 guarantee governs.
+- **Impact:** Any real caller that knows only a `reviewId` (the normal shape of this command, per its own field name and Sprint 53's precedent) and encounters a missing or unresolvable Review — precisely the scenario RFC-0011's Failure and Conflict Handling table and Sprint 53's Definition of Done require to deterministically resolve to `Escalation Required` — instead receives an unhandled `GovernanceDecisionMissionUnavailableError` and no `GovernanceDecision` is ever recorded. This silently breaks a previously Approved, frozen vertical slice's guaranteed behavior and violates RFC-0011's fail-closed/non-silent-resolution Conformance requirements. `IMPLEMENTATION_REPORT.md`'s Sprint 56 Deviations section states "No architectural deviations," which mischaracterizes this as a mere "Known Limitation" rather than the contract-breaking behavior it is.
+- **Recommended Disposition:** Implementation SHALL stop. This is a genuine Category 3-adjacent specification gap (the ratified Mission Identity rule did not anticipate the missing-Review case already governed by a separate, frozen Sprint 53 contract) that the Builder resolved unilaterally instead of escalating — the correct workflow per this skill's Blocking Rules ("implementation extends another RFC without authority" / "undocumented architectural concepts are required"). Sprint Owner ratification is required to determine the authoritative resolution (for example: Mission identity MAY be required as a normal command input for every evaluation regardless of Review resolvability, changing Sprint 53's contract with explicit ratification; or the missing-Review `Escalation Required` path MAY be defined to omit or sentinel `missionId` on `GovernanceDecision`/its event, if RFC-0005's Event Identity rules permit; or another mechanism). The Builder SHALL NOT independently re-resolve this gap without a new or amended Ratification.
+- **Builder Action:** Blocked Builder Task — await Sprint Owner governance decision via `nexus-plan`/Sprint Owner ratification before further implementation on this finding; recommend routing through `nexus-sprint` once ratified.
+
+#### NEXUS-REV-2026-07-16-003-F-002 — `IMPLEMENTATION_REPORT.md` Sprint 56 Deviations section mischaracterizes F-001 as a non-deviating "Known Limitation"
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` Builder documentation requirements (Deviations section SHALL disclose architectural deviations); Sprint 56 Implementation Record § Builder Responsibilities ("Report implementation outcome, assumptions, limitations, and any architectural deviations").
+- **Evidence:** `IMPLEMENTATION_REPORT.md` Sprint 56 § Known Limitations states "Missing-Review evaluation requires caller-supplied Mission identity because no Review is available from which to derive it," and § Deviations states "No architectural deviations." F-001 establishes this is an unratified command-contract expansion with a genuine behavior-breaking consequence, not a benign limitation.
+- **Impact:** Understates the severity of F-001 to a future reader relying on `IMPLEMENTATION_REPORT.md` alone; does not itself introduce further architectural risk once F-001 is resolved.
+- **Recommended Disposition:** Documentation SHALL be reconciled once F-001 is resolved, to accurately record whatever resolution the Sprint Owner ratifies.
+- **Builder Action:** Documentation Task (deferred until F-001's governance resolution is known, to avoid re-documenting twice).
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 1 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 1 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+One Category 2, Critical finding is blocking. Sprint 56 is not approved.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: downstream consumption of `GovernanceDecisionRecorded` by any workflow gate, repository-write automation, or Host/Adapter surface; Evidence- or Shared-Reality-consuming Policy Criteria; multi-Policy or multi-Ratification conflict arbitration beyond Sprint 55's existing scope; any change to the four-value `GovernanceDecision` model's outcome semantics or the Mixed-Result Decision Table; any change to `EventBusContract` or the `DomainEvent` envelope (verified by `git diff --stat` — neither file appears in the changed-file list).
+
+### Architectural Compliance Summary
+
+- Event Model: exactly one `GovernanceDecisionRecorded` type is introduced (`governance.events.ts`); it carries the unchanged four-value outcome; no per-outcome event type exists.
+- Publication Semantics: `evaluateGovernancePolicy` persists via `governanceDecisionRepository.register()` before calling `publishGovernanceDecisionRecorded()`; a dedicated `FailingEventBus` test confirms the decision remains persisted when publication throws, satisfying Required Test Matrix row 8.
+- Idempotency: existing decisions are returned via the evaluation-key lookup before any new decision or event is constructed, so repeated identical-input evaluation never re-publishes, satisfying Required Test Matrix row 6.
+- Mission Identity: **not** conformant as implemented — see F-001. The envelope correctly reads `missionId` from the persisted `GovernanceDecision` rather than re-resolving the Review at publication time (satisfying the letter of the "SHALL NOT resolve indirectly through the referenced Review at publication time" rule), but the upstream population mechanism exceeds Authorized Concepts and breaks a frozen Sprint 53 guarantee.
+- No modification to the four-value `GovernanceDecision` model's outcome semantics, the Mixed-Result Decision Table, existing Policy Criterion predicates, `EventBusContract`, or `DomainEvent` (confirmed by source diff).
+- No `src/hosts` or `src/adapters` file is modified (confirmed by `git diff --stat`).
+- `createKernelServices()` was extended additively only (one line supplying `eventBus` to `GovernanceService`'s constructor).
+
+### Builder Task Recommendation
+
+One Blocked Builder Task, pending Sprint Owner governance resolution of F-001 via `nexus-plan` (or direct Sprint Owner ratification), then implementation of the ratified resolution and reconciliation of `IMPLEMENTATION_REPORT.md` (F-002) via `nexus-sprint`. Sprint 56 SHALL NOT be considered Approved, and the Milestone 9 Sprint sequence SHALL NOT advance, until F-001 is resolved and re-reviewed.
+
+---
+
 ## NEXUS-REV-2026-07-16-002 — Sprint 55 — Ratification and Repository-Law Integration
 
 - **Reviewed Sprint:** Sprint 55 — Ratification and Repository-Law Integration

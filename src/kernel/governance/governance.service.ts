@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import type { Finding } from '../review/finding';
 import type { IReviewRepository } from '../review/review.repository';
@@ -22,6 +23,7 @@ import {
   InMemoryGovernanceDecisionRepository,
   type IGovernanceDecisionRepository,
 } from './governance-decision.repository';
+import { createGovernanceDecisionRecordedEvent } from './governance.events';
 import type {
   GovernanceDecisionSnapshot,
   GovernanceDecisionValue,
@@ -30,6 +32,10 @@ import type {
   UnresolvedFindingExpectedMatch,
 } from './governance.types';
 import { unresolvedFindingExpectedMatches } from './governance.types';
+import {
+  GovernanceEventPublisherUnavailableError,
+  InvalidGovernanceDecisionDefinitionError,
+} from './governance.errors';
 import type { RatificationAttributionValidationServiceContract } from './ratification-attribution.contract';
 import { RatificationAttributionValidationService } from './ratification-attribution-validation';
 import type { RatificationAttributionValidationSnapshot } from './ratification-attribution.types';
@@ -48,6 +54,7 @@ interface EvaluationInputs {
   readonly repositoryPolicy?: RepositoryPolicySnapshot;
   readonly repositoryPolicyIdentityExists: boolean;
   readonly review?: ReviewSnapshot;
+  readonly missionId: string;
   readonly findings?: readonly Finding[];
   readonly reviewStateReference: string;
   readonly ratificationAttribution?: RatificationAttributionValidationSnapshot;
@@ -69,6 +76,7 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
     private readonly governanceDecisionRepository: IGovernanceDecisionRepository = new InMemoryGovernanceDecisionRepository(),
     private readonly createIdentity: () => string = randomUUID,
     private readonly ratificationAttributionValidationService: RatificationAttributionValidationServiceContract = new RatificationAttributionValidationService(),
+    private readonly eventBus?: EventBusContract,
   ) {
     super('GovernanceService');
   }
@@ -87,11 +95,16 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
 
     const decision = await this.createDecision(inputs);
     const recordedDecision = await this.governanceDecisionRepository.register(decision);
+    await this.publishGovernanceDecisionRecorded(recordedDecision);
 
     return recordedDecision.toSnapshot();
   }
 
   private async resolveInputs(command: EvaluateGovernancePolicyCommand): Promise<EvaluationInputs> {
+    const missionId = normalizeNonEmptyString(
+      command.missionId,
+      'EvaluateGovernancePolicyCommand missionId',
+    );
     const repositoryPolicy = await this.repositoryPolicyRepository.getByIdAndVersion(
       command.repositoryPolicyId,
       command.repositoryPolicyVersion,
@@ -121,12 +134,14 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
       ...(repositoryPolicySnapshot === undefined ? {} : { repositoryPolicy: repositoryPolicySnapshot }),
       repositoryPolicyIdentityExists,
       ...(reviewSnapshot === undefined ? {} : { review: reviewSnapshot }),
+      missionId,
       ...(findings === undefined ? {} : { findings }),
       reviewStateReference,
       ...(ratificationAttribution === undefined ? {} : { ratificationAttribution }),
       evaluationKey: createEvaluationKey({
         repositoryPolicyId: command.repositoryPolicyId,
         repositoryPolicyVersion: command.repositoryPolicyVersion,
+        missionId,
         reviewId: command.reviewId,
         reviewStateReference,
         ratificationAuthoritySnapshotFingerprint:
@@ -178,6 +193,7 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
 
     return GovernanceDecision.create({
       id: governanceDecisionId,
+      missionId: inputs.missionId,
       value,
       repositoryPolicyId: inputs.command.repositoryPolicyId,
       repositoryPolicyVersion: inputs.command.repositoryPolicyVersion,
@@ -196,12 +212,32 @@ export class GovernanceService extends ServiceLifecycle implements GovernanceSer
       ...(escalation === undefined ? {} : { escalation }),
     });
   }
+
+  private async publishGovernanceDecisionRecorded(
+    governanceDecision: GovernanceDecision,
+  ): Promise<void> {
+    await this.requireEventBus().publish(
+      createGovernanceDecisionRecordedEvent(governanceDecision, {
+        eventId: this.createIdentity(),
+        timestamp: governanceDecision.toSnapshot().evaluatedAt,
+      }),
+    );
+  }
+
+  private requireEventBus(): EventBusContract {
+    if (this.eventBus === undefined) {
+      throw new GovernanceEventPublisherUnavailableError();
+    }
+
+    return this.eventBus;
+  }
 }
 
 function shouldEvaluatePolicyCriteria(inputs: EvaluationInputs): boolean {
   return (
-    inputs.ratificationAttribution === undefined ||
-    inputs.ratificationAttribution.outcome === 'Valid'
+    !hasReviewMissionMismatch(inputs) &&
+    (inputs.ratificationAttribution === undefined ||
+      inputs.ratificationAttribution.outcome === 'Valid')
   );
 }
 
@@ -459,6 +495,10 @@ function deriveEscalationReason(
     return 'MissingReview';
   }
 
+  if (hasReviewMissionMismatch(inputs)) {
+    return 'ReviewMissionMismatch';
+  }
+
   const unsupportedResult = criterionResults.find((result) => result.status === 'Unsupported');
 
   if (unsupportedResult === undefined) {
@@ -593,18 +633,34 @@ function createReviewStateReference(review: ReviewSnapshot): string {
 function createEvaluationKey(input: {
   readonly repositoryPolicyId: string;
   readonly repositoryPolicyVersion: number;
+  readonly missionId: string;
   readonly reviewId: string;
   readonly reviewStateReference: string;
   readonly ratificationAuthoritySnapshotFingerprint: string;
 }): string {
   return createCanonicalFingerprint({
     contract: evaluationContractVersion,
+    missionId: input.missionId,
     repositoryPolicyId: input.repositoryPolicyId,
     repositoryPolicyVersion: input.repositoryPolicyVersion,
     reviewId: input.reviewId,
     reviewStateReference: input.reviewStateReference,
     ratificationAuthoritySnapshotFingerprint: input.ratificationAuthoritySnapshotFingerprint,
   });
+}
+
+function hasReviewMissionMismatch(inputs: EvaluationInputs): boolean {
+  return inputs.review !== undefined && inputs.review.missionId !== inputs.missionId;
+}
+
+function normalizeNonEmptyString(value: string, label: string): string {
+  const normalized = value.trim();
+
+  if (normalized.length === 0) {
+    throw new InvalidGovernanceDecisionDefinitionError(`${label} must be a non-empty string.`);
+  }
+
+  return normalized;
 }
 
 function createCanonicalFingerprint(value: unknown): string {

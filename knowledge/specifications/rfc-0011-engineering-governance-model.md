@@ -1,11 +1,11 @@
 # RFC-0011 — Engineering Governance Model
 
-**Status:** Final
-**Version:** 1.0
+**Status:** Final (Amended)
+**Version:** 1.1
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
-Ratified Final by `NEXUS-RAT-2026-07-15-014`. Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
+Ratified Final by `NEXUS-RAT-2026-07-15-014`. Amended by `NEXUS-RAT-2026-07-16-004` to establish Mission-Scoped Governance Evaluation (see Mission-Scoped Governance Evaluation, below, and Amendment History). Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
 
 ---
 
@@ -48,7 +48,7 @@ This specification satisfies RFC-0010's Architectural Integrity Test: it directl
 
 Consumes:
 
-- RFC-0001 — Mission Model (a Governance Decision references a Mission by identity only; it SHALL NOT read or interpret Mission Plan/Task internals beyond published contracts).
+- RFC-0001 — Mission Model (every governance evaluation SHALL receive an explicit, mandatory Mission identity as part of its request, independent of Review resolution — see Mission-Scoped Governance Evaluation, below; a Governance Decision references a Mission by identity only and SHALL NOT read or interpret Mission Plan/Task internals beyond published contracts).
 - RFC-0002 — Evidence Model (Governance Decisions SHALL reference authoritative Evidence; Governance SHALL NOT establish engineering truth independently of Evidence).
 - RFC-0003 — Shared Reality Projection Model (Governance MAY consume a Shared Reality projection as Policy Evaluation input; Governance SHALL NOT bypass or duplicate projection computation, and SHALL treat a stale/absent projection as a missing input, not as an implicit "no opinion").
 - RFC-0005 — Domain Event Model (Governance Decisions are published as Domain Events, following the existing Standard Event Envelope, Event Attribution, and Event Causality/Correlation rules; publication SHALL reuse RFC-0005's reserved "Policy Events" category rather than defining a competing category).
@@ -135,17 +135,62 @@ A Policy Criterion is one deterministic, individually evaluable condition within
 
 # Policy Evaluation
 
-Policy Evaluation is the deterministic act of evaluating one specific, identified Repository Policy version's Policy Criteria against a specific finalized engineering outcome (a completed Review, at minimum).
+Policy Evaluation is the deterministic act of evaluating one specific, identified Repository Policy version's Policy Criteria against a specific finalized engineering outcome (a completed Review, at minimum), for exactly one Mission (see Mission-Scoped Governance Evaluation, below).
 
 Policy Evaluation SHALL:
 
+- execute for exactly one explicit, mandatory Mission identity, supplied as part of the evaluation request;
 - consume only finalized Review Outcomes, never an in-progress Review;
 - consume only authoritative Evidence and/or a computed Shared Reality projection, never generated content directly;
 - evaluate each Policy Criterion through an explicit deterministic predicate only; no Policy Criterion evaluation step SHALL invoke unrestricted, non-deterministic model judgment as part of the evaluation path itself;
-- produce the same result for the same (Repository Policy version, Evidence, Shared Reality, Review Outcome, applicable Ratifications) input every time (Canon 9);
+- produce the same result for the same (Mission identity, Repository Policy version, Evidence, Shared Reality, Review Outcome, applicable Ratifications) input every time (Canon 9);
 - record which Policy Criteria were satisfied, which were violated, and which could not be deterministically evaluated.
 
 If any Policy Criterion cannot be deterministically evaluated from the available Evidence, Shared Reality, and Review Outcome — including because the required input does not yet exist, is stale, or is ambiguous — Policy Evaluation SHALL NOT guess and SHALL NOT default to satisfied. It SHALL produce a Governance Escalation (or, if the missing input is a precondition rather than an ambiguity, a **Deferred** Governance Decision; see Governance Decision, below) for that criterion.
+
+---
+
+# Mission-Scoped Governance Evaluation
+
+Every governance evaluation SHALL execute within exactly one Mission boundary.
+
+The evaluation request SHALL include an immutable Mission identity (`MissionId`).
+
+`MissionId` SHALL be required for every governance evaluation. It SHALL NOT be:
+
+- optional;
+- inferred from Ratification data;
+- inferred from Repository Policy data;
+- synthesized;
+- defaulted;
+- treated as a fallback value.
+
+## Governance Decision Attribution
+
+Every produced `GovernanceDecision` SHALL identify the Mission for which the evaluation occurred.
+
+The decision's Mission identity SHALL originate from the governance evaluation request, not from the referenced Review.
+
+When the referenced Review resolves successfully, its own Mission identity SHALL equal the evaluation request's Mission identity. A mismatch SHALL produce **Escalation Required**.
+
+## Missing or Unresolvable Review
+
+When the referenced Review is missing or unresolvable:
+
+- governance evaluation SHALL still produce a `GovernanceDecision` of **Escalation Required**;
+- the `GovernanceDecision` SHALL retain the explicit evaluation request's Mission identity;
+- no Review-derived Mission lookup is required or permitted for this case;
+- no exception, thrown error, or other non-`GovernanceDecision` outcome SHALL replace the required `GovernanceDecision`.
+
+This preserves this specification's existing Failure and Conflict Handling guarantee that a missing or unresolvable Review SHALL deterministically produce `Escalation Required`, never an unhandled failure.
+
+## Domain Event Publication
+
+A `GovernanceDecisionRecorded` Domain Event (or equivalently named Policy Event; see Dependencies, above) SHALL obtain its `missionId`/Mission Attribution exclusively from the Mission identity already stored on the persisted `GovernanceDecision`.
+
+Because every `GovernanceDecision` carries a mandatory Mission identity under this section, the corresponding Domain Event SHALL always satisfy RFC-0005's Event Attribution requirement ("Attribution SHALL include: Mission") structurally, through the event's ordinary required fields.
+
+No implementation SHALL omit Mission attribution from a Governance Domain Event, weaken RFC-0005's Event Attribution requirement, or use a type-unsound construct (such as a cast past a required field) to publish an event that does not structurally conform to the RFC-0005 Domain Event envelope.
 
 ---
 
@@ -193,7 +238,7 @@ A Governance Decision SHALL be exactly one of the following four mutually exclus
 
 No Governance Decision, of any value, SHALL mutate Mission, Review, Knowledge, Execution, or any other repository state as a side effect of being produced. A Governance Decision is a recorded fact about a Policy Evaluation, not a command.
 
-A Governance Decision SHALL reference: the Repository Policy and version applied, the Policy Criteria evaluated and their individual results, the consumed Evidence references, the consumed Review reference, any applied Ratifications, and a deterministic timestamp/causality position consistent with the existing Domain Event envelope (RFC-0005).
+A Governance Decision SHALL reference: the Mission identity for which the evaluation was requested (see Mission-Scoped Governance Evaluation, above), the Repository Policy and version applied, the Policy Criteria evaluated and their individual results, the consumed Evidence references, the consumed Review reference, any applied Ratifications, and a deterministic timestamp/causality position consistent with the existing Domain Event envelope (RFC-0005).
 
 A Governance Decision SHALL NOT:
 
@@ -234,7 +279,8 @@ Engineering Governance SHALL NOT:
 - silently approve a Policy Criterion it cannot deterministically evaluate; such cases SHALL always produce a Deferred or Escalation Required Governance Decision, never an inferred Approval;
 - reopen, reinterpret, or override a Review's Outcome or Findings (RFC-0006 remains the sole authority over Review Outcome);
 - modify Evidence, Shared Reality, Review, or Knowledge aggregates, repositories, or services;
-- modify `src/hosts` or `src/adapters`.
+- modify `src/hosts` or `src/adapters`;
+- publish a Governance Domain Event that omits required RFC-0005 Event Attribution fields (including Mission identity), weakens RFC-0005's Event Attribution requirement, or relies on a type-unsound construct to bypass structural conformance with the RFC-0005 Domain Event envelope.
 
 These prohibitions apply to this specification's normative scope; they do not, by themselves, authorize any of the listed actions to any other Kernel capability either. Each remains governed exclusively by its own owning specification and process (RFC amendment: Sprint Owner Ratification process; Sprint activation: `nexus-plan`/`nexus-sprint` process; Reviewer certification: `nexus-review` process).
 
@@ -254,6 +300,9 @@ Engineering Governance SHALL fail closed. The following conditions SHALL NEVER p
 | Applicable Ratifications are contradictory | Escalation Required |
 | A Policy Criterion references a condition this specification or its implementation does not support evaluating | Escalation Required |
 | Repository state inconsistency that prevents reliable input resolution (for example, an Evidence reference that no longer resolves) | Escalation Required |
+| Referenced Review is missing | Escalation Required (the `GovernanceDecision` SHALL retain the evaluation request's Mission identity; see Mission-Scoped Governance Evaluation, above) |
+| Referenced Review is unresolvable | Escalation Required (the `GovernanceDecision` SHALL retain the evaluation request's Mission identity; see Mission-Scoped Governance Evaluation, above) |
+| Resolved Review's Mission identity does not match the evaluation request's Mission identity | Escalation Required |
 
 Deferred is used exactly when the obstruction is the temporary absence of a required input that is expected to eventually exist through normal engineering progression. Escalation Required is used exactly when the obstruction is an ambiguity, conflict, or unsupported condition that will not resolve through normal engineering progression and instead requires a governance action (Ratification or Sprint Owner decision).
 
@@ -263,6 +312,7 @@ Deferred is used exactly when the obstruction is the temporary absence of a requ
 
 Every Policy Evaluation and every Governance Decision SHALL identify:
 
+- the Mission for which the evaluation was requested;
 - the evaluated Repository Policy and its specific version;
 - the applicable Policy Criteria considered;
 - the consumed Evidence references;
@@ -292,6 +342,9 @@ Engineering Governance is not:
 
 An implementation conforms to RFC-0011 only if it:
 
+- executes every governance evaluation for exactly one explicit, mandatory Mission identity, supplied by the evaluation request and never inferred, synthesized, defaulted, or omitted;
+- attributes every `GovernanceDecision` and its corresponding Domain Event with that Mission identity, satisfying RFC-0005's Event Attribution requirement structurally and without type-unsound constructs;
+- produces `Escalation Required` for a missing Review, an unresolvable Review, and a resolved Review whose Mission identity does not match the evaluation request's Mission identity — never an unhandled exception in place of a `GovernanceDecision`;
 - evaluates only ratified Repository Policy, never invented or inferred policy;
 - produces deterministic Governance Decisions for equivalent inputs, using explicit predicates rather than unrestricted model judgment within the evaluation path;
 - fails closed to Deferred or Escalation Required for every condition enumerated under Failure and Conflict Handling, never to Approved;
@@ -316,3 +369,4 @@ This specification does not itself authorize implementation. Implementation of a
 - v0.1 (2026-07-15) — Initial Draft, authored by `nexus-plan` per `NEXUS-RAT-2026-07-15-013`.
 - v0.2 (2026-07-15) — Revised per Sprint Owner pre-ratification review. Renamed the fourth Governance Decision value from `Blocked` to `Deferred` to eliminate a terminology collision with RFC-0004's existing `Blocked` Task Execution State. Added Authority Hierarchy, per-value Decision Semantics (required inputs/preconditions/meaning/permitted effect/prohibited side effects/human-confirmation requirement), explicit Failure and Conflict Handling table, expanded Boundaries enumerating prohibited autonomous actions (Mission creation, Mission objective modification, RFC amendment, Ratification creation, architectural approval, repository mutation, Sprint activation), and explicit alignment with RFC-0005's reserved "Policy Events" category.
 - v1.0 (2026-07-15) — Ratified Final by `NEXUS-RAT-2026-07-15-014`, without further textual change from v0.2.
+- v1.1 (2026-07-16) — Amended by `NEXUS-RAT-2026-07-16-004` to add Mission-Scoped Governance Evaluation as a new binding section: every governance evaluation SHALL receive an explicit, mandatory Mission identity independent of Review resolution; every `GovernanceDecision` retains that Mission identity; a resolved Review's Mission identity SHALL match the evaluation request's Mission identity (mismatch → `Escalation Required`); a missing or unresolvable Review continues to produce `Escalation Required`, retaining the evaluation request's Mission identity, never an unhandled exception; Domain Event publication obtains Mission identity exclusively from the persisted `GovernanceDecision`, satisfying RFC-0005's unconditional Event Attribution requirement structurally, without casts or omitted required fields. This amendment withdraws no other Sprint 52–55 authorized concept and does not modify RFC-0005. Originates from `NEXUS-REV-2026-07-16-004-F-001` (Category 3, Specification Conflict) and its Recovery Review history (`NEXUS-REV-2026-07-16-003`, `-004`, `-005`).

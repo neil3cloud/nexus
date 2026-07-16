@@ -2164,7 +2164,7 @@ Notes:
 
 # Milestone 9 — Engineering Governance Automation
 
-Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-15-017`)
+Status: 🟡 ACTIVE (Sprint 52 — Governance Policy Model Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-009`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-015`; Sprint 53 — Policy Evaluation and Governance Decision Foundation is ✅ Approved — `NEXUS-REV-2026-07-15-010`/`-011`/`-012`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-016`; Sprint 54 — Ratification Attribution Validation Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-001`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-15-017`; Sprint 55 — Ratification and Repository-Law Integration is ✅ Approved — `NEXUS-REV-2026-07-16-002`, fully closed with zero open findings, authorized by `NEXUS-RAT-2026-07-16-001`; Sprint 56 — Governance Decision Domain Event Publication is Second Recovery Remediation Implemented — Pending Recovery Review, authorized by `NEXUS-RAT-2026-07-16-002` and remediated under `NEXUS-RAT-2026-07-16-003`/`NEXUS-RAT-2026-07-16-004`)
 
 RFC Coverage:
 
@@ -2273,9 +2273,52 @@ Notes:
 
 ---
 
+## Sprint 56 — Governance Decision Domain Event Publication
+
+Status: Second Recovery Remediation Implemented — Pending Recovery Review. Authorized by `NEXUS-RAT-2026-07-16-002`; remediations authorized by `NEXUS-RAT-2026-07-16-003` and `NEXUS-RAT-2026-07-16-004`.
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model v1.0 (Primary; Domain Event, Event Identity/Attribution/Causality/Correlation, "Policy Events" category).
+- RFC-0011 — Engineering Governance Model v1.1 (Primary; Dependencies § Domain Event publication requirement; Mission-Scoped Governance Evaluation §).
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-16-002` — governs this Sprint's entire binding scope: Event Model, Mission Identity, Publication Semantics, Architectural Boundaries, and the Required Test Matrix. Issued following one Sprint Owner "Approve With Changes" review cycle on the originating `nexus-plan` proposal.
+
+Authorized Concepts:
+
+- `GovernanceDecisionRecorded` Domain Event type (single event, unchanged four-value outcome).
+- Required `missionId` on the governance-evaluation request and `GovernanceDecision`, populated from the evaluation request.
+- Resolved Review Mission mismatch validation producing `Escalation Required`.
+- `EventBusContract` wiring into `GovernanceService`.
+- Persist-before-publish event draining, mirroring the existing `ReviewService` pattern.
+- Minimal `createKernelServices` wiring change.
+
+Deferred Concepts:
+
+- Downstream consumption of `GovernanceDecisionRecorded` by any workflow gate, repository-write automation, or Host/Adapter surface.
+- Evidence- or Shared-Reality-consuming Policy Criteria.
+- Multi-Policy or multi-Ratification conflict arbitration beyond Sprint 55's existing scope.
+- Any change to the four-value `GovernanceDecision` model's outcome semantics or the Mixed-Result Decision Table.
+- Any change to `EventBusContract` or the `DomainEvent` envelope.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0056-governance-decision-domain-event-publication.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify the Kernel Canon, RFC-0005, RFC-0011, any other finalized RFC, or `REVIEW_HISTORY.md`.
+- This Sprint does not modify Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` behavior.
+- No placeholder implementation of any deferred concept is authorized.
+- Builder implementation complete: added `GovernanceDecisionRecorded`, persisted required `GovernanceDecision.missionId`, EventBus publication from `GovernanceService` after repository registration, idempotent no-duplicate publication, and Sprint 56 test coverage.
+- First recovery remediation complete: removed the unratified command-level Mission identity fallback and `GovernanceDecisionMissionUnavailableError`, and restored missing/unresolvable Review → `Escalation Required`.
+- Second recovery remediation complete pending Recovery Review: implemented RFC-0011 v1.1 Mission-scoped governance evaluation, required explicit evaluation Mission identity, added Review Mission mismatch → `Escalation Required`, and restored structurally required Mission attribution on every `GovernanceDecisionRecorded` event.
+
+---
+
 ## Sprint 55 — Ratification and Repository-Law Integration
 
-Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-16-001`.
+Status: ✅ Approved — `NEXUS-REV-2026-07-16-002` (fully closed; one Category 6, Informational Observation, zero Builder Tasks; zero open findings). Authorized by `NEXUS-RAT-2026-07-16-001`.
 
 RFC Coverage:
 
@@ -2313,11 +2356,16 @@ Notes:
 - No placeholder implementation of any deferred concept is authorized.
 - Builder implementation complete: added attribution validation as a `GovernanceService` precondition, attribution-driven escalation fields, Snapshot fingerprint-based evaluation-key determinism, minimal Kernel composition wiring, and Sprint 55 test coverage. Repository validation passed: TypeScript compile, ESLint, Vitest (83 files / 464 tests), esbuild, and extension-host bundle build.
 
+Reviewer Validation Result:
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-16-002`). Confirmed Validation Ordering, Escalation Attribution, and Determinism and Idempotency are implemented exactly as `NEXUS-RAT-2026-07-16-001` requires, each independently tested, including exact-repeat idempotency and independent re-evaluation on a changed Snapshot fingerprint. Confirmed the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, and both existing Policy Criterion predicates are byte-for-byte unmodified, and that no RFC-0005 Domain Event, `src/hosts`, or `src/adapters` file was touched. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (64/64), `npm run test` (83 files / 464 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+- One Category 6, Informational Observation recorded (`NEXUS-REV-2026-07-16-002-F-001`): a wording tension between `NEXUS-RAT-2026-07-16-001`'s Architectural Boundaries and Scope Restrictions clauses, surfaced by one additive field added to Sprint 54's `RatificationAttributionValidationSnapshot`. Does not generate a Builder Task. Sprint 55 is fully closed with zero open findings.
+
 ---
 
 ## Sprint 54 — Ratification Attribution Validation Foundation
 
-Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-15-017`.
+Status: ✅ Approved — `NEXUS-REV-2026-07-16-001` (fully closed; two Category 6, Informational Observations, zero Builder Tasks; zero open findings of any blocking category). Authorized by `NEXUS-RAT-2026-07-15-017`.
 
 RFC Coverage:
 
@@ -2355,6 +2403,11 @@ Notes:
 - This Sprint's output is standalone; no downstream consumer exists yet.
 - No placeholder implementation of any deferred concept is authorized.
 - Builder implementation complete: added immutable Ratification Authority Snapshot/Record domain, standalone Ratification Attribution Validation service, in-memory Snapshot source repository, deterministic diagnostics for every Required Outcome Mapping condition, minimal Kernel composition wiring, and 14 Sprint 54 tests. Repository validation passed: TypeScript compile, ESLint, Vitest (83 files / 456 tests), esbuild, and extension-host bundle build.
+
+Reviewer Validation Result:
+
+- Reviewer validation complete: **Approved** (`NEXUS-REV-2026-07-16-001`). Confirmed `RatificationAuthoritySnapshot`/`RatificationAuthorityRecord`/`RatificationAttributionValidationService` implement exactly `NEXUS-RAT-2026-07-15-017`'s Authorized Scope, including the ratified Snapshot Cardinality correction, the closed three-value lifecycle status set, and every row of the Required Outcome Mapping table. Confirmed the capability exposes no `GovernanceDecision`, `PolicyEvaluation`, event-publication, host, or adapter surface, and is composed by `createKernelServices()` as a fully standalone service. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (19/19), `npm run test` (83 files / 456 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly.
+- Two Category 6, Informational Observations recorded (`NEXUS-REV-2026-07-16-001-F-001`, `-F-002`): a recurrence of the pre-existing Sprint 21 process-timing flake, and a minor Dependencies-wording precision gap in `NEXUS-RAT-2026-07-15-017`. Neither generates a Builder Task. Sprint 54 is fully closed with zero open findings.
 
 ---
 

@@ -67,6 +67,7 @@ export interface PolicyEvaluationInput {
 
 export interface GovernanceDecisionInput {
   readonly id: string;
+  readonly missionId: string;
   readonly value: GovernanceDecisionValue;
   readonly repositoryPolicyId: string;
   readonly repositoryPolicyVersion: number;
@@ -314,6 +315,7 @@ export class GovernanceDecision {
     return new GovernanceDecision(
       Object.freeze({
         id: GovernanceDecisionId.fromString(input.id).toString(),
+        missionId: normalizeNonEmptyString(input.missionId, 'GovernanceDecision missionId'),
         value: normalizeAllowed(input.value, governanceDecisionValues, 'GovernanceDecision value'),
         repositoryPolicyId: normalizeNonEmptyString(
           input.repositoryPolicyId,
@@ -363,6 +365,10 @@ export class GovernanceDecision {
 
   public get evaluationKey(): string {
     return this.snapshotValue.evaluationKey;
+  }
+
+  public get missionId(): string {
+    return this.snapshotValue.missionId;
   }
 
   public toSnapshot(): GovernanceDecisionSnapshot {
