@@ -17,6 +17,8 @@ import { InMemoryEngineeringSessionRepository } from '../execution/engineering-s
 import { EngineeringSessionService } from '../execution/engineering-session.service';
 import { InMemoryEngineeringSessionStateProjectionRepository } from '../execution/engineering-session-state-projection.repository';
 import { EngineeringSessionStateProjectionService } from '../execution/engineering-session-state-projection.service';
+import { InMemoryEngineeringDecisionCorrelationRepository } from '../execution/engineering-decision-correlation.repository';
+import { EngineeringDecisionCorrelationService } from '../execution/engineering-decision-correlation.service';
 import { GovernanceGatedWorkflowAdvancementConsumer } from '../execution/governance-gated-workflow-advancement.consumer';
 import { InMemoryExecutionSessionRepository } from '../execution/execution-session.repository';
 import { ExecutionSessionService } from '../execution/execution-session.service';
@@ -85,6 +87,8 @@ export function createKernelServices(
   const missionEngineeringGroupRepository = new InMemoryMissionEngineeringGroupRepository();
   const engineeringSessionHandoffRepository = new InMemoryEngineeringSessionHandoffRepository();
   const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
+  const engineeringDecisionCorrelationRepository =
+    new InMemoryEngineeringDecisionCorrelationRepository();
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const workflowChainRepository = new InMemoryWorkflowChainRepository();
   const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
@@ -136,6 +140,14 @@ export function createKernelServices(
     recoveryRequirementRepository,
     eventBus,
   );
+  const engineeringDecisionCorrelationService = new EngineeringDecisionCorrelationService(
+    engineeringDecisionCorrelationRepository,
+    missionEngineeringGroupRepository,
+    reviewRepository,
+    governanceDecisionRepository,
+    randomUUID,
+    () => new Date().toISOString(),
+  );
   const missionExecutionService = new MissionExecutionService(
     missionRepository,
     eventBus,
@@ -173,6 +185,7 @@ export function createKernelServices(
     new GovernanceGatedWorkflowAdvancementConsumer(engineeringSessionService),
     missionEngineeringOrchestrationService,
     recoveryRequirementService,
+    engineeringDecisionCorrelationService,
     new RecoveryRequirementGovernanceDecisionConsumer(
       governanceDecisionRepository,
       recoveryRequirementRepository,

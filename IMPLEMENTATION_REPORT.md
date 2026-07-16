@@ -1,5 +1,98 @@
 # Nexus Implementation Report
 
+## Sprint 67 — Engineering Decision Correlation Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 67 vertical slice authorized by `NEXUS-RAT-2026-07-17-003`.
+
+Implemented scope:
+
+- Added `EngineeringDecisionCorrelation` with immutable identity and immutable Mission/Engineering-Session/Workflow-Step attribution.
+- Added append-only, at-most-once `reviewId` and `governanceDecisionId` associations with idempotent repeated identical association behavior.
+- Added `IEngineeringDecisionCorrelationRepository` and `InMemoryEngineeringDecisionCorrelationRepository` supporting deterministic lookup by `reviewId`, by `governanceDecisionId`, and by Mission/Engineering Session/Workflow Step.
+- Added `EngineeringDecisionCorrelationService` with explicit caller-invoked `beginCorrelation`, `associateReview`, and `associateGovernanceDecision` operations.
+- Resolved Mission attribution exclusively through the existing Mission Engineering Group reverse lookup; `missionId` is never caller supplied to `beginCorrelation`.
+- Validated Review and `GovernanceDecision` Mission identity read-only before association, failing closed without partial correlation mutation.
+- Wired `createKernelServices()` additively for the new service only.
+- Added Sprint 67 tests covering creation attribution immutability, Mission-mismatch rejection, idempotent association, conflicting reassociation rejection, fail-closed lookup, ambiguous lookup, composition, and forbidden automatic call-site drift.
+
+Out of scope and not implemented:
+
+- Event-Driven Workflow Advancement.
+- Recovery Workflow Automation.
+- Workflow mutation, event consumption, automatic correlation creation, or automatic association wiring.
+- Wiring into `EngineeringSessionService`, `ReviewService`, or `GovernanceService`.
+- Wiring existing governance/recovery consumers as automatic `EventBusContract` subscribers.
+- Host or Adapter surfacing, durable persistence, distributed consumers, checkpoints, offsets, retries, or dead-letter queues.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0004 v1.14 — Execution Model; implemented exactly the Engineering Decision Correlation section.
+- RFC-0006 — Engineering Assessment Model; consumed `Review` read-only for Mission-match validation only.
+- RFC-0011 — Engineering Governance Model; consumed `GovernanceDecision` read-only for Mission-match validation only.
+- RFC-0005 — Domain Event Model; preserved existing envelope conventions without introducing a new event.
+
+Implemented Concepts:
+
+- `EngineeringDecisionCorrelation` aggregate.
+- `IEngineeringDecisionCorrelationRepository` and in-memory implementation.
+- `EngineeringDecisionCorrelationService`.
+- Explicit caller-invoked creation and association operations.
+- Deterministic bidirectional lookup with fail-closed absence/ambiguity behavior.
+- Additive Kernel service composition.
+
+Deferred Concepts:
+
+- Event-Driven Workflow Advancement.
+- Recovery Workflow Automation.
+- Autonomous Engineering Integration Validation.
+- Automatic production call-site wiring and automatic consumer subscription.
+- Host/Adapter surfacing and durable/distributed correlation infrastructure.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-16-018`, `NEXUS-RAT-2026-07-16-019`, `NEXUS-RAT-2026-07-17-002`, `NEXUS-RAT-2026-07-17-003`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0067-engineering-decision-correlation-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Mission Engineering Group remains the authoritative source for resolving a Mission from an Engineering Session.
+- Review and `GovernanceDecision` repositories are consumed read-only for Mission identity validation and are not modified by correlation operations.
+- Repeated identical creation or association requests are idempotent-safe; conflicting association requests are rejected.
+
+### Known Limitations
+
+- Correlation creation is explicit and caller-invoked only; no production operation creates correlations automatically in this Sprint.
+- The correlation repository is in-memory only; durable storage remains deferred.
+- Event-Driven Workflow Advancement and Recovery Workflow Automation remain unimplemented pending future Sprint scope ratification.
+
+### Validation Summary
+
+- Targeted Sprint 67 validation passed: `engineering-decision-correlation.test.ts` (8 tests).
+- TypeScript compile passed: `npm run compile`.
+- Repository validation passed: `npm run validate` (89 files, 588 tests; compile, ESLint, Vitest, esbuild).
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 66 — Engineering Session State Projection
 
 ### Implemented Slice

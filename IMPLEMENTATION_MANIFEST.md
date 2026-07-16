@@ -2615,7 +2615,7 @@ Reviewer Validation Result:
 
 # Milestone 10 — Autonomous Engineering Readiness
 
-Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is ✅ Approved — `NEXUS-REV-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only. Sprint 65 — EngineeringSession Domain Event Publication is ✅ Approved — `NEXUS-REV-2026-07-17-001` (Cycle 2, revised scope; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-018` and revised by `NEXUS-RAT-2026-07-16-019`. Sprint 66 — Engineering Session State Projection is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-17-001`, fulfilling the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`.)
+Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is ✅ Approved — `NEXUS-REV-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only. Sprint 65 — EngineeringSession Domain Event Publication is ✅ Approved — `NEXUS-REV-2026-07-17-001` (Cycle 2, revised scope; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-018` and revised by `NEXUS-RAT-2026-07-16-019`. Sprint 66 — Engineering Session State Projection is ✅ Approved — `NEXUS-REV-2026-07-17-002`, authorized by `NEXUS-RAT-2026-07-17-001`, fulfilling the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`. `nexus-plan`'s post-Sprint-66 Governance Scan found the Prerequisite Foundation resolved only the outbound half of the Milestone 10 attribution gap; the Sprint Owner resolved the inbound half by amending RFC-0004 to v1.14 (`NEXUS-RAT-2026-07-17-002`, Engineering Decision Correlation) and authorizing Sprint 67 (`NEXUS-RAT-2026-07-17-003`). Sprint 67 — Engineering Decision Correlation Foundation is Implemented — Pending Reviewer Validation.)
 
 ## Sprint 63 — Governance State Projection Foundation
 
@@ -2724,7 +2724,7 @@ Notes:
 
 ## Sprint 66 — Engineering Session State Projection
 
-Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-17-001`. Fulfills the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018` ("EngineeringSession Session State Projection").
+Status: ✅ Approved — `NEXUS-REV-2026-07-17-002` (fully closed with zero open findings of any blocking category). Authorized by `NEXUS-RAT-2026-07-17-001`. Fulfills the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018` ("EngineeringSession Session State Projection").
 
 RFC Coverage:
 
@@ -2757,8 +2757,41 @@ Deferred Concepts:
 Notes:
 
 - See `knowledge/implementation/sprints/sprint-0066-engineering-session-state-projection.md` for the complete Sprint Implementation Record.
-- This Sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0011, or the Kernel Canon.
-- Repository-wide validation passed: TypeScript compile, ESLint, Vitest (88 files / 580 tests), esbuild, and extension-host bundle build.
+
+---
+
+## Sprint 67 — Engineering Decision Correlation Foundation
+
+Status: Implemented — Pending Reviewer Validation (`NEXUS-RAT-2026-07-17-003`, implementing RFC-0004 v1.14 amended by `NEXUS-RAT-2026-07-17-002`).
+
+RFC Coverage:
+
+- RFC-0004 v1.14 (Partial — implements exactly the Engineering Decision Correlation section)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` consumed read-only)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only)
+- RFC-0005 — Domain Event Model (Referenced; existing envelope conventions only)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-16-015` — Milestone 10 Objective, Architectural Boundary, Initial Capability Sequence (unmodified; Sequence revised to insert this Sprint ahead of Event-Driven Workflow Advancement).
+- `NEXUS-RAT-2026-07-16-018`/`-019` — Prerequisite Foundation (Sprint 65/66, frozen; outbound half of the attribution gap).
+- `NEXUS-RAT-2026-07-17-002` — RFC-0004 v1.14 amendment, defining Engineering Decision Correlation.
+- `NEXUS-RAT-2026-07-17-003` — authorizes this Sprint, including its binding Creation Authority resolution.
+
+Authorized Concepts:
+
+- `EngineeringDecisionCorrelation` aggregate: immutable identity; immutable Mission/Engineering-Session/Workflow-Step attribution set at creation; append-only, at-most-once `reviewId` and `governanceDecisionId` associations.
+- `IEngineeringDecisionCorrelationRepository`/in-memory implementation and `EngineeringDecisionCorrelationService` (`beginCorrelation`, `associateReview`, `associateGovernanceDecision`, deterministic bidirectional lookup).
+- Additive `createKernelServices()` composition wiring.
+
+Deferred Concepts:
+
+- Event-Driven Workflow Advancement (Sprint 68) and Recovery Workflow Automation (Sprint 69) — this Sprint provides their future attribution source only; wiring correlation creation into `EngineeringSessionService`/`ReviewService`/`GovernanceService` as an automatic side effect; wiring `GovernanceGatedWorkflowAdvancementConsumer`/`RecoveryRequirementGovernanceDecisionConsumer` as automatic `EventBusContract` subscribers; Autonomous Engineering Integration Validation (Milestone 10 Step 4).
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0067-engineering-decision-correlation-foundation.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify RFC-0001, RFC-0005, RFC-0006, RFC-0011, or the Kernel Canon; it implements RFC-0004 v1.14 (already amended by `NEXUS-RAT-2026-07-17-002`).
 
 ---
 

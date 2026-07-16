@@ -13,6 +13,7 @@ import { createKernelServices } from '../../src/kernel/common/create-kernel-serv
 import { EvidenceService } from '../../src/kernel/evidence/evidence.service';
 import { AssignmentPolicyService } from '../../src/kernel/execution/assignment-policy.service';
 import { EngineeringRoleProfileService } from '../../src/kernel/execution/engineering-role-profile.service';
+import { EngineeringDecisionCorrelationService } from '../../src/kernel/execution/engineering-decision-correlation.service';
 import { EngineeringSessionService } from '../../src/kernel/execution/engineering-session.service';
 import { EngineeringSessionStateProjectionService } from '../../src/kernel/execution/engineering-session-state-projection.service';
 import { ExecutionSessionService } from '../../src/kernel/execution/execution-session.service';
@@ -62,6 +63,7 @@ interface KernelHarness {
   readonly engineeringSessionStateProjectionService: EngineeringSessionStateProjectionService;
   readonly missionEngineeringOrchestrationService: MissionEngineeringOrchestrationService;
   readonly recoveryRequirementService: RecoveryRequirementService;
+  readonly engineeringDecisionCorrelationService: EngineeringDecisionCorrelationService;
   readonly executionSessionService: ExecutionSessionService;
   readonly workflowChainService: WorkflowChainService;
   readonly assignmentPolicyService: AssignmentPolicyService;
@@ -91,6 +93,7 @@ const expectedKernelServiceNames = [
   'GovernanceGatedWorkflowAdvancementConsumer',
   'MissionEngineeringOrchestrationService',
   'RecoveryRequirementService',
+  'EngineeringDecisionCorrelationService',
   'RecoveryRequirementGovernanceDecisionConsumer',
   'ExecutionSessionService',
   'WorkflowChainService',
@@ -441,6 +444,12 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'RecoveryRequirementService',
       (service): service is RecoveryRequirementService => service instanceof RecoveryRequirementService,
+    ),
+    engineeringDecisionCorrelationService: requireService(
+      services,
+      'EngineeringDecisionCorrelationService',
+      (service): service is EngineeringDecisionCorrelationService =>
+        service instanceof EngineeringDecisionCorrelationService,
     ),
     executionSessionService: requireService(
       services,

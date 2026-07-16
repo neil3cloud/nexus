@@ -6886,3 +6886,158 @@ None yet — Sprint 66 has not been reviewed. This ratification precedes Sprint 
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-002
+
+## Date
+
+2026-07-17
+
+## Subject
+
+RFC-0004 Amendment Ratification — Engineering Decision Correlation. Amends RFC-0004 — Execution Model to Version 1.14, adding `EngineeringDecisionCorrelation` as an explicit, attributable, append-only record correlating a governed Workflow position (Mission, Engineering Session, Workflow Step) with the Review and `GovernanceDecision` produced for it.
+
+## Originating Request
+
+`nexus-plan`'s post-Sprint-66 Governance Scan found that the Prerequisite Foundation authorized by `NEXUS-RAT-2026-07-16-018` (Sprint 65/66) resolves only the *outbound* Engineering Session attribution gap — `EngineeringSession` now publishes `EngineeringSessionWorkflowAdvanced` and a Session State Projection exposes current Workflow position per session. It does not resolve the *inbound* gap: `GovernanceGatedWorkflowAdvancementConsumer` and `RecoveryRequirementGovernanceDecisionConsumer` (Sprint 57/59) still require `engineeringSessionId`/`workflowStepId` as caller-supplied command input because `GovernanceDecisionRecorded`, `GovernanceDecision`, and `Review` are Mission-scoped only (RFC-0006/RFC-0011, unmodified per `NEXUS-RAT-2026-07-16-004`/`-016`) and carry no Engineering Session or Workflow Step identity. `nexus-plan` independently verified in source that `governance-decision.ts` and `review.types.ts` carry no `engineeringSessionId` field anywhere in their attribution chain, and that neither consumer is wired as an automatic `EventBusContract` subscriber — both remain orphaned command handlers in `create-kernel-services.ts`. The Sprint Owner reviewed this finding and issued a binding architectural decision.
+
+## Governance Decision
+
+**RFC-0004 Amendment Approved.** The Sprint Owner amends RFC-0004 to Version 1.14, adding Engineering Decision Correlation as a new, standalone concept (not an Advancement Strategy) sitting alongside Recovery Requirement. Engineering Decision Correlation records, append-only and immutably attributed, the relationship between a governed Workflow position and the Review/`GovernanceDecision` subsequently produced for it, enabling deterministic bidirectional lookup without adding runtime-topology ownership to Review or `GovernanceDecision`.
+
+**Rejected approaches** (per the Sprint Owner's decision): caller-supplied, unverified `engineeringSessionId`/`workflowStepId` attribution at consumption time; extending `Review`/`GovernanceDecision` themselves with Engineering Session/Workflow Step ownership (would couple Mission-scoped governance facts to one execution topology and require amending RFC-0006/RFC-0011); inferring the target session from Mission-scoped projection enumeration alone (non-deterministic when a Mission has zero, one, or multiple concurrent Engineering Sessions).
+
+This amendment defines the correlation's identity, required attribution, append-only association lifecycle, and fail-closed lookup contract only. It does not implement Event-Driven Workflow Advancement or Recovery Workflow Automation, and does not identify the correlation's Creation Authority — consistent with Advancement Authority's existing RFC-0004 pattern (each capability's implementing Sprint Owner ratification states its own Authority), Engineering Decision Correlation's Creation Authority is deferred to its implementing Sprint's ratification (`NEXUS-RAT-2026-07-17-003`).
+
+RFC-0004 owns the correlation record and its lookup contract. RFC-0006 remains the sole owner of Review production, evaluation, and Outcome semantics. RFC-0011 remains the sole owner of `GovernanceDecision` production, values, and lifecycle. Neither RFC-0006 nor RFC-0011 is modified by this amendment.
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0004's own text (Amendment History, new Engineering Decision Correlation section) and therefore carries RFC-tier authority for that amendment, per RFC-0004's established Amendment History convention (v1.5, v1.11, v1.12, v1.13). It does not modify RFC-0001, RFC-0002, RFC-0003, RFC-0005–0011, or the Kernel Canon, and does not redefine any concept owned by another RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to:
+
+1. amend RFC-0004 to v1.14 as recorded in `knowledge/specifications/rfc-0004-execution-model.md` — complete;
+2. update RFC-0004's Amendment History accordingly — complete;
+3. prepare this ratification entry — complete;
+4. prepare a companion Sprint-scope ratification (`NEXUS-RAT-2026-07-17-003`) authorizing implementation of the Engineering Decision Correlation Foundation, narrowly scoped to this amendment's actual text.
+
+No Builder implementation is authorized by this ratification alone; implementation requires the companion Sprint-scope ratification.
+
+## Deferred Concepts
+
+Event-Driven Workflow Advancement; Recovery Workflow Automation; Autonomous Engineering Integration Validation; wiring `GovernanceGatedWorkflowAdvancementConsumer`/`RecoveryRequirementGovernanceDecisionConsumer` as automatic `EventBusContract` subscribers; any Host or Adapter surfacing. Each remains unauthorized pending its own future RFC-scoped-implementation and Sprint Owner scope ratification.
+
+## Related Sprint(s)
+
+- Sprint 65 — EngineeringSession Domain Event Publication (frozen, unaffected; outbound half of the attribution gap).
+- Sprint 66 — Engineering Session State Projection (frozen, unaffected; outbound half of the attribution gap).
+- Sprint 67 — Engineering Decision Correlation Foundation (implements this amendment; see `NEXUS-RAT-2026-07-17-003`).
+
+## Related Review(s)
+
+None yet. A Sprint 67 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner amends RFC-0004 — Execution Model to Version 1.14, adding Engineering Decision Correlation: an explicit, attributable, append-only record correlating a governed Workflow position (Mission, Engineering Session, Workflow Step) with the Review and `GovernanceDecision` subsequently produced for it. This resolves the inbound half of the Milestone 10 attribution gap left open by `NEXUS-RAT-2026-07-16-018`'s Prerequisite Foundation (Sprint 65/66), which resolved only the outbound half. Engineering Decision Correlation's identity and Mission/Engineering-Session/Workflow-Step attribution are immutable once created; Mission attribution is resolved exclusively through the existing Mission Engineering Group association, never caller-supplied. Its `reviewId` and `governanceDecisionId` associations are append-only, recorded at most once each, and rejected when the referenced Review's or `GovernanceDecision`'s own Mission identity does not match. Lookup is deterministic and bidirectional, failing closed on missing or ambiguous correlation, with no fallback inference. This amendment does not modify RFC-0006 or RFC-0011, does not implement Event-Driven Workflow Advancement or Recovery Workflow Automation, and does not identify the correlation's Creation Authority — deferred to the implementing Sprint's own ratification. The Sprint Owner authorizes `nexus-plan` to prepare the companion Sprint 67 scope ratification narrowly implementing this amendment.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-17-003
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-003
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Sprint 67 Scope Ratification — Engineering Decision Correlation Foundation. Authorizes implementation of RFC-0004 v1.14's Engineering Decision Correlation, narrowly scoped to the correlation record, its repository, its service, and deterministic lookup — no consumption, no auto-wiring, no Workflow mutation.
+
+## Originating Request
+
+Companion Sprint-scope ratification required by `NEXUS-RAT-2026-07-17-002`'s Authorized Scope (item 4), following the Sprint Owner's RFC-0004 v1.14 amendment approval.
+
+## Governance Decision
+
+**Approved.** Sprint 67 — Engineering Decision Correlation Foundation is authorized as Milestone 10's next Sprint.
+
+**Creation Authority (binding; resolves RFC-0004 v1.14's deferred Creation Authority for this Sprint):** Sprint 67 SHALL expose Engineering Decision Correlation creation and association only as explicit, caller-invoked operations on a new `EngineeringDecisionCorrelationService` — mirroring the Recovery Requirement/`RecoveryRequirementService` precedent (Sprint 59) — requiring the caller to supply `engineeringSessionId` and `workflowStepId` directly, with `missionId` resolved exclusively through the existing Mission Engineering Group reverse-lookup query (Sprint 65 precedent, `NEXUS-RAT-2026-07-16-019`). Sprint 67 SHALL NOT wire this creation operation into `EngineeringSessionService`, `ReviewService`, or `GovernanceService` as an automatic side effect; no existing service gains a new call to the correlation service. Identifying and wiring the actual production call site belongs to Event-Driven Workflow Advancement's own future Sprint, since it requires deciding whether `EngineeringSessionService` itself becomes the invoking caller — a Workflow-mutation-adjacent decision this Sprint does not authorize.
+
+## RFC Coverage
+
+- RFC-0004 v1.14 (Partial — implements exactly the Engineering Decision Correlation section)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` consumed read-only for Mission-match validation)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only for Mission-match validation)
+- RFC-0005 — Domain Event Model (Referenced; existing envelope conventions only, per Recovery Requirement precedent)
+
+## Authorized Concepts
+
+- `EngineeringDecisionCorrelation` aggregate: immutable identity; immutable Mission/Engineering-Session/Workflow-Step attribution set at creation; append-only, at-most-once `reviewId` and `governanceDecisionId` associations.
+- `IEngineeringDecisionCorrelationRepository`/in-memory implementation.
+- `EngineeringDecisionCorrelationService`: `beginCorrelation({ engineeringSessionId, workflowStepId })` (resolves `missionId` via the existing read-only Mission Engineering Group reverse-lookup, fails closed on missing/ambiguous association, mirroring Sprint 65); `associateReview({ correlationId, reviewId })`; `associateGovernanceDecision({ correlationId, governanceDecisionId })`; deterministic bidirectional lookup by `reviewId`, by `governanceDecisionId`, and by (Mission, Engineering Session, Workflow Step).
+- Additive `createKernelServices()` composition wiring (construction and registration only; no new call sites in any existing service).
+
+## Deferred Concepts
+
+- Event-Driven Workflow Advancement and Recovery Workflow Automation (this Sprint provides their future attribution source only).
+- Wiring `beginCorrelation` into `EngineeringSessionService`, `ReviewService`, or `GovernanceService` as an automatic side effect.
+- Wiring `GovernanceGatedWorkflowAdvancementConsumer`/`RecoveryRequirementGovernanceDecisionConsumer` as automatic `EventBusContract` subscribers.
+- Autonomous Engineering Integration Validation (Milestone 10 Step 4).
+- Host or Adapter surfacing, correlation caching, durable persistence, distributed consumers, event checkpoints, retry policies.
+- Any change to `EngineeringSession`, `EngineeringSessionService`, `EngineeringSessionStateProjection`, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, or `Mission`.
+
+## Definition of Done
+
+- `EngineeringDecisionCorrelation` identity and Mission/Engineering-Session/Workflow-Step attribution are immutable after `beginCorrelation`; Mission attribution is resolved exclusively through Mission Engineering Group, never caller-supplied.
+- `associateReview`/`associateGovernanceDecision` are idempotent-safe (repeated identical association is a no-op, not a duplicate or error) and reject a Mission mismatch between the correlation and the referenced Review/`GovernanceDecision`, fail closed, leaving the correlation unchanged.
+- Lookup by `reviewId`, by `governanceDecisionId`, and by (Mission, Engineering Session, Workflow Step) is deterministic and fails closed (explicit absence result) when no correlation exists.
+- No `EngineeringSession`, `EngineeringSessionService`, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, `Mission`, or `src/hosts`/`src/adapters` file is modified.
+- No RFC other than RFC-0004 (already amended to v1.14 by `NEXUS-RAT-2026-07-17-002`) is amended.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+## Ownership Model (ratified)
+
+This ratification authorizes one Sprint, at the Implementation Plan tier, implementing exactly RFC-0004 v1.14's already-amended text. It amends no RFC and redefines no previously approved vertical slice. `NEXUS-RAT-2026-07-16-015`'s Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified; the Sequence is revised only to insert Engineering Decision Correlation Foundation ahead of Event-Driven Workflow Advancement, per the Sprint Owner's sequencing decision.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, generate the Sprint 67 Sprint Implementation Record, update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for Sprint 67, and issue Builder handoff.
+
+## Deferred Concepts (planning)
+
+Sprint 68 — Event-Driven Workflow Advancement and Sprint 69 — Recovery Workflow Automation each require their own future Sprint scope ratification after Sprint 67 is certified, per the Sprint Owner's revised sequencing (Sprint 67 → 68 → 69 → 70).
+
+## Related Sprint(s)
+
+- Sprint 57 — Governance-Gated Workflow Advancement; Sprint 59 — Recovery Requirement (precedent patterns for a caller-invoked, read-only-repository-consuming Kernel service; frozen, unaffected).
+- Sprint 65/66 — EngineeringSession Domain Event Publication / Session State Projection (frozen, unaffected; outbound half of the attribution gap this Sprint's inbound half complements).
+- Sprint 67 — Engineering Decision Correlation Foundation (this ratification's authorized scope).
+
+## Related Review(s)
+
+None yet. Sprint 67 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 67 — Engineering Decision Correlation Foundation as Milestone 10's next Sprint, implementing exactly RFC-0004 v1.14 (`NEXUS-RAT-2026-07-17-002`). The Sprint introduces `EngineeringDecisionCorrelation`/`IEngineeringDecisionCorrelationRepository`/`EngineeringDecisionCorrelationService`, exposing `beginCorrelation` (caller-supplied `engineeringSessionId`/`workflowStepId`, Mission resolved exclusively through the existing Mission Engineering Group reverse-lookup), append-only `associateReview`/`associateGovernanceDecision` (each Mission-match-validated and fail-closed), and deterministic bidirectional lookup. Sprint 67 SHALL NOT wire correlation creation into any existing service as an automatic side effect, SHALL NOT wire either existing governance/recovery consumer as an automatic `EventBusContract` subscriber, and SHALL NOT modify `EngineeringSession`, `EngineeringSessionService`, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, or `Mission`. Event-Driven Workflow Advancement (Sprint 68) and Recovery Workflow Automation (Sprint 69) each require their own future Sprint scope ratification and are not authorized by this ratification. `nexus-plan` SHALL record this ratification, generate the Sprint 67 Sprint Implementation Record, update planning artifacts, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

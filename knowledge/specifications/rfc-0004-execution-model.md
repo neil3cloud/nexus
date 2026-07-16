@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.13
+**Version:** 1.14
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -23,6 +23,7 @@
 - v1.11 — Adds Governance-Gated Advancement as RFC-0004's fourth Advancement Strategy (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-005`). Advancement is contingent upon an already-produced, immutable `GovernanceDecision` (RFC-0011), consumed as read-only input; Advancement Eligibility for this Strategy additionally requires that a `GovernanceDecision` has in fact been produced for the governing evaluation (its absence is an Advancement Eligibility failure, not a classification value). A `GovernanceDecision` is classified as exactly one of: **Non-Blocking Governance Decision** — Approved (advancement MAY proceed); **Blocking Governance Decision** — Rejected, Deferred, Escalation Required (advancement SHALL NOT proceed, producing an Advancement Failure). This classification is owned by RFC-0004 for the sole purpose of Governance-Gated Advancement's Advancement Eligibility; it does not modify RFC-0011's `GovernanceDecision` values, semantics, lifecycle, or production, and does not modify Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement, Engineering Session, Workflow Chain, or Workflow Chain Execution. This amendment defines gating semantics only; it does not authorize Recovery Requirement records, new Engineering Session states distinguishing Rejected/Deferred/Escalation Required beyond uniform Blocking treatment, or any Mission completion precondition change — each remains explicitly unauthorized pending its own future Sprint Owner scope ratification. No other section of this specification is modified.
 - v1.12 — Adds Recovery Requirement (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-007`). Introduces `RecoveryRequirement` — an explicit, attributable record that a Rejected `GovernanceDecision` (RFC-0011) has generated engineering remediation work, immutably associated with the Mission, Engineering Session, Workflow Step, and originating `GovernanceDecision` identities that produced it. Creation is deterministic and idempotent: for a given (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) combination the Kernel SHALL create at most one Recovery Requirement, and repeated handling of the same Rejected `GovernanceDecision` SHALL return the existing record rather than create a duplicate; a new Recovery Requirement MAY be created only when a distinct `GovernanceDecision` produces a new rejection. A Recovery Requirement SHALL be created only for a Rejected `GovernanceDecision`; Deferred and Escalation Required remain Blocking under Governance-Gated Advancement (v1.11, unmodified) but SHALL NOT create a Recovery Requirement — Deferred resolves automatically per RFC-0011 once its missing input exists, and Escalation Required requires Sprint Owner/Ratification resolution per RFC-0011's Governance Escalation, neither of which is "recovery work" in the RFC-0004 sense. Approved SHALL NOT create a Recovery Requirement. Recovery Requirement lifecycle is limited to a closed set of deterministic statuses (Open, Resolved, Withdrawn) with deterministic transition rules (`Open → Resolved`, `Open → Withdrawn`, both terminal); it SHALL NOT generate remediation plans through AI, SHALL NOT mutate Workflow Chain topology, and SHALL NOT be owned or mutated by `GovernanceService`. This amendment does not modify RFC-0011's `GovernanceDecision` values, semantics, lifecycle, or production; does not modify Manual, Automatic/Event-Driven, Review-Gated, or Governance-Gated Advancement; and does not authorize any differentiated Engineering Session state beyond Governance-Gated Advancement's existing uniform Blocking classification (v1.11, unmodified). No other section of this specification is modified.
 - v1.13 — Adds Recovery-Gated Re-Advancement Eligibility to Governance-Gated Advancement (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-010`). For a workflow position governed by a Rejected `GovernanceDecision` (a Blocking Governance Decision, v1.11), Advancement Eligibility is additionally satisfied — restoring it for evaluation by Governance-Gated Advancement's existing Advancement Authority only, not producing an Advancement Result automatically — when a Recovery Requirement (v1.12) exists for the exact (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) combination governing that position and that Recovery Requirement's status is Resolved, using its existing, unmodified Recovery Resolution Contract reference. Missing, Open, and Withdrawn Recovery Requirement states remain Blocking; Withdrawn is deliberately excluded because withdrawal demonstrates only that a Recovery Requirement ceased to apply through separate authority, not that the rejected engineering condition was remediated — extending eligibility to Withdrawn requires its own future RFC amendment and Sprint Owner ratification. A Resolved Recovery Requirement SHALL NOT change, supersede, or reinterpret the originating Rejected `GovernanceDecision`, which remains immutable and fully attributable (RFC-0011, unmodified); it provides an additional, independent advancement-eligibility input only, and only when its Mission/Engineering Session/Workflow Step/`GovernanceDecision` attribution exactly matches the position under evaluation — an accepted outcome resolving an unrelated Recovery Requirement SHALL NOT satisfy this path. Deferred and Escalation Required remain Blocking and unaffected (v1.12 creates no Recovery Requirement for either). This amendment does not modify `GovernanceDecision` (RFC-0011), Recovery Requirement's own lifecycle, Recovery Resolution Contract, or Recovery Withdrawal Contract (v1.12, unmodified), Workflow Chain topology or Workflow Step definitions, Mission completion preconditions (RFC-0001, unmodified), or introduce a new Advancement Authority. No other section of this specification is modified.
+- v1.14 — Adds Engineering Decision Correlation (Sprint Owner Ratification `NEXUS-RAT-2026-07-17-002`). Introduces `EngineeringDecisionCorrelation` — an explicit, attributable, append-only record correlating a governed Workflow position (Mission, Engineering Session, Workflow Step) with the Review (RFC-0006) and `GovernanceDecision` (RFC-0011) produced for it, resolving the inbound attribution gap identified during Milestone 10 planning: `GovernanceDecisionRecorded` and `Review` are Mission-scoped only (RFC-0006/RFC-0011, unmodified) and carry no Engineering Session or Workflow Step identity, so no automatic, event-driven consumer can deterministically resolve which Engineering Session a Mission-scoped Governance Decision or Review pertains to. This amendment defines the correlation's identity, required attribution, append-only association lifecycle, and deterministic fail-closed lookup contract only. It does not itself implement Event-Driven Workflow Advancement or Recovery Workflow Automation, does not modify `Review` or `GovernanceDecision` ownership, values, semantics, lifecycle, or production (RFC-0006/RFC-0011, unmodified), does not modify Engineering Session's existing ownership of runtime progression or Mission Engineering Group's existing Mission-attribution ownership (v1.2/v1.3/v1.10, unmodified), and does not introduce a general-purpose relationship graph, routing policy, or orchestration engine. No other section of this specification is modified.
 
 ---
 
@@ -683,6 +684,79 @@ Recovery Requirement SHALL NOT:
 - touch `src/hosts` or `src/adapters`.
 
 This section does not modify Workflow Advancement's existing Advancement Strategy, Advancement Eligibility, Advancement Result, or Advancement Failure ownership (v1.4/v1.5/v1.11, unmodified); Recovery Requirement is a distinct, additional record created alongside a Rejected Governance-Gated Advancement Failure, not a redefinition of that Advancement Failure.
+
+---
+
+# Engineering Decision Correlation
+
+An Engineering Decision Correlation is the explicit, attributable, append-only record correlating a governed Workflow position — a Mission, Engineering Session, and Workflow Step combination — with the Review (RFC-0006) and `GovernanceDecision` (RFC-0011) subsequently produced for it.
+
+Review and `GovernanceDecision` are Mission-scoped only, by design (RFC-0006/RFC-0011, unmodified; Mission-scoped-only Governance state reaffirmed by `NEXUS-RAT-2026-07-16-016`). Neither carries Engineering Session or Workflow Step identity. Engineering Decision Correlation exists solely to make that missing inbound attribution deterministically resolvable, without adding runtime-topology ownership to Review or `GovernanceDecision` themselves.
+
+## Architectural Responsibilities
+
+Engineering Decision Correlation owns:
+
+- Engineering Decision Correlation identity;
+- immutable attribution to the Mission, Engineering Session, and Workflow Step that requested or initiated Review;
+- append-only association of that attribution with the resulting Review identity, and subsequently the resulting `GovernanceDecision` identity;
+- deterministic, fail-closed, bidirectional lookup between a governed Workflow position and its Review/`GovernanceDecision`.
+
+Engineering Decision Correlation SHALL NOT own Review production, Review Outcome determination, `GovernanceDecision` production, `GovernanceDecision` values or semantics, Workflow Advancement, Workflow mutation, or Recovery Requirement creation. Those remain owned by their respective sections and RFCs, unmodified.
+
+### Identity and Attribution
+
+An Engineering Decision Correlation SHALL possess an immutable identity, assigned at creation and never reassigned.
+
+An Engineering Decision Correlation SHALL be created with, and preserve for its lifetime, immutable references to:
+
+- Mission identity;
+- Engineering Session identity;
+- Workflow Step identity;
+- a creation timestamp;
+- creation causality and correlation identifiers, where available, consistent with the existing Domain Event envelope (RFC-0005).
+
+Mission attribution SHALL be resolved the same way established by RFC-0004 v1.13/`NEXUS-RAT-2026-07-16-019` for `EngineeringSessionWorkflowAdvanced`: exclusively through the existing Mission Engineering Group association (v1.10, unmodified), never caller-supplied and never inferred from Review or `GovernanceDecision`.
+
+### Append-Only Association
+
+After creation, an Engineering Decision Correlation MAY be extended, in order, with:
+
+1. a `reviewId`, once the Review requested for that Workflow position is created;
+2. a `governanceDecisionId`, once Governance evaluation produces a decision for that Review.
+
+Each association SHALL be recorded exactly once per Engineering Decision Correlation and SHALL be immutable once recorded: a previously recorded `reviewId` or `governanceDecisionId` SHALL NOT be rewritten, replaced, or removed.
+
+An association SHALL be rejected, deterministically and without partial effect, when the referenced Review's or `GovernanceDecision`'s own `missionId` does not exactly equal the Engineering Decision Correlation's Mission identity.
+
+### Creation Authority
+
+Engineering Decision Correlation creation SHALL be invoked only by a caller that authoritatively possesses the Mission, Engineering Session, and Workflow Step identities together at the moment of creation. This amendment does not identify that caller; consistent with Advancement Authority's existing pattern (this section, above), the authorizing Sprint Owner ratification for Engineering Decision Correlation's implementing Sprint SHALL state its Creation Authority.
+
+Engineering Decision Correlation creation SHALL NOT be inferred by an `EventBus` consumer guessing from Mission identity alone, supplied by a Host command as an unverified value, or derived by Review or Governance code asserting runtime-topology ownership it does not possess.
+
+### Lookup
+
+Engineering Decision Correlation SHALL support deterministic, read-only resolution in both directions:
+
+- from a `reviewId` or `governanceDecisionId` to the Mission, Engineering Session, and Workflow Step attribution that produced it;
+- from a Mission, Engineering Session, and Workflow Step combination to its associated `reviewId` and `governanceDecisionId`, where recorded.
+
+Lookup SHALL fail closed — returning a deterministic absence result, never a guessed or partial match — when no Engineering Decision Correlation exists for the supplied reference, when resolving a reference would require selecting among more than one Engineering Decision Correlation without a uniquely-identifying key, or when a supplied Review or `GovernanceDecision` reference belongs to a Mission different from the Engineering Decision Correlation being resolved. No fallback inference is authorized.
+
+### Boundaries
+
+Engineering Decision Correlation SHALL NOT:
+
+- redefine or reinterpret Review or `GovernanceDecision` values, semantics, lifecycle, or production (RFC-0006/RFC-0011, unmodified);
+- add Engineering Session or Workflow Step fields to Review or `GovernanceDecision` (RFC-0006/RFC-0011, unmodified);
+- mutate Engineering Session, Workflow Chain, Mission Engineering Group, or Recovery Requirement state (v1.2/v1.3/v1.10/v1.12, unmodified);
+- become a general-purpose relationship graph, routing policy, orchestration engine, or replacement for Domain Events;
+- duplicate runtime state already owned by Engineering Session or `EngineeringSessionStateProjection`;
+- itself trigger Workflow Advancement, Review evaluation, Governance evaluation, or Recovery Requirement creation — it is a correlation record only, consumed by those capabilities' own future Sprints;
+- touch `src/hosts` or `src/adapters`.
+
+This section does not modify Review-Gated Advancement, Governance-Gated Advancement, Recovery-Gated Re-Advancement Eligibility, Recovery Requirement, Engineering Session, Workflow Chain, or Mission Engineering Group (v1.5/v1.10/v1.11/v1.12/v1.13, unmodified). It does not authorize Event-Driven Workflow Advancement or Recovery Workflow Automation; each remains gated behind its own future Sprint Owner scope ratification, which MAY now consume Engineering Decision Correlation as its attribution source.
 
 ---
 
