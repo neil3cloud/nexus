@@ -2,6 +2,111 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-014 — Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (TASK-001 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (follow-up review limited to TASK-001's resolution of `NEXUS-REV-2026-07-16-013-F-001`)
+- **Reviewed Vertical Slice:** No new vertical slice. Verifies the Builder's correction of the sole open finding from `NEXUS-REV-2026-07-16-013`.
+- **RFC Coverage:** RFC-0001 v1.1, RFC-0004 v1.13, RFC-0005, RFC-0006, RFC-0011 (all unchanged, Referenced). No RFC modified by this cycle.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 (`builder-task.md`) required the Builder to replace the two backslash-separated git pathspec literals (`'src\\hosts'`, `'src\\adapters'`) in `test/integration/governance-automation-integration-validation.integration.test.ts`'s Host/Adapter drift self-check with forward-slash equivalents (`'src/hosts'`, `'src/adapters'`), since the backslash form is silently inert on this repository's own `ubuntu-latest` CI runner. Confirmed by direct file inspection that exactly this one-line-per-argument change was made at lines 315–321, and that no other line, assertion, import, or test case in the file was touched — the full file content is otherwise byte-for-byte identical to the version reviewed under `NEXUS-REV-2026-07-16-013`. Confirmed via `git diff --stat -- src/` (empty) that no `src` production file, `src/hosts` file, or `src/adapters` file was modified.
+
+Independently re-ran the full targeted suite: all 15 tests pass, including the corrected self-check. To verify the fix is not merely passing vacuously, the Reviewer appended a probe line to a tracked file under `src/hosts/vscode/host.contract.ts`, re-ran the self-check test in isolation, and confirmed it now correctly **fails**, reporting `src/hosts/vscode/host.contract.ts` as changed — proving the corrected pathspec functions as a real guardrail rather than an inert no-op. The probe change was then reverted (`git checkout --`) and the working tree confirmed clean before continuing. Independent re-validation confirmed `tsc --noEmit` clean, `npm run lint` clean, `npm run test` (85 files / 543 tests — unchanged), and `npm run build`/`npm run test:extension-host:build` both clean.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-16-013-F-001` is confirmed **Resolved** exactly per its Required Disposition and TASK-001's Acceptance Criteria. No new finding is identified.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-16-013`: Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, the `MissionPaused` lifecycle inconsistency, generic event subscription/consumer infrastructure, Host/Adapter governance surfacing, and autonomous ratification/AI governance deliberation all remain unimplemented, including as placeholders.
+
+### Architectural Compliance Summary
+
+No architectural change occurred this cycle. The sole finding from `NEXUS-REV-2026-07-16-013` is now Resolved, verified functionally correct (not merely passing vacuously), and no new finding was introduced. Sprint 62 is fully closed with zero open findings of any category.
+
+### Builder Task Recommendation
+
+None. TASK-001 is Completed. No further Builder Task is required. Sprint 62 is fully closed. Milestone 9 closure remains reserved for the next authorized `nexus-plan` cycle per `NEXUS-RAT-2026-07-16-014`'s Milestone Decision Authority; this fully-closed disposition satisfies that ratification's "certification passes with no blocking findings" condition unambiguously (zero findings of any category remain).
+
+---
+
+## NEXUS-REV-2026-07-16-013 — Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification
+
+- **Reviewed Sprint:** Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification
+- **Reviewed Vertical Slice:** a validation-only integration test suite (`test/integration/governance-automation-integration-validation.integration.test.ts`) exercising the complete Milestone 9 governed engineering path — Review → Repository Policy Evaluation → Ratification Authority Validation → Governance Decision → `GovernanceDecisionRecorded` publication → Governance-Gated Workflow Advancement → Recovery Requirement Creation → Recovery Requirement Event Publication → Recovery Resolution → Recovery-Gated Re-Advancement → Governance-Gated Mission Completion — assembled exclusively from existing, frozen Sprint 52–61 services and repositories through their existing public contracts. No production source was introduced or modified.
+- **RFC Coverage:** RFC-0001 v1.1, RFC-0004 v1.13, RFC-0005, RFC-0006, RFC-0011 (all Referenced; consumed read-only and unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 62 implements exactly the validation-only vertical slice authorized by `NEXUS-RAT-2026-07-16-014`: a single new integration test file exercising all fourteen Required Scenarios against existing, frozen Sprint 52–61 contracts. Confirmed via `git diff --stat -- src/` (empty) that no `src` production file — including `src/hosts` and `src/adapters` — was modified; the only repository changes are the new test file, this Sprint's own documentation, and the previously-authorized Sprint 61/governance-plan documentation already present in the working tree. Independently re-executed every Required Scenario: Approved governance advances the Workflow and permits Mission completion; Rejected governance blocks both and creates exactly one `RecoveryRequirement`; an Open `RecoveryRequirement` continues blocking re-advancement; a Resolved `RecoveryRequirement` (with `acceptedOutcomeReference` present) restores Workflow advancement eligibility only, and does not override Sprint 61's independent Governance-Gated Mission Completion gate (verified by a dedicated test asserting `completeMission` still rejects with `MissionCompletionRejectedError` after resolution); Deferred and Escalation Required both remain uniformly Blocking; a missing Review and a cross-Mission attribution mismatch both fail closed to Escalation Required with the correct `reasonCode`; Invalid and Unresolvable ratification attribution both fail closed to Escalation Required; repeated evaluation is idempotent (identical decision returned, no duplicate `GovernanceDecision`, `RecoveryRequirement`, or event); and failed `GovernanceDecision` persistence publishes no Domain Event. All fourteen Required Scenarios are covered by the fifteen test cases (Scenario 10's two ratification-attribution outcomes are parameterized). Independent re-validation confirmed `tsc --noEmit`, `npm run lint`, `npm run test` (Vitest 85 files / 543 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. The integration test harness correctly mirrors, rather than replaces, production `createKernelServices()` wiring (manually composing the same service graph so individual repository instances — including a `FailingGovernanceDecisionRepository` test double — can be substituted for specific scenarios); this is standard integration-test construction, not new architecture. One Category 1, Minor finding is recorded below; it does not affect the correctness of any claim in this Executive Summary, which was independently re-verified by a different method. No architectural violations detected.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-013-F-001 — Host/Adapter drift self-check uses a Windows-only git pathspec, silently inert on the project's Ubuntu CI runner
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 10 (Code Quality — deterministic, platform-independent behavior) and Gate 11 (Testing); Sprint 62's own Required Test Matrix item 3 ("A source-level or `git diff`-style check confirming Sprint 1–61 production contracts are unmodified").
+- **Summary:** The new test `'leaves existing Sprint 1-61 production contracts and Kernel boundaries unmodified'` (`test/integration/governance-automation-integration-validation.integration.test.ts` lines 307–325) checks for `src/hosts`/`src/adapters` drift using the literal pathspec arguments `'src\\hosts'`, `'src\\adapters'` (backslash-separated). Git for Windows normalizes backslashes to path separators in pathspecs as a platform convenience, so this passes on Windows (verified directly: `git diff --name-only -- 'src\hosts'` correctly matched a modified tracked file under `src/hosts/` in this environment). On POSIX git (Linux/macOS) — including this repository's own `ubuntu-latest` CI runner, per `.github/workflows/repository-foundation.yml` — a backslash inside a pathspec is the pathspec escape character, not a directory separator, so `'src\hosts'` does not match any path under `src/hosts/`. The check would silently report zero changed Host/Adapter files regardless of what actually changed, on the exact platform where the project's own pipeline runs it.
+- **Evidence:** `test/integration/governance-automation-integration-validation.integration.test.ts` lines 315–321 (`execFileSync('git', ['--no-pager', 'diff', '--name-only', '--', 'src\\hosts', 'src\\adapters'], ...)`); `.github/workflows/repository-foundation.yml` line 12 (`runs-on: ubuntu-latest`); reproduced directly in this review by comparing `git diff --name-only -- 'src\hosts'` against `git diff --name-only -- 'src/hosts'` on a modified tracked file — both matched only because this review's shell is Windows Git.
+- **Impact:** No impact on this Sprint's actual conformance — the Reviewer independently confirmed no `src/hosts`/`src/adapters` file changed using `git diff --stat -- src/` (platform-independent). The impact is entirely prospective: as a standing regression guard intended to keep protecting the Host/Adapter boundary on every future CI run of this test file, it will not function as intended on the project's actual Ubuntu CI runner, and could allow a genuine future `src/hosts`/`src/adapters` violation to pass this specific check undetected in CI (other safeguards, including manual Reviewer diff inspection, remain unaffected).
+- **Required Disposition:** Builder SHALL correct the pathspec to use forward-slash separators (`'src/hosts'`, `'src/adapters'`), which this review confirmed matches correctly on both platforms. Governance approval is not required.
+- **Builder Action:** Fix — replace the two backslash-separated pathspec literals with forward-slash equivalents in the existing test. No scope beyond this one-line-per-argument correction is authorized or required.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Observation (Category 6) / Informational | 0 / 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, `npm run lint`, full Vitest 85 files / 543 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 62 deferred concepts remain unimplemented and are correctly tracked in the Sprint Implementation Record, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md`: Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, the `MissionPaused` lifecycle inconsistency, generic event subscription/consumer infrastructure, Host/Adapter governance surfacing, and autonomous ratification/AI governance deliberation. `git diff --stat -- src/` confirms zero production source files changed, so none of these deferred concepts were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the authorized vertical slice — one new integration test file — was added; no unrelated functionality was introduced. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4) / Capability Boundaries (Gate 8):** The test harness consumes `GovernanceDecision`, `RecoveryRequirement`, `EngineeringSession`, `Mission`, `Review`, `RepositoryPolicy`, and `RatificationAuthoritySnapshot` exclusively through their existing constructors and public service methods; no foreign aggregate internals are accessed, and no repository interface was changed. Compliant.
+- **Terminology (Gate 3) / Event Compliance (Gate 7):** No RFC terminology, aggregate name, or event name was introduced or altered; the harness subscribes to and asserts against the existing `GovernanceDecisionRecorded`/`RecoveryRequirementCreated`/`RecoveryRequirementResolved` event types only. Compliant.
+- **State Machine (Gate 6):** No new state or transition is introduced; the test exercises existing lifecycle transitions only (Review completion, Mission execution through to `Reviewing`, `RecoveryRequirement` Open→Resolved). Compliant.
+- **Data Model (Gate 5) / Technology Compliance (Gate 9):** Test-only TypeScript using the existing Vitest/`test/integration` convention already established by twelve prior integration test files. Compliant.
+- **No production source drift:** `git diff --stat -- src/` is empty; independently confirmed no `src/hosts` or `src/adapters` file changed. Compliant, notwithstanding F-001's platform-specific caveat about the in-test self-check's own reliability.
+- **Recovery-Gated Mission Completion boundary:** A dedicated test (`'does not let a Resolved Recovery Requirement override Governance-Gated Mission Completion'`) proves Sprint 61's Mission Completion gate remains independent of Sprint 60's Recovery-Gated Re-Advancement — a Resolved `RecoveryRequirement` restores Workflow advancement eligibility only and never Mission completion eligibility, exactly as `NEXUS-RAT-2026-07-16-014` requires. Compliant.
+- **Tests (Gate 11):** All fourteen Required Scenarios are covered by fifteen passing test cases; the full repository suite (85 files / 543 tests) continues to pass with no regressions. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and the Sprint Implementation Record all consistently document scope, RFC coverage, assumptions, limitations, and explicitly state "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+One Builder Task is recommended: correct `NEXUS-REV-2026-07-16-013-F-001` (Category 1, Minor) by changing the two backslash-separated git pathspec literals in the new test's self-check to forward-slash separators. This finding does not block approval and does not require governance approval to resolve; per PASS WITH FINDINGS rules, it does not block progression. Formal Builder Task generation from this review is the responsibility of `nexus-sprint`.
+
+Milestone 9 closure remains reserved for the next authorized `nexus-plan` cycle per `NEXUS-RAT-2026-07-16-014`'s Milestone Decision Authority; this review's PASS WITH FINDINGS disposition satisfies that ratification's "certification passes with no blocking findings" condition (F-001 is Minor and non-blocking, not a blocking finding).
+
+---
+
 ## NEXUS-REV-2026-07-16-012 — Sprint 61 — Governance-Gated Mission Completion
 
 - **Reviewed Sprint:** Sprint 61 — Governance-Gated Mission Completion
