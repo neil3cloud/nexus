@@ -3,6 +3,9 @@ import { randomUUID } from 'node:crypto';
 import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import {
+  RecoveryRequirement,
+} from './recovery-requirement';
+import {
   RecoveryRequirementNotFoundError,
 } from './recovery-requirement.errors';
 import {
@@ -10,6 +13,7 @@ import {
   type IRecoveryRequirementRepository,
 } from './recovery-requirement.repository';
 import type {
+  CreateRecoveryRequirementCommand,
   RecoveryRequirementServiceContract,
   ResolveRecoveryRequirementCommand,
   WithdrawRecoveryRequirementCommand,
@@ -27,6 +31,38 @@ export class RecoveryRequirementService
     private readonly createIdentity: () => string = randomUUID,
   ) {
     super('RecoveryRequirementService');
+  }
+
+  public async createRecoveryRequirement(
+    command: CreateRecoveryRequirementCommand,
+  ): Promise<RecoveryRequirementSnapshot> {
+    const existingRequirement = await this.repository.findByAttributionKey(command);
+
+    if (existingRequirement !== undefined) {
+      return existingRequirement.toSnapshot();
+    }
+
+    const recoveryRequirement = RecoveryRequirement.create({
+      id: this.createIdentity(),
+      missionId: command.missionId,
+      engineeringSessionId: command.engineeringSessionId,
+      workflowStepId: command.workflowStepId,
+      governanceDecisionId: command.governanceDecisionId,
+      createdAt: command.createdAt,
+      creationEventId: this.createIdentity(),
+      creationCausality: command.creationCausality ?? [],
+      ...(command.creationCorrelationId === undefined
+        ? {}
+        : { creationCorrelationId: command.creationCorrelationId }),
+    });
+
+    const registered = await this.repository.register(recoveryRequirement);
+
+    if (registered.id.toString() === recoveryRequirement.id.toString()) {
+      await this.publishDomainEvents(recoveryRequirement);
+    }
+
+    return registered.toSnapshot();
   }
 
   public async resolveRecoveryRequirement(

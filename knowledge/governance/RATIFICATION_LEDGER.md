@@ -7200,3 +7200,154 @@ None yet. Sprint 68 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-006
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-006
+
+## Date
+
+2026-07-17
+
+## Subject
+
+RFC-0004 v1.16 Amendment — Recovery Workflow Automation. Defines the Kernel mechanism that reacts to an authoritative `GovernanceDecisionRecorded` Domain Event carrying a Rejected `GovernanceDecision` and creates the corresponding Recovery Requirement for the exact Engineering Session and Workflow Step resolved through Engineering Decision Correlation, reusing Recovery Requirement's existing deterministic, idempotent creation contract unmodified.
+
+## Originating Request
+
+`nexus-plan`'s post-Sprint-68 Governance Scan found that Recovery Workflow Automation (Milestone 10 Step 3) has no authorized mechanism definition: the existing `RecoveryRequirementGovernanceDecisionConsumer` (frozen since Sprint 58/59) is not wired to the `EventBus` and requires caller-supplied Engineering Session/Workflow Step identifiers, and RFC-0004 v1.15's Event-Driven Workflow Advancement section explicitly defers Recovery Workflow Automation's mechanics to its own future Sprint Owner scope ratification. `nexus-plan` presented a Governance Report; the Sprint Owner directed this amendment.
+
+## Governance Decision
+
+**Approved as directed.** RFC-0004 — Execution Model is amended to Version 1.16, adding Recovery Workflow Automation.
+
+No Builder implementation is authorized by this ratification alone; implementation requires the companion Sprint-scope ratification.
+
+## Deferred Concepts
+
+Recovery-plan generation; AI remediation planning; automatic recovery execution; Recovery Requirement resolution; Recovery Requirement withdrawal; event-driven re-advancement after recovery; automatic Builder invocation; Workflow topology mutation; retry or buffering of unresolved events; durable subscriptions; consumer checkpoints; dead-letter queues; any Host or Adapter surfacing; Autonomous Engineering Integration Validation. Each remains unauthorized pending its own future RFC-scoped-implementation and Sprint Owner scope ratification.
+
+## Related Sprint(s)
+
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (frozen, unaffected; establishes `RecoveryRequirement`).
+- Sprint 59 — Recovery Requirement Domain Event Publication (frozen, unaffected).
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen, unaffected; supplies this amendment's attribution source).
+- Sprint 68 — Event-Driven Workflow Advancement (frozen, unaffected; sibling consumer of the same event type, distinct responsibility).
+- Sprint 69 — Recovery Workflow Automation (implements this amendment; see `NEXUS-RAT-2026-07-17-007`).
+
+## Related Review(s)
+
+None yet. A Sprint 69 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner amends RFC-0004 — Execution Model to Version 1.16, adding Recovery Workflow Automation: the Kernel mechanism that reacts to an authoritative `GovernanceDecisionRecorded` Domain Event carrying a Rejected `GovernanceDecision` (RFC-0011) and creates the corresponding Recovery Requirement (v1.12, unmodified) for the exact Engineering Session and Workflow Step resolved through Engineering Decision Correlation's (v1.14, unmodified) existing lookup by `governanceDecisionId`, reusing Recovery Requirement's existing deterministic, idempotent creation contract unmodified. `RecoveryRequirementGovernanceDecisionConsumer` SHALL own the sole `EventBus` subscription to `GovernanceDecisionRecorded` for this purpose, separate from and non-duplicative of Event-Driven Workflow Advancement's (v1.15) subscription to the same event type — the two consumers SHALL NOT duplicate each other's responsibilities. Only a Rejected `GovernanceDecision` SHALL authorize Recovery Requirement creation; Approved, Deferred, and Escalation Required SHALL create none and SHALL produce a deterministic no-recovery result. Correlation resolution SHALL occur exclusively through Engineering Decision Correlation's existing lookup, never through caller-supplied substitutes or enumeration; missing or ambiguous correlation, or any Mission/Engineering-Session/Workflow-Step attribution mismatch, SHALL fail closed. Repeated delivery of the same event SHALL NOT create more than one Recovery Requirement for the same deterministic key. Only the existing `EventBus`'s delivery order is used, with no reordering, buffering, or retry infrastructure introduced. This amendment does not modify RFC-0006, RFC-0011, Engineering Decision Correlation, Recovery Requirement's existing lifecycle and creation contract, Event-Driven Workflow Advancement, Governance-Gated Advancement, or Mission Engineering Group, and does not authorize recovery-plan generation, automatic recovery execution, Recovery Requirement resolution or withdrawal, or Autonomous Engineering Integration Validation. The Sprint Owner authorizes `nexus-plan` to prepare the companion Sprint 69 scope ratification narrowly implementing this amendment.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-17-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-007
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Sprint 69 Scope Ratification — Recovery Workflow Automation. Authorizes implementation of RFC-0004 v1.16's Recovery Workflow Automation, narrowly scoped to wiring the existing `RecoveryRequirementGovernanceDecisionConsumer` to an actual `EventBus` subscription, resolving attribution through Sprint 67's Engineering Decision Correlation, and invoking the existing `RecoveryRequirementService` creation path — no recovery execution, no second consumer, no advancement behavior.
+
+## Originating Request
+
+Companion Sprint-scope ratification required by `NEXUS-RAT-2026-07-17-006`'s Governance Decision, following the Sprint Owner's RFC-0004 v1.16 amendment approval.
+
+## Governance Decision
+
+**Approved.** Sprint 69 — Recovery Workflow Automation is authorized as Milestone 10's next Sprint.
+
+**Existing Consumer Ownership (binding):** the existing `RecoveryRequirementGovernanceDecisionConsumer` SHALL be extended, not replaced; a second recovery consumer SHALL NOT be introduced. Its existing direct `handleGovernanceDecisionRecorded(...)` capability MAY be retained internally, but production `EventBus` subscription handling SHALL construct its command exclusively from authoritative loaded and correlated state — production event handling SHALL NOT require caller-supplied Engineering Session or Workflow Step identifiers.
+
+**Subscription Lifecycle (binding):** Kernel composition SHALL ensure the consumer subscribes exactly once; repeated service retrieval SHALL NOT create duplicate subscriptions; no new general-purpose event-consumer framework is authorized.
+
+**Consumer Separation (binding):** `GovernanceGatedWorkflowAdvancementConsumer` (Sprint 68) and `RecoveryRequirementGovernanceDecisionConsumer` (this Sprint) SHALL remain two separate `EventBus` subscriptions to the same event type, each independently exactly-once per Kernel composition; neither SHALL be merged into, replace, or depend on the other's handling result.
+
+## RFC Coverage
+
+- RFC-0004 v1.16 (Partial — implements exactly the Recovery Workflow Automation section)
+- RFC-0005 — Domain Event Model (Referenced; consumes existing, unmodified `GovernanceDecisionRecorded` only)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` consumed read-only, unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only, unmodified)
+
+## Authorized Concepts
+
+- Extending `RecoveryRequirementGovernanceDecisionConsumer` (Sprint 58/59, frozen contract) with an actual `EventBusContract` subscription to `GovernanceDecisionRecorded`, established during Kernel composition, exactly once per Kernel composition.
+- Attribution resolution via `EngineeringDecisionCorrelationService.findByGovernanceDecisionId(...)` (Sprint 67, frozen), with Mission/Engineering-Session/Workflow-Step consistency validation against the event and the `GovernanceDecision` before invoking Recovery Requirement creation.
+- Deterministic handling of: Recovery Requirement created; existing Recovery Requirement returned (idempotent); Governance outcome does not require recovery (Approved/Deferred/Escalation Required); correlation missing; correlation ambiguous; attribution invalid; Governance Decision missing; malformed event; repository/persistence failure.
+- Idempotent handling of duplicate/replayed `GovernanceDecisionRecorded` delivery, using Recovery Requirement's existing deterministic creation key and event identity.
+- Additive `createKernelServices()` composition wiring establishing the subscription.
+- `IMPLEMENTATION_MANIFEST.md` Sprint 68 status-line synchronization (documentation-only correction, not a governance decision).
+
+## Deferred Concepts
+
+- Recovery-plan generation, AI remediation planning, or automatic recovery execution.
+- Recovery Requirement resolution or withdrawal.
+- Event-driven re-advancement after recovery.
+- Automatic Builder invocation.
+- Autonomous Engineering Integration Validation (Milestone 10 Step 4).
+- Retry, buffering, or reordering of unresolved/out-of-order events; durable subscriptions; consumer checkpoints; dead-letter queues.
+- Host or Adapter surfacing of any kind.
+- Any change to `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, or Event-Driven Workflow Advancement (Sprint 68).
+
+## Definition of Done
+
+- The existing Recovery consumer subscribes to `GovernanceDecisionRecorded` exactly once per Kernel composition; repeated service resolution does not duplicate subscription behavior.
+- Attribution is resolved exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`; missing or ambiguous correlation fails closed with no Recovery Requirement creation and no aggregate mutation.
+- Mission, Engineering Session, and Workflow Step identity are validated consistent across the event, the `GovernanceDecision`, and the correlation before Recovery Requirement creation; any mismatch fails closed.
+- A Rejected `GovernanceDecision` invokes the existing Recovery Requirement creation path through `RecoveryRequirementService`'s/consumer's existing operations without direct aggregate construction bypassing that path.
+- Approved, Deferred, and Escalation Required `GovernanceDecision` values produce a deterministic no-recovery result and create no Recovery Requirement.
+- Duplicate/replayed event delivery does not create more than one Recovery Requirement for the same deterministic key and produces no duplicate effective side effects.
+- Sprint 68's `GovernanceGatedWorkflowAdvancementConsumer` behavior is unchanged; the two consumers remain independent.
+- No `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement` lifecycle/creation contract, `Mission`, Sprint 65/66/67/68 contract, or `src/hosts`/`src/adapters` file is modified.
+- No RFC other than RFC-0004 (already amended to v1.16 by `NEXUS-RAT-2026-07-17-006`) is amended.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+## Ownership Model (ratified)
+
+This ratification authorizes one Sprint, at the Implementation Plan tier, implementing exactly RFC-0004 v1.16's already-amended text. It amends no RFC and redefines no previously approved vertical slice. `NEXUS-RAT-2026-07-16-015`'s Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, generate the Sprint 69 Sprint Implementation Record, update `IMPLEMENTATION_PLAN.md` for Sprint 69, synchronize the stale Sprint 68 status line in `IMPLEMENTATION_MANIFEST.md`, and issue Builder handoff. `IMPLEMENTATION_MANIFEST.md`'s Sprint 69 section SHALL be added by the Builder upon implementation, per established repository practice.
+
+## Deferred Concepts (planning)
+
+Autonomous Engineering Integration Validation (Sprint 70) requires its own future Sprint scope ratification after Sprint 69 is certified, per the Sprint Owner's sequencing (Sprint 67 → 68 → 69 → 70).
+
+## Related Sprint(s)
+
+- Sprint 58/59 — Recovery Requirement / its Domain Event Publication (frozen contracts this Sprint extends with real subscription wiring).
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen; this Sprint's attribution source).
+- Sprint 68 — Event-Driven Workflow Advancement (frozen, unaffected; sibling consumer, same event type).
+- Sprint 69 — Recovery Workflow Automation (this ratification's authorized scope).
+
+## Related Review(s)
+
+None yet. Sprint 69 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 69 — Recovery Workflow Automation as Milestone 10's next Sprint, implementing exactly RFC-0004 v1.16 (`NEXUS-RAT-2026-07-17-006`). The Sprint extends the existing `RecoveryRequirementGovernanceDecisionConsumer` (Sprint 58/59, frozen contract) with an actual, exactly-once `EventBusContract` subscription to `GovernanceDecisionRecorded`; resolves Mission/Engineering-Session/Workflow-Step attribution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId` (Sprint 67, frozen); validates attribution consistency and fails closed on any mismatch or missing/ambiguous correlation; invokes the existing Recovery Requirement creation path only for a Rejected `GovernanceDecision`, producing a deterministic no-recovery result for Approved/Deferred/Escalation Required; and guarantees idempotent handling of duplicate event delivery using Recovery Requirement's existing deterministic creation key. The Sprint SHALL NOT introduce a second recovery consumer, SHALL NOT modify `GovernanceGatedWorkflowAdvancementConsumer` or its Sprint 68 behavior, SHALL NOT implement recovery execution, resolution, or withdrawal, and SHALL NOT modify `EngineeringSession`'s existing public operations, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`'s existing lifecycle, `Mission`, or any Sprint 65/66/67/68 contract. `nexus-plan` SHALL record this ratification, generate the Sprint 69 Sprint Implementation Record, update planning artifacts, synchronize the stale Sprint 68 status line in `IMPLEMENTATION_MANIFEST.md`, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

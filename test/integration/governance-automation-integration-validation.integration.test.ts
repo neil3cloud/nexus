@@ -314,6 +314,9 @@ describe('Sprint 62 governance automation integration validation', () => {
       'src/kernel/execution/governance-gated-workflow-advancement.consumer.ts',
       'src/kernel/execution/mission-engineering-orchestration.errors.ts',
       'src/kernel/execution/mission-engineering-orchestration.repository.ts',
+      'src/kernel/execution/recovery-requirement-governance-decision.consumer.ts',
+      'src/kernel/execution/recovery-requirement.contract.ts',
+      'src/kernel/execution/recovery-requirement.service.ts',
       'src/kernel/governance/governance-state-projection.contract.ts',
       'src/kernel/governance/governance-state-projection.repository.ts',
       'src/kernel/governance/governance-state-projection.service.ts',
@@ -451,12 +454,13 @@ async function createGovernedHarness(input: {
   const recoveryRequirementService = new RecoveryRequirementService(
     recoveryRequirementRepository,
     eventBus,
-    createIdentityFactory('recovery-requirement-event'),
+    createIdentityFactory('recovery-requirement'),
   );
   const recoveryRequirementConsumer = new RecoveryRequirementGovernanceDecisionConsumer(
     governanceDecisionRepository,
-    recoveryRequirementRepository,
-    createIdentityFactory('recovery-requirement'),
+    recoveryRequirementService,
+    undefined,
+    undefined,
     eventBus,
   );
   const workflowChainService = new WorkflowChainService(workflowChainRepository);

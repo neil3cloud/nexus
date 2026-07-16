@@ -1,5 +1,105 @@
 # Nexus Implementation Report
 
+## Sprint 69 — Recovery Workflow Automation
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 69 vertical slice authorized by `NEXUS-RAT-2026-07-17-007`.
+
+Implemented scope:
+
+- Extended the existing `RecoveryRequirementGovernanceDecisionConsumer` with a production `EventBusContract` subscription to `GovernanceDecisionRecorded`.
+- Wired `createKernelServices()` to compose the consumer with the shared `GovernanceDecision` repository, `RecoveryRequirementService`, `EngineeringDecisionCorrelationService`, `EngineeringSessionService`, and EventBus.
+- Resolved authoritative Mission/Engineering-Session/Workflow-Step attribution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`.
+- Validated event, `GovernanceDecision`, correlation, and Engineering Session runtime position consistency before Recovery Requirement creation.
+- Routed Rejected decisions through `RecoveryRequirementService.createRecoveryRequirement`; the consumer does not construct or persist `RecoveryRequirement` directly.
+- Produced deterministic no-recovery results for Approved, Deferred, and Escalation Required decisions.
+- Produced deterministic fail-closed diagnostics for malformed events, missing `GovernanceDecision`, missing or ambiguous correlation, Mission mismatch, Workflow Step mismatch, and creation rejection.
+- Added event identity/result caching and reused Recovery Requirement's deterministic attribution key so duplicate or replayed delivery does not create more than one Recovery Requirement.
+- Added Sprint 69 tests covering subscription lifecycle, Rejected creation, non-Rejected no-recovery handling, missing correlation, attribution mismatches, duplicate delivery, missing/malformed events, repository failure, Kernel composition, service-only creation invocation, and Sprint 68 separation.
+
+Out of scope and not implemented:
+
+- Recovery-plan generation, AI remediation planning, automatic recovery execution, or automatic Builder invocation.
+- Recovery Requirement resolution or withdrawal changes.
+- Event-driven re-advancement after recovery.
+- Retry, buffering, reordering, durable subscriptions, checkpoints, dead-letter queues, or distributed delivery.
+- Host or Adapter surfacing.
+- Any change to `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, Event-Driven Workflow Advancement, `EngineeringSession` public operations, or Recovery Requirement lifecycle semantics.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0004 v1.16 — Execution Model; implemented exactly the Recovery Workflow Automation section.
+- RFC-0005 — Domain Event Model; consumed the existing immutable `GovernanceDecisionRecorded` event stream without modifying the event envelope.
+- RFC-0006 — Engineering Assessment Model; referenced only as upstream Review authority, unmodified and read-only.
+- RFC-0011 — Engineering Governance Model; consumed `GovernanceDecision` read-only for value and Mission attribution validation.
+
+Implemented Concepts:
+
+- Event-driven `GovernanceDecisionRecorded` subscription in `RecoveryRequirementGovernanceDecisionConsumer`.
+- Authoritative correlation lookup by `governanceDecisionId`.
+- Attribution validation across event, `GovernanceDecision`, correlation, and Engineering Session runtime position.
+- Rejected-decision Recovery Requirement creation through the existing service-level creation path.
+- Deterministic no-recovery and fail-closed result diagnostics.
+- Event identity and attribution-key idempotency.
+- Additive Kernel service composition.
+
+Deferred Concepts:
+
+- Recovery execution and remediation planning.
+- Recovery Requirement resolution or withdrawal changes.
+- Event-driven re-advancement after recovery.
+- Autonomous Engineering Integration Validation.
+- Durable/distributed event consumer infrastructure.
+- Host/Adapter surfacing.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-16-018`, `NEXUS-RAT-2026-07-16-019`, `NEXUS-RAT-2026-07-17-002`, `NEXUS-RAT-2026-07-17-003`, `NEXUS-RAT-2026-07-17-004`, `NEXUS-RAT-2026-07-17-005`, `NEXUS-RAT-2026-07-17-006`, `NEXUS-RAT-2026-07-17-007`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0069-recovery-workflow-automation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `GovernanceDecisionRecorded` event identity is the authoritative duplicate-delivery key for this in-process consumer.
+- Engineering Decision Correlation remains the sole inbound attribution source for Recovery Workflow Automation.
+- Engineering Session runtime state remains the authority for whether the correlated Workflow position is still current.
+- Recovery Requirement's existing deterministic attribution key remains the idempotency boundary for duplicate creation attempts.
+
+### Known Limitations
+
+- Events delivered before their Engineering Decision Correlation exists fail closed and are not retried.
+- Consumer diagnostics are in-memory and process-local; durable checkpoints and dead-letter queues remain deferred.
+- Recovery execution, resolution, withdrawal, and event-driven re-advancement remain out of scope.
+
+### Validation Summary
+
+- Targeted Sprint 69 validation passed: `recovery-requirement.test.ts`, `engineering-session.service.test.ts`, and `governance-automation-integration-validation.integration.test.ts` (100 tests).
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint -- --quiet`.
+- Repository Vitest suite passed: `npm run test -- --reporter=dot` (89 files / 609 tests).
+- Build passed: `npm run build`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 68 — Event-Driven Workflow Advancement
 
 ### Implemented Slice

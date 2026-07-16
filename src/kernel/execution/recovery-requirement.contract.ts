@@ -1,5 +1,15 @@
 import type { RecoveryRequirementSnapshot } from './recovery-requirement.types';
 
+export interface CreateRecoveryRequirementCommand {
+  readonly missionId: string;
+  readonly engineeringSessionId: string;
+  readonly workflowStepId: string;
+  readonly governanceDecisionId: string;
+  readonly createdAt: string;
+  readonly creationCausality?: readonly string[];
+  readonly creationCorrelationId?: string;
+}
+
 export interface ResolveRecoveryRequirementCommand {
   readonly recoveryRequirementId: string;
   readonly acceptedOutcomeReference: string;
@@ -20,6 +30,9 @@ export interface WithdrawRecoveryRequirementCommand {
 }
 
 export interface RecoveryRequirementServiceContract {
+  createRecoveryRequirement(
+    command: CreateRecoveryRequirementCommand,
+  ): Promise<RecoveryRequirementSnapshot>;
   resolveRecoveryRequirement(
     command: ResolveRecoveryRequirementCommand,
   ): Promise<RecoveryRequirementSnapshot>;
@@ -27,4 +40,3 @@ export interface RecoveryRequirementServiceContract {
     command: WithdrawRecoveryRequirementCommand,
   ): Promise<RecoveryRequirementSnapshot>;
 }
-

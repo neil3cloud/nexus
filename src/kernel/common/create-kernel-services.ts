@@ -195,8 +195,9 @@ export function createKernelServices(
     engineeringDecisionCorrelationService,
     new RecoveryRequirementGovernanceDecisionConsumer(
       governanceDecisionRepository,
-      recoveryRequirementRepository,
-      randomUUID,
+      recoveryRequirementService,
+      engineeringDecisionCorrelationService,
+      engineeringSessionService,
       eventBus,
     ),
     executionSessionService,

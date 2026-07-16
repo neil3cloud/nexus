@@ -2615,7 +2615,7 @@ Reviewer Validation Result:
 
 # Milestone 10 — Autonomous Engineering Readiness
 
-Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is ✅ Approved — `NEXUS-REV-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only. Sprint 65 — EngineeringSession Domain Event Publication is ✅ Approved — `NEXUS-REV-2026-07-17-001` (Cycle 2, revised scope; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-018` and revised by `NEXUS-RAT-2026-07-16-019`. Sprint 66 — Engineering Session State Projection is ✅ Approved — `NEXUS-REV-2026-07-17-002`, authorized by `NEXUS-RAT-2026-07-17-001`, fulfilling the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`. Sprint 67 — Engineering Decision Correlation Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-003`/`NEXUS-REV-2026-07-17-004`. Sprint 68 — Event-Driven Workflow Advancement is Implemented — Pending Reviewer Validation.)
+Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is ✅ Approved — `NEXUS-REV-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only. Sprint 65 — EngineeringSession Domain Event Publication is ✅ Approved — `NEXUS-REV-2026-07-17-001` (Cycle 2, revised scope; fully closed with zero open findings of any blocking category), authorized by `NEXUS-RAT-2026-07-16-018` and revised by `NEXUS-RAT-2026-07-16-019`. Sprint 66 — Engineering Session State Projection is ✅ Approved — `NEXUS-REV-2026-07-17-002`, authorized by `NEXUS-RAT-2026-07-17-001`, fulfilling the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`. Sprint 67 — Engineering Decision Correlation Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-003`/`NEXUS-REV-2026-07-17-004`. Sprint 68 — Event-Driven Workflow Advancement is ✅ Approved — `NEXUS-REV-2026-07-17-005`, authorized by `NEXUS-RAT-2026-07-17-005`, implementing RFC-0004 v1.15. Sprint 69 — Recovery Workflow Automation is Implemented — Pending Reviewer Validation, per `NEXUS-RAT-2026-07-17-007`, implementing RFC-0004 v1.16.)
 
 ## Sprint 63 — Governance State Projection Foundation
 
@@ -2834,6 +2834,43 @@ Notes:
 
 - See `knowledge/implementation/sprints/sprint-0068-event-driven-workflow-advancement.md` for the complete Sprint Implementation Record.
 - This Sprint does not modify RFC-0001, RFC-0005, RFC-0006, RFC-0011, the Kernel Canon, or any Ratification; it implements RFC-0004 v1.15 (already amended by `NEXUS-RAT-2026-07-17-004`).
+
+---
+
+## Sprint 69 — Recovery Workflow Automation
+
+Status: Implemented — Pending Reviewer Validation (`NEXUS-RAT-2026-07-17-007`, implementing RFC-0004 v1.16 amended by `NEXUS-RAT-2026-07-17-006`).
+
+RFC Coverage:
+
+- RFC-0004 v1.16 (Partial — implements exactly the Recovery Workflow Automation section)
+- RFC-0005 — Domain Event Model (Referenced; consumes existing, unmodified `GovernanceDecisionRecorded`)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` remains read-only and unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only)
+
+Authorized Concepts:
+
+- `RecoveryRequirementGovernanceDecisionConsumer` EventBus subscription to `GovernanceDecisionRecorded`, initialized exactly once per consumer lifecycle.
+- Event-driven resolution of authoritative Mission/Engineering-Session/Workflow-Step attribution through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`.
+- Fail-closed diagnostics for malformed events, missing `GovernanceDecision`, missing or ambiguous correlation, Mission mismatch, Workflow Step mismatch, and Recovery Requirement creation rejection.
+- Rejected `GovernanceDecision` creation through `RecoveryRequirementService.createRecoveryRequirement`; Approved, Deferred, and Escalation Required produce deterministic no-recovery results.
+- Idempotent duplicate/replayed event handling using event identity plus Recovery Requirement's existing deterministic attribution key.
+- Additive `createKernelServices()` wiring preserving Sprint 68's independent workflow-advancement consumer.
+
+Deferred Concepts:
+
+- Recovery-plan generation, AI remediation planning, automatic recovery execution, automatic Builder invocation.
+- Recovery Requirement resolution or withdrawal changes.
+- Event-driven re-advancement after recovery.
+- Retry, buffering, reordering, durable subscriptions, consumer checkpoints, dead-letter queues, and distributed delivery.
+- Autonomous Engineering Integration Validation.
+- Host or Adapter surfacing.
+- Any change to `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, Event-Driven Workflow Advancement, or Recovery Requirement lifecycle semantics.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0069-recovery-workflow-automation.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify RFC-0001, RFC-0005, RFC-0006, RFC-0011, the Kernel Canon, or any Ratification; it implements RFC-0004 v1.16 (already amended by `NEXUS-RAT-2026-07-17-006`).
 
 ---
 
