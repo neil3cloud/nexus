@@ -23,6 +23,24 @@ export class DuplicateMissionEngineeringGroupAssociationError extends MissionEng
   }
 }
 
+export class MissingMissionEngineeringGroupAssociationError extends MissionEngineeringOrchestrationDomainError {
+  public constructor(engineeringSessionId: string) {
+    super(
+      `EngineeringSession '${engineeringSessionId}' is not associated with a MissionEngineeringGroup.`,
+    );
+    this.name = 'MissingMissionEngineeringGroupAssociationError';
+  }
+}
+
+export class AmbiguousMissionEngineeringGroupAssociationError extends MissionEngineeringOrchestrationDomainError {
+  public constructor(engineeringSessionId: string) {
+    super(
+      `EngineeringSession '${engineeringSessionId}' is associated with multiple MissionEngineeringGroups.`,
+    );
+    this.name = 'AmbiguousMissionEngineeringGroupAssociationError';
+  }
+}
+
 export class InvalidEngineeringSessionHandoffDefinitionError extends MissionEngineeringOrchestrationDomainError {
   public constructor(message: string) {
     super(message);

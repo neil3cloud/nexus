@@ -2,6 +2,7 @@ import { EngineeringSessionId } from './engineering-session-id';
 import { EngineeringSessionStatus } from './engineering-session-status';
 import { AdvancementTrigger } from './advancement-trigger';
 import { ReviewOutcome } from '../review/review-values';
+import type { DomainEventMetadata } from '../mission/mission.types';
 import type { GovernanceDecisionSnapshot } from '../governance/governance.types';
 import type {
   EngineeringSessionDiagnosticInput,
@@ -17,6 +18,11 @@ import type {
 } from './engineering-session.types';
 import type { RecoveryRequirementSnapshot } from './recovery-requirement.types';
 import {
+  createEngineeringSessionWorkflowAdvancedEvent,
+  type EngineeringSessionDomainEvent,
+  type EngineeringSessionWorkflowAdvancementStrategy,
+} from './engineering-session.events';
+import {
   InvalidEngineeringSessionDefinitionError,
   InvalidEngineeringSessionLifecycleTransitionError,
 } from './engineering-session.errors';
@@ -25,6 +31,8 @@ import { WorkflowChain } from './workflow-chain';
 import { WorkflowChainId } from './workflow-chain-id';
 
 export class EngineeringSession {
+  private readonly recordedEvents: EngineeringSessionDomainEvent[] = [];
+
   private constructor(
     private readonly engineeringSessionId: EngineeringSessionId,
     private statusValue: EngineeringSessionStatus,
@@ -199,7 +207,10 @@ export class EngineeringSession {
     });
   }
 
-  public advanceWorkflow(workflowChain: WorkflowChain | undefined): void {
+  public advanceWorkflow(
+    workflowChain: WorkflowChain | undefined,
+    eventRecording?: EngineeringSessionWorkflowAdvancementEventRecording,
+  ): boolean {
     const workflowPosition = validateWorkflowPosition(
       this.workflowChainIdValue,
       this.currentWorkflowStepIdValue,
@@ -212,22 +223,30 @@ export class EngineeringSession {
       );
     }
 
-    this.currentWorkflowStepIdValue = (workflowPosition.position + 1).toString();
+    const previousWorkflowStepId = this.currentWorkflowStepIdValue;
+    const newWorkflowStepId = (workflowPosition.position + 1).toString();
+
+    this.currentWorkflowStepIdValue = newWorkflowStepId;
+    this.recordWorkflowAdvancedEvent(previousWorkflowStepId, newWorkflowStepId, eventRecording);
+
+    return true;
   }
 
   public advanceWorkflowOnTrigger(
     _trigger: AdvancementTrigger,
     workflowChain: WorkflowChain | undefined,
-  ): void {
-    this.advanceWorkflow(workflowChain);
+    eventRecording?: EngineeringSessionWorkflowAdvancementEventRecording,
+  ): boolean {
+    return this.advanceWorkflow(workflowChain, eventRecording);
   }
 
   public advanceWorkflowAfterReview(
     reviewOutcome: ReviewOutcome,
     workflowChain: WorkflowChain | undefined,
-  ): void {
+    eventRecording?: EngineeringSessionWorkflowAdvancementEventRecording,
+  ): boolean {
     assertNonBlockingReviewOutcome(reviewOutcome);
-    this.advanceWorkflow(workflowChain);
+    return this.advanceWorkflow(workflowChain, eventRecording);
   }
 
   public advanceWorkflowAfterGovernanceDecision(
@@ -236,14 +255,15 @@ export class EngineeringSession {
     workflowChain: WorkflowChain | undefined,
     currentWorkflowStepId: string,
     recoveryRequirement?: RecoveryRequirementSnapshot,
-  ): void {
+    eventRecording?: EngineeringSessionWorkflowAdvancementEventRecording,
+  ): boolean {
     const governedWorkflowStepPosition = normalizeWorkflowStepPosition(
       currentWorkflowStepId,
       'EngineeringSession Governance-Gated Advancement currentWorkflowStepId',
     );
 
     if (this.currentWorkflowStepIdValue !== governedWorkflowStepPosition.toString()) {
-      return;
+      return false;
     }
 
     assertNonBlockingReviewOutcome(reviewOutcome);
@@ -257,7 +277,7 @@ export class EngineeringSession {
         governanceDecisionId: governanceDecision.id,
       },
     });
-    this.advanceWorkflow(workflowChain);
+    return this.advanceWorkflow(workflowChain, eventRecording);
   }
 
   public executeCurrentWorkflowStep(
@@ -297,6 +317,14 @@ export class EngineeringSession {
     return snapshotsEqual(this.toSnapshot(), other.toSnapshot());
   }
 
+  public pullDomainEvents(): readonly EngineeringSessionDomainEvent[] {
+    const events = [...this.recordedEvents];
+
+    this.recordedEvents.length = 0;
+
+    return events;
+  }
+
   public toSnapshot(): EngineeringSessionSnapshot {
     return Object.freeze({
       id: this.engineeringSessionId.toString(),
@@ -316,6 +344,35 @@ export class EngineeringSession {
       collaborationMetadata: this.collaborationMetadataValue,
     });
   }
+
+  private recordWorkflowAdvancedEvent(
+    previousWorkflowStepId: string,
+    newWorkflowStepId: string,
+    eventRecording: EngineeringSessionWorkflowAdvancementEventRecording | undefined,
+  ): void {
+    if (eventRecording === undefined) {
+      return;
+    }
+
+    this.recordedEvents.push(
+      createEngineeringSessionWorkflowAdvancedEvent(
+        {
+          engineeringSession: this,
+          missionId: eventRecording.missionId,
+          previousWorkflowStepId,
+          newWorkflowStepId,
+          strategy: eventRecording.strategy,
+        },
+        eventRecording.metadata,
+      ),
+    );
+  }
+}
+
+export interface EngineeringSessionWorkflowAdvancementEventRecording {
+  readonly missionId: string;
+  readonly strategy: EngineeringSessionWorkflowAdvancementStrategy;
+  readonly metadata: DomainEventMetadata;
 }
 
 function normalizeWorkflowBinding(

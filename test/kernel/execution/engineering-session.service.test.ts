@@ -21,7 +21,10 @@ import { InvalidAdvancementTriggerDefinitionError } from '../../../src/kernel/ex
 import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
 import { GovernanceGatedWorkflowAdvancementConsumer } from '../../../src/kernel/execution/governance-gated-workflow-advancement.consumer';
 import { InMemoryEngineeringSessionCheckpointRepository } from '../../../src/kernel/execution/engineering-session-checkpoint.repository';
-import { InMemoryEngineeringSessionRepository } from '../../../src/kernel/execution/engineering-session.repository';
+import {
+  InMemoryEngineeringSessionRepository,
+  type IEngineeringSessionRepository,
+} from '../../../src/kernel/execution/engineering-session.repository';
 import { EngineeringSessionService } from '../../../src/kernel/execution/engineering-session.service';
 import { ExecutionSessionService } from '../../../src/kernel/execution/execution-session.service';
 import { InMemoryExecutionSessionRepository } from '../../../src/kernel/execution/execution-session.repository';
@@ -35,6 +38,9 @@ import { InMemoryRecoveryRequirementRepository } from '../../../src/kernel/execu
 import { RecoveryRequirementService } from '../../../src/kernel/execution/recovery-requirement.service';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { InMemoryWorkflowChainRepository } from '../../../src/kernel/execution/workflow-chain.repository';
+import { MissionEngineeringGroup } from '../../../src/kernel/execution/mission-engineering-group';
+import { InMemoryMissionEngineeringGroupRepository } from '../../../src/kernel/execution/mission-engineering-orchestration.repository';
+import { MissionEngineeringOrchestrationService } from '../../../src/kernel/execution/mission-engineering-orchestration.service';
 import { GovernanceDecision } from '../../../src/kernel/governance/governance-decision';
 import { InMemoryGovernanceDecisionRepository } from '../../../src/kernel/governance/governance-decision.repository';
 import { createGovernanceDecisionRecordedEvent } from '../../../src/kernel/governance/governance.events';
@@ -59,8 +65,10 @@ class TestEventBus implements EventBusContract {
     };
   }
 
-  public replay(): readonly EventBusEvent[] {
-    return Object.freeze([...this.events]);
+  public replay(missionId?: string): readonly EventBusEvent[] {
+    return Object.freeze(
+      this.events.filter((event) => missionId === undefined || event.missionId === missionId),
+    );
   }
 }
 
@@ -530,6 +538,192 @@ describe('EngineeringSessionService', () => {
     await expect(service.getEngineeringSession('session-1')).resolves.toEqual(advanced);
   });
 
+  it('publishes EngineeringSessionWorkflowAdvanced after persisted Direct advancement', async () => {
+    const harness = await createEventPublishingHarness();
+    const created = await createAssociatedEngineeringSession(harness, 'engineering-session-direct');
+
+    const advanced = await harness.service.advanceWorkflow({ engineeringSessionId: created.id });
+
+    expect(advanced.currentWorkflowStepId).toBe('1');
+    expect(harness.eventBus.replay('mission-1')).toEqual([
+      expect.objectContaining({
+        eventId: 'event-workflow-advanced',
+        missionId: 'mission-1',
+        eventType: 'EngineeringSessionWorkflowAdvanced',
+        timestamp: '2026-07-16T00:01:00.000Z',
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: {
+          engineeringSessionId: 'engineering-session-direct',
+          previousWorkflowStepId: '0',
+          newWorkflowStepId: '1',
+          strategy: 'Direct',
+        },
+      }),
+    ]);
+  });
+
+  it('publishes one canonical EngineeringSessionWorkflowAdvanced shape for all advancement strategies', async () => {
+    const triggerHarness = await createEventPublishingHarness('event-trigger');
+    const reviewHarness = await createEventPublishingHarness('event-review');
+    const governanceHarness = await createGovernanceGatedAdvancementHarness({
+      eventPublishing: true,
+      eventId: 'event-governance',
+    });
+
+    await createAssociatedEngineeringSession(triggerHarness, 'engineering-session-trigger');
+    await createAssociatedEngineeringSession(reviewHarness, 'engineering-session-review');
+
+    await triggerHarness.service.advanceWorkflowOnTrigger({
+      engineeringSessionId: 'engineering-session-trigger',
+      trigger: { fact: 'workflow-position-eligible' },
+    });
+    await reviewHarness.service.advanceWorkflowAfterReview({
+      engineeringSessionId: 'engineering-session-review',
+      reviewOutcome: 'Accepted',
+    });
+    await governanceHarness.service.advanceWorkflowAfterGovernanceDecision({
+      engineeringSessionId: governanceHarness.engineeringSessionId,
+      governanceDecisionId: governanceHarness.governanceDecisionId,
+      currentWorkflowStepId: '0',
+    });
+
+    const events = [
+      triggerHarness.eventBus.replay('mission-1')[0],
+      reviewHarness.eventBus.replay('mission-1')[0],
+      governanceHarness.eventBus?.replay('mission-governance-gated')[0],
+    ];
+
+    expect(events.map((event) => event?.eventType)).toEqual([
+      'EngineeringSessionWorkflowAdvanced',
+      'EngineeringSessionWorkflowAdvanced',
+      'EngineeringSessionWorkflowAdvanced',
+    ]);
+    expect(events.map((event) => event?.payload.strategy)).toEqual([
+      'Trigger',
+      'ReviewGated',
+      'GovernanceGated',
+    ]);
+    expect(events.map((event) => Object.keys(event?.payload ?? {}).sort())).toEqual([
+      ['engineeringSessionId', 'newWorkflowStepId', 'previousWorkflowStepId', 'strategy'],
+      ['engineeringSessionId', 'newWorkflowStepId', 'previousWorkflowStepId', 'strategy'],
+      ['engineeringSessionId', 'newWorkflowStepId', 'previousWorkflowStepId', 'strategy'],
+    ]);
+  });
+
+  it('fails closed without publishing when Mission association is missing or ambiguous', async () => {
+    const missingAssociationHarness = await createEventPublishingHarness();
+    const ambiguousAssociationHarness = await createEventPublishingHarness();
+
+    await missingAssociationHarness.service.createEngineeringSession({
+      id: 'engineering-session-missing-association',
+      engineeringRuntimeContextReference: 'runtime-context-missing-association',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+    });
+    await createAssociatedEngineeringSession(
+      ambiguousAssociationHarness,
+      'engineering-session-ambiguous-association',
+    );
+    await ambiguousAssociationHarness.groupRepository.save(
+      MissionEngineeringGroup.create({
+        missionId: 'mission-2',
+        engineeringSessionIds: ['engineering-session-ambiguous-association'],
+      }),
+    );
+
+    await expect(
+      missingAssociationHarness.service.advanceWorkflow({
+        engineeringSessionId: 'engineering-session-missing-association',
+      }),
+    ).rejects.toThrow();
+    await expect(
+      ambiguousAssociationHarness.service.advanceWorkflow({
+        engineeringSessionId: 'engineering-session-ambiguous-association',
+      }),
+    ).rejects.toThrow();
+
+    expect(missingAssociationHarness.eventBus.replay('mission-1')).toEqual([]);
+    expect(ambiguousAssociationHarness.eventBus.replay('mission-1')).toEqual([]);
+    await expect(
+      missingAssociationHarness.service.getEngineeringSession(
+        'engineering-session-missing-association',
+      ),
+    ).resolves.toMatchObject({ currentWorkflowStepId: '0' });
+    await expect(
+      ambiguousAssociationHarness.service.getEngineeringSession(
+        'engineering-session-ambiguous-association',
+      ),
+    ).resolves.toMatchObject({ currentWorkflowStepId: '0' });
+  });
+
+  it('publishes no event for createEngineeringSession or rejected advancement', async () => {
+    const harness = await createEventPublishingHarness();
+    const created = await createAssociatedEngineeringSession(harness, 'engineering-session-rejected');
+
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+    await expect(
+      harness.service.advanceWorkflowAfterReview({
+        engineeringSessionId: created.id,
+        reviewOutcome: 'Rejected',
+      }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+    await expect(harness.service.getEngineeringSession(created.id)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('publishes no event and leaks no pending event when persistence fails', async () => {
+    const repository = new FailingSaveEngineeringSessionRepository();
+    const groupRepository = new InMemoryMissionEngineeringGroupRepository();
+    const eventBus = new TestEventBus();
+    const service = new EngineeringSessionService(
+      repository,
+      await createWorkflowChainRepository(),
+      createIdentitySequence(['event-failed', 'event-success']),
+      createTimestampSequence([
+        '2026-07-16T00:00:00.000Z',
+        '2026-07-16T00:01:00.000Z',
+        '2026-07-16T00:02:00.000Z',
+      ]),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      new InMemoryEngineeringSessionCheckpointRepository(),
+      undefined,
+      undefined,
+      undefined,
+      eventBus,
+      groupRepository,
+    );
+
+    await createAssociatedEngineeringSession(
+      { service, groupRepository },
+      'engineering-session-persistence',
+    );
+
+    repository.failNextSave();
+
+    await expect(
+      service.advanceWorkflow({ engineeringSessionId: 'engineering-session-persistence' }),
+    ).rejects.toThrow('Injected save failure.');
+    expect(eventBus.replay('mission-1')).toEqual([]);
+    await expect(service.getEngineeringSession('engineering-session-persistence')).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+
+    await service.advanceWorkflow({ engineeringSessionId: 'engineering-session-persistence' });
+
+    expect(eventBus.replay('mission-1')).toHaveLength(1);
+    expect(eventBus.replay('mission-1')[0]?.eventId).toBe('event-success');
+  });
+
   it('orchestrates synchronous AdvancementTrigger workflow advancement and persistence', async () => {
     const service = new EngineeringSessionService(
       new InMemoryEngineeringSessionRepository(),
@@ -876,7 +1070,7 @@ describe('EngineeringSessionService', () => {
     });
   });
 
-  it('wires createKernelServices so EngineeringSessionService consumes the shared production RecoveryRequirementRepository', async () => {
+  it('wires createKernelServices so EngineeringSessionService consumes shared production orchestration repositories', async () => {
     const services = createKernelServices(new TestEventBus());
     const engineeringSessionService = services.find(
       (service): service is EngineeringSessionService => service instanceof EngineeringSessionService,
@@ -884,16 +1078,28 @@ describe('EngineeringSessionService', () => {
     const recoveryRequirementService = services.find(
       (service): service is RecoveryRequirementService => service instanceof RecoveryRequirementService,
     );
+    const missionEngineeringOrchestrationService = services.find(
+      (service): service is MissionEngineeringOrchestrationService =>
+        service instanceof MissionEngineeringOrchestrationService,
+    );
 
-    if (engineeringSessionService === undefined || recoveryRequirementService === undefined) {
-      throw new Error('Expected composed EngineeringSessionService and RecoveryRequirementService.');
+    if (
+      engineeringSessionService === undefined ||
+      recoveryRequirementService === undefined ||
+      missionEngineeringOrchestrationService === undefined
+    ) {
+      throw new Error('Expected composed EngineeringSessionService and orchestration services.');
     }
 
     const engineeringSessionDependencies = engineeringSessionService as unknown as {
       readonly recoveryRequirementRepository?: unknown;
+      readonly missionEngineeringGroupRepository?: unknown;
     };
     const recoveryRequirementDependencies = recoveryRequirementService as unknown as {
       readonly repository?: unknown;
+    };
+    const orchestrationDependencies = missionEngineeringOrchestrationService as unknown as {
+      readonly missionEngineeringGroupRepository?: unknown;
     };
 
     expect(engineeringSessionDependencies.recoveryRequirementRepository).toBeInstanceOf(
@@ -901,6 +1107,12 @@ describe('EngineeringSessionService', () => {
     );
     expect(engineeringSessionDependencies.recoveryRequirementRepository).toBe(
       recoveryRequirementDependencies.repository,
+    );
+    expect(engineeringSessionDependencies.missionEngineeringGroupRepository).toBeInstanceOf(
+      InMemoryMissionEngineeringGroupRepository,
+    );
+    expect(engineeringSessionDependencies.missionEngineeringGroupRepository).toBe(
+      orchestrationDependencies.missionEngineeringGroupRepository,
     );
   });
 
@@ -1585,6 +1797,97 @@ async function createWorkflowExecutionHarnessWithoutAssignmentPolicyService(): P
   };
 }
 
+interface EventPublishingHarness {
+  readonly service: EngineeringSessionService;
+  readonly groupRepository: InMemoryMissionEngineeringGroupRepository;
+  readonly eventBus: TestEventBus;
+}
+
+async function createEventPublishingHarness(
+  advancementEventId = 'event-workflow-advanced',
+): Promise<EventPublishingHarness> {
+  const groupRepository = new InMemoryMissionEngineeringGroupRepository();
+  const eventBus = new TestEventBus();
+  const service = new EngineeringSessionService(
+    new InMemoryEngineeringSessionRepository(),
+    await createWorkflowChainRepository(),
+    createIdentitySequence([advancementEventId]),
+    createTimestampSequence(['2026-07-16T00:00:00.000Z', '2026-07-16T00:01:00.000Z']),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    new InMemoryEngineeringSessionCheckpointRepository(),
+    undefined,
+    undefined,
+    undefined,
+    eventBus,
+    groupRepository,
+  );
+
+  return {
+    service,
+    groupRepository,
+    eventBus,
+  };
+}
+
+async function createAssociatedEngineeringSession(
+  harness: Pick<EventPublishingHarness, 'service' | 'groupRepository'>,
+  id: string,
+): Promise<ReturnType<EngineeringSessionService['createEngineeringSession']> extends Promise<infer T> ? T : never> {
+  const created = await harness.service.createEngineeringSession({
+    id,
+    engineeringRuntimeContextReference: `runtime-context-${id}`,
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
+    participatingRoleIds: ['builder', 'reviewer'],
+    workflowState: 'active',
+  });
+
+  await harness.groupRepository.save(
+    MissionEngineeringGroup.create({
+      missionId: 'mission-1',
+      engineeringSessionIds: [id],
+    }),
+  );
+
+  return created;
+}
+
+function createIdentitySequence(identities: string[]): () => string {
+  return () => {
+    const identity = identities.shift();
+
+    if (identity === undefined) {
+      throw new Error('No identity available for test.');
+    }
+
+    return identity;
+  };
+}
+
+class FailingSaveEngineeringSessionRepository
+  extends InMemoryEngineeringSessionRepository
+  implements IEngineeringSessionRepository
+{
+  private shouldFailNextSave = false;
+
+  public failNextSave(): void {
+    this.shouldFailNextSave = true;
+  }
+
+  public override async save(engineeringSession: EngineeringSession): Promise<void> {
+    if (this.shouldFailNextSave) {
+      this.shouldFailNextSave = false;
+      throw new Error('Injected save failure.');
+    }
+
+    await super.save(engineeringSession);
+  }
+}
+
 async function createWorkflowExecutionHarness(
   adapterStatus: 'Completed' | 'Failed' = 'Completed',
 ): Promise<WorkflowExecutionHarness> {
@@ -1680,23 +1983,32 @@ async function createGovernanceGatedAdvancementHarness(input: {
   readonly governanceDecisionValue?: GovernanceDecisionValue;
   readonly registerGovernanceDecision?: boolean;
   readonly recoveryRequirement?: RecoveryRequirement;
+  readonly eventPublishing?: boolean;
+  readonly eventId?: string;
 } = {}): Promise<{
   readonly service: EngineeringSessionService;
   readonly governanceDecision: GovernanceDecision;
   readonly governanceDecisionId: string;
   readonly engineeringSessionId: string;
   readonly recoveryRequirementRepository: InMemoryRecoveryRequirementRepository;
+  readonly eventBus?: TestEventBus;
 }> {
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
   const workflowChainRepository = await createWorkflowChainRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
   const reviewRepository = new InMemoryReviewRepository();
   const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
+  const eventBus = input.eventPublishing === true ? new TestEventBus() : undefined;
+  const groupRepository =
+    input.eventPublishing === true ? new InMemoryMissionEngineeringGroupRepository() : undefined;
   const service = new EngineeringSessionService(
     engineeringSessionRepository,
     workflowChainRepository,
-    () => 'unused-generated-session-id',
-    createTimestampSequence(['2026-07-16T00:00:00.000Z']),
+    createIdentitySequence([
+      'unused-generated-session-id',
+      input.eventId ?? 'event-governance-workflow-advanced',
+    ]),
+    createTimestampSequence(['2026-07-16T00:00:00.000Z', '2026-07-16T00:01:00.000Z']),
     undefined,
     undefined,
     undefined,
@@ -1705,6 +2017,8 @@ async function createGovernanceGatedAdvancementHarness(input: {
     governanceDecisionRepository,
     reviewRepository,
     recoveryRequirementRepository,
+    eventBus,
+    groupRepository,
   );
   const review = createCompletedReview(input.reviewOutcome ?? 'Accepted');
   const governanceDecision = createGovernanceDecision(input.governanceDecisionValue ?? 'Approved');
@@ -1718,6 +2032,14 @@ async function createGovernanceGatedAdvancementHarness(input: {
     await recoveryRequirementRepository.register(input.recoveryRequirement);
   }
   await createEngineeringSessionForAdvancement(service, engineeringSessionId);
+  if (groupRepository !== undefined) {
+    await groupRepository.save(
+      MissionEngineeringGroup.create({
+        missionId: 'mission-governance-gated',
+        engineeringSessionIds: [engineeringSessionId],
+      }),
+    );
+  }
 
   return {
     service,
@@ -1725,6 +2047,7 @@ async function createGovernanceGatedAdvancementHarness(input: {
     governanceDecisionId: governanceDecision.id.toString(),
     engineeringSessionId,
     recoveryRequirementRepository,
+    ...(eventBus === undefined ? {} : { eventBus }),
   };
 }
 

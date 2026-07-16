@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import { AdapterRequest } from '../adapter/adapter-request';
 import type { AdapterService } from '../adapter/adapter.service';
+import type { EventBusContract } from '../common/event-bus-contract';
 import { KernelError } from '../common/kernel-error';
 import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
 import type { IReviewRepository } from '../review/review.repository';
@@ -31,9 +32,11 @@ import type {
 import { EngineeringSessionId } from './engineering-session-id';
 import {
   EngineeringSessionCheckpointNotFoundError,
+  EngineeringSessionEventPublisherUnavailableError,
   EngineeringSessionNotFoundError,
   InvalidEngineeringSessionDefinitionError,
 } from './engineering-session.errors';
+import type { EngineeringSessionWorkflowAdvancementStrategy } from './engineering-session.events';
 import {
   InMemoryEngineeringSessionRepository,
   type IEngineeringSessionRepository,
@@ -51,6 +54,7 @@ import {
   InMemoryWorkflowChainRepository,
   type IWorkflowChainRepository,
 } from './workflow-chain.repository';
+import type { IMissionEngineeringGroupRepository } from './mission-engineering-orchestration.repository';
 import { ReviewOutcome } from '../review/review-values';
 import type { AssignmentReadinessResult } from './execution-strategy.types';
 
@@ -106,6 +110,11 @@ export class EngineeringSessionService
     private readonly recoveryRequirementRepository?: Pick<
       IRecoveryRequirementRepository,
       'findByAttributionKey'
+    >,
+    private readonly eventBus?: EventBusContract,
+    private readonly missionEngineeringGroupRepository?: Pick<
+      IMissionEngineeringGroupRepository,
+      'getMissionIdByEngineeringSessionId'
     >,
   ) {
     super('EngineeringSessionService');
@@ -165,8 +174,11 @@ export class EngineeringSessionService
     const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
     const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
 
-    engineeringSession.advanceWorkflow(workflowChain);
-    await this.repository.save(engineeringSession);
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'Direct',
+      (eventRecording) => engineeringSession.advanceWorkflow(workflowChain, eventRecording),
+    );
 
     return engineeringSession.toSnapshot();
   }
@@ -178,8 +190,12 @@ export class EngineeringSessionService
     const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
     const trigger = AdvancementTrigger.create(command.trigger);
 
-    engineeringSession.advanceWorkflowOnTrigger(trigger, workflowChain);
-    await this.repository.save(engineeringSession);
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'Trigger',
+      (eventRecording) =>
+        engineeringSession.advanceWorkflowOnTrigger(trigger, workflowChain, eventRecording),
+    );
 
     return engineeringSession.toSnapshot();
   }
@@ -191,8 +207,12 @@ export class EngineeringSessionService
     const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
     const reviewOutcome = ReviewOutcome.fromString(command.reviewOutcome);
 
-    engineeringSession.advanceWorkflowAfterReview(reviewOutcome, workflowChain);
-    await this.repository.save(engineeringSession);
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'ReviewGated',
+      (eventRecording) =>
+        engineeringSession.advanceWorkflowAfterReview(reviewOutcome, workflowChain, eventRecording),
+    );
 
     return engineeringSession.toSnapshot();
   }
@@ -240,14 +260,19 @@ export class EngineeringSessionService
           })
         : undefined;
 
-    engineeringSession.advanceWorkflowAfterGovernanceDecision(
-      reviewOutcome,
-      governanceDecisionSnapshot,
-      workflowChain,
-      command.currentWorkflowStepId,
-      recoveryRequirement?.toSnapshot(),
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'GovernanceGated',
+      (eventRecording) =>
+        engineeringSession.advanceWorkflowAfterGovernanceDecision(
+          reviewOutcome,
+          governanceDecisionSnapshot,
+          workflowChain,
+          command.currentWorkflowStepId,
+          recoveryRequirement?.toSnapshot(),
+          eventRecording,
+        ),
     );
-    await this.repository.save(engineeringSession);
 
     return engineeringSession.toSnapshot();
   }
@@ -420,6 +445,93 @@ export class EngineeringSessionService
     }
 
     return engineeringSession;
+  }
+
+  private async advanceWorkflowWithEvent(
+    engineeringSession: EngineeringSession,
+    strategy: EngineeringSessionWorkflowAdvancementStrategy,
+    advance: (eventRecording?: {
+      readonly missionId: string;
+      readonly strategy: EngineeringSessionWorkflowAdvancementStrategy;
+      readonly metadata: ReturnType<EngineeringSessionService['createEventMetadata']>;
+    }) => boolean,
+  ): Promise<void> {
+    if (this.eventBus === undefined && this.missionEngineeringGroupRepository === undefined) {
+      advance(undefined);
+      await this.repository.save(engineeringSession);
+      return;
+    }
+
+    const eventBus = this.requireEventBus();
+    const missionId = await this.resolveMissionId(engineeringSession);
+    const advanced = advance({
+      missionId,
+      strategy,
+      metadata: this.createEventMetadata(),
+    });
+
+    if (!advanced) {
+      engineeringSession.pullDomainEvents();
+      return;
+    }
+
+    try {
+      await this.repository.save(engineeringSession);
+    } catch (error) {
+      engineeringSession.pullDomainEvents();
+      throw error;
+    }
+
+    await this.publishRecordedEvents(engineeringSession, eventBus);
+  }
+
+  private async resolveMissionId(engineeringSession: EngineeringSession): Promise<string> {
+    const missionEngineeringGroupRepository = this.requireMissionEngineeringGroupRepository();
+    const missionId = await missionEngineeringGroupRepository.getMissionIdByEngineeringSessionId(
+      engineeringSession.id,
+    );
+
+    return missionId.toString();
+  }
+
+  private requireEventBus(): EventBusContract {
+    if (this.eventBus === undefined) {
+      throw new EngineeringSessionEventPublisherUnavailableError();
+    }
+
+    return this.eventBus;
+  }
+
+  private requireMissionEngineeringGroupRepository(): Pick<
+    IMissionEngineeringGroupRepository,
+    'getMissionIdByEngineeringSessionId'
+  > {
+    if (this.missionEngineeringGroupRepository === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Domain Event publication requires MissionEngineeringGroup reverse lookup.',
+      );
+    }
+
+    return this.missionEngineeringGroupRepository;
+  }
+
+  private createEventMetadata(): {
+    readonly eventId: string;
+    readonly timestamp: string;
+  } {
+    return {
+      eventId: this.createIdentity(),
+      timestamp: this.createTimestamp(),
+    };
+  }
+
+  private async publishRecordedEvents(
+    engineeringSession: EngineeringSession,
+    eventBus: EventBusContract,
+  ): Promise<void> {
+    for (const event of engineeringSession.pullDomainEvents()) {
+      await eventBus.publish(event);
+    }
   }
 
   private async evaluateReadiness(

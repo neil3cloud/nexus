@@ -174,6 +174,88 @@ describe('EngineeringSession domain', () => {
     expect(session.isWorkflowComplete(workflowChain)).toBe(true);
   });
 
+  it('records, orders, drains, and deduplicates EngineeringSessionWorkflowAdvanced events', () => {
+    const threeStepWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-1',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }, { roleId: 'builder' }],
+    });
+    const session = createSession();
+
+    session.advanceWorkflow(threeStepWorkflowChain, {
+      missionId: 'mission-1',
+      strategy: 'Direct',
+      metadata: {
+        eventId: 'event-1',
+        timestamp: '2026-07-16T00:00:00.000Z',
+      },
+    });
+    session.advanceWorkflowOnTrigger(advancementTrigger, threeStepWorkflowChain, {
+      missionId: 'mission-1',
+      strategy: 'Trigger',
+      metadata: {
+        eventId: 'event-2',
+        timestamp: '2026-07-16T00:01:00.000Z',
+      },
+    });
+
+    expect(session.pullDomainEvents()).toEqual([
+      {
+        eventId: 'event-1',
+        missionId: 'mission-1',
+        eventType: 'EngineeringSessionWorkflowAdvanced',
+        timestamp: '2026-07-16T00:00:00.000Z',
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: {
+          engineeringSessionId: 'session-1',
+          previousWorkflowStepId: '0',
+          newWorkflowStepId: '1',
+          strategy: 'Direct',
+        },
+      },
+      {
+        eventId: 'event-2',
+        missionId: 'mission-1',
+        eventType: 'EngineeringSessionWorkflowAdvanced',
+        timestamp: '2026-07-16T00:01:00.000Z',
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: {
+          engineeringSessionId: 'session-1',
+          previousWorkflowStepId: '1',
+          newWorkflowStepId: '2',
+          strategy: 'Trigger',
+        },
+      },
+    ]);
+    expect(session.pullDomainEvents()).toEqual([]);
+  });
+
+  it('does not record EngineeringSession events during rehydration or rejected advancement', () => {
+    const rehydrated = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+    const terminalSession = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+
+    expect(rehydrated.pullDomainEvents()).toEqual([]);
+    expect(() =>
+      terminalSession.advanceWorkflow(workflowChain, {
+        missionId: 'mission-1',
+        strategy: 'Direct',
+        metadata: {
+          eventId: 'event-terminal',
+          timestamp: '2026-07-16T00:00:00.000Z',
+        },
+      }),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(terminalSession.pullDomainEvents()).toEqual([]);
+  });
+
   it('advances on an AdvancementTrigger using existing Workflow Advancement semantics', () => {
     const session = createSession();
 

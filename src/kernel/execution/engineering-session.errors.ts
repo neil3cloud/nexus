@@ -35,6 +35,13 @@ export class EngineeringSessionNotFoundError extends EngineeringSessionDomainErr
   }
 }
 
+export class EngineeringSessionEventPublisherUnavailableError extends EngineeringSessionDomainError {
+  public constructor() {
+    super('EngineeringSessionService requires an EventBus to publish Domain Events.');
+    this.name = 'EngineeringSessionEventPublisherUnavailableError';
+  }
+}
+
 export class DuplicateEngineeringSessionCheckpointError extends EngineeringSessionDomainError {
   public constructor(checkpointId: string) {
     super(`EngineeringSessionCheckpoint '${checkpointId}' already exists.`);

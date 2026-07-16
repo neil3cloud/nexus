@@ -2,6 +2,63 @@
 
 ---
 
+## NEXUS-REV-2026-07-17-001 — Sprint 65 — EngineeringSession Domain Event Publication (Cycle 2, revised scope)
+
+- **Reviewed Sprint:** Sprint 65 — EngineeringSession Domain Event Publication (Milestone 10 prerequisite foundation, authorized by `NEXUS-RAT-2026-07-16-018`). Cycle 1 was blocked pre-implementation (the Builder correctly stopped upon discovering no authorized `missionId` source exists on `EngineeringSession`); `NEXUS-RAT-2026-07-16-019` revised the scope. This review certifies Cycle 2, the revised and implemented scope.
+- **Reviewed Vertical Slice:** `EngineeringSession` gains a recorded-events collection and `pullDomainEvents()`. `EngineeringSessionService` gains optional constructor-injected `EventBusContract` and a read-only, constructor-injected Mission Engineering Group reverse-lookup dependency. Exactly one canonical event — `EngineeringSessionWorkflowAdvanced` — is published identically across `advanceWorkflow`/`advanceWorkflowOnTrigger`/`advanceWorkflowAfterReview`/`advanceWorkflowAfterGovernanceDecision`, carrying a Mission Engineering Group-resolved (never caller-supplied) `missionId`, previous/new `workflowStepId`, and a closed-vocabulary advancement strategy. A new read-only reverse-lookup method, `getMissionIdByEngineeringSessionId`, was added to `IMissionEngineeringGroupRepository`/`InMemoryMissionEngineeringGroupRepository`, failing closed (dedicated errors) on missing or ambiguous association. `EngineeringSessionCreated` is deferred entirely; `createEngineeringSession` remains event-silent.
+- **RFC Coverage:** RFC-0005 (Partial — new aggregate joins the established publication pattern), RFC-0004 v1.13 (Referenced — `EngineeringSession`, Workflow Advancement, and Mission Engineering Group ownership consumed unmodified). No RFC amended.
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 65 Cycle 2 implements exactly the revised scope authorized by `NEXUS-RAT-2026-07-16-018`/`NEXUS-RAT-2026-07-16-019`. Independently verified in source that `EngineeringSessionWorkflowAdvanced`'s `missionId` is sourced exclusively from `EngineeringSessionService.resolveMissionId`, which calls the new `IMissionEngineeringGroupRepository.getMissionIdByEngineeringSessionId` — confirmed this method is read-only (`mission-engineering-orchestration.repository.ts`: iterates `groupsByMissionId.values()` and only reads; no `save()` call on that path, independently confirmed by a dedicated non-mutation test), deterministic, and fails closed via `MissingMissionEngineeringGroupAssociationError`/`AmbiguousMissionEngineeringGroupAssociationError` when zero or more than one `MissionEngineeringGroup` contains the session — exactly the binding semantics required. Confirmed `resolveMissionId` is invoked in `advanceWorkflowWithEvent` *before* the aggregate's `advance(...)` callback runs, so a missing/ambiguous association throws before any state mutation (`EngineeringSession.currentWorkflowStepId` verified unchanged via `getEngineeringSession` assertions in the fail-closed test). Confirmed no caller-supplied `missionId` path exists anywhere in `EngineeringSessionService`/`EngineeringSession` — the only `missionId` values flowing into event construction originate from the resolved `MissionId`. Confirmed `EngineeringSession`/`EngineeringSessionSnapshot`/`EngineeringSessionInput`/`CreateEngineeringSessionCommand` gained no `missionId` field (`engineering-session.types.ts` and `engineering-session.contract.ts` are absent from the diff, confirming no persistent Mission ownership was added), and `createEngineeringSession` was not touched beyond what the diff shows (still publishes nothing, confirmed by a dedicated test asserting an empty `eventBus.replay()` after creation).
+
+Confirmed the Equivalent Transition Rule is honored: a dedicated test asserts identical payload key sets (`engineeringSessionId`, `newWorkflowStepId`, `previousWorkflowStepId`, `strategy`) across Trigger/ReviewGated/GovernanceGated advancement, plus a separate Direct-advancement test asserting the full exact event shape — one canonical `EngineeringSessionWorkflowAdvanced` type across all four strategies, never four separate event types. Confirmed persistence-first ordering is preserved: `advanceWorkflowWithEvent` calls `this.repository.save(engineeringSession)` before `publishRecordedEvents`, and a dedicated `FailingSaveEngineeringSessionRepository` test proves a persistence failure both publishes nothing and leaves no event pulled/leaked into a subsequent successful call (the retry after the injected failure publishes exactly the second, not a duplicated first, event). Confirmed rejected advancement (`InvalidEngineeringSessionDefinitionError` on a terminal-step `advanceWorkflow` call, and a `Rejected` Review Outcome) emits no event, and that `EngineeringSession.fromSnapshot` rehydration drains zero events. Confirmed `pullDomainEvents()` returns events in recorded order, clears its internal collection, and a second immediate call returns empty (no duplicate publication).
+
+Confirmed via `git diff --stat -- src/` that exactly the seven files authorized by the Sprint Implementation Record's "Authorized Files and Boundaries" section changed: `create-kernel-services.ts` (additive wiring — the same shared `missionEngineeringGroupRepository` instance is now passed to both `EngineeringSessionService` and `MissionEngineeringOrchestrationService`, verified by a dedicated kernel-composition test asserting reference equality), `engineering-session.errors.ts`, `engineering-session.events.ts` (new), `engineering-session.service.ts`, `engineering-session.ts`, `mission-engineering-orchestration.errors.ts`, and `mission-engineering-orchestration.repository.ts`. Confirmed `mission-engineering-orchestration.contract.ts`/`.service.ts` — and every `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, Review, `src/hosts`, and `src/adapters` file — are byte-for-byte unmodified (`git diff --stat -- src/hosts src/adapters` empty, independently re-run; `git diff --stat -- src/kernel/governance src/kernel/mission` empty, independently re-run). Confirmed `test/integration/governance-automation-integration-validation.integration.test.ts`'s production-drift self-check was correctly and minimally updated to allowlist exactly these seven new/changed Sprint 65 files (matching `git status` exactly), preserving its guard over every other Sprint 1–64 production contract. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 87 files / 568 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. One Category 6, Informational Observation recorded below; it does not affect the disposition. No architectural violations detected.
+
+### Findings
+
+None of Category 1 through 5.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 (informational, non-blocking, no Builder Task; see below) |
+
+### Observations (Category 6, informational; no Builder Task)
+
+- `EngineeringSessionService.advanceWorkflowWithEvent`'s idempotent-no-op governance-gated path (`advanceWorkflowAfterGovernanceDecision` returning `false` when the session is not at the governed step) skips `repository.save()` entirely when event publication is wired, whereas the pre-Sprint-65 code path (and the still-present "neither `EventBusContract` nor Mission Engineering Group repository injected" branch retained for unit-test/foundation-mode construction) unconditionally called `repository.save()` even on this no-op. Confirmed this produces no observable behavioral difference: `InMemoryEngineeringSessionRepository.save()` performs a pure `Map.set()` of an unchanged snapshot with no version counter, timestamp, or side effect, so the skipped call is byte-for-byte equivalent to the prior redundant save. No Builder Task. A future Sprint touching `EngineeringSessionService`'s advancement orchestration should keep this equivalence in mind if a repository implementation ever gains save-time side effects.
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: `EngineeringSessionCreated` (a dedicated test asserts `eventBus.replay()` is empty immediately after `createEngineeringSession`); `EngineeringSessionAssociatedWithMission` or any other Mission-association event; atomic Engineering Session creation-and-association; any change to Mission Engineering Group's mutation operations (`associateEngineeringSessionWithMission`, `recordEngineeringSessionHandoff` diffs confirmed absent); persistent `missionId` ownership on `EngineeringSession`; Session State Projection; Event-Driven Workflow Advancement/Recovery Workflow Automation consumers; Autonomous Engineering Integration Validation (Milestone 10 Step 4); `closeEngineeringSession`/checkpoint/recovery/handoff/execution-session event publication; any event subscription/consumer. `git diff --stat -- src/` confirms no file outside the seven authorized Sprint 65 files changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the Cycle 2 revised vertical slice authorized by `NEXUS-RAT-2026-07-16-019` was added. Compliant.
+- **Ratification Compliance:** Both `NEXUS-RAT-2026-07-16-018`'s attribution-gap resolution and `NEXUS-RAT-2026-07-16-019`'s Cycle 2 refinements are honored: Mission attribution resolved exclusively through Mission Engineering Group, never caller-supplied or inferred; the reverse-lookup query is read-only, deterministic, fails closed on missing/ambiguous association, and lives within the Mission Engineering Group ownership boundary (not on `EngineeringSession`); `EngineeringSessionCreated` correctly deferred. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `EngineeringSession` gains no persistent Mission state; Mission Engineering Group's existing mutation operations and ownership boundary are untouched; the new reverse-lookup method is additive and read-only. Compliant.
+- **Event Compliance (Gate 7):** Introduces exactly one new event type, `EngineeringSessionWorkflowAdvanced`, published through the existing `EventBusContract`/`DomainEvent` envelope conventions; no existing event type, envelope, or publisher modified. Compliant.
+- **Determinism (Gate 9):** Equivalent advancement transitions (any of the four strategies) produce a structurally identical canonical event (dedicated test); Mission resolution is deterministic and fails closed rather than guessing under ambiguity. Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly the seven authorized files; `git diff --stat -- src/hosts src/adapters` and `git diff --stat -- src/kernel/governance src/kernel/mission` are both empty. Compliant.
+- **Tests (Gate 11):** All sixteen Required Test Matrix items are covered across `engineering-session.test.ts`, `engineering-session.service.test.ts`, and `mission-engineering-orchestration.repository.test.ts`. The full repository suite (87 files / 568 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 65 is fully closed. Session State Projection (consuming this Sprint's `EngineeringSessionWorkflowAdvanced` stream) is the next prerequisite step toward Event-Driven Workflow Advancement/Recovery Workflow Automation and requires its own future `nexus-plan` Sprint scope proposal; this review does not authorize it.
+
+---
+
 ## NEXUS-REV-2026-07-16-017 — Sprint 64 — Event-Driven Mission Completion
 
 - **Reviewed Sprint:** Sprint 64 — Event-Driven Mission Completion (Milestone 10, Step 2, narrowed to Mission Completion only by `NEXUS-RAT-2026-07-16-017`).

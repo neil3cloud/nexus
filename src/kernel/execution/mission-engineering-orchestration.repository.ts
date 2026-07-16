@@ -2,8 +2,10 @@ import { EngineeringSessionHandoff } from './engineering-session-handoff';
 import { EngineeringSessionId } from './engineering-session-id';
 import { MissionEngineeringGroup } from './mission-engineering-group';
 import {
+  AmbiguousMissionEngineeringGroupAssociationError,
   DuplicateEngineeringSessionHandoffError,
   InvalidEngineeringSessionHandoffDefinitionError,
+  MissingMissionEngineeringGroupAssociationError,
 } from './mission-engineering-orchestration.errors';
 import type {
   EngineeringSessionHandoffSnapshot,
@@ -14,6 +16,9 @@ import { MissionId } from '../mission/mission-id';
 export interface IMissionEngineeringGroupRepository {
   save(missionEngineeringGroup: MissionEngineeringGroup): Promise<void>;
   getByMissionId(missionId: MissionId | string): Promise<MissionEngineeringGroup | undefined>;
+  getMissionIdByEngineeringSessionId(
+    engineeringSessionId: EngineeringSessionId | string,
+  ): Promise<MissionId>;
   enumerate(): Promise<readonly MissionEngineeringGroup[]>;
 }
 
@@ -53,6 +58,39 @@ export class InMemoryMissionEngineeringGroupRepository
       }
 
       return MissionEngineeringGroup.fromSnapshot(snapshot);
+    });
+  }
+
+  public async getMissionIdByEngineeringSessionId(
+    engineeringSessionId: EngineeringSessionId | string,
+  ): Promise<MissionId> {
+    return this.runExclusive(() => {
+      const normalizedEngineeringSessionId = normalizeEngineeringSessionId(engineeringSessionId);
+      const matches = [...this.groupsByMissionId.values()].filter((group) =>
+        group.engineeringSessionIds.includes(normalizedEngineeringSessionId.toString()),
+      );
+
+      if (matches.length === 0) {
+        throw new MissingMissionEngineeringGroupAssociationError(
+          normalizedEngineeringSessionId.toString(),
+        );
+      }
+
+      if (matches.length > 1) {
+        throw new AmbiguousMissionEngineeringGroupAssociationError(
+          normalizedEngineeringSessionId.toString(),
+        );
+      }
+
+      const match = matches[0];
+
+      if (match === undefined) {
+        throw new MissingMissionEngineeringGroupAssociationError(
+          normalizedEngineeringSessionId.toString(),
+        );
+      }
+
+      return MissionId.fromString(match.missionId);
     });
   }
 

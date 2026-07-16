@@ -596,6 +596,21 @@ Execution Strategy
 
 ---
 
+## EngineeringSessionWorkflowAdvanced
+
+Producer
+
+EngineeringSessionService
+
+Payload
+
+- Engineering Session Identifier
+- Previous Workflow Step Identifier
+- New Workflow Step Identifier
+- Advancement Strategy
+
+---
+
 ## RecoveryRequirementCreated
 
 Producer

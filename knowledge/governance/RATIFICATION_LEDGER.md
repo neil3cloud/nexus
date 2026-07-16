@@ -6655,3 +6655,138 @@ None yet — Sprint 64 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-16-018
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-018
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Milestone 10 Attribution Gap Resolution — EngineeringSession Domain Event Publication authorized as the prerequisite foundation for Event-Driven Workflow Advancement and Recovery Workflow Automation. Authorizes Sprint 65.
+
+## Originating Request
+
+`nexus-plan`'s post-Sprint-64 Governance Scan found that both remaining Milestone 10 Initial Capability Sequence steps — the `engineeringSessionId`/`currentWorkflowStepId`-scoped remainder of Step 2 (Event-Driven Workflow Advancement) and Step 3 (Recovery Workflow Automation) — are blocked by the same root cause: no authorized data source can deterministically supply Engineering-Session/Workflow-Step attribution to an automatic, event-driven Kernel consumer. `GovernanceDecision`/`GovernanceDecisionRecorded` are Mission-scoped only by design (`NEXUS-RAT-2026-07-16-004`, reaffirmed by `NEXUS-RAT-2026-07-16-016`). The existing consumers that do act on session/step position (`GovernanceGatedWorkflowAdvancementConsumer`, `RecoveryRequirementGovernanceDecisionConsumer`) require `engineeringSessionId`/`workflowStepId` as caller-supplied command input, not as event-derived data — they are not auto-wired `EventBusContract` subscribers. `EngineeringSession` itself was independently confirmed to publish zero Domain Events (no `engineering-session.events.ts`; no `EventBusContract` usage anywhere in `engineering-session.service.ts`), so no session/step read model can be built from its state today.
+
+## Governance Decision
+
+**Approved — EngineeringSession Domain Event Publication authorized as Sprint 65, per Option B.** Session/workflow-step attribution SHALL originate from the `EngineeringSession` domain, which already owns Engineering Session identity, current Workflow position, Workflow advancement state, and session lifecycle. `GovernanceDecisionRecorded` SHALL remain unchanged and Mission-scoped; no session or Workflow Step attribution SHALL be inferred from Governance events. The resolution SHALL follow the repository's established implementation pattern: Domain Event Publication → Session State Projection → Event-Driven Consumers. Sprint 65 implements exactly the first step.
+
+### Sprint 65 Authorization (binding)
+
+Sprint 65 — EngineeringSession Domain Event Publication is authorized for implementation exactly as specified in `knowledge/implementation/sprints/sprint-0065-engineeringsession-domain-event-publication.md`, including: `EngineeringSession` recorded-events collection and `pullDomainEvents()`; optional constructor-injected `EventBusContract` on `EngineeringSessionService` using the existing `requireEventBus()` guard pattern; exactly two canonical events (`EngineeringSessionCreated`, `EngineeringSessionWorkflowAdvanced`) published only after successful persistence for `createEngineeringSession`, `advanceWorkflow`, `advanceWorkflowOnTrigger`, `advanceWorkflowAfterReview`, and `advanceWorkflowAfterGovernanceDecision`; a single canonical `EngineeringSessionWorkflowAdvanced` event shape across all four advancement strategies, carrying the triggering strategy as a closed-vocabulary data field (`Direct`/`Trigger`/`ReviewGated`/`GovernanceGated`); no event emission during rehydration, on failed/rejected operations, or when no state transition occurred.
+
+### Certification Scope
+
+Sprint 65 conformance SHALL be assessed against RFC-0005, RFC-0004 v1.13, the Kernel Canon, the Implementation Constitution, `NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-16-016`, `NEXUS-RAT-2026-07-16-017`, and this ratification.
+
+## Ownership Model (ratified)
+
+This ratification resolves a governance ambiguity discovered during Milestone 10 planning and authorizes one Sprint, at the Implementation Plan tier. It amends no RFC and redefines no previously approved vertical slice. `NEXUS-RAT-2026-07-16-015`'s Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified; `NEXUS-RAT-2026-07-16-016`'s Sprint 63 scope and `NEXUS-RAT-2026-07-16-017`'s Sprint 64 scope remain unmodified and frozen.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for Sprint 65, generate the Sprint 65 Sprint Implementation Record, activate Sprint 65, and prepare Builder handoff.
+
+## Deferred Concepts
+
+Session State Projection (a future Sprint consuming Sprint 65's event stream); Event-Driven Workflow Advancement and Recovery Workflow Automation consumers (require Session State Projection first); `closeEngineeringSession`/checkpoint/recovery/handoff/execution-session event publication; Autonomous Engineering Integration Validation (Milestone 10 Step 4); any event subscription/consumer of any kind; any change to `GovernanceDecisionRecorded`, `GovernanceDecision`, or `RecoveryRequirement`.
+
+## Related Sprint(s)
+
+- Sprint 63 — Governance State Projection Foundation (frozen, unaffected).
+- Sprint 64 — Event-Driven Mission Completion (frozen, unaffected).
+- Sprint 65 — EngineeringSession Domain Event Publication (this ratification's authorized scope).
+
+## Related Review(s)
+
+None yet — Sprint 65 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner reviewed `nexus-plan`'s finding that both remaining Milestone 10 Initial Capability Sequence steps are blocked by the same root cause: no authorized data source supplies Engineering-Session/Workflow-Step attribution to an automatic, event-driven Kernel consumer, and `EngineeringSession` itself publishes no Domain Events today. Session/workflow-step attribution SHALL originate from the `EngineeringSession` domain rather than from an extension to `GovernanceDecisionRecorded` or from preserved caller-supplied orchestration context. The resolution SHALL follow the sequence: Domain Event Publication → Session State Projection → Event-Driven Consumers. Sprint 65 — EngineeringSession Domain Event Publication is authorized to implement exactly the first step: `EngineeringSession` recorded-events and `pullDomainEvents()`; optional `EventBusContract` injection into `EngineeringSessionService`; exactly two canonical events, `EngineeringSessionCreated` and `EngineeringSessionWorkflowAdvanced` (the latter published identically across all four existing advancement strategies, with the strategy carried as closed-vocabulary event data, not as separate event types); publication strictly after successful persistence, never during rehydration, on rejection, or when no transition occurred. Sprint 65 SHALL NOT introduce event consumers, projections, workflow automation, or new Engineering Session behavior, and SHALL NOT modify `GovernanceDecision`, `GovernanceDecisionRecorded`, `RecoveryRequirement`, Review domain ownership, `WorkflowChain` semantics, Execution Strategy semantics, or any `src/hosts`/`src/adapters` file. `nexus-plan` SHALL record this ratification, update planning artifacts, generate the Sprint 65 Sprint Implementation Record, activate Sprint 65, and prepare Builder handoff.
+
+## Current Status
+
+Superseded by `NEXUS-RAT-2026-07-16-019` (Sprint 65 Mission-attribution scope revision, following a Builder block; this ratification's Milestone 10 attribution-gap resolution and general Sprint 65 authorization otherwise remain in force).
+
+---
+
+# NEXUS-RAT-2026-07-16-019
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-019
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 65 Scope Revision — Mission attribution for `EngineeringSessionWorkflowAdvanced` SHALL be resolved exclusively through the existing, RFC-0004-owned Mission Engineering Group association, not through caller-supplied input or a new `EngineeringSession`-owned field. `EngineeringSessionCreated` is deferred from Sprint 65 entirely.
+
+## Originating Request
+
+The Builder correctly stopped before writing code (`IMPLEMENTATION_CONSTITUTION.md` "Documentation Before Code"), reporting that Sprint 65 as originally authorized by `NEXUS-RAT-2026-07-16-018` requires `EngineeringSessionCreated`/`EngineeringSessionWorkflowAdvanced` to include `missionId`, but neither `EngineeringSession`, `CreateEngineeringSessionCommand`, nor `WorkflowChain` carries any Mission attribution, and Sprint 65 forbids both new `EngineeringSession` lifecycle semantics and operation-signature changes beyond additive `EventBusContract` injection. `nexus-plan` independently verified this in source (`engineering-session.ts`, `engineering-session.types.ts`, `engineering-session.service.ts`, `workflow-chain.ts` — no `missionId` field anywhere) and further identified that RFC-0004's "Multi-Agent Engineering Orchestration Foundation" section already assigns Mission-to-Engineering-Session association ownership to a separate, existing, approved capability — Mission Engineering Group (`mission-engineering-group.ts`, `MissionEngineeringOrchestrationService`) — which `EngineeringSession` explicitly must not duplicate. That capability currently exposes only a forward `missionId → engineeringSessionIds` lookup (`enumerateMissionEngineeringGroup`); no reverse lookup exists, and association is a separate, optional operation not guaranteed to exist at Engineering Session creation time. `nexus-plan` also confirmed that `IMissionEngineeringGroupRepository`'s in-memory implementation indexes groups by `missionId` only and does not prevent the same `engineeringSessionId` from being added to more than one Mission's group, so an unguarded reverse lookup could be ambiguous.
+
+## Governance Decision
+
+**Approved — revised scope.** The Builder's stop is valid. `EngineeringSession` does not own Mission association, and an unvalidated caller-supplied `missionId` SHALL NOT be accepted as authoritative attribution merely to satisfy the Domain Event contract. RFC-0004 already assigns Mission-to-Engineering-Session association ownership to Mission Engineering Group; Sprint 65 SHALL preserve that ownership boundary.
+
+Rejected approaches: storing `missionId` directly on `EngineeringSession`; accepting an unvalidated caller-supplied `missionId`; inferring Mission identity from `WorkflowChain`, Review, Governance Decision, or unrelated runtime state; publishing Mission-attributed events when no authoritative association exists; removing `missionId` from Domain Events in violation of RFC-0005.
+
+### Required Contract Extension (binding)
+
+Sprint 65 is authorized to introduce a read-only reverse-association query within the existing Mission Engineering Group ownership boundary (exact method name is an implementation detail; e.g. `IMissionEngineeringGroupRepository`/`MissionEngineeringOrchestrationServiceContract` gains a query resolving `EngineeringSessionId → MissionId`). The query SHALL be: read-only; deterministic; owned by the existing Mission Engineering Group capability; return exactly one associated Mission identity; fail when no association exists; fail when association is ambiguous (more than one Mission's group contains the session); and SHALL NOT mutate Mission Engineering Groups or Engineering Sessions, and SHALL NOT introduce duplicate Mission state into `EngineeringSession`.
+
+### Revised Canonical Events (binding, supersedes the original Sprint 65 record's Canonical Events section)
+
+- **`EngineeringSessionWorkflowAdvanced`** remains authorized. Before publishing, `EngineeringSessionService` SHALL resolve the authoritative Mission association through the approved read-only Mission Engineering Group query. Publication SHALL occur only when: (1) Workflow advancement succeeds; (2) Engineering Session persistence succeeds; (3) exactly one authoritative Mission association is resolved. If Mission attribution is missing or ambiguous, the operation SHALL fail closed, no Domain Event SHALL be published, and no caller-supplied fallback SHALL be used. The event SHALL include authoritative `missionId`, `engineeringSessionId`, previous `workflowStepId`, new `workflowStepId`, and advancement strategy.
+- **`EngineeringSessionCreated` is deferred from Sprint 65 entirely.** It cannot truthfully include authoritative `missionId` at Engineering Session creation time because Mission association is established through a separate operation after creation, and Sprint 65 SHALL NOT fabricate or prematurely assert that association. A future Sprint MAY introduce an authoritative Mission-association event (for example `EngineeringSessionAssociatedWithMission`, published by the Mission Engineering Group owner after successful association and persistence) or a future RFC amendment MAY authorize an atomic create-and-associate use case; neither is authorized now. `createEngineeringSession` remains behaviorally unchanged and SHALL NOT publish a Mission-attributed Domain Event in Sprint 65.
+
+### Revised Authorized Operations (binding)
+
+Event publication applies only to the successful existing advancement operations: `advanceWorkflow`, `advanceWorkflowOnTrigger`, `advanceWorkflowAfterReview`, `advanceWorkflowAfterGovernanceDecision`.
+
+### Certification Scope
+
+Sprint 65 conformance SHALL be assessed against RFC-0005, RFC-0004 v1.13 (including its Multi-Agent Engineering Orchestration Foundation / Mission Engineering Group ownership), the Kernel Canon, the Implementation Constitution, `NEXUS-RAT-2026-07-16-015`, `-016`, `-017`, `-018`, and this ratification.
+
+## Ownership Model (ratified)
+
+This ratification revises one Sprint's scope, at the Implementation Plan tier, following a Builder-reported block. It amends no RFC and redefines no previously approved vertical slice; it clarifies that Mission Engineering Group (RFC-0004, existing) — not `EngineeringSession` — owns Mission attribution, consistent with RFC-0004's existing text. `NEXUS-RAT-2026-07-16-018`'s Milestone 10 attribution-gap resolution and its authorization of Sprint 65 as the prerequisite foundation Sprint remain unmodified; only Sprint 65's Canonical Events and Authorized Operations are revised as specified above.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, revise the Sprint 65 Sprint Implementation Record, update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for the revised Sprint 65 scope, and re-issue Builder handoff.
+
+## Deferred Concepts
+
+`EngineeringSessionCreated`; `EngineeringSessionAssociatedWithMission`; atomic Engineering Session creation and Mission association; changes to Mission Engineering Group lifecycle beyond the one authorized read-only reverse query; caller-supplied Mission attribution; persistent `missionId` on `EngineeringSession`; event consumers; Session State Projection; workflow coordination.
+
+## Related Sprint(s)
+
+- Sprint 63 — Governance State Projection Foundation (frozen, unaffected).
+- Sprint 64 — Event-Driven Mission Completion (frozen, unaffected).
+- Sprint 65 — EngineeringSession Domain Event Publication (this ratification's revised scope).
+
+## Related Review(s)
+
+None yet — Sprint 65 has not been reviewed. This ratification responds to a pre-implementation Builder block, not a Reviewer finding.
+
+## Full Ratification Text
+
+> The Builder correctly stopped before implementing Sprint 65 upon discovering that `EngineeringSessionCreated`/`EngineeringSessionWorkflowAdvanced` cannot truthfully carry `missionId` because no authorized data source on `EngineeringSession`, `CreateEngineeringSessionCommand`, or `WorkflowChain` supplies it. Mission attribution SHALL originate exclusively from the existing, RFC-0004-owned Mission Engineering Group association, never from a new `EngineeringSession`-owned field, an unvalidated caller-supplied value, or inference from unrelated domains. Sprint 65 is authorized to add exactly one read-only, deterministic reverse-association query to the existing Mission Engineering Group capability (`EngineeringSessionId → MissionId`), which SHALL fail closed on a missing or ambiguous association. `EngineeringSessionWorkflowAdvanced` remains authorized and SHALL be published only when advancement succeeds, persistence succeeds, and exactly one Mission association resolves; it SHALL include authoritative `missionId`, `engineeringSessionId`, previous and new `workflowStepId`, and advancement strategy. `EngineeringSessionCreated` is deferred from Sprint 65 entirely, since Mission association is established through a separate operation after creation and SHALL NOT be fabricated or prematurely asserted. `nexus-plan` SHALL record this ratification, revise the Sprint 65 Sprint Implementation Record, update planning artifacts, and re-issue Builder handoff under the revised scope.
+
+## Current Status
+
+Active
+
+---

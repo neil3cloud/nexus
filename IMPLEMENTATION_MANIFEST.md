@@ -2615,7 +2615,7 @@ Reviewer Validation Result:
 
 # Milestone 10 — Autonomous Engineering Readiness
 
-Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is now Current, authorized by `NEXUS-RAT-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only.)
+Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is ✅ Approved — `NEXUS-REV-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only. Sprint 65 — EngineeringSession Domain Event Publication is now Current, authorized by `NEXUS-RAT-2026-07-16-018`, resolving the Event-Driven Workflow Advancement/Recovery Workflow Automation attribution gap.)
 
 ## Sprint 63 — Governance State Projection Foundation
 
@@ -2653,7 +2653,7 @@ Notes:
 
 ## Sprint 64 — Event-Driven Mission Completion
 
-Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-16-017`, narrowing Milestone 10 Step 2 — Event-Driven Workflow Coordination — to Mission Completion only.
+Status: ✅ Approved — `NEXUS-REV-2026-07-16-017` (fully closed with zero open findings of any blocking category; one Category 6, Informational Observation, no Builder Task). Authorized by `NEXUS-RAT-2026-07-16-017`, narrowing Milestone 10 Step 2 — Event-Driven Workflow Coordination — to Mission Completion only.
 
 RFC Coverage:
 
@@ -2682,6 +2682,42 @@ Deferred Concepts:
 Notes:
 
 - See `knowledge/implementation/sprints/sprint-0064-event-driven-mission-completion.md` for the complete Sprint Implementation Record.
+- This Sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0011, or the Kernel Canon.
+
+---
+
+## Sprint 65 — EngineeringSession Domain Event Publication
+
+Status: Implemented — Pending Reviewer Validation (Cycle 2, revised scope). Authorized by `NEXUS-RAT-2026-07-16-018`, which resolves the Event-Driven Workflow Advancement/Recovery Workflow Automation session-attribution gap by authorizing `EngineeringSession` Domain Event Publication as the prerequisite foundation. Cycle 1 was blocked before implementation: the Builder correctly stopped upon discovering no authorized `missionId` source exists on `EngineeringSession`. `NEXUS-RAT-2026-07-16-019` revised the scope to resolve Mission attribution via a new read-only Mission Engineering Group reverse-lookup query and deferred `EngineeringSessionCreated` entirely.
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial; extends the established publication pattern to a new aggregate)
+- RFC-0004 v1.13 — Execution Model (Referenced; including Mission Engineering Group ownership)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-16-015` — Milestone 10 Objective, Architectural Boundary, Initial Capability Sequence (unmodified).
+- `NEXUS-RAT-2026-07-16-016` — Sprint 63 scope (frozen, unaffected).
+- `NEXUS-RAT-2026-07-16-017` — Sprint 64 scope (frozen, unaffected).
+- `NEXUS-RAT-2026-07-16-018` — resolves the attribution gap and originally authorizes Sprint 65.
+- `NEXUS-RAT-2026-07-16-019` — binding revision superseding the original Canonical Events/Authorized Operations following the Cycle 1 Builder block.
+
+Authorized Concepts:
+
+- `EngineeringSession` recorded Domain Event collection and `pullDomainEvents()`.
+- `EngineeringSessionService` optional constructor-injected `EventBusContract` (existing `requireEventBus()` guard pattern).
+- One new read-only Mission Engineering Group reverse-lookup query (`EngineeringSessionId → MissionId`), fail-closed on missing or ambiguous association.
+- Exactly one canonical event this Sprint: `EngineeringSessionWorkflowAdvanced` (identical shape across `advanceWorkflow`/`advanceWorkflowOnTrigger`/`advanceWorkflowAfterReview`/`advanceWorkflowAfterGovernanceDecision`, carrying the advancement strategy as closed-vocabulary data and the Mission Engineering Group-resolved `missionId`).
+- Persistence-first, save-then-publish semantics; no event on rehydration, rejection, no-op transitions, or missing/ambiguous Mission association.
+
+Deferred Concepts:
+
+- `EngineeringSessionCreated` (Mission association is established after creation, not at creation time); Session State Projection; Event-Driven Workflow Advancement and Recovery Workflow Automation consumers; Autonomous Engineering Integration Validation (Milestone 10 Step 4); `closeEngineeringSession`/checkpoint/recovery/handoff/execution-session event publication; any event subscription/consumer; any change to Mission Engineering Group mutation operations; any change to `GovernanceDecisionRecorded`, `GovernanceDecision`, or `RecoveryRequirement`.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0065-engineeringsession-domain-event-publication.md` for the complete Sprint Implementation Record, including the Cycle 1 (Blocked) / Cycle 2 (revised) Revision History.
 - This Sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0011, or the Kernel Canon.
 
 ---

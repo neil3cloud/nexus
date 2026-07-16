@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 65 — EngineeringSession Domain Event Publication
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 65 revised Cycle 2 vertical slice authorized by `NEXUS-RAT-2026-07-16-018` and revised by `NEXUS-RAT-2026-07-16-019`.
+
+Implemented scope:
+
+- Added `EngineeringSessionWorkflowAdvanced` as the sole authorized Sprint 65 Domain Event.
+- Added `EngineeringSession` recorded Domain Events and `pullDomainEvents()` without adding persistent Mission ownership or a `missionId` field to `EngineeringSession` snapshots.
+- Added a read-only Mission Engineering Group reverse lookup resolving `EngineeringSessionId -> MissionId`, failing closed for missing or ambiguous association.
+- Wired `EngineeringSessionService` to record and publish `EngineeringSessionWorkflowAdvanced` after successful persistence and only when exactly one Mission association resolves.
+- Preserved `createEngineeringSession` as event-silent; `EngineeringSessionCreated` remains deferred.
+- Added tests for Direct, Trigger, Review-Gated, and Governance-Gated advancement event publication, canonical event shape, missing/ambiguous Mission association, persistence failure, event draining, duplicate-pull prevention, rehydration silence, and no leaked events.
+
+Out of scope and not implemented:
+
+- `EngineeringSessionCreated`.
+- Mission-association events or atomic Engineering Session creation/association.
+- Session State Projection.
+- Event-Driven Workflow Advancement consumers.
+- Recovery Workflow Automation.
+- Event subscriptions or workflow coordination from events.
+- Host or Adapter event handling.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0005 — Domain Event Model; implemented a new immutable Domain Event following the existing envelope and persistence-first publication model.
+- RFC-0004 v1.13 — Execution Model; consumed existing `EngineeringSession`, Workflow Advancement, and Mission Engineering Group ownership without redefining lifecycle or mutation semantics.
+
+Implemented Concepts:
+
+- `EngineeringSessionWorkflowAdvanced`.
+- `EngineeringSession` recorded Domain Events.
+- `EngineeringSession.pullDomainEvents()`.
+- Optional `EventBusContract` injection into `EngineeringSessionService`.
+- Read-only Mission Engineering Group reverse lookup.
+- Persistence-first event publication.
+- Deterministic advancement-strategy attribution.
+
+Deferred Concepts:
+
+- `EngineeringSessionCreated`.
+- `EngineeringSessionAssociatedWithMission` or any other Mission-association event.
+- Persistent `missionId` ownership on `EngineeringSession`.
+- `closeEngineeringSession`, checkpoint, recovery, handoff, and execution-session events.
+- Session State Projection and downstream event consumers.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-018`, `NEXUS-RAT-2026-07-16-019`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/implementation/sprints/sprint-0065-engineeringsession-domain-event-publication.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Mission attribution for `EngineeringSessionWorkflowAdvanced` is authoritative only when resolved from exactly one Mission Engineering Group association.
+- Unwired unit-level `EngineeringSessionService` construction remains a foundation-mode path; production composition supplies the shared EventBus and Mission Engineering Group repository.
+- Missing or ambiguous Mission association fails closed before Workflow advancement mutates state.
+
+### Known Limitations
+
+- `EngineeringSessionCreated` remains unpublished until a future Sprint authorizes an authoritative creation-time Mission association or separate Mission-association event.
+- Session/Workflow-Step state remains unprojected until a future Session State Projection Sprint consumes this event stream.
+- Event-Driven Workflow Advancement and Recovery Workflow Automation remain deferred pending future Sprint scope ratification.
+
+### Validation Summary
+
+- Targeted Sprint 65 validation passed: `engineering-session.service.test.ts`, `engineering-session.test.ts`, `mission-engineering-orchestration.repository.test.ts`, and `mission-engineering-orchestration.service.test.ts` (95 tests).
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Vitest passed: 87 files, 568 tests.
+- esbuild passed: `npm run build`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 64 — Event-Driven Mission Completion
 
 ### Implemented Slice

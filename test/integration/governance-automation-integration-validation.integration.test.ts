@@ -304,9 +304,15 @@ describe('Sprint 62 governance automation integration validation', () => {
     expect(harness.eventsOfType('RecoveryRequirementCreated')).toHaveLength(0);
   });
 
-  it('leaves existing Sprint 1-61 production contracts and Kernel boundaries unmodified', () => {
-    const sprint63AuthorizedProductionPaths = new Set([
+  it('leaves existing production contracts and Host/Adapter boundaries unmodified outside authorized current-sprint paths', () => {
+    const authorizedProductionPaths = new Set([
       'src/kernel/common/create-kernel-services.ts',
+      'src/kernel/execution/engineering-session.errors.ts',
+      'src/kernel/execution/engineering-session.events.ts',
+      'src/kernel/execution/engineering-session.service.ts',
+      'src/kernel/execution/engineering-session.ts',
+      'src/kernel/execution/mission-engineering-orchestration.errors.ts',
+      'src/kernel/execution/mission-engineering-orchestration.repository.ts',
       'src/kernel/governance/governance-state-projection.contract.ts',
       'src/kernel/governance/governance-state-projection.repository.ts',
       'src/kernel/governance/governance-state-projection.service.ts',
@@ -320,7 +326,7 @@ describe('Sprint 62 governance automation integration validation', () => {
     )
       .split(/\r?\n/)
       .filter((path) => path.length > 0)
-      .filter((path) => !sprint63AuthorizedProductionPaths.has(path));
+      .filter((path) => !authorizedProductionPaths.has(path));
     const changedHostOrAdapterPaths = execFileSync(
       'git',
       ['--no-pager', 'diff', '--name-only', '--', 'src/hosts', 'src/adapters'],

@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { EngineeringSessionHandoff } from '../../../src/kernel/execution/engineering-session-handoff';
 import { MissionEngineeringGroup } from '../../../src/kernel/execution/mission-engineering-group';
 import {
+  AmbiguousMissionEngineeringGroupAssociationError,
   DuplicateEngineeringSessionHandoffError,
   DuplicateMissionEngineeringGroupAssociationError,
+  MissingMissionEngineeringGroupAssociationError,
 } from '../../../src/kernel/execution/mission-engineering-orchestration.errors';
 import {
   InMemoryEngineeringSessionHandoffRepository,
@@ -45,6 +47,48 @@ describe('MissionEngineeringGroup repositories', () => {
     expect(() => group.addEngineeringSession('engineering-session-1')).toThrow(
       DuplicateMissionEngineeringGroupAssociationError,
     );
+  });
+
+  it('resolves EngineeringSession Mission association without mutating groups', async () => {
+    const repository = new InMemoryMissionEngineeringGroupRepository();
+    const group = MissionEngineeringGroup.create({
+      missionId: 'mission-1',
+      engineeringSessionIds: ['engineering-session-1'],
+    });
+
+    await repository.save(group);
+
+    await expect(
+      repository.getMissionIdByEngineeringSessionId('engineering-session-1'),
+    ).resolves.toMatchObject({
+      value: 'mission-1',
+    });
+    await expect(repository.enumerate()).resolves.toEqual([group]);
+  });
+
+  it('fails closed when EngineeringSession Mission association is missing or ambiguous', async () => {
+    const repository = new InMemoryMissionEngineeringGroupRepository();
+
+    await expect(
+      repository.getMissionIdByEngineeringSessionId('engineering-session-1'),
+    ).rejects.toThrow(MissingMissionEngineeringGroupAssociationError);
+
+    await repository.save(
+      MissionEngineeringGroup.create({
+        missionId: 'mission-1',
+        engineeringSessionIds: ['engineering-session-1'],
+      }),
+    );
+    await repository.save(
+      MissionEngineeringGroup.create({
+        missionId: 'mission-2',
+        engineeringSessionIds: ['engineering-session-1'],
+      }),
+    );
+
+    await expect(
+      repository.getMissionIdByEngineeringSessionId('engineering-session-1'),
+    ).rejects.toThrow(AmbiguousMissionEngineeringGroupAssociationError);
   });
 });
 
