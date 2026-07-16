@@ -19,6 +19,7 @@ import { ExecutionStrategyReferenceError } from '../../src/kernel/execution/exec
 import { ExecutionStrategyService } from '../../src/kernel/execution/execution-strategy.service';
 import { ExecutionService } from '../../src/kernel/execution/execution.service';
 import { MissionEngineeringOrchestrationService } from '../../src/kernel/execution/mission-engineering-orchestration.service';
+import { RecoveryRequirementService } from '../../src/kernel/execution/recovery-requirement.service';
 import { RoleService } from '../../src/kernel/execution/role.service';
 import { WorkflowChainService } from '../../src/kernel/execution/workflow-chain.service';
 import { Kernel } from '../../src/kernel/kernel';
@@ -55,6 +56,7 @@ interface KernelHarness {
   readonly engineeringRoleProfileService: EngineeringRoleProfileService;
   readonly engineeringSessionService: EngineeringSessionService;
   readonly missionEngineeringOrchestrationService: MissionEngineeringOrchestrationService;
+  readonly recoveryRequirementService: RecoveryRequirementService;
   readonly executionSessionService: ExecutionSessionService;
   readonly workflowChainService: WorkflowChainService;
   readonly assignmentPolicyService: AssignmentPolicyService;
@@ -80,6 +82,8 @@ const expectedKernelServiceNames = [
   'EngineeringSessionService',
   'GovernanceGatedWorkflowAdvancementConsumer',
   'MissionEngineeringOrchestrationService',
+  'RecoveryRequirementService',
+  'RecoveryRequirementGovernanceDecisionConsumer',
   'ExecutionSessionService',
   'WorkflowChainService',
   'AssignmentPolicyService',
@@ -118,6 +122,8 @@ describe('RFC-0010 Kernel boundary certification', () => {
     expect(typeof harness.missionEngineeringOrchestrationService.recordEngineeringSessionHandoff).toBe(
       'function',
     );
+    expect(typeof harness.recoveryRequirementService.resolveRecoveryRequirement).toBe('function');
+    expect(typeof harness.recoveryRequirementService.withdrawRecoveryRequirement).toBe('function');
     expect(harness.logger.errors).toEqual([]);
   });
 
@@ -400,6 +406,11 @@ async function createHarness(): Promise<KernelHarness> {
       'MissionEngineeringOrchestrationService',
       (service): service is MissionEngineeringOrchestrationService =>
         service instanceof MissionEngineeringOrchestrationService,
+    ),
+    recoveryRequirementService: requireService(
+      services,
+      'RecoveryRequirementService',
+      (service): service is RecoveryRequirementService => service instanceof RecoveryRequirementService,
     ),
     executionSessionService: requireService(
       services,

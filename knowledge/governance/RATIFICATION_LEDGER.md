@@ -5688,3 +5688,210 @@ None yet. A Sprint 57 Reviewer certification is required following implementatio
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-16-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-007
+
+## Date
+
+2026-07-16
+
+## Subject
+
+RFC-0004 Amendment Ratification — Recovery Requirement. Amends RFC-0004 — Execution Model to Version 1.12, adding **Recovery Requirement** as an explicit, attributable record that a Rejected `GovernanceDecision` (RFC-0011) has generated engineering remediation work.
+
+## Originating Request
+
+Following Sprint 57's closure, `nexus-plan` identified that Milestone 9's Provisional Capability Sequence names two remaining, unauthorized candidates — Sprint 58 (Governance Recovery and Blocking-State Foundation) and Sprint 59 (Governed Mission Completion) — and that Sprint 59's own candidate description depends on "unresolved recovery" as a completion precondition, a concept that does not yet exist. `nexus-plan` recommended pursuing Sprint 58 first. The Sprint Owner approved this sequencing and directed `nexus-plan` to draft an RFC-0004 amendment introducing `RecoveryRequirement`, its identity, its association with Mission/Engineering Session/Workflow Step/`GovernanceDecision`, its lifecycle, and the boundary distinguishing recovery-triggering Rejection from non-recovery Blocking outcomes (Deferred, Escalation Required). The Sprint Owner reviewed an initial draft and required two mandatory refinements before approval: (1) explicit Identity and Uniqueness rules (immutable identity; deterministic, idempotent creation; at most one Recovery Requirement per (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) combination; duplicate handling returns the existing record); and (2) explicit Required Attribution rules (immutable references to Mission/Engineering Session/Workflow Step/`GovernanceDecision` identity, creation timestamp, and causality/correlation identifiers, without duplicating or reinterpreting `GovernanceDecision` diagnostics).
+
+## Governance Decision
+
+**RFC-0004 Amendment Approved, with Sprint Owner-directed refinements incorporated.** The Sprint Owner amends RFC-0004 to Version 1.12, adding Recovery Requirement, as recorded in `knowledge/specifications/rfc-0004-execution-model.md`'s new "Recovery Requirement" section (placed after Multi-Agent Engineering Orchestration Foundation, before Execution Session) and its Amendment History v1.12 entry.
+
+### Authorized Concepts
+
+- `RecoveryRequirement` — immutable identity; immutable association with Mission, Engineering Session, Workflow Step, and originating `GovernanceDecision` identities; creation timestamp; causality/correlation identifiers where available.
+- Deterministic, idempotent creation: at most one Recovery Requirement per (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) combination; duplicate handling of the same Rejected `GovernanceDecision` returns the existing record.
+- Creation restricted to a Rejected `GovernanceDecision` only. Deferred and Escalation Required remain Blocking under Governance-Gated Advancement (v1.11, unmodified) but SHALL NOT create a Recovery Requirement. Approved SHALL NOT create a Recovery Requirement.
+- Closed lifecycle: Open (initial) → Resolved | Withdrawn, both terminal.
+
+### Explicitly Unauthorized
+
+- AI-generated remediation plans, steps, or content.
+- Workflow Chain topology mutation, Workflow Step definition mutation, or any change to Workflow Chain Execution.
+- `GovernanceService`, `GovernanceDecision`, or `GovernanceEscalation` ownership, creation, or mutation of Recovery Requirement state, or vice versa.
+- Any redefinition of `GovernanceDecision` values, semantics, lifecycle, or production (RFC-0011, unmodified).
+- Any differentiated Engineering Session state for Deferred or Escalation Required beyond Governance-Gated Advancement's existing uniform Blocking classification (v1.11, unmodified).
+- Any Mission objective, Mission intent, or Mission completion precondition change (RFC-0001, unmodified; Governed Mission Completion remains Sprint 59's separately unauthorized candidate).
+- Any `src/hosts` or `src/adapters` change.
+
+This amendment SHALL NOT modify Manual, Automatic/Event-Driven, Review-Gated, or Governance-Gated Advancement (v1.4/v1.5/v1.11, unmodified), Workflow Chain, Workflow Chain Execution, Session Recovery/Checkpointing, Concurrent Session Coordination, or Multi-Agent Engineering Orchestration Foundation.
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0004's own text (Amendment History, new Recovery Requirement section) and therefore carries RFC-tier authority for that amendment, per RFC-0004/RFC-0011's shared Authority Hierarchy convention: a Ratification that amends RFC text takes on RFC-tier authority for that amendment. It does not modify RFC-0011, RFC-0001–0003, RFC-0005–0010, or the Kernel Canon, and does not redefine any concept owned by another RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to:
+
+1. amend RFC-0004 to v1.12 as recorded in `knowledge/specifications/rfc-0004-execution-model.md` — complete;
+2. update RFC-0004's Amendment History accordingly — complete;
+3. prepare this ratification entry — complete;
+4. prepare a companion Sprint-scope ratification authorizing implementation of Recovery Requirement (Sprint 58), narrowly scoped to this amendment's actual text.
+
+No Builder implementation is authorized by this ratification alone; implementation requires the companion Sprint-scope ratification.
+
+## Deferred Concepts
+
+Governed Mission Completion or any Mission completion precondition change (Sprint 59 candidate, unscheduled, requires its own RFC-0001 amendment); any differentiated Engineering Session state beyond uniform Blocking classification; AI-generated remediation planning; Host or Adapter changes.
+
+## Related Sprint(s)
+
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (implements this amendment; companion Sprint-scope ratification pending).
+- Sprint 57 — Governance-Gated Workflow Advancement (precedent pattern and immediate predecessor capability, unmodified).
+- Sprint 52–56 — Governance foundation (frozen, consumed read-only).
+
+## Related Review(s)
+
+None yet. A Sprint 58 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner amends RFC-0004 — Execution Model to Version 1.12, adding Recovery Requirement, per the Governance Decision recorded above. A Recovery Requirement is created only for a Rejected `GovernanceDecision`, never for Deferred, Escalation Required, or Approved; it carries immutable identity and attribution to Mission, Engineering Session, Workflow Step, and the originating `GovernanceDecision`; creation is deterministic and idempotent, producing at most one record per (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) combination; its lifecycle is limited to Open → Resolved | Withdrawn. It SHALL NOT generate AI remediation plans, mutate Workflow Chain topology, or be owned by `GovernanceService`. This amendment does not redefine RFC-0011's `GovernanceDecision`, does not modify any Advancement Strategy, and does not authorize Governed Mission Completion — that remains Sprint 59's separately unauthorized candidate. The Sprint Owner authorizes `nexus-plan` to prepare the companion Sprint 58 scope ratification narrowly implementing this amendment.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-16-008
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-008
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 58 Scope Ratification — Governance Recovery and Blocking-State Foundation. Authorizes implementation of `RecoveryRequirement` as defined by `NEXUS-RAT-2026-07-16-007` (RFC-0004 v1.12).
+
+## Originating Request
+
+Following `NEXUS-RAT-2026-07-16-007`'s RFC-0004 v1.12 amendment, `nexus-plan` drafted a Sprint 58 scope proposal authorizing a `RecoveryRequirement` domain aggregate, a narrowly scoped `GovernanceDecisionRecorded` consumer, a repository and thin service, and the closed Open/Resolved/Withdrawn lifecycle. The Sprint Owner approved this scope subject to explicit resolution and withdrawal service contracts (rather than free-form transition calls) and additional lifecycle-immutability guarantees.
+
+## Governance Decision
+
+**Approved, with lifecycle-contract refinements incorporated.** Sprint 58 — Governance Recovery and Blocking-State Foundation is authorized for implementation, strictly as follows.
+
+### Authorized Vertical Slice
+
+Sprint 58 SHALL introduce:
+
+- `RecoveryRequirement` domain aggregate per RFC-0004 v1.12: immutable identity; immutable Mission/Engineering Session/Workflow Step/`GovernanceDecision` identity references; creation timestamp; causality/correlation identifiers where available.
+- A narrowly scoped `GovernanceDecisionRecorded` consumer (mirroring Sprint 57's `GovernanceGatedWorkflowAdvancementConsumer` pattern) that inspects the persisted `GovernanceDecision`'s outcome and creates a Recovery Requirement only when it is Rejected; the consumer owns no remediation logic beyond that classification.
+- Deterministic, idempotent creation keyed on (Mission, Engineering Session, Workflow Step, `GovernanceDecision`): repeated handling of the same Rejected `GovernanceDecision` returns the existing record; a distinct `GovernanceDecision` producing a new Rejection creates a new, separate record.
+- `IRecoveryRequirementRepository` and an in-memory implementation enforcing the uniqueness key.
+- A thin `RecoveryRequirementService` mirroring `GovernanceService`'s orchestration style, exposing exactly:
+  - `resolveRecoveryRequirement(...)` and
+  - `withdrawRecoveryRequirement(...)`
+  per the Recovery Resolution Contract and Recovery Withdrawal Contract below.
+- Minimal `createKernelServices` wiring.
+
+#### Recovery Resolution Contract
+
+`resolveRecoveryRequirement(...)` SHALL require an immutable reference to the authoritative accepted engineering outcome (an accepted outcome or Evidence reference) demonstrating that remediation has completed.
+
+The resulting resolution record SHALL preserve:
+
+- the Recovery Requirement identity;
+- the accepted-outcome or Evidence reference;
+- a resolution timestamp;
+- attribution;
+- causality and correlation identifiers, where available.
+
+`RecoveryRequirementService` SHALL NOT itself determine whether remediation is sufficient; it SHALL consume an already-accepted outcome supplied by the caller and delegate transition validation (current status, terminality) entirely to the `RecoveryRequirement` aggregate.
+
+#### Recovery Withdrawal Contract
+
+`withdrawRecoveryRequirement(...)` SHALL require:
+
+- an authoritative decision or Ratification reference;
+- a withdrawal reason;
+- a withdrawal timestamp;
+- attribution;
+- causality and correlation identifiers, where available.
+
+Withdrawal SHALL NOT occur from free-form caller intent alone; the authoritative decision/Ratification reference is a required input, not an optional annotation.
+
+#### Lifecycle Immutability
+
+After a Recovery Requirement transitions to `Resolved` or `Withdrawn`:
+
+- the lifecycle state SHALL be terminal;
+- the transition's resolution/withdrawal metadata SHALL remain immutable;
+- a repeated, identical transition request MAY return the existing record rather than fail;
+- a conflicting repeated transition request (for example, withdrawing an already-Resolved record, or resolving an already-Withdrawn record) SHALL fail deterministically.
+
+### Explicitly Unauthorized
+
+Sprint 58 SHALL NOT introduce: AI-generated remediation plans, steps, or content; any `WorkflowChain`/`WorkflowStep`/Workflow Chain Execution mutation; any `GovernanceService`, `GovernanceDecision`, or `GovernanceEscalation` modification, or Recovery Requirement ownership by `GovernanceService`; any differentiated Engineering Session state for Deferred/Escalation Required beyond Sprint 57's existing uniform Blocking classification; any Mission completion precondition change (Sprint 59 candidate); Recovery Requirement Domain Event publication (deferred to its own future Sprint, mirroring Sprint 53 preceding Sprint 56); or any `src/hosts`/`src/adapters` change.
+
+### Required Test Matrix
+
+1. Rejected `GovernanceDecision` creates exactly one Open Recovery Requirement with correct attribution.
+2. Deferred `GovernanceDecision` creates no Recovery Requirement.
+3. Escalation Required `GovernanceDecision` creates no Recovery Requirement.
+4. Approved `GovernanceDecision` creates no Recovery Requirement.
+5. Duplicate/repeated handling of the same Rejected `GovernanceDecision` returns the existing record; no duplicate created.
+6. A distinct `GovernanceDecision` (new rejection) for the same Mission/Session/Step creates a new, separate Recovery Requirement.
+7. `Open → Resolved` succeeds via `resolveRecoveryRequirement` given a valid accepted-outcome reference; further transitions on a Resolved record are rejected.
+8. `Open → Withdrawn` succeeds via `withdrawRecoveryRequirement` given a valid authoritative reference; further transitions on a Withdrawn record are rejected.
+9. Recovery Requirement stores no copied/re-derived `GovernanceDecision` diagnostics — identity reference only.
+10. `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, `DomainEvent` remain byte-for-byte unmodified.
+11. Full repository validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+12. Resolution without an accepted-outcome reference is rejected.
+13. Withdrawal without authoritative decision attribution is rejected.
+14. Resolution metadata (accepted-outcome reference, timestamp, attribution, causality/correlation) is preserved and immutable after the transition.
+15. Withdrawal metadata (authoritative reference, reason, timestamp, attribution, causality/correlation) is preserved and immutable after the transition.
+16. Repeating the identical terminal transition (same target status, same reference) is idempotent or deterministically rejected, per the service contract above.
+17. A conflicting terminal transition is rejected: `Resolved → Withdrawn` and `Withdrawn → Resolved` both fail deterministically.
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint scope only; it operates at the Implementation Plan tier, below the RFC-tier authority already established by `NEXUS-RAT-2026-07-16-007`. It does not itself amend any RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to generate the Sprint 58 Sprint Implementation Record and Builder handoff, strictly limited to the Authorized Vertical Slice and Required Test Matrix above.
+
+## Deferred Concepts
+
+Recovery Requirement Domain Event publication; AI-generated remediation planning; Mission completion preconditions (Sprint 59 candidate); differentiated Engineering Session state beyond uniform Blocking classification; `WorkflowChain`/`WorkflowStep` mutation; Host or Adapter changes.
+
+## Related Sprint(s)
+
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (this ratification's authorized scope).
+- Sprint 57 — Governance-Gated Workflow Advancement (precedent consumer pattern, unmodified).
+- Sprint 52–56 — Governance foundation (frozen, consumed read-only).
+
+## Related Review(s)
+
+None yet. A Sprint 58 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 58 — Governance Recovery and Blocking-State Foundation, per the Governance Decision recorded above, implementing exactly the `RecoveryRequirement` aggregate, consumer, repository, and thin service defined by RFC-0004 v1.12 (`NEXUS-RAT-2026-07-16-007`), refined with explicit Recovery Resolution and Recovery Withdrawal service contracts and lifecycle-immutability guarantees. Sprint 58 SHALL implement only the Authorized Vertical Slice above. `nexus-plan` is authorized to record this ratification, generate the Sprint 58 Sprint Implementation Record, and prepare Builder handoff.
+
+## Current Status
+
+Active
+
+---

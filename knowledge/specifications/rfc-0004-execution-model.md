@@ -1,7 +1,7 @@
 # RFC-0004 — Execution Model
 
 **Status:** Final
-**Version:** 1.11
+**Version:** 1.12
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -21,6 +21,7 @@
 - v1.9 — Adds Concurrent Session Coordination (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-009`). Defines how multiple Engineering Sessions MAY coexist within the Kernel, remain independently executable, and be observed through provider-neutral Kernel services: concurrent visibility of Engineering Sessions, enumeration of Engineering Sessions eligible for further progression, observation of concurrent Engineering Session lifecycle, and repository-level guarantees that operations on one Engineering Session SHALL NOT observe or mutate the runtime state of another. This amendment does not redefine Engineering Session's existing runtime state, snapshot, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), and does not introduce single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, or Multi-Agent Engineering Orchestration, all of which remain separately unauthorized. No other section of this specification is modified.
 - v1.10 — Adds Multi-Agent Engineering Orchestration Foundation (Sprint Owner Ratification `NEXUS-RAT-2026-07-15-012`). Defines the structural relationships through which multiple independent Engineering Sessions MAY participate in a single Mission while preserving complete session independence: a **Mission Engineering Group** (the deterministic association of a Mission with the Engineering Sessions participating in it, and their enumeration), and an **Engineering Session Handoff** (an explicit, immutable record that engineering responsibility for a Mission passed from one Engineering Session/Execution Role to another, together with a deterministic Handoff lifecycle). This amendment defines orchestration structure only; it does not introduce autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection. It does not redefine Engineering Session's existing runtime state, snapshot/reconstitution, or Recovery ownership (v1.2/v1.3/v1.8, unmodified), Workflow Chain or Workflow Chain Execution (v1.3/v1.6/v1.7, unmodified), Assignment Policy (v1.3, unmodified), Execution Strategy, or Concurrent Session Coordination (v1.9, unmodified). No other section of this specification is modified.
 - v1.11 — Adds Governance-Gated Advancement as RFC-0004's fourth Advancement Strategy (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-005`). Advancement is contingent upon an already-produced, immutable `GovernanceDecision` (RFC-0011), consumed as read-only input; Advancement Eligibility for this Strategy additionally requires that a `GovernanceDecision` has in fact been produced for the governing evaluation (its absence is an Advancement Eligibility failure, not a classification value). A `GovernanceDecision` is classified as exactly one of: **Non-Blocking Governance Decision** — Approved (advancement MAY proceed); **Blocking Governance Decision** — Rejected, Deferred, Escalation Required (advancement SHALL NOT proceed, producing an Advancement Failure). This classification is owned by RFC-0004 for the sole purpose of Governance-Gated Advancement's Advancement Eligibility; it does not modify RFC-0011's `GovernanceDecision` values, semantics, lifecycle, or production, and does not modify Manual Advancement, Automatic/Event-Driven Advancement, Review-Gated Advancement, Engineering Session, Workflow Chain, or Workflow Chain Execution. This amendment defines gating semantics only; it does not authorize Recovery Requirement records, new Engineering Session states distinguishing Rejected/Deferred/Escalation Required beyond uniform Blocking treatment, or any Mission completion precondition change — each remains explicitly unauthorized pending its own future Sprint Owner scope ratification. No other section of this specification is modified.
+- v1.12 — Adds Recovery Requirement (Sprint Owner Ratification `NEXUS-RAT-2026-07-16-007`). Introduces `RecoveryRequirement` — an explicit, attributable record that a Rejected `GovernanceDecision` (RFC-0011) has generated engineering remediation work, immutably associated with the Mission, Engineering Session, Workflow Step, and originating `GovernanceDecision` identities that produced it. Creation is deterministic and idempotent: for a given (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) combination the Kernel SHALL create at most one Recovery Requirement, and repeated handling of the same Rejected `GovernanceDecision` SHALL return the existing record rather than create a duplicate; a new Recovery Requirement MAY be created only when a distinct `GovernanceDecision` produces a new rejection. A Recovery Requirement SHALL be created only for a Rejected `GovernanceDecision`; Deferred and Escalation Required remain Blocking under Governance-Gated Advancement (v1.11, unmodified) but SHALL NOT create a Recovery Requirement — Deferred resolves automatically per RFC-0011 once its missing input exists, and Escalation Required requires Sprint Owner/Ratification resolution per RFC-0011's Governance Escalation, neither of which is "recovery work" in the RFC-0004 sense. Approved SHALL NOT create a Recovery Requirement. Recovery Requirement lifecycle is limited to a closed set of deterministic statuses (Open, Resolved, Withdrawn) with deterministic transition rules (`Open → Resolved`, `Open → Withdrawn`, both terminal); it SHALL NOT generate remediation plans through AI, SHALL NOT mutate Workflow Chain topology, and SHALL NOT be owned or mutated by `GovernanceService`. This amendment does not modify RFC-0011's `GovernanceDecision` values, semantics, lifecycle, or production; does not modify Manual, Automatic/Event-Driven, Review-Gated, or Governance-Gated Advancement; and does not authorize any differentiated Engineering Session state beyond Governance-Gated Advancement's existing uniform Blocking classification (v1.11, unmodified). No other section of this specification is modified.
 
 ---
 
@@ -576,6 +577,82 @@ Those capabilities remain owned by their previously ratified RFC sections or rem
 Multiple Engineering Sessions participating in a shared Mission Engineering Group SHALL remain as fully isolated from one another as required by Concurrent Session Coordination (v1.9): recording a Mission Engineering Group association, enumerating it, or recording an Engineering Session Handoff SHALL NOT mutate or observe any participating Engineering Session's runtime state.
 
 This specification intentionally defines architectural capabilities rather than specific APIs; public service operations exposing Mission Engineering Group and Handoff behavior remain an implementation detail defined by the corresponding Sprint Implementation Record.
+
+---
+
+# Recovery Requirement
+
+A Recovery Requirement is the explicit, attributable record that a Rejected `GovernanceDecision` (RFC-0011) has generated engineering remediation work, distinct from and owned independently of the `GovernanceDecision` itself.
+
+## Architectural Responsibilities
+
+Recovery Requirement owns:
+
+- Recovery Requirement identity;
+- association with the Mission, Engineering Session, Workflow Step, and `GovernanceDecision` that produced it;
+- the Recovery Requirement lifecycle and its deterministic status transitions.
+
+### Identity and Uniqueness
+
+A Recovery Requirement SHALL possess an immutable identity, assigned at creation and never reassigned.
+
+Creation SHALL be deterministic and idempotent. For a given combination of Mission, Engineering Session, Workflow Step, and `GovernanceDecision`, the Kernel SHALL create at most one Recovery Requirement. Repeated handling of the same Rejected `GovernanceDecision` (for example, duplicate event delivery or repeated invocation) SHALL return the existing Recovery Requirement and SHALL NOT create a duplicate record.
+
+A new Recovery Requirement MAY be created only when a distinct `GovernanceDecision` produces a new Rejection for that combination.
+
+### Required Attribution
+
+Every Recovery Requirement SHALL preserve immutable references to:
+
+- Mission identity;
+- Engineering Session identity;
+- Workflow Step identity;
+- the originating `GovernanceDecision` identity;
+- a creation timestamp;
+- creation causality and correlation identifiers, where available, consistent with the existing Domain Event envelope (RFC-0005).
+
+A Recovery Requirement SHALL NOT duplicate or reinterpret `GovernanceDecision` diagnostics; it references the originating `GovernanceDecision` by identity and SHALL NOT copy, restate, or re-derive its Policy Criteria results, Evidence references, or evaluation diagnostics (RFC-0011, unmodified).
+
+### Creation
+
+A Recovery Requirement MAY be created only when the governing `GovernanceDecision` is **Rejected**.
+
+- **Deferred** remains a Blocking Governance Decision under Governance-Gated Advancement (v1.11, unmodified); it SHALL NOT create a Recovery Requirement. Per RFC-0011, a Deferred Governance Decision resolves automatically once its missing input becomes available — it is not remediation work.
+- **Escalation Required** remains a Blocking Governance Decision under Governance-Gated Advancement (v1.11, unmodified); it SHALL NOT create a Recovery Requirement. Per RFC-0011, resolution requires a new or amended Repository Policy Ratification or direct Sprint Owner decision — external authority, not automatic recovery.
+- **Approved** SHALL NOT create a Recovery Requirement.
+
+Creation of a Recovery Requirement SHALL NOT alter the governing `GovernanceDecision`'s value, semantics, or lifecycle (RFC-0011, unmodified), and SHALL NOT be performed by `GovernanceService`; `GovernanceService` SHALL NOT own, create, or mutate Recovery Requirement state as a side effect of producing a `GovernanceDecision`.
+
+### Lifecycle
+
+A Recovery Requirement SHALL be exactly one of the following statuses at any time:
+
+- **Open** — remediation work is outstanding; the initial status upon creation.
+- **Resolved** — remediation work has been completed and deterministically recorded.
+- **Withdrawn** — the Recovery Requirement no longer applies (for example, a superseding Repository Policy Ratification or a corrected upstream input resolves the underlying Rejection without remediation).
+
+Status transitions SHALL be deterministic and explicit:
+
+```text
+Open → Resolved
+Open → Withdrawn
+```
+
+A Resolved or Withdrawn Recovery Requirement is terminal and SHALL NOT transition further.
+
+### Boundaries
+
+Recovery Requirement SHALL NOT:
+
+- generate remediation plans, steps, or content through AI or any automated planning mechanism;
+- mutate Workflow Chain topology, Workflow Step definitions, or Workflow Chain Execution (unmodified);
+- be owned, created, or mutated by `GovernanceService`, `GovernanceDecision`, or `GovernanceEscalation` (RFC-0011, unmodified);
+- redefine or reinterpret any `GovernanceDecision` value's meaning, precondition, or permitted downstream effect (RFC-0011, unmodified);
+- introduce a differentiated Engineering Session state for Deferred or Escalation Required beyond Governance-Gated Advancement's existing uniform Blocking classification (v1.11, unmodified);
+- mutate Mission objective, Mission intent, or Mission completion preconditions (RFC-0001, unmodified; Governed Mission Completion remains a separately unauthorized future capability);
+- touch `src/hosts` or `src/adapters`.
+
+This section does not modify Workflow Advancement's existing Advancement Strategy, Advancement Eligibility, Advancement Result, or Advancement Failure ownership (v1.4/v1.5/v1.11, unmodified); Recovery Requirement is a distinct, additional record created alongside a Rejected Governance-Gated Advancement Failure, not a redefinition of that Advancement Failure.
 
 ---
 

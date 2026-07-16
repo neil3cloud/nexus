@@ -2,6 +2,64 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-009 — Sprint 58 — Governance Recovery and Blocking-State Foundation
+
+- **Reviewed Sprint:** Sprint 58 — Governance Recovery and Blocking-State Foundation
+- **Reviewed Vertical Slice:** RFC-0004 v1.12 `RecoveryRequirement` — domain aggregate, identity/uniqueness, required attribution, Rejected-only creation, Recovery Resolution Contract, Recovery Withdrawal Contract, Lifecycle Immutability, in-memory repository, thin service, narrowly scoped `GovernanceDecisionRecorded` consumer, minimal Kernel composition wiring.
+- **RFC Coverage:** RFC-0004 v1.12 — Execution Model (Primary; "Recovery Requirement" §); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified); RFC-0010 — Kernel Boundaries (Referenced).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 58 implements exactly the `RecoveryRequirement` vertical slice authorized by `NEXUS-RAT-2026-07-16-008` (Sprint scope) and `NEXUS-RAT-2026-07-16-007` (RFC-0004 v1.12 amendment). Confirmed `RecoveryRequirement` carries immutable identity and immutable Mission/Engineering Session/Workflow Step/`GovernanceDecision` attribution; creation is deterministic and idempotent, keyed on that four-part combination via `InMemoryRecoveryRequirementRepository`'s attribution-key index; a Recovery Requirement is created only for a Rejected `GovernanceDecision` — Deferred, Escalation Required, and Approved each correctly produce none, verified by dedicated parameterized tests. Confirmed the Recovery Resolution Contract and Recovery Withdrawal Contract are implemented exactly as ratified: both require their respective mandatory reference fields (accepted-outcome/Evidence reference; authoritative decision/Ratification reference), `RecoveryRequirementService` performs no sufficiency or authority judgment itself, and all transition validity is delegated to the `RecoveryRequirement` aggregate. Confirmed Lifecycle Immutability: Open → Resolved | Withdrawn are both terminal, transition metadata is preserved immutably across repeated identical requests, and conflicting repeated transitions (`Resolved → Withdrawn`, `Withdrawn → Resolved`) fail deterministically. Confirmed via `git diff --stat`, source inspection, and a dedicated negative test (`recovery-requirement.test.ts` M10) that `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` are byte-for-byte unmodified and contain no reference to `RecoveryRequirement`; no `src/hosts` or `src/adapters` file was touched; no Recovery Requirement Domain Event was introduced. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (22/22), `npm run test` (84 files / 499 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-009-F-001 — Default-constructed repository in `RecoveryRequirementService` constructor
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation (avoid hidden behavior)
+- **Summary:** `RecoveryRequirementService`'s constructor parameter defaults to `new InMemoryRecoveryRequirementRepository()`. The Kernel injects a repository explicitly via `createKernelServices`, so this default is unreachable in the certified composition, but a silent fallback would allow a future unwired `new RecoveryRequirementService()` to compile without error. This is the same pattern previously identified and accepted in Sprint 5's `EvidenceService` (`NEXUS-REV-2026-07-12-008-F-006`: "No action required; recommend removing the default parameter in a future slice").
+- **Evidence:** `src/kernel/execution/recovery-requirement.service.ts` constructor.
+- **Impact:** None in the current, certified composition. A future wiring mistake would silently produce a private, unshared repository instead of failing fast.
+- **Required Disposition:** No action required; consistent with existing accepted repository convention.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Category 6) | 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest 22/22, full Vitest 84 files / 499 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 58 deferred concepts remain unimplemented and are correctly tracked in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md`: Recovery Requirement Domain Event publication, AI-generated remediation planning, Governed Mission Completion / Mission completion precondition changes (Sprint 59 candidate), differentiated Rejected/Deferred/Escalation-Required Engineering Session state beyond Sprint 57's uniform Blocking classification, and Host/Adapter recovery surfaces. No deferred concept was silently introduced; `grep` and source inspection confirm no `RecoveryRequirementRecorded` (or equivalent) event type, no AI/LLM invocation, and no Mission or Engineering Session file modification.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership:** `RecoveryRequirement` owns its own identity, attribution, and lifecycle; it does not access internal state of `GovernanceDecision`, `EngineeringSession`, or `Mission` beyond their public identity values. Compliant.
+- **Creation restriction (RFC-0004 v1.12):** Verified by parameterized test that Rejected creates exactly one record and Deferred/Escalation Required/Approved each create none. Compliant.
+- **Determinism and idempotency:** The attribution-key uniqueness index in `InMemoryRecoveryRequirementRepository.register` returns the existing record for a repeated key rather than creating a duplicate; verified by test M5 (duplicate handling) and M6 (distinct `GovernanceDecision` → separate record). Compliant.
+- **Recovery Resolution / Withdrawal Contracts:** Both required-reference contracts are enforced by the aggregate's `normalizeNonEmptyString` validation (empty reference throws `InvalidRecoveryRequirementDefinitionError`), and the service performs no sufficiency/authority judgment of its own. Compliant.
+- **Lifecycle Immutability:** Terminal-state enforcement, immutable transition metadata preservation across repeated identical requests, and deterministic rejection of conflicting repeated transitions are all independently tested (M7, M8, M14–M17). Compliant.
+- **Architectural boundaries:** `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` are byte-for-byte unmodified (confirmed by `git diff --stat` and a dedicated negative source-content test). No `src/hosts` or `src/adapters` file was touched. No Domain Event was published for Recovery Requirement. Compliant.
+- **Terminology:** RFC-0004 v1.12 terms (`RecoveryRequirement`, Open/Resolved/Withdrawn, Recovery Resolution Contract, Recovery Withdrawal Contract) are preserved exactly as ratified. Compliant.
+- **Tests:** `recovery-requirement.test.ts` (17 tests, M1–M17, one full row per Required Test Matrix entry) plus 2 new assertions in `kernel-boundary-certification.integration.test.ts`; full suite 499/499 passing.
+
+### Builder Task Recommendation
+
+None. No Builder Tasks are required. Sprint 58 satisfies the approval criteria: implemented concepts conform exactly to RFC-0004 v1.12 and `NEXUS-RAT-2026-07-16-008`'s Authorized Vertical Slice, deferred concepts are correctly excluded and tracked, all seventeen Required Test Matrix rows pass, and no Critical, Major, or Minor findings remain. Recommend the Sprint Owner mark Sprint 58 **Approved** and proceed to commit.
+
+---
+
 ## NEXUS-REV-2026-07-16-008 — Sprint 57 — Governance-Gated Workflow Advancement (TASK-001 Resolution Verification)
 
 - **Reviewed Sprint:** Sprint 57 — Governance-Gated Workflow Advancement (follow-up review limited to TASK-001's resolution of `NEXUS-REV-2026-07-16-007-F-001`)

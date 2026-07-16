@@ -1,5 +1,98 @@
 # Nexus Implementation Report
 
+## Sprint 58 — Governance Recovery and Blocking-State Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 9 Sprint 58 Governance Recovery and Blocking-State Foundation vertical slice. This sprint adds RFC-0004 v1.12 `RecoveryRequirement` as an explicit record that a Rejected RFC-0011 `GovernanceDecision` generated engineering remediation work.
+
+Implemented scope:
+
+- Added `RecoveryRequirement` with immutable identity, immutable Mission / Engineering Session / Workflow Step / `GovernanceDecision` attribution, creation timestamp, causality, correlation, and closed `Open` / `Resolved` / `Withdrawn` lifecycle.
+- Added `IRecoveryRequirementRepository` and `InMemoryRecoveryRequirementRepository`, enforcing deterministic idempotent uniqueness for `(Mission, Engineering Session, Workflow Step, GovernanceDecision)`.
+- Added `RecoveryRequirementGovernanceDecisionConsumer`, a narrow `GovernanceDecisionRecorded` consumer that creates a Recovery Requirement only for persisted Rejected decisions.
+- Added `RecoveryRequirementService` exposing exactly `resolveRecoveryRequirement(...)` and `withdrawRecoveryRequirement(...)`, preserving accepted-outcome / authoritative withdrawal metadata while delegating lifecycle validity to the aggregate.
+- Wired the new repository, service, and consumer through `createKernelServices`.
+- Added Sprint 58 test coverage for all Required Test Matrix rows.
+
+Out of scope and not implemented:
+
+- Recovery Requirement Domain Event publication.
+- AI-generated remediation plans, remediation steps, or remediation content.
+- Workflow Chain topology or Workflow Step mutation.
+- Differentiated Engineering Session state beyond Sprint 57's uniform Blocking classification.
+- Governed Mission Completion or Mission completion precondition changes.
+- Host/Adapter surfacing and any `src/hosts` or `src/adapters` change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 v1.12 — Execution Model, Recovery Requirement section.
+
+Referenced RFCs:
+
+- RFC-0011 v1.1 — Engineering Governance Model (`GovernanceDecision` consumed read-only and unmodified).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `RecoveryRequirement` aggregate.
+- Recovery Requirement identity, uniqueness, attribution, and lifecycle.
+- Rejected-only creation from `GovernanceDecisionRecorded`.
+- Recovery Resolution Contract.
+- Recovery Withdrawal Contract.
+- In-memory repository and Kernel service composition.
+
+Deferred Concepts:
+
+- Recovery Requirement Domain Event publication.
+- AI-generated remediation planning.
+- Governed Mission Completion / Mission completion precondition changes.
+- Differentiated Rejected / Deferred / Escalation Required Engineering Session state.
+- Host/Adapter recovery surfaces.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-007`, `NEXUS-RAT-2026-07-16-008`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/specifications/rfc-0010-kernel-boundaries.md`.
+- `knowledge/implementation/sprints/sprint-0058-governance-recovery-and-blocking-state-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `GovernanceDecisionRecorded` carries the originating `GovernanceDecision` identity and event envelope metadata; the Recovery consumer resolves the persisted `GovernanceDecision` from the repository and uses only its immutable identity/value/Mission attribution.
+- The caller supplies the Engineering Session and Workflow Step context because `GovernanceDecisionRecorded` does not carry those RFC-0004 execution-context identities.
+- Resolution sufficiency is external to `RecoveryRequirementService`; callers provide an already accepted outcome or Evidence reference.
+- Withdrawal authority is external to `RecoveryRequirementService`; callers provide an authoritative decision or Ratification reference.
+
+### Known Limitations
+
+- Recovery Requirement persistence remains in-memory and process-local.
+- No Recovery Requirement Domain Event is published.
+- No Host/Adapter surface exposes Recovery Requirement state.
+- Governed Mission Completion remains unauthorized for this Sprint.
+
+### Validation Summary
+
+- Targeted Sprint 58 validation passed: `recovery-requirement.test.ts` and `kernel-boundary-certification.integration.test.ts` (22 tests).
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 84 files, 499 tests.
+- Extension-host bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 57 — Governance-Gated Workflow Advancement
 
 ### Implemented Slice

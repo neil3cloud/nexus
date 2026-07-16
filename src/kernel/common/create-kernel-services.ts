@@ -26,6 +26,9 @@ import {
   InMemoryMissionEngineeringGroupRepository,
 } from '../execution/mission-engineering-orchestration.repository';
 import { MissionEngineeringOrchestrationService } from '../execution/mission-engineering-orchestration.service';
+import { RecoveryRequirementGovernanceDecisionConsumer } from '../execution/recovery-requirement-governance-decision.consumer';
+import { InMemoryRecoveryRequirementRepository } from '../execution/recovery-requirement.repository';
+import { RecoveryRequirementService } from '../execution/recovery-requirement.service';
 import { InMemoryRoleAssignmentRepository } from '../execution/role-assignment.repository';
 import { InMemoryRoleRegistry } from '../execution/role-registry';
 import { RoleService } from '../execution/role.service';
@@ -73,6 +76,7 @@ export function createKernelServices(
   const engineeringSessionCheckpointRepository = new InMemoryEngineeringSessionCheckpointRepository();
   const missionEngineeringGroupRepository = new InMemoryMissionEngineeringGroupRepository();
   const engineeringSessionHandoffRepository = new InMemoryEngineeringSessionHandoffRepository();
+  const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
   const executionSessionRepository = new InMemoryExecutionSessionRepository();
   const workflowChainRepository = new InMemoryWorkflowChainRepository();
   const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
@@ -117,6 +121,7 @@ export function createKernelServices(
     randomUUID,
     () => new Date().toISOString(),
   );
+  const recoveryRequirementService = new RecoveryRequirementService(recoveryRequirementRepository);
 
   return [
     adapterService,
@@ -130,6 +135,11 @@ export function createKernelServices(
     engineeringSessionService,
     new GovernanceGatedWorkflowAdvancementConsumer(engineeringSessionService),
     missionEngineeringOrchestrationService,
+    recoveryRequirementService,
+    new RecoveryRequirementGovernanceDecisionConsumer(
+      governanceDecisionRepository,
+      recoveryRequirementRepository,
+    ),
     executionSessionService,
     new WorkflowChainService(workflowChainRepository),
     assignmentPolicyService,
