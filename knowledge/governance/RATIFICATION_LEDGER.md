@@ -7041,3 +7041,162 @@ None yet. Sprint 67 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-004
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-004
+
+## Date
+
+2026-07-17
+
+## Subject
+
+RFC-0004 Amendment Ratification — Event-Driven Workflow Advancement. Amends RFC-0004 — Execution Model to Version 1.15, defining the Kernel mechanism that reacts to an authoritative `GovernanceDecisionRecorded` Domain Event and invokes Governance-Gated Advancement for the exact Engineering Session and Workflow Step resolved through Engineering Decision Correlation.
+
+## Originating Request
+
+`nexus-plan`'s post-Sprint-67 Governance Scan found that Sprint 68 — Event-Driven Workflow Advancement, the next item in Milestone 10's Initial Capability Sequence, has no authorized mechanism definition: `GovernanceGatedWorkflowAdvancementConsumer` (Sprint 57) exists and is wired into `createKernelServices()`, but never calls `eventBus.subscribe(...)` and requires the caller to supply `engineeringSessionId`/`currentWorkflowStepId` directly; it is invoked only from tests today. RFC-0004 v1.14's Engineering Decision Correlation section (`knowledge/specifications/rfc-0004-execution-model.md`) is explicit that it does not itself trigger Workflow Advancement and that Event-Driven Workflow Advancement "remains gated behind its own future Sprint Owner scope ratification." `nexus-plan` presented this as a Governance Report with a recommended resolution (an RFC-0004 amendment followed by a companion Sprint-scope ratification, mirroring the `NEXUS-RAT-2026-07-17-002`/`-003` precedent) and alternatives. The Sprint Owner reviewed the report and issued a binding architectural decision, including the amendment's normative content in full.
+
+## Governance Decision
+
+**RFC-0004 Amendment Approved.** The Sprint Owner amends RFC-0004 to Version 1.15, adding Event-Driven Workflow Advancement as a new section defining: Trigger Authority (`GovernanceGatedWorkflowAdvancementConsumer` SHALL own the sole `EventBus` subscription to `GovernanceDecisionRecorded` for this purpose; no Host, Adapter, Review, Governance, or projection component SHALL independently trigger it); the normative event handling flow (validate event → resolve `GovernanceDecision` → resolve Engineering Decision Correlation → obtain authoritative Mission/Engineering-Session/Workflow-Step attribution → validate attribution consistency → invoke existing Governance-Gated Advancement → persist through existing authoritative services); Governance Decision handling (only Approved decisions MAY advance; Rejected/Deferred/Escalation Required produce a deterministic non-advancing result, not a technical failure, and do not create a Recovery Requirement in this Sprint); correlation resolution exclusively via `EngineeringDecisionCorrelationService.findByGovernanceDecisionId` (no caller-supplied substitute, no enumeration/inference); fail-closed behavior on missing or ambiguous correlation or attribution mismatch; idempotency (duplicate event delivery SHALL NOT advance the same Workflow position more than once); and existing `EventBus` delivery ordering only (no reordering, buffering, retry queues, or durable delivery infrastructure — a future capability's own ratification).
+
+**Rejected approaches** (per the Sprint Owner's decision): scoping Sprint 68 to also cover `RecoveryRequirementGovernanceDecisionConsumer`/Recovery Workflow Automation in the same slice (contradicts the already-ratified Sprint 67→68→69→70 sequence and doubles blast radius); authorizing Sprint 68 through a Sprint-scope ratification alone without an RFC amendment (breaks from the RFC-amendment-then-Sprint-ratification pattern used by every prior Milestone 10 sprint introducing new normative behavior).
+
+This amendment defines Event-Driven Workflow Advancement's mechanics only. It does not itself authorize implementation — implementation requires the companion Sprint-scope ratification (`NEXUS-RAT-2026-07-17-005`). It does not modify `GovernanceDecision`, Review, Engineering Decision Correlation, Governance-Gated Advancement's existing Advancement Eligibility, Engineering Session's existing Workflow Advancement operations, or Mission Engineering Group (v1.2/v1.3/v1.10/v1.11/v1.14, unmodified), and does not authorize Recovery Workflow Automation.
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0004's own text (Amendment History, new Event-Driven Workflow Advancement section) and therefore carries RFC-tier authority for that amendment, per RFC-0004's established Amendment History convention (v1.5, v1.11, v1.12, v1.13, v1.14). It does not modify RFC-0001, RFC-0002, RFC-0003, RFC-0005–0011, or the Kernel Canon, and does not redefine any concept owned by another RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to:
+
+1. amend RFC-0004 to v1.15 as recorded in `knowledge/specifications/rfc-0004-execution-model.md` — complete;
+2. update RFC-0004's Amendment History accordingly — complete;
+3. prepare this ratification entry — complete;
+4. prepare a companion Sprint-scope ratification (`NEXUS-RAT-2026-07-17-005`) authorizing implementation of Event-Driven Workflow Advancement, narrowly scoped to this amendment's actual text.
+
+No Builder implementation is authorized by this ratification alone; implementation requires the companion Sprint-scope ratification.
+
+## Deferred Concepts
+
+Recovery Workflow Automation; `RecoveryRequirementGovernanceDecisionConsumer` wiring; Autonomous Engineering Integration Validation; durable delivery, retry queues, dead-letter queues, event buffering, or reordering; any Host or Adapter surfacing. Each remains unauthorized pending its own future RFC-scoped-implementation and Sprint Owner scope ratification.
+
+## Related Sprint(s)
+
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen, unaffected; supplies this amendment's attribution source).
+- Sprint 68 — Event-Driven Workflow Advancement (implements this amendment; see `NEXUS-RAT-2026-07-17-005`).
+
+## Related Review(s)
+
+None yet. A Sprint 68 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner amends RFC-0004 — Execution Model to Version 1.15, adding Event-Driven Workflow Advancement: the Kernel mechanism that reacts to an authoritative `GovernanceDecisionRecorded` Domain Event and invokes Governance-Gated Advancement (v1.11, unmodified) for the exact Engineering Session and Workflow Step resolved through Engineering Decision Correlation's (v1.14, unmodified) existing lookup by `governanceDecisionId`. `GovernanceGatedWorkflowAdvancementConsumer` SHALL own the sole `EventBus` subscription to `GovernanceDecisionRecorded` for this purpose; only an Approved `GovernanceDecision` MAY result in advancement, while Rejected/Deferred/Escalation Required produce a deterministic non-advancing result and create no Recovery Requirement in this Sprint; correlation resolution SHALL occur exclusively through Engineering Decision Correlation's existing lookup, never through caller-supplied substitutes or enumeration; missing or ambiguous correlation, or any Mission/Engineering-Session/Workflow-Step attribution mismatch, SHALL fail closed; duplicate event delivery SHALL NOT advance the same Workflow position more than once; and only the existing `EventBus`'s delivery order is used, with no reordering, buffering, or retry infrastructure introduced. This amendment does not modify RFC-0006, RFC-0011, Engineering Decision Correlation, Governance-Gated Advancement's existing eligibility rules, or Mission Engineering Group, and does not authorize Recovery Workflow Automation. The Sprint Owner authorizes `nexus-plan` to prepare the companion Sprint 68 scope ratification narrowly implementing this amendment.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-17-005
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-005
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Sprint 68 Scope Ratification — Event-Driven Workflow Advancement. Authorizes implementation of RFC-0004 v1.15's Event-Driven Workflow Advancement, narrowly scoped to wiring the existing `GovernanceGatedWorkflowAdvancementConsumer` to an actual `EventBus` subscription, resolving attribution through Sprint 67's Engineering Decision Correlation, and invoking the existing Governance-Gated Advancement path — no Recovery automation, no second consumer.
+
+## Originating Request
+
+Companion Sprint-scope ratification required by `NEXUS-RAT-2026-07-17-004`'s Authorized Scope (item 4), following the Sprint Owner's RFC-0004 v1.15 amendment approval.
+
+## Governance Decision
+
+**Approved.** Sprint 68 — Event-Driven Workflow Advancement is authorized as Milestone 10's next Sprint.
+
+**Existing Consumer Ownership (binding):** the existing `GovernanceGatedWorkflowAdvancementConsumer` SHALL be extended, not replaced; a second consumer for the same responsibility SHALL NOT be introduced. Its existing direct `handleGovernanceDecisionRecorded(...)` capability MAY be retained internally, but production `EventBus` subscription handling SHALL construct its command exclusively from authoritative loaded and correlated state — production event handling SHALL NOT require caller-supplied Engineering Session or Workflow Step identifiers.
+
+**Subscription Lifecycle (binding):** Kernel composition SHALL ensure the consumer subscribes exactly once; repeated service retrieval SHALL NOT create duplicate subscriptions; no new general-purpose event-consumer framework is authorized.
+
+## RFC Coverage
+
+- RFC-0004 v1.15 (Partial — implements exactly the Event-Driven Workflow Advancement section)
+- RFC-0005 — Domain Event Model (Referenced; consumes existing, unmodified `GovernanceDecisionRecorded` only)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` consumed read-only, unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only, unmodified)
+
+## Authorized Concepts
+
+- Extending `GovernanceGatedWorkflowAdvancementConsumer` (Sprint 57, frozen contract) with an actual `EventBusContract` subscription to `GovernanceDecisionRecorded`, established during Kernel composition (or the existing canonical consumer-registration mechanism), exactly once per Kernel composition.
+- Attribution resolution via `EngineeringDecisionCorrelationService.findByGovernanceDecisionId(...)` (Sprint 67, frozen), with Mission/Engineering-Session/Workflow-Step consistency validation against the event and the `GovernanceDecision` before invoking advancement.
+- Deterministic handling of: advancement performed; already advanced; decision non-advancing (Rejected/Deferred/Escalation Required); correlation missing; correlation ambiguous; attribution invalid; advancement rejected by existing domain rules; repository/persistence failure.
+- Idempotent handling of duplicate/replayed `GovernanceDecisionRecorded` delivery, using existing authoritative Engineering Session state and event identity.
+- Additive `createKernelServices()` composition wiring establishing the subscription.
+
+## Deferred Concepts
+
+- `RecoveryRequirementGovernanceDecisionConsumer` wiring and Recovery Workflow Automation (Sprint 69) in their entirety, including automatic Recovery Requirement creation from events.
+- Retry, buffering, or reordering of unresolved/out-of-order events; durable subscriptions; consumer checkpoints; dead-letter queues.
+- Autonomous Engineering Integration Validation (Milestone 10 Step 4).
+- Host or Adapter surfacing of any kind.
+- Event-driven Review creation or event-driven Governance evaluation.
+- Any change to `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, or Mission Engineering Group.
+
+## Definition of Done
+
+- The consumer subscribes to `GovernanceDecisionRecorded` exactly once per Kernel composition; repeated service resolution does not duplicate subscription behavior.
+- Attribution is resolved exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`; missing or ambiguous correlation fails closed with no advancement, no aggregate mutation, and no Recovery Requirement creation.
+- Mission, Engineering Session, and Workflow Step identity are validated consistent across the event, the `GovernanceDecision`, the correlation, and the Engineering Session before advancement; any mismatch fails closed.
+- An Approved `GovernanceDecision` invokes the existing Governance-Gated Advancement path through `EngineeringSessionService`'s existing operations without the consumer mutating `EngineeringSession` directly.
+- Rejected, Deferred, and Escalation Required `GovernanceDecision` values produce a deterministic non-advancing result and create no Recovery Requirement.
+- Duplicate/replayed event delivery does not advance the same Workflow position more than once and produces no duplicate effective side effects.
+- No `EngineeringSession` (beyond its existing, unmodified public operations), `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, `Mission`, Sprint 65 event contract, Sprint 66 projection, Sprint 67 correlation contract, or `src/hosts`/`src/adapters` file is modified.
+- No RFC other than RFC-0004 (already amended to v1.15 by `NEXUS-RAT-2026-07-17-004`) is amended.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+## Ownership Model (ratified)
+
+This ratification authorizes one Sprint, at the Implementation Plan tier, implementing exactly RFC-0004 v1.15's already-amended text. It amends no RFC and redefines no previously approved vertical slice. `NEXUS-RAT-2026-07-16-015`'s Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, generate the Sprint 68 Sprint Implementation Record, update `IMPLEMENTATION_PLAN.md` for Sprint 68, and issue Builder handoff. `IMPLEMENTATION_MANIFEST.md` SHALL be updated by the Builder upon implementation, per established repository practice.
+
+## Deferred Concepts (planning)
+
+Sprint 69 — Recovery Workflow Automation requires its own future Sprint scope ratification after Sprint 68 is certified, per the Sprint Owner's revised sequencing (Sprint 67 → 68 → 69 → 70).
+
+## Related Sprint(s)
+
+- Sprint 57 — Governance-Gated Workflow Advancement (frozen contract this Sprint extends with real subscription wiring).
+- Sprint 65/66 — EngineeringSession Domain Event Publication / Session State Projection (frozen, unaffected).
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen; this Sprint's attribution source).
+- Sprint 68 — Event-Driven Workflow Advancement (this ratification's authorized scope).
+
+## Related Review(s)
+
+None yet. Sprint 68 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 68 — Event-Driven Workflow Advancement as Milestone 10's next Sprint, implementing exactly RFC-0004 v1.15 (`NEXUS-RAT-2026-07-17-004`). The Sprint extends the existing `GovernanceGatedWorkflowAdvancementConsumer` (Sprint 57, frozen contract) with an actual, exactly-once `EventBusContract` subscription to `GovernanceDecisionRecorded`; resolves Mission/Engineering-Session/Workflow-Step attribution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId` (Sprint 67, frozen); validates attribution consistency and fails closed on any mismatch or missing/ambiguous correlation; invokes the existing Governance-Gated Advancement path only for an Approved `GovernanceDecision`, producing a deterministic non-advancing result (not a Recovery Requirement) for Rejected/Deferred/Escalation Required; and guarantees idempotent handling of duplicate event delivery. The Sprint SHALL NOT introduce a second consumer, SHALL NOT wire `RecoveryRequirementGovernanceDecisionConsumer`, SHALL NOT implement Recovery Workflow Automation, and SHALL NOT modify `EngineeringSession`'s existing public operations, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, `Mission`, or any Sprint 65/66/67 contract. `nexus-plan` SHALL record this ratification, generate the Sprint 68 Sprint Implementation Record, update planning artifacts, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

@@ -1,5 +1,101 @@
 # Nexus Implementation Report
 
+## Sprint 68 — Event-Driven Workflow Advancement
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 68 vertical slice authorized by `NEXUS-RAT-2026-07-17-005`.
+
+Implemented scope:
+
+- Extended the existing `GovernanceGatedWorkflowAdvancementConsumer` with a production `EventBusContract` subscription to `GovernanceDecisionRecorded`.
+- Wired `createKernelServices()` to compose the consumer with the shared `GovernanceDecision` repository, `EngineeringDecisionCorrelationService`, and EventBus.
+- Resolved authoritative Mission/Engineering-Session/Workflow-Step attribution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`.
+- Validated event, `GovernanceDecision`, correlation, and Engineering Session runtime position consistency before invoking advancement.
+- Routed Approved decisions through the existing `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision` operation; the consumer does not mutate `EngineeringSession` directly.
+- Produced deterministic fail-closed diagnostics for malformed events, missing or ambiguous correlation, attribution mismatch, Workflow Step mismatch, and rejected advancement attempts.
+- Preserved Rejected, Deferred, and Escalation Required decisions as deterministic non-advancing outcomes without creating Recovery Requirements.
+- Added event identity/result caching and existing-state checks so duplicate or replayed delivery does not advance the same Workflow position more than once.
+- Added Sprint 68 tests covering subscription lifecycle, approved advancement, non-approved non-advancement, correlation failure, attribution mismatch, idempotency, malformed events, persistence failure, composition, and service-only advancement invocation.
+
+Out of scope and not implemented:
+
+- `RecoveryRequirementGovernanceDecisionConsumer` subscription wiring.
+- Recovery Workflow Automation or automatic Recovery Requirement creation.
+- Retry, buffering, reordering, durable subscriptions, checkpoints, dead-letter queues, or distributed delivery.
+- Host or Adapter surfacing.
+- Any change to `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, `EngineeringSession` public operations, or Sprint 65/66/67 contracts.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0004 v1.15 — Execution Model; implemented exactly the Event-Driven Workflow Advancement section.
+- RFC-0005 — Domain Event Model; consumed the existing immutable `GovernanceDecisionRecorded` event stream without modifying the event envelope.
+- RFC-0006 — Engineering Assessment Model; consumed Review outcome only through the existing Governance-Gated Advancement path.
+- RFC-0011 — Engineering Governance Model; consumed `GovernanceDecision` read-only for value and Mission attribution validation.
+
+Implemented Concepts:
+
+- Event-driven `GovernanceDecisionRecorded` subscription in `GovernanceGatedWorkflowAdvancementConsumer`.
+- Authoritative correlation lookup by `governanceDecisionId`.
+- Attribution validation across event, `GovernanceDecision`, correlation, and Engineering Session runtime position.
+- Approved-decision advancement through the existing Engineering Session service operation.
+- Deterministic non-advancing and fail-closed result diagnostics.
+- Event identity and runtime-state idempotency.
+- Additive Kernel service composition.
+
+Deferred Concepts:
+
+- Recovery Workflow Automation.
+- Automatic Recovery Requirement creation from events.
+- Autonomous Engineering Integration Validation.
+- Durable/distributed event consumer infrastructure.
+- Host/Adapter surfacing.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-16-018`, `NEXUS-RAT-2026-07-16-019`, `NEXUS-RAT-2026-07-17-002`, `NEXUS-RAT-2026-07-17-003`, `NEXUS-RAT-2026-07-17-004`, `NEXUS-RAT-2026-07-17-005`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0068-event-driven-workflow-advancement.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `GovernanceDecisionRecorded` event identity is the authoritative duplicate-delivery key for this in-process consumer.
+- Engineering Decision Correlation remains the sole inbound attribution source for Event-Driven Workflow Advancement.
+- Engineering Session runtime state remains the authority for whether the correlated Workflow position is still current.
+
+### Known Limitations
+
+- Events delivered before their Engineering Decision Correlation exists fail closed and are not retried.
+- Consumer diagnostics are in-memory and process-local; durable checkpoints and dead-letter queues remain deferred.
+- Rejected decisions do not trigger Recovery Requirement creation in this Sprint; Recovery Workflow Automation remains reserved for Sprint 69.
+
+### Validation Summary
+
+- Targeted Sprint 68 validation passed: `engineering-session.service.test.ts` (56 tests).
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint -- --quiet`.
+- Repository validation passed: `npm run validate`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 67 — Engineering Decision Correlation Foundation
 
 ### Implemented Slice

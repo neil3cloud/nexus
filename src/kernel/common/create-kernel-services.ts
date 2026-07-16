@@ -169,6 +169,13 @@ export function createKernelServices(
       governanceStateProjectionService,
       missionExecutionService,
     );
+  const governanceGatedWorkflowAdvancementConsumer =
+    new GovernanceGatedWorkflowAdvancementConsumer(
+      engineeringSessionService,
+      governanceDecisionRepository,
+      engineeringDecisionCorrelationService,
+      eventBus,
+    );
 
   return [
     adapterService,
@@ -182,7 +189,7 @@ export function createKernelServices(
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     engineeringSessionService,
     engineeringSessionStateProjectionService,
-    new GovernanceGatedWorkflowAdvancementConsumer(engineeringSessionService),
+    governanceGatedWorkflowAdvancementConsumer,
     missionEngineeringOrchestrationService,
     recoveryRequirementService,
     engineeringDecisionCorrelationService,

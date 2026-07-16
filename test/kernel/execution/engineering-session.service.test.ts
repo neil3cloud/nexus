@@ -7,7 +7,12 @@ import { AdapterResponse } from '../../../src/kernel/adapter/adapter-response';
 import { InMemoryAdapterRegistry } from '../../../src/kernel/adapter/adapter-registry';
 import { AdapterService } from '../../../src/kernel/adapter/adapter.service';
 import { createKernelServices } from '../../../src/kernel/common/create-kernel-services';
-import type { EventBusContract, EventBusEvent, EventSubscriptionHandle } from '../../../src/kernel/common/event-bus-contract';
+import type {
+  EventBusContract,
+  EventBusEvent,
+  EventSubscription,
+  EventSubscriptionHandle,
+} from '../../../src/kernel/common/event-bus-contract';
 import { ProtocolVersion } from '../../../src/kernel/adapter/protocol-version';
 import { InMemoryAssignmentPolicyRepository } from '../../../src/kernel/execution/assignment-policy.repository';
 import { AssignmentPolicyService } from '../../../src/kernel/execution/assignment-policy.service';
@@ -20,6 +25,8 @@ import {
 import { InvalidAdvancementTriggerDefinitionError } from '../../../src/kernel/execution/advancement-trigger.errors';
 import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
 import { GovernanceGatedWorkflowAdvancementConsumer } from '../../../src/kernel/execution/governance-gated-workflow-advancement.consumer';
+import { InMemoryEngineeringDecisionCorrelationRepository } from '../../../src/kernel/execution/engineering-decision-correlation.repository';
+import { EngineeringDecisionCorrelationService } from '../../../src/kernel/execution/engineering-decision-correlation.service';
 import { InMemoryEngineeringSessionCheckpointRepository } from '../../../src/kernel/execution/engineering-session-checkpoint.repository';
 import {
   InMemoryEngineeringSessionRepository,
@@ -59,7 +66,9 @@ class TestEventBus implements EventBusContract {
     this.events.push(event);
   }
 
-  public subscribe(): EventSubscriptionHandle {
+  public subscribe(_subscription: EventSubscription): EventSubscriptionHandle {
+    void _subscription;
+
     return {
       dispose(): void {},
     };
@@ -69,6 +78,38 @@ class TestEventBus implements EventBusContract {
     return Object.freeze(
       this.events.filter((event) => missionId === undefined || event.missionId === missionId),
     );
+  }
+}
+
+class RecordingSubscriptionEventBus extends TestEventBus {
+  private readonly subscriptions: EventSubscription[] = [];
+
+  public override async publish(event: EventBusEvent): Promise<void> {
+    await super.publish(event);
+
+    for (const subscription of this.subscriptions) {
+      if (subscription.eventType === event.eventType) {
+        await subscription.handler(event);
+      }
+    }
+  }
+
+  public override subscribe(subscription: EventSubscription): EventSubscriptionHandle {
+    this.subscriptions.push(subscription);
+
+    return {
+      dispose: () => {
+        const index = this.subscriptions.indexOf(subscription);
+
+        if (index >= 0) {
+          this.subscriptions.splice(index, 1);
+        }
+      },
+    };
+  }
+
+  public subscriptionCount(eventType: string): number {
+    return this.subscriptions.filter((subscription) => subscription.eventType === eventType).length;
   }
 }
 
@@ -1176,6 +1217,327 @@ describe('EngineeringSessionService', () => {
     });
   });
 
+  it('S68-1 subscribes the existing Governance-Gated consumer exactly once per Kernel composition initialization', async () => {
+    const eventBus = new RecordingSubscriptionEventBus();
+    const services = createKernelServices(eventBus);
+    const consumer = services.find(
+      (service): service is GovernanceGatedWorkflowAdvancementConsumer =>
+        service instanceof GovernanceGatedWorkflowAdvancementConsumer,
+    );
+
+    expect(consumer).toBeDefined();
+
+    for (const service of services) {
+      await service.initialize();
+    }
+
+    const firstSubscriptionCount = eventBus.subscriptionCount('GovernanceDecisionRecorded');
+
+    for (const service of services) {
+      await service.initialize();
+    }
+
+    expect(eventBus.subscriptionCount('GovernanceDecisionRecorded')).toBe(firstSubscriptionCount);
+    expect(firstSubscriptionCount).toBeGreaterThanOrEqual(1);
+    expect(consumer?.diagnostics()).toEqual([]);
+  });
+
+  it('S68-2 advances an Approved GovernanceDecisionRecorded event through correlated authoritative state', async () => {
+    const harness = await createEventDrivenGovernanceAdvancementHarness();
+    const event = createGovernanceDecisionRecordedEvent(harness.governanceDecision, {
+      eventId: 'event-s68-approved',
+      timestamp: '2026-07-17T01:00:00.000Z',
+    });
+
+    await harness.consumer.initialize();
+    await harness.eventBus.publish(event);
+
+    expect(harness.consumer.diagnostics()).toMatchObject([
+      {
+        eventId: 'event-s68-approved',
+        governanceDecisionId: harness.governanceDecisionId,
+        engineeringSessionId: harness.engineeringSessionId,
+        workflowStepId: '0',
+        status: 'Advanced',
+      },
+    ]);
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '1',
+    });
+  });
+
+  it.each(['Rejected', 'Deferred', 'Escalation Required'] as const)(
+    'S68-3 produces a deterministic non-advancing event result for %s without creating RecoveryRequirement',
+    async (governanceDecisionValue) => {
+      const harness = await createEventDrivenGovernanceAdvancementHarness({
+        governanceDecisionValue,
+      });
+      const event = createGovernanceDecisionRecordedEvent(harness.governanceDecision, {
+        eventId: `event-s68-${governanceDecisionValue.toLowerCase().replaceAll(' ', '-')}`,
+        timestamp: '2026-07-17T01:00:00.000Z',
+      });
+
+      const result = await harness.consumer.handleEvent(event);
+
+      expect(result).toMatchObject({
+        status: 'NotAdvanced',
+        diagnostic: {
+          code: 'event-driven-workflow-advancement.blocking-governance-decision',
+        },
+      });
+      await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+        currentWorkflowStepId: '0',
+      });
+      await expect(harness.recoveryRequirementRepository.enumerate()).resolves.toHaveLength(0);
+    },
+  );
+
+  it('S68-4 fails closed when GovernanceDecision correlation is missing or ambiguous', async () => {
+    const harness = await createEventDrivenGovernanceAdvancementHarness({
+      associateCorrelation: false,
+    });
+    const event = createGovernanceDecisionRecordedEvent(harness.governanceDecision, {
+      eventId: 'event-s68-missing-correlation',
+      timestamp: '2026-07-17T01:00:00.000Z',
+    });
+
+    const result = await harness.consumer.handleEvent(event);
+
+    expect(result).toMatchObject({
+      status: 'Rejected',
+      diagnostic: {
+        code: 'event-driven-workflow-advancement.correlation-unresolved',
+      },
+    });
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('S68-5 fails closed on Mission and WorkflowStep attribution mismatches', async () => {
+    const missionMismatchHarness = await createEventDrivenGovernanceAdvancementHarness();
+    const missionMismatchEvent = {
+      ...createGovernanceDecisionRecordedEvent(missionMismatchHarness.governanceDecision, {
+        eventId: 'event-s68-mission-mismatch',
+        timestamp: '2026-07-17T01:00:00.000Z',
+      }),
+      missionId: 'mission-other',
+      attribution: {
+        missionId: 'mission-other',
+      },
+    };
+
+    await expect(missionMismatchHarness.consumer.handleEvent(missionMismatchEvent)).resolves.toMatchObject({
+      status: 'Rejected',
+      diagnostic: {
+        code: 'event-driven-workflow-advancement.mission-mismatch',
+      },
+    });
+    await expect(
+      missionMismatchHarness.service.getEngineeringSession(missionMismatchHarness.engineeringSessionId),
+    ).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+
+    const workflowMismatchHarness = await createEventDrivenGovernanceAdvancementHarness({
+      currentWorkflowStepId: '1',
+    });
+    const workflowMismatchEvent = createGovernanceDecisionRecordedEvent(
+      workflowMismatchHarness.governanceDecision,
+      {
+        eventId: 'event-s68-workflow-mismatch',
+        timestamp: '2026-07-17T01:00:00.000Z',
+      },
+    );
+
+    await expect(workflowMismatchHarness.consumer.handleEvent(workflowMismatchEvent)).resolves.toMatchObject({
+      status: 'Rejected',
+      diagnostic: {
+        code: 'event-driven-workflow-advancement.workflow-step-mismatch',
+      },
+    });
+    await expect(
+      workflowMismatchHarness.service.getEngineeringSession(workflowMismatchHarness.engineeringSessionId),
+    ).resolves.toMatchObject({
+      currentWorkflowStepId: '1',
+    });
+  });
+
+  it('S68-6 treats duplicate and already-advanced event delivery as idempotent', async () => {
+    const duplicateHarness = await createEventDrivenGovernanceAdvancementHarness();
+    const duplicateEvent = createGovernanceDecisionRecordedEvent(duplicateHarness.governanceDecision, {
+      eventId: 'event-s68-duplicate',
+      timestamp: '2026-07-17T01:00:00.000Z',
+    });
+
+    const first = await duplicateHarness.consumer.handleEvent(duplicateEvent);
+    const duplicate = await duplicateHarness.consumer.handleEvent(duplicateEvent);
+
+    expect(first.status).toBe('Advanced');
+    expect(duplicate).toEqual(first);
+    await expect(
+      duplicateHarness.service.getEngineeringSession(duplicateHarness.engineeringSessionId),
+    ).resolves.toMatchObject({
+      currentWorkflowStepId: '1',
+    });
+
+    const alreadyAdvancedHarness = await createEventDrivenGovernanceAdvancementHarness();
+    await alreadyAdvancedHarness.service.advanceWorkflow({
+      engineeringSessionId: alreadyAdvancedHarness.engineeringSessionId,
+    });
+
+    const alreadyAdvanced = await alreadyAdvancedHarness.consumer.handleEvent(
+      createGovernanceDecisionRecordedEvent(alreadyAdvancedHarness.governanceDecision, {
+        eventId: 'event-s68-already-advanced',
+        timestamp: '2026-07-17T01:00:00.000Z',
+      }),
+    );
+
+    expect(alreadyAdvanced).toMatchObject({
+      status: 'Rejected',
+      diagnostic: {
+        code: 'event-driven-workflow-advancement.workflow-step-mismatch',
+      },
+    });
+  });
+
+  it('S68-7 rejects malformed events and repository failures without partial advancement', async () => {
+    const malformedHarness = await createEventDrivenGovernanceAdvancementHarness();
+    const malformedEvent = {
+      ...createGovernanceDecisionRecordedEvent(malformedHarness.governanceDecision, {
+        eventId: 'event-s68-malformed',
+        timestamp: '2026-07-17T01:00:00.000Z',
+      }),
+      payload: {},
+    };
+
+    await expect(malformedHarness.consumer.handleEvent(malformedEvent)).resolves.toMatchObject({
+      status: 'Rejected',
+      diagnostic: {
+        code: 'event-driven-workflow-advancement.malformed-event',
+      },
+    });
+
+    const failingRepository = new FailingSaveEngineeringSessionRepository();
+    const failingHarness = await createEventDrivenGovernanceAdvancementHarness({
+      engineeringSessionRepository: failingRepository,
+    });
+    failingRepository.failNextSave();
+
+    await expect(
+      failingHarness.consumer.handleEvent(
+        createGovernanceDecisionRecordedEvent(failingHarness.governanceDecision, {
+          eventId: 'event-s68-save-failure',
+          timestamp: '2026-07-17T01:00:00.000Z',
+        }),
+      ),
+    ).resolves.toMatchObject({
+      status: 'Rejected',
+      diagnostic: {
+        code: 'event-driven-workflow-advancement.advancement-rejected',
+        message: 'Injected save failure.',
+      },
+    });
+    await expect(failingHarness.service.getEngineeringSession(failingHarness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('S68-8 invokes only EngineeringSessionService for advancement after resolving correlation', async () => {
+    const governanceDecision = createGovernanceDecision('Approved');
+    const calls: string[] = [];
+    const consumer = new GovernanceGatedWorkflowAdvancementConsumer(
+      {
+        async getEngineeringSession(engineeringSessionId) {
+          calls.push(`get:${engineeringSessionId}`);
+
+          return {
+            id: engineeringSessionId,
+            status: 'Open',
+            engineeringRuntimeContextReference: 'runtime-context',
+            activeEngineeringWorkflowReference: 'workflow',
+            workflowChainId: 'workflow-chain-1',
+            currentWorkflowStepId: '0',
+            participatingRoleIds: ['builder'],
+            workflowState: 'active',
+            timeline: {
+              createdAt: '2026-07-17T00:00:00.000Z',
+              statusTransitions: [
+                {
+                  status: 'Open',
+                  occurredAt: '2026-07-17T00:00:00.000Z',
+                },
+              ],
+            },
+            diagnostics: [],
+            collaborationMetadata: {},
+          };
+        },
+        async advanceWorkflowAfterGovernanceDecision(command) {
+          calls.push(
+            `advance:${command.engineeringSessionId}:${command.governanceDecisionId}:${command.currentWorkflowStepId}`,
+          );
+
+          return {
+            id: command.engineeringSessionId,
+            status: 'Open',
+            engineeringRuntimeContextReference: 'runtime-context',
+            activeEngineeringWorkflowReference: 'workflow',
+            workflowChainId: 'workflow-chain-1',
+            currentWorkflowStepId: '1',
+            participatingRoleIds: ['builder'],
+            workflowState: 'active',
+            timeline: {
+              createdAt: '2026-07-17T00:00:00.000Z',
+              statusTransitions: [
+                {
+                  status: 'Open',
+                  occurredAt: '2026-07-17T00:00:00.000Z',
+                },
+              ],
+            },
+            diagnostics: [],
+            collaborationMetadata: {},
+          };
+        },
+      },
+      {
+        async getById() {
+          return governanceDecision;
+        },
+      },
+      {
+        async findByGovernanceDecisionId() {
+          return {
+            id: 'correlation-s68',
+            missionId: 'mission-governance-gated',
+            engineeringSessionId: 'engineering-session-governance-gated',
+            workflowStepId: '0',
+            governanceDecisionId: 'governance-decision-governance-gated',
+            reviewId: 'review-governance-gated',
+            createdAt: '2026-07-17T00:00:00.000Z',
+            creationCausality: [],
+          };
+        },
+      },
+    );
+
+    await expect(
+      consumer.handleEvent(
+        createGovernanceDecisionRecordedEvent(governanceDecision, {
+          eventId: 'event-s68-service-only',
+          timestamp: '2026-07-17T01:00:00.000Z',
+        }),
+      ),
+    ).resolves.toMatchObject({
+      status: 'Advanced',
+    });
+    expect(calls).toEqual([
+      'get:engineering-session-governance-gated',
+      'advance:engineering-session-governance-gated:governance-decision-governance-gated:0',
+    ]);
+  });
+
   it('keeps existing Manual, Automatic/Event-Driven, and Review-Gated advancement behavior unchanged', async () => {
     const service = new EngineeringSessionService(
       new InMemoryEngineeringSessionRepository(),
@@ -1865,6 +2227,106 @@ function createIdentitySequence(identities: string[]): () => string {
     }
 
     return identity;
+  };
+}
+
+async function createEventDrivenGovernanceAdvancementHarness(input: {
+  readonly governanceDecisionValue?: GovernanceDecisionValue;
+  readonly associateCorrelation?: boolean;
+  readonly currentWorkflowStepId?: string;
+  readonly engineeringSessionRepository?: InMemoryEngineeringSessionRepository;
+} = {}): Promise<{
+  readonly service: EngineeringSessionService;
+  readonly consumer: GovernanceGatedWorkflowAdvancementConsumer;
+  readonly governanceDecision: GovernanceDecision;
+  readonly governanceDecisionId: string;
+  readonly engineeringSessionId: string;
+  readonly recoveryRequirementRepository: InMemoryRecoveryRequirementRepository;
+  readonly eventBus: RecordingSubscriptionEventBus;
+}> {
+  const engineeringSessionRepository =
+    input.engineeringSessionRepository ?? new InMemoryEngineeringSessionRepository();
+  const workflowChainRepository = await createWorkflowChainRepository();
+  const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
+  const reviewRepository = new InMemoryReviewRepository();
+  const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
+  const groupRepository = new InMemoryMissionEngineeringGroupRepository();
+  const eventBus = new RecordingSubscriptionEventBus();
+  const service = new EngineeringSessionService(
+    engineeringSessionRepository,
+    workflowChainRepository,
+    createIdentitySequence(['event-s68-workflow-advanced']),
+    createTimestampSequence(['2026-07-17T00:00:00.000Z', '2026-07-17T00:01:00.000Z']),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    new InMemoryEngineeringSessionCheckpointRepository(),
+    governanceDecisionRepository,
+    reviewRepository,
+    recoveryRequirementRepository,
+    eventBus,
+    groupRepository,
+  );
+  const correlationService = new EngineeringDecisionCorrelationService(
+    new InMemoryEngineeringDecisionCorrelationRepository(),
+    groupRepository,
+    reviewRepository,
+    governanceDecisionRepository,
+    createIdentitySequence(['engineering-decision-correlation-s68']),
+    () => '2026-07-17T00:00:00.000Z',
+  );
+  const consumer = new GovernanceGatedWorkflowAdvancementConsumer(
+    service,
+    governanceDecisionRepository,
+    correlationService,
+    eventBus,
+  );
+  const review = createCompletedReview('Accepted');
+  const governanceDecision = createGovernanceDecision(input.governanceDecisionValue ?? 'Approved');
+  const engineeringSessionId = 'engineering-session-governance-gated';
+
+  await reviewRepository.create(review);
+  await governanceDecisionRepository.register(governanceDecision);
+  await service.createEngineeringSession({
+    id: engineeringSessionId,
+    engineeringRuntimeContextReference: `runtime-context-${engineeringSessionId}`,
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: input.currentWorkflowStepId ?? '0',
+    participatingRoleIds: ['builder', 'reviewer'],
+    workflowState: 'active',
+  });
+  await groupRepository.save(
+    MissionEngineeringGroup.create({
+      missionId: 'mission-governance-gated',
+      engineeringSessionIds: [engineeringSessionId],
+    }),
+  );
+
+  if (input.associateCorrelation ?? true) {
+    const correlation = await correlationService.beginCorrelation({
+      engineeringSessionId,
+      workflowStepId: '0',
+    });
+    await correlationService.associateReview({
+      correlationId: correlation.id,
+      reviewId: 'review-governance-gated',
+    });
+    await correlationService.associateGovernanceDecision({
+      correlationId: correlation.id,
+      governanceDecisionId: governanceDecision.id.toString(),
+    });
+  }
+
+  return {
+    service,
+    consumer,
+    governanceDecision,
+    governanceDecisionId: governanceDecision.id.toString(),
+    engineeringSessionId,
+    recoveryRequirementRepository,
+    eventBus,
   };
 }
 

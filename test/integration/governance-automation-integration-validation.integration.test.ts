@@ -311,6 +311,7 @@ describe('Sprint 62 governance automation integration validation', () => {
       'src/kernel/execution/engineering-session.events.ts',
       'src/kernel/execution/engineering-session.service.ts',
       'src/kernel/execution/engineering-session.ts',
+      'src/kernel/execution/governance-gated-workflow-advancement.consumer.ts',
       'src/kernel/execution/mission-engineering-orchestration.errors.ts',
       'src/kernel/execution/mission-engineering-orchestration.repository.ts',
       'src/kernel/governance/governance-state-projection.contract.ts',

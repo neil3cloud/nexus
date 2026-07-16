@@ -2,6 +2,57 @@
 
 ---
 
+## NEXUS-REV-2026-07-17-005 — Sprint 68 — Event-Driven Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 68 — Event-Driven Workflow Advancement (Milestone 10, Initial Capability Sequence Step 2's remainder). Ratified by `NEXUS-RAT-2026-07-17-005`, implementing RFC-0004 v1.15 (`NEXUS-RAT-2026-07-17-004`).
+- **Reviewed Change:** `src/kernel/execution/governance-gated-workflow-advancement.consumer.ts` (extended), `src/kernel/common/create-kernel-services.ts` (additive wiring), `test/kernel/execution/engineering-session.service.test.ts` (new Sprint 68 test suite), `test/integration/governance-automation-integration-validation.integration.test.ts` (allowlist addition for the modified consumer file). `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Builder-authored entries reviewed for consistency with the implementation and with `NEXUS-RAT-2026-07-17-004`/`-005`.
+- **RFC Coverage:** RFC-0004 v1.15 (Partial — implements exactly the Event-Driven Workflow Advancement section); RFC-0005/0006/0011 (Referenced, consumed read-only and unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently verified in source that `GovernanceGatedWorkflowAdvancementConsumer` (Sprint 57, frozen contract) is extended, not replaced: its existing `handleGovernanceDecisionRecorded(...)` capability is retained unchanged, and a new `initialize()` override establishes exactly one `EventBusContract` subscription to `GovernanceDecisionRecorded`, guarded by `this.subscriptionHandles.length > 0` so repeated `initialize()` calls on the same instance never double-subscribe — confirmed by test `S68-1`, which calls `initialize()` twice across all Kernel services and asserts the subscription count is unchanged. Confirmed the event-handling flow matches RFC-0004 v1.15's normative sequence: event validation, `GovernanceDecision` resolution via the existing, unmodified `IGovernanceDecisionRepository`, correlation resolution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId` (no caller-supplied substitute or enumeration anywhere in the diff), Mission/GovernanceDecision/correlation/WorkflowStep attribution consistency validation, and invocation of the existing, unmodified `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision` operation only for an Approved decision. Confirmed Rejected/Deferred/Escalation Required decisions produce a deterministic `NotAdvanced` result and create no `RecoveryRequirement` (test `S68-3`, parameterized over all three values, asserts an empty Recovery Requirement enumeration). Confirmed fail-closed behavior on missing/ambiguous correlation (`S68-4`), Mission mismatch and Workflow Step mismatch (`S68-5`), and malformed events/persistence failure (`S68-7`) — in every case the Engineering Session's `currentWorkflowStepId` is independently asserted unchanged. Confirmed duplicate/replayed event delivery is idempotent via an in-memory `resultsByEventId` result cache keyed on event identity, checked before any repository access (`S68-6`), and that an already-advanced Workflow position (a second event arriving after the position moved on) fails closed via the Workflow Step mismatch path rather than silently no-oping — a defensible, spec-consistent interpretation of "no duplicate transition," since it never produces a duplicate transition and surfaces a deterministic diagnostic rather than a silent success. Confirmed via test `S68-8` and source inspection that the consumer invokes only `EngineeringSessionService.getEngineeringSession`/`advanceWorkflowAfterGovernanceDecision` — no direct aggregate mutation. Confirmed no `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, `Mission`, Sprint 65/66/67 contract file, `src/hosts`, or `src/adapters` file was modified (`git diff --name-only` shows exactly the consumer, the Kernel composition file, and two test files changed). Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (89 files / 598 tests, up from 588 — exactly 10 new Sprint 68 tests), `npm run build`, and `npm run test:extension-host:build`, all passing.
+
+### Findings
+
+None of Category 1 through 5. One Category 6, Informational Observation (below); no Builder Task.
+
+**O-001 — Redundant, unreachable `processedEventIds` duplicate-check.** `GovernanceGatedWorkflowAdvancementConsumer.handleEvent` maintains both a `resultsByEventId` cache (checked first, on every call, for any previously-seen `eventId`) and a separate `processedEventIds` Set (checked later, only reached after the `resultsByEventId` check has already passed). Every code path that adds to `processedEventIds` also calls `recordResult`, which populates `resultsByEventId` for the same `eventId` in the same call. Consequently, on any actual re-delivery of a previously-handled event, the earlier `resultsByEventId` check always returns first, and the `processedEventIds.has(...)` branch can never be reached — it is provably dead code, not a correctness defect (the idempotency guarantee it exists to provide is already fully satisfied by the `resultsByEventId` cache, confirmed by test `S68-6`). Category 6, Informational. No Builder Task; a future Sprint touching this consumer may simplify by removing the redundant `processedEventIds` Set.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 new (O-001) |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented, per `NEXUS-RAT-2026-07-17-005`: `RecoveryRequirementGovernanceDecisionConsumer` remains unwired (not present in the diff); no Recovery Requirement is created for Rejected/Deferred/Escalation Required decisions (`S68-3` asserts an empty enumeration); no retry, buffering, reordering, durable subscription, checkpoint, or dead-letter-queue infrastructure was introduced; no Host or Adapter file was touched; Autonomous Engineering Integration Validation (Milestone 10 Step 4) remains untouched.
+
+### Architectural Compliance Summary
+
+- **Trigger Authority:** `GovernanceGatedWorkflowAdvancementConsumer` is the sole subscriber to `GovernanceDecisionRecorded` for this purpose; no Host, Adapter, Review, Governance, or projection component independently triggers advancement. Compliant with RFC-0004 v1.15 and `NEXUS-RAT-2026-07-17-005`.
+- **Existing Consumer Ownership:** the existing consumer was extended, not replaced; no second consumer for the same responsibility was introduced; production event handling constructs its command exclusively from authoritative loaded/correlated state, never from caller-supplied Engineering Session/Workflow Step identifiers. Compliant.
+- **Correlation resolution:** exclusively via `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`; no enumeration or inference. Compliant.
+- **Fail-closed behavior:** missing/ambiguous correlation, Mission mismatch, correlation/GovernanceDecision mismatch, and Workflow Step mismatch all produce a `Rejected` result with no advancement, no aggregate mutation, and no Recovery Requirement. Compliant.
+- **Idempotency:** duplicate/replayed event delivery does not advance the same Workflow position more than once. Compliant (see O-001 for a non-blocking code-quality note).
+- **Boundaries:** no `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, or `src/hosts`/`src/adapters` file was modified. Compliant.
+- **Documentation (Gate 12):** `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Sprint 68 entries accurately describe the implemented scope and are internally consistent with the Sprint Implementation Record and both ratifications. Compliant.
+- **Tests (Gate 11):** Full repository suite (89 files / 598 tests) passes with no regressions, independently re-verified via `npm run validate` and `npm run test:extension-host:build`. Compliant.
+
+### Builder Task Recommendation
+
+None. Sprint 68 is fully closed with zero open findings of any blocking category. O-001 is informational and non-blocking; no Builder Task is generated. Recovery Workflow Automation (Sprint 69) remains unscheduled and requires its own future `nexus-plan` Sprint scope proposal.
+
+---
+
 ## NEXUS-REV-2026-07-17-004 — Sprint 67 — Engineering Decision Correlation Foundation (Documentation Task Verification)
 
 - **Reviewed Sprint:** Sprint 67 — Engineering Decision Correlation Foundation (Milestone 10, Prerequisite Foundation inbound half). Follow-up cycle verifying Builder completion of `DOC-TASK-067-001`, generated by `nexus-sprint` from `NEXUS-REV-2026-07-17-003` Finding F-001 (Category 4 — Documentation Drift, Minor).
