@@ -2,6 +2,77 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-011 — Sprint 60 — Recovery-Gated Re-Advancement
+
+- **Reviewed Sprint:** Sprint 60 — Recovery-Gated Re-Advancement
+- **Reviewed Vertical Slice:** RFC-0004 v1.13 Recovery-Gated Re-Advancement Eligibility — a pure, deterministic `isGovernanceDecisionAdvancementEligible(...)` function extending `assertNonBlockingGovernanceDecision`/`EngineeringSession.advanceWorkflowAfterGovernanceDecision`; a read-only `IRecoveryRequirementRepository.findByAttributionKey` lookup added to `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision`; production `createKernelServices` wiring so `EngineeringSessionService` always receives the shared `IRecoveryRequirementRepository`.
+- **RFC Coverage:** RFC-0004 v1.13 — Execution Model (Primary; "Recovery-Gated Re-Advancement Eligibility" §, new); RFC-0004 v1.11/v1.12 — Execution Model (Referenced, unmodified); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 60 implements exactly the Recovery-Gated Re-Advancement vertical slice authorized by `NEXUS-RAT-2026-07-16-011` (Sprint scope) and `NEXUS-RAT-2026-07-16-010` (RFC-0004 v1.13 amendment). Confirmed `isGovernanceDecisionAdvancementEligible(...)` (`engineering-session.ts`) implements every row of the Required Behavioral Matrix exactly: `Approved` is unconditionally eligible regardless of Recovery Requirement state (existing path unchanged); `Deferred`/`Escalation Required` are unconditionally Blocking regardless of Recovery Requirement state; `Rejected` is Blocking when the Recovery Requirement is Missing, Open, or Withdrawn, and Blocking (fail closed) when Resolved but missing or blank `acceptedOutcomeReference`; `Rejected` is Eligible only when the Recovery Requirement is Resolved, carries a non-empty `acceptedOutcomeReference`, and its Mission/Engineering Session/Workflow Step/`GovernanceDecision` attribution exactly matches the position under evaluation — verified by dedicated tests in `engineering-session.test.ts` for every matrix row plus four parameterized mismatched-attribution cases and a mismatched-Mission-on-the-decision-itself case, all treated as absent/Blocking. Confirmed the function is pure: it performs no repository access and no persistence, and a dedicated test invokes it twice with identical inputs to verify deterministic output; `git diff` confirms no `await`, no repository import, and no mutation of either input snapshot inside it. Confirmed the read-only Recovery Requirement lookup is an `EngineeringSessionService`-level orchestration concern (`findByAttributionKey`, invoked only when the resolved `GovernanceDecision` value is `Rejected`), strictly separated from the pure eligibility function per Refinement 3, and a service-level test confirms a mismatched-attribution Resolved Recovery Requirement (different `workflowStepId`) is still rejected. Confirmed `createKernelServices()` now passes the single shared `InMemoryRecoveryRequirementRepository` instance into `EngineeringSessionService` alongside `RecoveryRequirementService` and `RecoveryRequirementGovernanceDecisionConsumer` (same object identity, verified by a dedicated composition test), satisfying Refinement 1 (mandatory production injection); the constructor parameter remains optional solely for isolated unit-test construction, as authorized. Confirmed restored eligibility does not itself advance the workflow: `EngineeringSession.advanceWorkflowAfterGovernanceDecision`'s existing, unmodified delegation to `advanceWorkflow(...)` remains the sole mechanism producing an Advancement Result, verified by the end-to-end aggregate-level test asserting `currentWorkflowStepId` only changes after the call, and by the service-level test asserting the persisted session's `currentWorkflowStepId` matches the returned snapshot. Confirmed via `git diff --stat` and source inspection that `RecoveryRequirement`, `RecoveryRequirementService`, `RecoveryRequirementGovernanceDecisionConsumer`, the Recovery Resolution/Withdrawal Contracts, `GovernanceDecision`, `GovernanceService`, `WorkflowChain`, and RFC-0011 are byte-for-byte unmodified; no `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer was introduced; Manual, Automatic/Event-Driven, and Review-Gated Advancement remain unaffected, verified by a dedicated regression test. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (`engineering-session.test.ts` + `engineering-session.service.test.ts` + `recovery-requirement.test.ts`, 96 tests), `npm run test` (84 files / 517 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-011-F-001 — `IMPLEMENTATION_MANIFEST.md` Sprint 59 status line not synchronized with its Approved disposition
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Governance Artifacts (permanent traceability)
+- **Summary:** `IMPLEMENTATION_MANIFEST.md`'s `## Sprint 59` section still reads "Status: Implemented — Pending Reviewer Validation," even though Sprint 59 was certified Approved by `NEXUS-REV-2026-07-16-010` and `IMPLEMENTATION_PLAN.md`/`REVIEW_HISTORY.md` both correctly reflect that disposition. This predates Sprint 60 and was not introduced or worsened by this Sprint's implementation.
+- **Evidence:** `IMPLEMENTATION_MANIFEST.md` `## Sprint 59` Status line vs. `IMPLEMENTATION_PLAN.md`'s Sprint 59 entry and `REVIEW_HISTORY.md`'s `NEXUS-REV-2026-07-16-010`.
+- **Impact:** None on implemented behavior; a reader consulting only the Manifest would see stale status text for Sprint 59.
+- **Required Disposition:** Documentation Task. The Reviewer's ownership for this Sprint's Repository State Update is limited to `REVIEW_HISTORY.md`, the Sprint 60 Sprint Implementation Record, and Sprint status in `IMPLEMENTATION_PLAN.md`; `IMPLEMENTATION_MANIFEST.md` remains Builder-owned and is not corrected by this review.
+- **Builder Action:** Update `IMPLEMENTATION_MANIFEST.md`'s Sprint 59 Status line to "✅ Approved" in a future Builder iteration. Non-blocking; does not affect Sprint 60's disposition.
+
+#### NEXUS-REV-2026-07-16-011-F-002 — Inconsistent indentation in new `engineering-session.test.ts` test cases
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation / code quality convention
+- **Summary:** The new Recovery-Gated Re-Advancement eligibility tests added to `engineering-session.test.ts` are indented four spaces deeper than sibling `it(...)` blocks at the same nesting level within the enclosing `describe('EngineeringSession domain', ...)` block. ESLint does not flag this (no stylistic/indentation rule is configured for test files), and it has no effect on test correctness or execution.
+- **Evidence:** `test/kernel/execution/engineering-session.test.ts`, the block beginning `it('treats Approved GovernanceDecision as eligible...`.
+- **Impact:** None on behavior or CI; cosmetic only.
+- **Required Disposition:** No action required.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Documentation Drift (Category 4) / Informational | 1 / 1 |
+| Observation (Category 6) / Informational | 1 / 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest 96/96, full Vitest 84 files / 517 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 60 deferred concepts remain unimplemented and are correctly tracked in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md`: advancement eligibility for Withdrawn Recovery Requirements, event subscriptions/consumers of Recovery Requirement or Governance Decision events, Governed Mission Completion / any Mission completion precondition change (still unscheduled, requires its own future RFC-0001 amendment), and any differentiated Deferred/Escalation-Required treatment beyond uniform Blocking. No deferred concept was silently introduced; source inspection and the regression test confirm no event subscriber was added, `RecoveryRequirement`'s lifecycle was not extended to accept Withdrawn as an eligibility path, and no Host/Adapter file was touched.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership / RFC-0011 boundary:** `GovernanceDecision`'s value, semantics, lifecycle, and production are untouched (`src/kernel/governance/` has zero diff); the eligibility function reads the already-resolved `GovernanceDecisionSnapshot` and `RecoveryRequirementSnapshot` as plain data, never mutating either. Compliant.
+- **RFC-0004 v1.12 boundary:** `RecoveryRequirement`'s own lifecycle, identity, and both the Recovery Resolution and Recovery Withdrawal Contracts are unmodified (`recovery-requirement.ts`, `.service.ts`, `.contract.ts`, `.repository.ts`, `.errors.ts`, `.events.ts` all show zero diff); the new code consumes `findByAttributionKey` and the existing `acceptedOutcomeReference` field exactly as ratified, with no new Recovery Requirement capability. Compliant.
+- **RFC-0004 v1.11 boundary:** Manual, Automatic/Event-Driven, and Review-Gated Advancement are unaffected, verified by a dedicated regression test; Governance-Gated Advancement's existing Advancement Authority is unchanged — no new Advancement Authority was introduced. Compliant.
+- **Fail-closed resolution authority:** A Resolved Recovery Requirement lacking `acceptedOutcomeReference` (or with it blank) is treated identically to a Blocking Recovery Requirement state, never granting eligibility — verified by a dedicated malformed-snapshot test. Compliant.
+- **Pure eligibility evaluation:** `isGovernanceDecisionAdvancementEligible` performs no repository access, no persistence, and no mutation, confirmed by source inspection (no `await`, no repository parameter) and a dedicated determinism test. All repository access is confined to `EngineeringSessionService`, read-only. Compliant.
+- **Withdrawn exclusion:** A Withdrawn Recovery Requirement is treated as Blocking, exactly as ratified; no eligibility path was created for it. Compliant.
+- **Architectural boundaries:** `RecoveryRequirement`, `RecoveryRequirementService`, `RecoveryRequirementGovernanceDecisionConsumer`, `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, and RFC-0011 are byte-for-byte unmodified (confirmed by `git diff --stat`). No `src/hosts` or `src/adapters` file was touched. RFC-0004 text changes are confined to the ratified v1.13 Amendment History entry and the new "Recovery-Gated Re-Advancement Eligibility" subsection; RFC-0011 is unmodified. Compliant.
+- **Terminology:** `isGovernanceDecisionAdvancementEligible`, the Required Behavioral Matrix, and the production-wiring requirement exactly match `NEXUS-RAT-2026-07-16-011`. Compliant.
+- **Tests:** `engineering-session.test.ts` adds full Required Behavioral Matrix coverage plus four mismatched-attribution parameterized cases, a mismatched-Mission case, and a determinism test; `engineering-session.service.test.ts` adds the end-to-end exact-match restoration case, the mismatched-attribution service-level case, and the `createKernelServices` shared-instance wiring test; full suite 517/517 passing (up from 500, net +17 consistent with the added coverage). All rows of the Required Test Matrix (`NEXUS-RAT-2026-07-16-011`) are covered.
+
+### Builder Task Recommendation
+
+None blocking. Sprint 60 satisfies the approval criteria: implemented concepts conform exactly to RFC-0004 v1.13's Recovery-Gated Re-Advancement Eligibility and `NEXUS-RAT-2026-07-16-011`'s Authorized Vertical Slice, Required Behavioral Matrix, and three binding Refinements; deferred concepts are correctly excluded and tracked; all Required Test Matrix rows pass; no Critical, Major, or Minor findings remain. One non-blocking Documentation Task is recommended for a future Builder iteration (`NEXUS-REV-2026-07-16-011-F-001`: correct `IMPLEMENTATION_MANIFEST.md`'s stale Sprint 59 status line). Recommend the Sprint Owner mark Sprint 60 **Approved** and proceed to commit.
+
+---
+
 ## NEXUS-REV-2026-07-16-010 — Sprint 59 — Recovery Requirement Domain Event Publication
 
 - **Reviewed Sprint:** Sprint 59 — Recovery Requirement Domain Event Publication

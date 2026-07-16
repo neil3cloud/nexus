@@ -113,6 +113,7 @@ export function createKernelServices(
     engineeringSessionCheckpointRepository,
     governanceDecisionRepository,
     reviewRepository,
+    recoveryRequirementRepository,
   );
   const missionEngineeringOrchestrationService = new MissionEngineeringOrchestrationService(
     missionEngineeringGroupRepository,

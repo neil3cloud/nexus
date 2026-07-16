@@ -1,5 +1,93 @@
 # Nexus Implementation Report
 
+## Sprint 60 — Recovery-Gated Re-Advancement
+
+### Implemented Slice
+
+Implemented the Milestone 9 Sprint 60 Recovery-Gated Re-Advancement vertical slice. This sprint additively extends Governance-Gated Advancement so a Rejected `GovernanceDecision` can regain advancement eligibility only when the exact attributed `RecoveryRequirement` is Resolved with a present `acceptedOutcomeReference`.
+
+Implemented scope:
+
+- Added a pure, deterministic `isGovernanceDecisionAdvancementEligible(...)` function covering the Sprint 60 Required Behavioral Matrix.
+- Extended `EngineeringSession.advanceWorkflowAfterGovernanceDecision(...)` to consume an optional `RecoveryRequirementSnapshot` without mutating the `GovernanceDecision` or `RecoveryRequirement`.
+- Added a read-only `IRecoveryRequirementRepository.findByAttributionKey(...)` lookup to `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision(...)` for Rejected governance decisions.
+- Wired `createKernelServices()` so `EngineeringSessionService` receives the shared production `InMemoryRecoveryRequirementRepository`.
+- Added unit and service coverage for exact resolved recovery, missing/open/withdrawn/malformed recovery, mismatched attribution, Deferred/Escalation Required blocking, deterministic pure eligibility, production wiring, and unaffected Manual / Automatic/Event-Driven / Review-Gated Advancement.
+
+Out of scope and not implemented:
+
+- Advancement eligibility for Withdrawn Recovery Requirements.
+- Event subscribers or consumers for Recovery Requirement or Governance Decision events.
+- Governed Mission Completion or any Mission completion precondition change.
+- Any differentiated Deferred / Escalation Required treatment beyond uniform Blocking.
+- Any Host or Adapter surfacing.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0004 v1.13 — Execution Model, Recovery-Gated Re-Advancement Eligibility.
+
+Referenced RFCs:
+
+- RFC-0004 v1.11 — Governance-Gated Advancement, consumed and extended without redefining the strategy.
+- RFC-0004 v1.12 — Recovery Requirement, consumed read-only and unmodified.
+- RFC-0011 v1.1 — Engineering Governance Model, `GovernanceDecision` consumed unmodified.
+
+Implemented Concepts:
+
+- Recovery-Gated Re-Advancement Eligibility.
+- Read-only Recovery Requirement lookup by exact attribution key.
+- Pure governance-decision advancement eligibility evaluation.
+- Production repository injection for the shared `IRecoveryRequirementRepository`.
+
+Deferred Concepts:
+
+- Withdrawn Recovery Requirement eligibility.
+- Event-driven recovery re-advancement consumers.
+- Governed Mission Completion.
+- Host/Adapter recovery surfaces.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-010`, `NEXUS-RAT-2026-07-16-011`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0060-recovery-gated-re-advancement.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `EngineeringSessionService` is the orchestration boundary responsible for resolving the optional Recovery Requirement snapshot before invoking the aggregate.
+- The Recovery Requirement repository remains the sole source for exact attribution lookup; the pure eligibility function still fails closed if a supplied snapshot does not match the expected attribution.
+- A Resolved Recovery Requirement restores eligibility only; the existing `advanceWorkflow(...)` path remains the only operation that advances the workflow position.
+
+### Known Limitations
+
+- Recovery-Gated Re-Advancement remains caller/event-flow driven; no new event consumer initiates advancement.
+- Recovery Requirement persistence remains in-memory and process-local.
+- Governed Mission Completion remains unauthorized and unimplemented.
+
+### Validation Summary
+
+- Targeted Sprint 60 validation passed: `engineering-session.test.ts`, `engineering-session.service.test.ts`, and `recovery-requirement.test.ts` (96 tests).
+- TypeScript compile passed.
+- ESLint passed.
+- Vitest passed: 84 files, 517 tests.
+- esbuild passed.
+- Extension-host bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 59 — Recovery Requirement Domain Event Publication
 
 ### Implemented Slice

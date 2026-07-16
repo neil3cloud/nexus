@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { AdvancementTrigger } from '../../../src/kernel/execution/advancement-trigger';
-import { EngineeringSession } from '../../../src/kernel/execution/engineering-session';
+import {
+  EngineeringSession,
+  isGovernanceDecisionAdvancementEligible,
+} from '../../../src/kernel/execution/engineering-session';
 import {
   InvalidEngineeringSessionDefinitionError,
   InvalidEngineeringSessionLifecycleTransitionError,
@@ -9,6 +12,7 @@ import {
 import { EngineeringSessionId } from '../../../src/kernel/execution/engineering-session-id';
 import { EngineeringSessionStatus } from '../../../src/kernel/execution/engineering-session-status';
 import type { EngineeringSessionInput } from '../../../src/kernel/execution/engineering-session.types';
+import type { RecoveryRequirementSnapshot } from '../../../src/kernel/execution/recovery-requirement.types';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { WorkflowChainId } from '../../../src/kernel/execution/workflow-chain-id';
 import type { GovernanceDecisionSnapshot } from '../../../src/kernel/governance/governance.types';
@@ -388,6 +392,155 @@ describe('EngineeringSession domain', () => {
     },
   );
 
+      it('treats Approved GovernanceDecision as eligible regardless of RecoveryRequirement state', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Approved'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Open'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(true);
+      });
+
+      it('treats a Rejected GovernanceDecision with missing RecoveryRequirement as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with Open RecoveryRequirement as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Open'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with Withdrawn RecoveryRequirement as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Withdrawn'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with Resolved RecoveryRequirement missing acceptedOutcomeReference as blocking', () => {
+        const malformedResolvedRequirement = {
+          ...createRecoveryRequirementSnapshot('Resolved'),
+          resolution: undefined,
+        } as unknown as RecoveryRequirementSnapshot;
+
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            recoveryRequirement: malformedResolvedRequirement,
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with exact Resolved RecoveryRequirement and acceptedOutcomeReference as eligible', () => {
+        const session = createSession();
+        const governanceDecision = createGovernanceDecisionSnapshot('Rejected');
+
+        session.advanceWorkflowAfterGovernanceDecision(
+          ReviewOutcome.fromString('Accepted'),
+          governanceDecision,
+          workflowChain,
+          '0',
+          createRecoveryRequirementSnapshot('Resolved'),
+        );
+
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision,
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(true);
+        expect(session.currentWorkflowStepId).toBe('1');
+      });
+
+      it('treats Deferred GovernanceDecision as blocking regardless of RecoveryRequirement state', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Deferred'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats Escalation Required GovernanceDecision as blocking regardless of RecoveryRequirement state', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Escalation Required'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it.each([
+        ['missionId', { missionId: 'mission-2' }],
+        ['engineeringSessionId', { engineeringSessionId: 'session-2' }],
+        ['workflowStepId', { workflowStepId: '1' }],
+        ['governanceDecisionId', { governanceDecisionId: 'governance-decision-2' }],
+      ] as const)(
+        'treats mismatched RecoveryRequirement %s attribution as absent for Rejected GovernanceDecision eligibility',
+        (_field, recoveryRequirementOverride) => {
+          expect(
+            isGovernanceDecisionAdvancementEligible({
+              governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+              recoveryRequirement: {
+                ...createRecoveryRequirementSnapshot('Resolved'),
+                ...recoveryRequirementOverride,
+              },
+              expectedAttribution: createExpectedRecoveryAttribution(),
+            }),
+          ).toBe(false);
+        },
+      );
+
+      it('treats mismatched GovernanceDecision Mission attribution as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: {
+              ...createGovernanceDecisionSnapshot('Rejected'),
+              missionId: 'mission-2',
+            },
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('evaluates Recovery-Gated Re-Advancement eligibility deterministically without repository access', () => {
+        const governanceDecision = createGovernanceDecisionSnapshot('Rejected');
+        const recoveryRequirement = createRecoveryRequirementSnapshot('Resolved');
+        const expectedAttribution = createExpectedRecoveryAttribution();
+        const first = isGovernanceDecisionAdvancementEligible({
+          governanceDecision,
+          recoveryRequirement,
+          expectedAttribution,
+        });
+        const second = isGovernanceDecisionAdvancementEligible({
+          governanceDecision,
+          recoveryRequirement,
+          expectedAttribution,
+        });
+
+        expect(first).toBe(true);
+        expect(second).toBe(true);
+      });
+
   it('rejects Governance approval without Review-Gated eligibility', () => {
     const session = createSession();
 
@@ -541,6 +694,56 @@ describe('EngineeringSession domain', () => {
       criterionResults: Object.freeze([]),
       evaluatedAt: '2026-07-16T00:00:00.000Z',
       explanationCodes: Object.freeze(['governance-decision.test']),
+    });
+  }
+
+  function createExpectedRecoveryAttribution(): {
+    readonly missionId: string;
+    readonly engineeringSessionId: string;
+    readonly workflowStepId: string;
+    readonly governanceDecisionId: string;
+  } {
+    return Object.freeze({
+      missionId: 'mission-1',
+      engineeringSessionId: 'session-1',
+      workflowStepId: '0',
+      governanceDecisionId: 'governance-decision-1',
+    });
+  }
+
+  function createRecoveryRequirementSnapshot(
+    status: RecoveryRequirementSnapshot['status'],
+  ): RecoveryRequirementSnapshot {
+    return Object.freeze({
+      id: 'recovery-requirement-1',
+      missionId: 'mission-1',
+      engineeringSessionId: 'session-1',
+      workflowStepId: '0',
+      governanceDecisionId: 'governance-decision-1',
+      createdAt: '2026-07-16T01:00:00.000Z',
+      creationCausality: Object.freeze(['event-governance-decision-recorded']),
+      status,
+      ...(status === 'Resolved'
+        ? {
+            resolution: Object.freeze({
+              acceptedOutcomeReference: 'review-outcome:accepted-remediation',
+              resolvedAt: '2026-07-16T02:00:00.000Z',
+              attribution: 'builder:primary',
+              causality: Object.freeze(['event-recovery-requirement-created']),
+            }),
+          }
+        : {}),
+      ...(status === 'Withdrawn'
+        ? {
+            withdrawal: Object.freeze({
+              authoritativeDecisionReference: 'NEXUS-RAT-2026-07-16-999',
+              reason: 'Superseded.',
+              withdrawnAt: '2026-07-16T02:00:00.000Z',
+              attribution: 'sprint-owner',
+              causality: Object.freeze(['event-recovery-requirement-created']),
+            }),
+          }
+        : {}),
     });
   }
 });

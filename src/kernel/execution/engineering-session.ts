@@ -15,6 +15,7 @@ import type {
   EngineeringSessionTimelineInput,
   EngineeringSessionTimelineSnapshot,
 } from './engineering-session.types';
+import type { RecoveryRequirementSnapshot } from './recovery-requirement.types';
 import {
   InvalidEngineeringSessionDefinitionError,
   InvalidEngineeringSessionLifecycleTransitionError,
@@ -234,6 +235,7 @@ export class EngineeringSession {
     governanceDecision: GovernanceDecisionSnapshot,
     workflowChain: WorkflowChain | undefined,
     currentWorkflowStepId: string,
+    recoveryRequirement?: RecoveryRequirementSnapshot,
   ): void {
     const governedWorkflowStepPosition = normalizeWorkflowStepPosition(
       currentWorkflowStepId,
@@ -245,7 +247,16 @@ export class EngineeringSession {
     }
 
     assertNonBlockingReviewOutcome(reviewOutcome);
-    assertNonBlockingGovernanceDecision(governanceDecision);
+    assertNonBlockingGovernanceDecision({
+      governanceDecision,
+      ...(recoveryRequirement === undefined ? {} : { recoveryRequirement }),
+      expectedAttribution: {
+        missionId: governanceDecision.missionId,
+        engineeringSessionId: this.engineeringSessionId.toString(),
+        workflowStepId: governedWorkflowStepPosition.toString(),
+        governanceDecisionId: governanceDecision.id,
+      },
+    });
     this.advanceWorkflow(workflowChain);
   }
 
@@ -383,10 +394,52 @@ function assertNonBlockingReviewOutcome(reviewOutcome: ReviewOutcome): void {
   );
 }
 
+export interface GovernanceDecisionAdvancementEligibilityInput {
+  readonly governanceDecision: GovernanceDecisionSnapshot;
+  readonly recoveryRequirement?: RecoveryRequirementSnapshot;
+  readonly expectedAttribution: {
+    readonly missionId: string;
+    readonly engineeringSessionId: string;
+    readonly workflowStepId: string;
+    readonly governanceDecisionId: string;
+  };
+}
+
+export function isGovernanceDecisionAdvancementEligible(
+  input: GovernanceDecisionAdvancementEligibilityInput,
+): boolean {
+  if (input.governanceDecision.value === 'Approved') {
+    return true;
+  }
+
+  if (input.governanceDecision.value !== 'Rejected') {
+    return false;
+  }
+
+  const recoveryRequirement = input.recoveryRequirement;
+
+  if (recoveryRequirement === undefined || recoveryRequirement.status !== 'Resolved') {
+    return false;
+  }
+
+  const acceptedOutcomeReference = recoveryRequirement.resolution?.acceptedOutcomeReference;
+
+  return (
+    acceptedOutcomeReference !== undefined &&
+    acceptedOutcomeReference.trim().length > 0 &&
+    recoveryRequirement.missionId === input.expectedAttribution.missionId &&
+    recoveryRequirement.engineeringSessionId === input.expectedAttribution.engineeringSessionId &&
+    recoveryRequirement.workflowStepId === input.expectedAttribution.workflowStepId &&
+    recoveryRequirement.governanceDecisionId === input.expectedAttribution.governanceDecisionId &&
+    input.governanceDecision.missionId === input.expectedAttribution.missionId &&
+    input.governanceDecision.id === input.expectedAttribution.governanceDecisionId
+  );
+}
+
 function assertNonBlockingGovernanceDecision(
-  governanceDecision: GovernanceDecisionSnapshot,
+  input: GovernanceDecisionAdvancementEligibilityInput,
 ): void {
-  if (governanceDecision.value === 'Approved') {
+  if (isGovernanceDecisionAdvancementEligible(input)) {
     return;
   }
 

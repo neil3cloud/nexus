@@ -5986,3 +5986,176 @@ None yet. A Sprint 59 Reviewer certification is required following implementatio
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-16-010
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-010
+
+## Date
+
+2026-07-16
+
+## Subject
+
+RFC-0004 Amendment Ratification — Recovery-Gated Re-Advancement Eligibility. Amends RFC-0004 — Execution Model to Version 1.13, adding a new "Recovery-Gated Re-Advancement Eligibility" subsection to § Workflow Advancement.
+
+## Originating Request
+
+Following Sprint 59's closure with zero open findings, `nexus-plan` performed a Repository Analysis and Governance Scan. Three next-Sprint candidates were identified for Milestone 9: (1) Recovery-Gated Re-Advancement — giving a Resolved Recovery Requirement (RFC-0004 v1.12) real effect on the Governance-Gated Advancement (v1.11) position it was created alongside; (2) a narrowly scoped, no-RFC-amendment consumer of Recovery Requirement/`GovernanceDecisionRecorded` events; (3) Governed Mission Completion, requiring its own RFC-0001 amendment. The Sprint Owner selected option (1). `nexus-plan` identified that RFC-0004 v1.11 and v1.12 each explicitly reserve this capability pending its own future RFC amendment and Sprint Owner ratification, and drafted this amendment. The Sprint Owner approved the draft with two binding wording refinements (preserving the Rejected `GovernanceDecision`'s immutability in the amendment text; requiring the Recovery Resolution Contract's existing accepted-outcome reference to match the exact Recovery Requirement being relied upon) before ratification.
+
+## Governance Decision
+
+**RFC-0004 Amendment Approved, with refinements incorporated.** The Sprint Owner amends RFC-0004 to Version 1.13, adding Recovery-Gated Re-Advancement Eligibility to Governance-Gated Advancement (v1.11).
+
+### Ratified Semantics
+
+For a workflow position governed by a Rejected `GovernanceDecision`:
+
+| Recovery Requirement State | Advancement Eligibility |
+| --- | --- |
+| Missing | Blocking |
+| Open | Blocking |
+| Resolved | Eligible for normal advancement evaluation |
+| Withdrawn | Blocking |
+
+- A Resolved Recovery Requirement SHALL NOT change, supersede, or reinterpret the originating Rejected `GovernanceDecision`; the decision remains immutable and fully attributable (RFC-0011, unmodified). It provides an additional, independent advancement-eligibility input demonstrating that the remediation obligation created from that decision has been authoritatively satisfied.
+- Eligibility applies only when: the Recovery Requirement's status is Resolved; the reference required by the existing Recovery Resolution Contract (v1.12, unmodified) — an immutable reference to the authoritative accepted engineering outcome demonstrating remediation — is present and is the reference that resolved that exact Recovery Requirement; and the Recovery Requirement's Mission, Engineering Session, Workflow Step, and originating `GovernanceDecision` identity references all match the workflow position being evaluated. An accepted outcome resolving a different, unrelated Recovery Requirement SHALL NOT satisfy this path.
+- Resolved status SHALL NOT itself produce an Advancement Result; it SHALL only restore Advancement Eligibility for evaluation by Governance-Gated Advancement's existing Advancement Authority. Every other existing Advancement Eligibility precondition SHALL still be satisfied before an Advancement Result may be produced.
+- Withdrawn is explicitly excluded: withdrawal demonstrates only that a Recovery Requirement ceased to apply through separate authority, not that the rejected engineering condition was remediated. Extending eligibility to Withdrawn requires its own future RFC amendment and Sprint Owner ratification.
+- Deferred and Escalation Required remain Blocking and unaffected — v1.12 creates no Recovery Requirement for either.
+
+This amendment SHALL NOT modify `GovernanceDecision`'s value, semantics, lifecycle, or production (RFC-0011, unmodified); SHALL NOT modify Recovery Requirement's own lifecycle, ownership, Recovery Resolution Contract, or Recovery Withdrawal Contract (v1.12, unmodified); SHALL NOT mutate Workflow Chain topology or Workflow Step definitions; SHALL NOT modify Mission completion preconditions (RFC-0001, unmodified; Governed Mission Completion remains separately unauthorized); and SHALL NOT introduce a new Advancement Authority.
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0004's own text (Amendment History, new Workflow Advancement subsection) and therefore carries RFC-tier authority for that amendment, per RFC-0004/RFC-0011's shared Authority Hierarchy convention. It does not modify RFC-0011, RFC-0001–0003, RFC-0005–0010, or the Kernel Canon, and does not redefine any concept owned by another RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to:
+
+1. amend RFC-0004 to v1.13 as recorded in `knowledge/specifications/rfc-0004-execution-model.md` — complete;
+2. update RFC-0004's Amendment History accordingly — complete;
+3. prepare this ratification entry — complete;
+4. prepare a companion Sprint-scope ratification authorizing Sprint 60's implementation of this amendment, narrowly scoped to this amendment's actual text.
+
+No Builder implementation is authorized by this ratification alone; implementation requires the companion Sprint-scope ratification.
+
+## Deferred Concepts
+
+Advancement eligibility for Withdrawn Recovery Requirements; event subscriptions/consumers of Recovery Requirement or Governance Decision events; Governed Mission Completion or any Mission completion precondition change; any differentiated Deferred/Escalation-Required treatment beyond uniform Blocking; Host or Adapter changes. Each remains unauthorized pending its own future RFC amendment and/or Sprint Owner scope ratification.
+
+## Related Sprint(s)
+
+- Sprint 60 — Recovery-Gated Re-Advancement (implements this amendment; companion Sprint-scope ratification to follow).
+- Sprint 59 — Recovery Requirement Domain Event Publication (precedent; frozen, consumed read-only).
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (`RecoveryRequirement` aggregate, Recovery Resolution Contract; frozen, consumed read-only).
+- Sprint 57 — Governance-Gated Workflow Advancement (Governance-Gated Advancement Strategy, v1.11; frozen, consumed read-only).
+
+## Related Review(s)
+
+None yet. A Sprint 60 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner amends RFC-0004 — Execution Model to Version 1.13, adding Recovery-Gated Re-Advancement Eligibility to Governance-Gated Advancement, per the Governance Decision recorded above. A Resolved Recovery Requirement, exactly attributed to the Rejected `GovernanceDecision` governing a blocked workflow position and referencing the accepted engineering outcome that resolved it, restores that position's Advancement Eligibility for evaluation by the existing Governance-Gated Advancement authority; it does not reclassify the `GovernanceDecision` itself, does not itself produce an Advancement Result, and does not extend to Withdrawn Recovery Requirements. This amendment does not modify RFC-0011, Recovery Requirement's existing lifecycle or contracts, Workflow Chain topology, or Mission completion preconditions, and introduces no new Advancement Authority. The Sprint Owner authorizes `nexus-plan` to prepare the companion Sprint 60 scope ratification narrowly implementing this amendment.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-16-011
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-011
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 60 Scope Ratification — Recovery-Gated Re-Advancement. Authorizes implementation of Recovery-Gated Re-Advancement Eligibility as defined by `NEXUS-RAT-2026-07-16-010` (RFC-0004 v1.13).
+
+## Originating Request
+
+Following `NEXUS-RAT-2026-07-16-010`'s RFC-0004 v1.13 amendment, `nexus-plan` drafted a Sprint 60 scope proposal grounded in the existing source: `EngineeringSession.advanceWorkflowAfterGovernanceDecision` and its private `assertNonBlockingGovernanceDecision` (`engineering-session.ts`), and the existing, unmodified `IRecoveryRequirementRepository.findByAttributionKey` lookup and `acceptedOutcomeReference` field (Sprint 58, frozen). The Sprint Owner approved the proposal with three refinements: (1) mandatory production repository injection in `createKernelServices()`, with optional injection preserved only for isolated construction/unit testing; (2) explicit fail-closed behavior when a Resolved snapshot lacks its `acceptedOutcomeReference`; (3) a strict separation between repository-lookup orchestration (`EngineeringSessionService`) and a pure, side-effect-free eligibility function.
+
+## Governance Decision
+
+**Approved, with refinements incorporated.** Sprint 60 — Recovery-Gated Re-Advancement is authorized for implementation, strictly as follows.
+
+### Authorized Vertical Slice
+
+Sprint 60 SHALL introduce:
+
+- An optional constructor-injected `IRecoveryRequirementRepository` on `EngineeringSessionService`, used exclusively to call `findByAttributionKey({ missionId, engineeringSessionId, workflowStepId, governanceDecisionId })` ahead of invoking `EngineeringSession.advanceWorkflowAfterGovernanceDecision` — read-only; no repository mutation, no `RecoveryRequirementService` invocation.
+- A pure, deterministic eligibility function (replacing or wrapping the existing `assertNonBlockingGovernanceDecision`) accepting the `GovernanceDecisionSnapshot` and an optional `RecoveryRequirementSnapshot`, and implementing exactly the Required Behavioral Matrix below. The function SHALL perform no repository access, no persistence, and SHALL mutate neither `GovernanceDecision` nor `RecoveryRequirement` state; it SHALL return or throw deterministically from its supplied inputs only.
+- `createKernelServices()` updated so `EngineeringSessionService` always receives the shared, production `IRecoveryRequirementRepository` instance. Optional injection MAY remain solely for isolated unit-test construction or backward compatibility; production composition SHALL NOT omit it.
+
+#### Required Behavioral Matrix (binding)
+
+| Governance Decision | Recovery Requirement | Result |
+| --- | --- | --- |
+| Approved | Any or none | Existing approved path unchanged |
+| Rejected | Missing | Blocking |
+| Rejected | Open | Blocking |
+| Rejected | Withdrawn | Blocking |
+| Rejected | Resolved without `acceptedOutcomeReference` | Blocking (fail closed) |
+| Rejected | Resolved with exact attribution and `acceptedOutcomeReference` present | Eligible for normal advancement evaluation |
+| Deferred | Any | Blocking |
+| Escalation Required | Any | Blocking |
+
+A Recovery Requirement whose attribution key does not exactly match the Mission, Engineering Session, Workflow Step, and originating `GovernanceDecision` under evaluation SHALL be treated as absent (Missing). Restored eligibility SHALL NOT itself advance the workflow; `EngineeringSession.advanceWorkflowAfterGovernanceDecision`'s existing delegation to the unmodified `advanceWorkflow` remains the sole mechanism producing an Advancement Result.
+
+### Explicitly Unauthorized
+
+Sprint 60 SHALL NOT modify: `RecoveryRequirement`'s lifecycle, identity, or attribution; `RecoveryRequirementService`, `RecoveryRequirementGovernanceDecisionConsumer`, the Recovery Resolution Contract, or the Recovery Withdrawal Contract; `GovernanceDecision`'s lifecycle or semantics, or `GovernanceService`; `WorkflowChain` or `WorkflowStep`; Manual, Automatic/Event-Driven, or Review-Gated Advancement; any event subscriber/consumer; Host or Adapter code; or Governed Mission Completion.
+
+### Required Test Matrix
+
+1. Every row of the Required Behavioral Matrix above, exercised as a dedicated test.
+2. A Resolved Recovery Requirement at a mismatched attribution key (different Mission, Engineering Session, Workflow Step, or `GovernanceDecision`) does not restore eligibility for the position under evaluation.
+3. The eligibility function is verified pure: given identical inputs it is deterministic, and a dedicated test confirms no repository or persistence call occurs within it.
+4. `createKernelServices()` wires the shared, production `IRecoveryRequirementRepository` into `EngineeringSessionService` (integration-level test).
+5. `RecoveryRequirement`, `RecoveryRequirementService`, `GovernanceDecision`, `GovernanceService`, `WorkflowChain` remain byte-for-byte unmodified (dedicated `git diff`-style or negative test).
+6. Manual, Automatic/Event-Driven, and Review-Gated Advancement remain unaffected (regression test).
+7. Full repository validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint scope only; it operates at the Implementation Plan tier, below the RFC-tier authority already established by `NEXUS-RAT-2026-07-16-010`. It does not itself amend any RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to generate the Sprint 60 Sprint Implementation Record, activate Sprint 60 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, and prepare Builder handoff, strictly limited to the Authorized Vertical Slice, incorporated Refinements, Required Behavioral Matrix, and Required Test Matrix above.
+
+## Deferred Concepts
+
+Advancement eligibility for Withdrawn Recovery Requirements; event subscriptions/consumers; Governed Mission Completion and any Mission completion precondition change; any differentiated Deferred/Escalation-Required treatment beyond uniform Blocking; Host or Adapter changes.
+
+## Related Sprint(s)
+
+- Sprint 60 — Recovery-Gated Re-Advancement (this ratification's authorized scope).
+- Sprint 59 — Recovery Requirement Domain Event Publication (unaffected; frozen, consumed read-only).
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (`RecoveryRequirement`, Recovery Resolution Contract, `IRecoveryRequirementRepository.findByAttributionKey`; frozen, consumed read-only).
+- Sprint 57 — Governance-Gated Workflow Advancement (`EngineeringSession.advanceWorkflowAfterGovernanceDecision`, `assertNonBlockingGovernanceDecision`; extended, not redefined).
+
+## Related Review(s)
+
+None yet. A Sprint 60 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 60 — Recovery-Gated Re-Advancement, per the Governance Decision recorded above, implementing exactly the Required Behavioral Matrix via an optional, production-wired `IRecoveryRequirementRepository` injection on `EngineeringSessionService` and a pure, side-effect-free eligibility function consuming its lookup result. Sprint 60 SHALL implement only the Authorized Vertical Slice above. `nexus-plan` is authorized to record this ratification, generate the Sprint 60 Sprint Implementation Record, activate Sprint 60, and prepare Builder handoff.
+
+## Current Status
+
+Active
+
+---

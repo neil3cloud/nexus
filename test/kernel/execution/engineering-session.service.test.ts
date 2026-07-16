@@ -6,6 +6,7 @@ import type { AdapterRequest } from '../../../src/kernel/adapter/adapter-request
 import { AdapterResponse } from '../../../src/kernel/adapter/adapter-response';
 import { InMemoryAdapterRegistry } from '../../../src/kernel/adapter/adapter-registry';
 import { AdapterService } from '../../../src/kernel/adapter/adapter.service';
+import { createKernelServices } from '../../../src/kernel/common/create-kernel-services';
 import type { EventBusContract, EventBusEvent, EventSubscriptionHandle } from '../../../src/kernel/common/event-bus-contract';
 import { ProtocolVersion } from '../../../src/kernel/adapter/protocol-version';
 import { InMemoryAssignmentPolicyRepository } from '../../../src/kernel/execution/assignment-policy.repository';
@@ -29,6 +30,9 @@ import { InMemoryExecutionStrategyRepository } from '../../../src/kernel/executi
 import { InMemoryRoleAssignmentRepository } from '../../../src/kernel/execution/role-assignment.repository';
 import { InMemoryRoleRegistry } from '../../../src/kernel/execution/role-registry';
 import { RoleService } from '../../../src/kernel/execution/role.service';
+import { RecoveryRequirement } from '../../../src/kernel/execution/recovery-requirement';
+import { InMemoryRecoveryRequirementRepository } from '../../../src/kernel/execution/recovery-requirement.repository';
+import { RecoveryRequirementService } from '../../../src/kernel/execution/recovery-requirement.service';
 import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
 import { InMemoryWorkflowChainRepository } from '../../../src/kernel/execution/workflow-chain.repository';
 import { GovernanceDecision } from '../../../src/kernel/governance/governance-decision';
@@ -834,6 +838,72 @@ describe('EngineeringSessionService', () => {
     },
   );
 
+  it('restores Governance-Gated Advancement eligibility for a Rejected GovernanceDecision with an exact Resolved RecoveryRequirement', async () => {
+    const harness = await createGovernanceGatedAdvancementHarness({
+      governanceDecisionValue: 'Rejected',
+      recoveryRequirement: createResolvedRecoveryRequirement(),
+    });
+
+    const advanced = await harness.service.advanceWorkflowAfterGovernanceDecision({
+      engineeringSessionId: harness.engineeringSessionId,
+      governanceDecisionId: harness.governanceDecisionId,
+      currentWorkflowStepId: '0',
+    });
+
+    expect(advanced.currentWorkflowStepId).toBe('1');
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toEqual(
+      advanced,
+    );
+  });
+
+  it('treats a Resolved RecoveryRequirement with mismatched attribution as missing for Rejected GovernanceDecision advancement', async () => {
+    const harness = await createGovernanceGatedAdvancementHarness({
+      governanceDecisionValue: 'Rejected',
+      recoveryRequirement: createResolvedRecoveryRequirement({
+        workflowStepId: '1',
+      }),
+    });
+
+    await expect(
+      harness.service.advanceWorkflowAfterGovernanceDecision({
+        engineeringSessionId: harness.engineeringSessionId,
+        governanceDecisionId: harness.governanceDecisionId,
+        currentWorkflowStepId: '0',
+      }),
+    ).rejects.toThrow(InvalidEngineeringSessionDefinitionError);
+    await expect(harness.service.getEngineeringSession(harness.engineeringSessionId)).resolves.toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+  });
+
+  it('wires createKernelServices so EngineeringSessionService consumes the shared production RecoveryRequirementRepository', async () => {
+    const services = createKernelServices(new TestEventBus());
+    const engineeringSessionService = services.find(
+      (service): service is EngineeringSessionService => service instanceof EngineeringSessionService,
+    );
+    const recoveryRequirementService = services.find(
+      (service): service is RecoveryRequirementService => service instanceof RecoveryRequirementService,
+    );
+
+    if (engineeringSessionService === undefined || recoveryRequirementService === undefined) {
+      throw new Error('Expected composed EngineeringSessionService and RecoveryRequirementService.');
+    }
+
+    const engineeringSessionDependencies = engineeringSessionService as unknown as {
+      readonly recoveryRequirementRepository?: unknown;
+    };
+    const recoveryRequirementDependencies = recoveryRequirementService as unknown as {
+      readonly repository?: unknown;
+    };
+
+    expect(engineeringSessionDependencies.recoveryRequirementRepository).toBeInstanceOf(
+      InMemoryRecoveryRequirementRepository,
+    );
+    expect(engineeringSessionDependencies.recoveryRequirementRepository).toBe(
+      recoveryRequirementDependencies.repository,
+    );
+  });
+
   it('rejects Governance approval without Review-Gated Advancement eligibility', async () => {
     const harness = await createGovernanceGatedAdvancementHarness({
       reviewOutcome: 'Action Required',
@@ -1609,16 +1679,19 @@ async function createGovernanceGatedAdvancementHarness(input: {
   readonly reviewOutcome?: ReviewOutcomeValue;
   readonly governanceDecisionValue?: GovernanceDecisionValue;
   readonly registerGovernanceDecision?: boolean;
+  readonly recoveryRequirement?: RecoveryRequirement;
 } = {}): Promise<{
   readonly service: EngineeringSessionService;
   readonly governanceDecision: GovernanceDecision;
   readonly governanceDecisionId: string;
   readonly engineeringSessionId: string;
+  readonly recoveryRequirementRepository: InMemoryRecoveryRequirementRepository;
 }> {
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
   const workflowChainRepository = await createWorkflowChainRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
   const reviewRepository = new InMemoryReviewRepository();
+  const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
   const service = new EngineeringSessionService(
     engineeringSessionRepository,
     workflowChainRepository,
@@ -1631,6 +1704,7 @@ async function createGovernanceGatedAdvancementHarness(input: {
     new InMemoryEngineeringSessionCheckpointRepository(),
     governanceDecisionRepository,
     reviewRepository,
+    recoveryRequirementRepository,
   );
   const review = createCompletedReview(input.reviewOutcome ?? 'Accepted');
   const governanceDecision = createGovernanceDecision(input.governanceDecisionValue ?? 'Approved');
@@ -1640,6 +1714,9 @@ async function createGovernanceGatedAdvancementHarness(input: {
   if (input.registerGovernanceDecision ?? true) {
     await governanceDecisionRepository.register(governanceDecision);
   }
+  if (input.recoveryRequirement !== undefined) {
+    await recoveryRequirementRepository.register(input.recoveryRequirement);
+  }
   await createEngineeringSessionForAdvancement(service, engineeringSessionId);
 
   return {
@@ -1647,7 +1724,30 @@ async function createGovernanceGatedAdvancementHarness(input: {
     governanceDecision,
     governanceDecisionId: governanceDecision.id.toString(),
     engineeringSessionId,
+    recoveryRequirementRepository,
   };
+}
+
+function createResolvedRecoveryRequirement(
+  overrides: Partial<Parameters<typeof RecoveryRequirement.fromSnapshot>[0]> = {},
+): RecoveryRequirement {
+  return RecoveryRequirement.fromSnapshot({
+    id: 'recovery-requirement-governance-gated',
+    missionId: 'mission-governance-gated',
+    engineeringSessionId: 'engineering-session-governance-gated',
+    workflowStepId: '0',
+    governanceDecisionId: 'governance-decision-governance-gated',
+    createdAt: '2026-07-16T01:00:00.000Z',
+    creationCausality: ['event-governance-decision-recorded'],
+    status: 'Resolved',
+    resolution: {
+      acceptedOutcomeReference: 'review-outcome:accepted-remediation',
+      resolvedAt: '2026-07-16T02:00:00.000Z',
+      attribution: 'builder:primary',
+      causality: ['event-recovery-requirement-created'],
+    },
+    ...overrides,
+  });
 }
 
 async function createEngineeringSessionForAdvancement(

@@ -2273,6 +2273,39 @@ Notes:
 
 ---
 
+## Sprint 60 — Recovery-Gated Re-Advancement
+
+Status: Implemented — Pending Reviewer Validation. RFC-0004 amended to v1.13 by `NEXUS-RAT-2026-07-16-010`; Sprint scope authorized by `NEXUS-RAT-2026-07-16-011`. Milestone 9's ninth Sprint.
+
+RFC Coverage:
+
+- RFC-0004 v1.13 — Execution Model (Primary; "Recovery-Gated Re-Advancement Eligibility" §, new).
+- RFC-0004 v1.11/v1.12 — Execution Model (Referenced; Governance-Gated Advancement and Recovery Requirement consumed unmodified).
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed unmodified).
+
+Authorized Concepts:
+
+- An optional constructor-injected `IRecoveryRequirementRepository` on `EngineeringSessionService`, used exclusively via `findByAttributionKey` ahead of invoking `EngineeringSession.advanceWorkflowAfterGovernanceDecision` — read-only.
+- A pure, deterministic eligibility function implementing the Required Behavioral Matrix (`NEXUS-RAT-2026-07-16-011`), replacing or wrapping the existing `assertNonBlockingGovernanceDecision`.
+- `createKernelServices` wiring so `EngineeringSessionService` always receives the shared, production `IRecoveryRequirementRepository`.
+
+Deferred Concepts:
+
+- Advancement eligibility for Withdrawn Recovery Requirements.
+- Event subscriptions/consumers of Recovery Requirement or Governance Decision events.
+- Governed Mission Completion; any Mission completion precondition change (still unscheduled; requires its own future RFC-0001 amendment).
+- Any differentiated Deferred/Escalation-Required treatment beyond uniform Blocking.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- A Resolved Recovery Requirement restores Advancement Eligibility only for the exact (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) attribution key that produced it, and only when its `acceptedOutcomeReference` is present; it does not reclassify the `GovernanceDecision` and does not itself advance the workflow.
+- `RecoveryRequirement`, `RecoveryRequirementService`, `GovernanceDecision`, `GovernanceService`, `WorkflowChain`, and `WorkflowStep` remain unmodified.
+- See `knowledge/implementation/sprints/sprint-0060-recovery-gated-re-advancement.md` for the complete Sprint Implementation Record.
+- Builder implementation complete: added pure Recovery-Gated Re-Advancement eligibility evaluation, read-only exact-attribution Recovery Requirement lookup in `EngineeringSessionService`, production shared repository injection in `createKernelServices`, and Sprint 60 test coverage. Repository validation passed: TypeScript compile, ESLint, Vitest (84 files / 517 tests), esbuild, and extension-host bundle build.
+
+---
+
 ## Sprint 59 — Recovery Requirement Domain Event Publication
 
 Status: Implemented — Pending Reviewer Validation. Sprint scope authorized by `NEXUS-RAT-2026-07-16-009`. No RFC amendment. Milestone 9's eighth Sprint.

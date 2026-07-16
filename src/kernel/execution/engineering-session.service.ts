@@ -6,6 +6,7 @@ import type { AdapterService } from '../adapter/adapter.service';
 import { KernelError } from '../common/kernel-error';
 import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
 import type { IReviewRepository } from '../review/review.repository';
+import type { IRecoveryRequirementRepository } from './recovery-requirement.repository';
 import { AdvancementTrigger } from './advancement-trigger';
 import type { AssignmentPolicyService } from './assignment-policy.service';
 import type { AssignmentPolicyEvaluationResult } from './assignment-policy.types';
@@ -102,6 +103,10 @@ export class EngineeringSessionService
       new InMemoryEngineeringSessionCheckpointRepository(),
     private readonly governanceDecisionRepository?: Pick<IGovernanceDecisionRepository, 'getById'>,
     private readonly reviewRepository?: Pick<IReviewRepository, 'getById'>,
+    private readonly recoveryRequirementRepository?: Pick<
+      IRecoveryRequirementRepository,
+      'findByAttributionKey'
+    >,
   ) {
     super('EngineeringSessionService');
   }
@@ -221,12 +226,26 @@ export class EngineeringSessionService
     }
 
     const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const recoveryRequirement =
+      governanceDecisionSnapshot.value === 'Rejected' &&
+      this.recoveryRequirementRepository !== undefined
+        ? await this.recoveryRequirementRepository.findByAttributionKey({
+            missionId: governanceDecisionSnapshot.missionId,
+            engineeringSessionId: engineeringSession.id.toString(),
+            workflowStepId: normalizeCreationReference(
+              command.currentWorkflowStepId,
+              'EngineeringSession currentWorkflowStepId',
+            ),
+            governanceDecisionId: governanceDecisionSnapshot.id,
+          })
+        : undefined;
 
     engineeringSession.advanceWorkflowAfterGovernanceDecision(
       reviewOutcome,
       governanceDecisionSnapshot,
       workflowChain,
       command.currentWorkflowStepId,
+      recoveryRequirement?.toSnapshot(),
     );
     await this.repository.save(engineeringSession);
 
