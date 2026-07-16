@@ -2,6 +2,123 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-016 — Sprint 63 — Governance State Projection Foundation (Mission-Scoped, Narrowed Scope)
+
+- **Reviewed Sprint:** Sprint 63 — Governance State Projection Foundation (Milestone 10's opening Sprint), under the Mission-scoped-only Objective narrowed by `NEXUS-RAT-2026-07-16-016`.
+- **Reviewed Vertical Slice:** A new, immutable, Mission-scoped `GovernanceStateProjection` read model — `IGovernanceStateProjectionRepository`/`InMemoryGovernanceStateProjectionRepository`, `GovernanceStateProjectionService` (the system's first concrete Domain Event consumer), and additive `createKernelServices()` wiring — built exclusively by consuming existing, frozen `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` events.
+- **RFC Coverage:** RFC-0005 (Referenced; first concrete consumer), RFC-0004 v1.13 (Referenced), RFC-0011 v1.0 (Referenced), RFC-0001 v1.1 (Referenced). No RFC amended.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 63 implements exactly the Mission-scoped-only vertical slice authorized by `NEXUS-RAT-2026-07-16-016`, correcting the Category 5 finding from `NEXUS-REV-2026-07-16-015`. Independently verified in source that every field the projection reads from `GovernanceDecisionRecorded` (`governanceDecisionId`, `governanceDecisionValue`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `policyEvaluationId`, `evaluationKey`, `explanationCodes`, `governanceEscalationId`) and from the Recovery Requirement events (`recoveryRequirementId`, `recoveryRequirementStatus`, `governanceDecisionId`, `createdAt`, plus conditional `resolvedAt`/`withdrawnAt`) matches the actual, unmodified payloads produced by `createGovernanceDecisionRecordedEvent` (`governance.events.ts`) and `createRecoveryRequirementEvent` (`recovery-requirement.events.ts`) — confirmed byte-for-byte against both files. Confirmed the projection reads no `engineeringSessionId`/`workflowStepId` field from any event, even though `RecoveryRequirement` events do carry those fields in their payload (for the deferred future Workflow-Step-scoped projection) — the implementation correctly ignores them, honoring `NEXUS-RAT-2026-07-16-016`'s explicit prohibition on inferring that attribution. Confirmed via `git diff --stat` that `governance.events.ts`, `governance-decision.ts`, `recovery-requirement.ts`, and `recovery-requirement.events.ts` are all byte-for-byte unmodified — the projection is genuinely read-only. Confirmed `GovernanceStateProjectionService` uses only the Kernel's existing, pre-existing `EventBusContract.subscribe()`/`.replay()` methods (both unmodified, confirmed no diff on `event-bus-contract.ts`/`event-bus.ts`) — no new subscription framework was built. Confirmed `isProjectionBlocking`'s four-way branch exhaustively and correctly covers all four `GovernanceDecisionValue`s (Approved/Rejected/Deferred/Escalation Required), mirroring existing Sprint 57/58/60 Blocking classification without reinterpreting it. Confirmed no `src/hosts` or `src/adapters` file changed, and confirmed `governance-automation-integration-validation.integration.test.ts`'s Sprint 62 production-drift self-check was correctly and minimally updated to allowlist exactly the six new/changed Sprint 63 production files, preserving its guard over every other Sprint 1–62 production contract. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 86 files / 551 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. No architectural violations detected.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 2 (informational, non-blocking, no Builder Task; see below) |
+
+### Observations (Category 6, informational; no Builder Task)
+
+- `GovernanceStateProjectionService.getGovernanceStateProjection` both maintains a live `EventBus` subscription (updating the repository as events are published) and unconditionally replays the Mission's entire event history on every retrieval call, re-applying already-consumed events. This is harmless — `GovernanceStateProjection.apply()` dedupes by `eventId` via `consumedEventIds.includes(...)`, verified idempotent by the dedicated replay test — but the two mechanisms are redundant for any Mission that has been continuously subscribed since its first event, and the per-event `includes()` dedup check is `O(n)`, making a full replay-and-reapply `O(n²)` in the Mission's total event count. At current scale (in-memory, test-driven) this is immaterial. A future Sprint could reconsider whether replay-on-read is needed at all once subscription-only freshness is proven sufficient, or use a `Set` for `consumedEventIds` lookups if event counts grow.
+- `GovernanceStateProjectionDecisionSnapshot` carries several `GovernanceDecision` fields (`repositoryPolicyId`, `policyEvaluationId`, `evaluationKey`, `explanationCodes`) that no Required Test Matrix item or downstream consumer currently exercises beyond round-tripping. This is consistent with the Ratification's "Mission-level governance diagnostics and attribution" language and not scope creep, but future Sprints consuming this projection should confirm which fields are actually load-bearing before depending on them.
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: per-Engineering-Session and per-Workflow-Step governance projection; Workflow-position attribution in Governance events or `GovernanceDecision`; Event-Driven Workflow Coordination (Milestone 10 Step 2); Recovery Workflow Automation (Step 3); Autonomous Engineering Integration Validation (Step 4); Host/Adapter governance surfacing; `MissionPaused`/`MissionResumed` correction; Recovery-aware Mission completion attribution bridging; any general-purpose event-subscription framework. `git diff --stat -- src/` confirms no file outside the six Sprint 63 production files (plus the pre-existing `create-kernel-services.ts` wiring point) changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the Mission-scoped-only vertical slice authorized by `NEXUS-RAT-2026-07-16-016` was added. Compliant.
+- **Ratification Compliance:** All six explicit prohibitions in `NEXUS-RAT-2026-07-16-016` are honored: no Engineering-Session/Workflow-Step inference; `GovernanceDecisionRecorded` unmodified; `GovernanceDecision` unmodified; no invented attribution convention; no reuse of caller-supplied command context (the service only ever reads `EventBusEvent` payloads, never a command object); RFC-0005/RFC-0011 unmodified. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `GovernanceStateProjection` is a new, additive, disposable read model with its own repository contract; it does not mutate any existing aggregate, confirmed by source inspection (no write-path calls to any other repository or aggregate) and byte-for-byte-unmodified status of every consumed event/aggregate source file. Compliant.
+- **Event Compliance (Gate 7):** Consumes only the four existing, frozen event types via the existing `EventBusContract.subscribe()`/`.replay()`; no event envelope, type, or publisher was changed. Compliant.
+- **Determinism (Gate 9):** Replaying an identical event sequence produces an identical projection (dedicated test, and independently reasoned from `apply()`'s pure, immutable, `eventId`-deduped construction). Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly `create-kernel-services.ts` (additive wiring) plus the five new `governance-state-projection.*` files; `git diff --stat -- src/hosts src/adapters` is empty. Compliant.
+- **Tests (Gate 11):** All seven Required Test Matrix items are covered by the eight tests in `governance-state-projection.test.ts`, plus updated coverage in `kernel-boundary-certification.integration.test.ts` and `governance-automation-integration-validation.integration.test.ts`. The full repository suite (86 files / 551 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 63 is fully closed.
+
+---
+
+## NEXUS-REV-2026-07-16-015 — Sprint 63 — Governance State Projection Foundation (Pre-Implementation Blocking Review)
+
+- **Reviewed Sprint:** Sprint 63 — Governance State Projection Foundation (Milestone 10's opening Sprint)
+- **Reviewed Vertical Slice:** None. No implementation was submitted. The Builder reported a blocking specification conflict discovered before writing any code, per `IMPLEMENTATION_CONSTITUTION.md`'s "Documentation Before Code" rule.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Referenced, unmodified); RFC-0004 v1.13, RFC-0011, RFC-0001 v1.1 (Referenced, unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** BLOCKED — Governance Decision Required (not PASS / PASS WITH FINDINGS / FAIL; no implementation exists to certify or reject)
+
+### Executive Summary
+
+The Builder reported, before implementing any code, that Sprint 63's Objective — a `GovernanceStateProjection` reporting "the latest `GovernanceDecision` outcome per Workflow position" — cannot be built by passively subscribing to existing, frozen Domain Events, and that satisfying it would require either modifying a frozen event payload or inventing an unauthorized attribution rule, both forbidden by Sprint 63's own scope.
+
+Independently verified against source, not merely accepted on the Builder's word:
+
+- `src/kernel/governance/governance.events.ts`: `createGovernanceDecisionRecordedEvent` publishes only `missionId` (envelope) and `governanceDecisionId` (payload). No `engineeringSessionId` or `workflowStepId` is carried.
+- `src/kernel/governance/governance-decision.ts`: the `GovernanceDecision` aggregate itself has no `engineeringSessionId`/`workflowStepId` field — it is Mission-scoped only, consistent with Sprint 56's ratified Mission-Scoped Governance Evaluation (`NEXUS-RAT-2026-07-16-004`).
+- `src/kernel/execution/governance-gated-workflow-advancement.consumer.ts` and `src/kernel/execution/recovery-requirement-governance-decision.consumer.ts`: both existing production consumers of `GovernanceDecisionRecorded` require `engineeringSessionId`/`(current)WorkflowStepId` as **caller-supplied command inputs**, not as event-payload or aggregate-derived data. Workflow-position attribution has always come from the caller's own context, never from the event stream.
+
+The Builder's claim is confirmed exactly: a pure `EventBus` subscriber has no deterministic way to derive Workflow Step position from `GovernanceDecisionRecorded` alone, and Sprint 63 authorizes no event-payload change and no new attribution mechanism. The Builder correctly performed no implementation, consistent with the Constitution's "Documentation Before Code" rule and Category 5's required Builder Action ("perform no implementation").
+
+### Root Cause
+
+This is not a Builder misunderstanding, nor an RFC defect. It traces to the Sprint 63 Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0063-governance-state-projection-foundation.md`), drafted by `nexus-plan`, which stated the projection's Objective and first Required Test Matrix item ("reflects... `GovernanceDecision` outcome... for a Workflow position") in terms of per-Workflow-Step granularity. `NEXUS-RAT-2026-07-16-015`'s actual binding text authorizes only a "Mission-scoped consumer... producing a deterministic read model of governance, recovery, advancement, escalation, and completion state" — it does not itself require per-Workflow-Step granularity. The Sprint Implementation Record's wording exceeded what the Ratification actually authorizes and what the frozen event/aggregate model can deterministically support.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-015-F-001 — Sprint 63's Objective requires Workflow-Step-level attribution that no authorized data source can deterministically supply
+
+- **Category:** Category 5 — Governance Decision Required
+- **Severity:** Major (blocks all Sprint 63 implementation; not a code defect)
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Documentation Before Code; `NEXUS-RAT-2026-07-16-015` (actual authorized text is Mission-scoped only); RFC-0005 (event payloads are frozen; Sprint 63 authorizes no amendment); Sprint 56/`NEXUS-RAT-2026-07-16-004` (Mission-Scoped Governance Evaluation — `GovernanceDecision` has no Workflow-Step identity by design).
+- **Summary:** The Sprint 63 Sprint Implementation Record requires the projection to report `GovernanceDecision` outcomes "per Workflow position," but `GovernanceDecisionRecorded` carries only `missionId`/`governanceDecisionId`, the `GovernanceDecision` aggregate carries no Workflow-Step identity, and existing consumers obtain that identity exclusively from caller-supplied command context — never from the event stream. No mechanism authorized by Sprint 63 can supply it.
+- **Evidence:** `src/kernel/governance/governance.events.ts` lines 12–37; `src/kernel/governance/governance-decision.ts` (no `engineeringSessionId`/`workflowStepId` field); `src/kernel/execution/governance-gated-workflow-advancement.consumer.ts` lines 7–10, 23–30; `src/kernel/execution/recovery-requirement-governance-decision.consumer.ts` lines 16–19, 35–42.
+- **Impact:** Sprint 63 cannot proceed as scoped. No workaround exists within the Architectural Constraints already ratified (no event-payload modification; no new attribution rule; no generic subscriber framework).
+- **Required Disposition:** Sprint Owner SHALL resolve, via a future `nexus-plan` cycle, exactly one of: (a) narrow Sprint 63's Objective to Mission-scoped-only reporting — matching `NEXUS-RAT-2026-07-16-015`'s actual literal text, requiring no RFC amendment and immediately unblocking implementation; or (b) ratify an RFC-0005 amendment adding Workflow-Step attribution to `GovernanceDecisionRecorded` (or an equivalent join mechanism), then re-scope Sprint 63 accordingly. The Reviewer does not recommend between these; both are legitimate Sprint Owner choices with different cost/scope tradeoffs.
+- **Builder Action:** None. Wait for ratification. The Builder correctly wrote no code and MUST NOT invent an attribution rule or modify `governance.events.ts` independently.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 1 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Not applicable — no implementation exists. All Sprint 63 Deferred Concepts remain correctly unimplemented (confirmed: no `GovernanceStateProjection`-named file, and no `src/hosts`/`src/adapters` change, exists anywhere in the repository).
+
+### Architectural Compliance Summary
+
+No architectural violation occurred. The Builder's decision to stop before writing code is the architecturally correct response to a genuine, independently-verified specification gap, per `IMPLEMENTATION_CONSTITUTION.md`'s Documentation Before Code rule and Category 5's Builder Action ("perform no implementation").
+
+### Builder Task Recommendation
+
+None. This finding requires a Sprint Owner governance decision (Category 5), not a Builder Task. Per `nexus-review`'s Builder Action Rules, Category 5 findings route to Human Ratification via `nexus-plan`, not to `nexus-sprint`/Builder Task generation. `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` are unchanged (Builder/Sprint-Owner-owned artifacts). Sprint 63's status in `IMPLEMENTATION_PLAN.md` is updated to reflect the block; the Sprint remains Current pending the Sprint Owner's resolution.
+
+---
+
 ## NEXUS-REV-2026-07-16-014 — Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (TASK-001 Resolution Verification)
 
 - **Reviewed Sprint:** Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (follow-up review limited to TASK-001's resolution of `NEXUS-REV-2026-07-16-013-F-001`)

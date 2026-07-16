@@ -6420,3 +6420,175 @@ None yet. A Sprint 62 Reviewer certification is required following implementatio
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-16-015
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-015
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Milestone 10 Opening Ratification — Autonomous Engineering Readiness. Opens Milestone 10, sets its binding Objective, Architectural Boundary, and Initial Capability Sequence, and authorizes Sprint 63 — Governance State Projection Foundation.
+
+## Originating Request
+
+Following Milestone 9's closure (declared complete this `nexus-plan` cycle per `NEXUS-RAT-2026-07-16-014`'s Milestone Decision Authority), `nexus-plan` presented four candidate directions for the next Sprint — Host/Adapter governance surfacing, isolated `MissionPaused`/`MissionResumed` lifecycle correction, generic event-subscription infrastructure, and further narrow Milestone 9 recovery refinements. The Sprint Owner declined all four as the opening of Milestone 10 and instead directed a new milestone built around closing the loop between the deterministic execution and governance foundations completed through Milestone 9, opening with a concrete Domain Event consumer rather than speculative infrastructure.
+
+## Governance Decision
+
+**Approved as directed.** Milestone 10 — Autonomous Engineering Readiness is opened, strictly as follows.
+
+### Milestone 10 Objective (binding)
+
+Transform the deterministic execution and governance foundations completed through Milestone 9 into a closed-loop engineering workflow capable of reacting to authoritative engineering outcomes with reduced manual coordination.
+
+### Architectural Boundary (binding)
+
+Milestone 10 SHALL NOT begin with:
+
+- Host or Adapter governance UI;
+- isolated `MissionPaused`/`MissionResumed` lifecycle correction;
+- generic event-subscription infrastructure without a concrete consumer;
+- further narrow Milestone 9 recovery refinements.
+
+These MAY be addressed later as supporting work but do not define the milestone's opening architecture. Milestone 10 SHALL NOT introduce autonomous architectural decision-making, autonomous ratification, or AI governance deliberation at any point in its Initial Capability Sequence.
+
+### Initial Capability Sequence (binding, sequencing only — each future step requires its own Sprint scope ratification)
+
+1. **Governance State Projection** — a concrete Mission-scoped consumer of `GovernanceDecision` and `RecoveryRequirement` Domain Events, producing a deterministic read model of governance, recovery, advancement, escalation, and completion state. No workflow mutation or Host UI.
+2. **Event-Driven Workflow Coordination** — uses the governance projection to invoke existing advancement and completion authorities through public contracts. Introduces no new governance decision semantics.
+3. **Recovery Workflow Automation** — converts authoritative Recovery Requirements into governed recovery execution using existing Engineering Sessions, Workflow Chains, Roles, and Adapters. No autonomous architectural decision-making.
+4. **Autonomous Engineering Integration Validation** — validates the complete Plan → Build → Review → Govern → Recover → Re-review → Advance → Complete lifecycle.
+
+This sequence governs ordering only; it does not pre-authorize any step beyond Sprint 63 below.
+
+### Sprint 63 Authorization (binding)
+
+Sprint 63 — Governance State Projection Foundation is authorized for implementation. Sprint 63 SHALL implement the first concrete Domain Event consumer and a Mission-scoped governance projection. Generic subscription infrastructure MAY be introduced only to the minimum extent required by this concrete projection and SHALL NOT become an independent framework-building exercise.
+
+Sprint 63 SHALL NOT introduce: Host governance surfacing; `MissionPaused`/`MissionResumed` correction; Recovery-aware Mission completion attribution bridging; autonomous planning; AI architectural ratification; unrestricted workflow mutation.
+
+### Certification Scope
+
+Sprint 63 conformance SHALL be assessed against RFC-0004 v1.13, RFC-0005, RFC-0011, RFC-0001 v1.1, the Kernel Canon, the Implementation Constitution, and this ratification.
+
+## Ownership Model (ratified)
+
+This ratification opens a new Milestone and authorizes one Sprint's scope, at the Implementation Plan tier. It amends no RFC and redefines no previously approved vertical slice.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, open Milestone 10 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, generate the Sprint 63 Sprint Implementation Record, activate Sprint 63, and prepare Builder handoff, strictly limited to the Objective, Architectural Boundary, and Sprint 63 Authorization above.
+
+## Deferred Concepts
+
+Host/Adapter governance surfacing; `MissionPaused`/`MissionResumed` lifecycle correction; generic event-subscription infrastructure as an independent framework; Withdrawn Recovery Requirement eligibility; Recovery-aware Mission completion; Milestone 10 Steps 2–4 of the Initial Capability Sequence (each requires its own future Sprint scope ratification).
+
+## Related Sprint(s)
+
+- Sprint 63 — Governance State Projection Foundation (this ratification's authorized scope).
+- Sprint 52 through Sprint 62 (Milestone 9, frozen, consumed read-only through existing public contracts).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-16-015` — Pre-Implementation Blocking Review. Confirmed the Sprint 63 Sprint Implementation Record's Objective exceeded this ratification's actual (Mission-scoped) authorization by requiring Workflow-Step-level attribution no authorized data source can supply. Category 5 — Governance Decision Required finding; resolved by `NEXUS-RAT-2026-07-16-016`.
+
+## Full Ratification Text
+
+> The Sprint Owner opens Milestone 10 — Autonomous Engineering Readiness, per the Governance Decision recorded above: its binding Objective is to transform the deterministic execution and governance foundations completed through Milestone 9 into a closed-loop engineering workflow capable of reacting to authoritative engineering outcomes with reduced manual coordination. Milestone 10 SHALL NOT begin with Host/Adapter governance UI, isolated `MissionPaused`/`MissionResumed` lifecycle correction, generic event-subscription infrastructure without a concrete consumer, or further narrow Milestone 9 recovery refinements. The Initial Capability Sequence is: (1) Governance State Projection, (2) Event-Driven Workflow Coordination, (3) Recovery Workflow Automation, (4) Autonomous Engineering Integration Validation. Sprint 63 — Governance State Projection Foundation is authorized now: the first concrete Domain Event consumer and Mission-scoped governance projection, with generic subscription infrastructure introduced only to the minimum extent this concrete projection requires. `nexus-plan` is authorized to record this ratification, open Milestone 10, generate the Sprint 63 Sprint Implementation Record, activate Sprint 63, and prepare Builder handoff.
+
+## Current Status
+
+Active — Sprint 63's scope is further narrowed by `NEXUS-RAT-2026-07-16-016`; this ratification's Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified and in effect.
+
+---
+
+# NEXUS-RAT-2026-07-16-016
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-016
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 63 Scope Narrowing — Governance State Projection Foundation. Resolves `NEXUS-REV-2026-07-16-015-F-001` (Category 5 — Governance Decision Required) by narrowing Sprint 63's Objective to Mission-scoped-only governance state projection, removing all Workflow-Step-level attribution requirements.
+
+## Originating Request
+
+`NEXUS-REV-2026-07-16-015` found that the Sprint 63 Sprint Implementation Record's Objective — reporting the latest `GovernanceDecision` outcome "per Workflow position" — exceeded what `NEXUS-RAT-2026-07-16-015` actually authorizes (a Mission-scoped read model) and cannot be satisfied by any authorized data source: `GovernanceDecisionRecorded` carries only Mission/Governance-Decision identity, `GovernanceDecision` owns no Workflow-Step attribution, and existing consumers obtain Workflow-Step position exclusively from caller-supplied command context. The Builder correctly performed no implementation and reported the blocker. The Sprint Owner reviewed the finding and elected to narrow Sprint 63's scope rather than pursue an RFC-0005 amendment.
+
+## Governance Decision
+
+**Approved as directed — narrowed scope.** Sprint 63 — Governance State Projection Foundation remains authorized, strictly re-scoped as follows. This ratification narrows, and does not expand, `NEXUS-RAT-2026-07-16-015`'s authorization; it introduces no new production capability, lifecycle state, domain concept, or architectural dependency beyond what `NEXUS-RAT-2026-07-16-015` already authorized.
+
+### Revised Sprint 63 Objective (binding, supersedes the Objective in the original Sprint 63 Sprint Implementation Record)
+
+Implement a deterministic, Mission-scoped `GovernanceStateProjection`. The projection SHALL report, per Mission:
+
+- the latest authoritative `GovernanceDecision` and its outcome;
+- unresolved Recovery Requirements and their lifecycle state;
+- whether any governance state remains Blocking;
+- whether Escalation Required is present;
+- Mission-level governance diagnostics and attribution.
+
+### Event Inputs (binding)
+
+The projection MAY consume only: `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, `RecoveryRequirementWithdrawn`. All projection state SHALL be derived solely from authoritative event payloads and resolvable public contracts.
+
+### Explicit Prohibitions (binding)
+
+Sprint 63 SHALL NOT:
+
+- infer Engineering Session or Workflow Step identity from any source;
+- modify `GovernanceDecisionRecorded` or any other existing event type;
+- modify the `GovernanceDecision` aggregate;
+- introduce an attribution convention not defined by existing repository law;
+- reuse transient caller-supplied command context inside a passive `EventBus` projection;
+- amend RFC-0005 or RFC-0011.
+
+### Explicitly Deferred (unchanged in kind from the original Sprint 63 record, restated for clarity)
+
+Per-Engineering-Session governance projection; per-Workflow-Step governance projection; Workflow-position attribution in Governance events or in `GovernanceDecision`; Event-Driven Workflow Coordination (Milestone 10 Step 2); Host governance UI; Recovery-aware Mission completion. Any future Workflow-position projection SHALL require its own RFC ownership analysis and a dedicated Sprint Owner ratification.
+
+### Certification Scope
+
+Unchanged from `NEXUS-RAT-2026-07-16-015`: RFC-0004 v1.13, RFC-0005, RFC-0011, RFC-0001 v1.1, the Kernel Canon, the Implementation Constitution, `NEXUS-RAT-2026-07-16-015`, and this ratification.
+
+## Ownership Model (ratified)
+
+This ratification narrows one Sprint's scope, at the Implementation Plan tier. It amends no RFC and redefines no previously approved vertical slice. It supersedes only the per-Workflow-position language in the original Sprint 63 Sprint Implementation Record; `NEXUS-RAT-2026-07-16-015`'s Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, revise the Sprint 63 Sprint Implementation Record to the Revised Sprint 63 Objective above, return Sprint 63 to an implementation-ready status, update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` accordingly, and prepare a corrected Builder handoff.
+
+## Deferred Concepts
+
+Per-Engineering-Session governance projection; per-Workflow-Step governance projection; Workflow-position attribution in Governance events or `GovernanceDecision`; Event-Driven Workflow Coordination; Recovery Workflow Automation; Autonomous Engineering Integration Validation; Host governance UI; Recovery-aware Mission completion.
+
+## Related Sprint(s)
+
+- Sprint 63 — Governance State Projection Foundation (this ratification's narrowed authorized scope).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-16-015` — the Category 5 finding this ratification resolves.
+
+## Full Ratification Text
+
+> The Sprint Owner accepts the Builder stop condition and the Reviewer's Category 5 finding (`NEXUS-REV-2026-07-16-015-F-001`). The Sprint 63 Implementation Record exceeded the scope authorized by `NEXUS-RAT-2026-07-16-015` by requiring Governance State to be projected per Workflow position. Current authoritative contracts provide Mission-scoped attribution only. Sprint 63 SHALL NOT infer Engineering Session or Workflow Step identity; modify `GovernanceDecisionRecorded`; modify `GovernanceDecision`; introduce an attribution convention not defined by repository law; reuse transient caller context inside a passive EventBus projection; or amend RFC-0005 or RFC-0011. The Revised Sprint 63 Objective is: implement a deterministic Mission-scoped `GovernanceStateProjection` reporting, per Mission, the latest authoritative Governance Decision, its outcome, unresolved Recovery Requirements, Recovery Requirement lifecycle state, whether any governance state remains blocking, whether escalation is required, and Mission-level governance diagnostics and attribution — derived solely from `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn`. Per-Engineering-Session and per-Workflow-Step governance projection, Workflow-position attribution in Governance events or `GovernanceDecision`, event-driven workflow advancement, Host governance UI, and Recovery-aware Mission completion all remain deferred. `nexus-plan` SHALL revise the Sprint 63 Implementation Record, remove all per-Workflow-position requirements, preserve the existing ratification's Mission-scoped intent, return Sprint 63 to an implementation-ready state, and prepare a corrected Builder handoff. No production implementation SHALL begin until the revised Sprint record is persisted.
+
+## Current Status
+
+Active
+
+---

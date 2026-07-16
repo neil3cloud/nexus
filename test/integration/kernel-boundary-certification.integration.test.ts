@@ -24,6 +24,7 @@ import { RoleService } from '../../src/kernel/execution/role.service';
 import { WorkflowChainService } from '../../src/kernel/execution/workflow-chain.service';
 import { Kernel } from '../../src/kernel/kernel';
 import { GovernanceService } from '../../src/kernel/governance/governance.service';
+import { GovernanceStateProjectionService } from '../../src/kernel/governance/governance-state-projection.service';
 import { RatificationAttributionValidationService } from '../../src/kernel/governance/ratification-attribution-validation';
 import { RepositoryPolicyService } from '../../src/kernel/governance/repository-policy.service';
 import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
@@ -62,6 +63,7 @@ interface KernelHarness {
   readonly assignmentPolicyService: AssignmentPolicyService;
   readonly repositoryPolicyService: RepositoryPolicyService;
   readonly governanceService: GovernanceService;
+  readonly governanceStateProjectionService: GovernanceStateProjectionService;
   readonly ratificationAttributionValidationService: RatificationAttributionValidationService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
@@ -89,6 +91,7 @@ const expectedKernelServiceNames = [
   'AssignmentPolicyService',
   'RepositoryPolicyService',
   'GovernanceService',
+  'GovernanceStateProjectionService',
   'RatificationAttributionValidationService',
   'ExecutionStrategyService',
   'ExecutionService',
@@ -156,6 +159,9 @@ describe('RFC-0010 Kernel boundary certification', () => {
     expect(await harness.assignmentPolicyService.enumerateAssignmentPolicies()).toEqual([]);
     expect(await harness.repositoryPolicyService.enumerateCurrentRepositoryPolicies()).toEqual([]);
     expect(harness.governanceService.serviceName).toBe('GovernanceService');
+    expect(harness.governanceStateProjectionService.serviceName).toBe(
+      'GovernanceStateProjectionService',
+    );
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -436,6 +442,12 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'GovernanceService',
       (service): service is GovernanceService => service instanceof GovernanceService,
+    ),
+    governanceStateProjectionService: requireService(
+      services,
+      'GovernanceStateProjectionService',
+      (service): service is GovernanceStateProjectionService =>
+        service instanceof GovernanceStateProjectionService,
     ),
     ratificationAttributionValidationService: requireService(
       services,

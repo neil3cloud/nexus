@@ -38,6 +38,8 @@ import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { InMemoryGovernanceDecisionRepository } from '../governance/governance-decision.repository';
 import { GovernanceService } from '../governance/governance.service';
+import { InMemoryGovernanceStateProjectionRepository } from '../governance/governance-state-projection.repository';
+import { GovernanceStateProjectionService } from '../governance/governance-state-projection.service';
 import { InMemoryRatificationAuthoritySnapshotRepository } from '../governance/ratification-authority.repository';
 import { RatificationAttributionValidationService } from '../governance/ratification-attribution-validation';
 import { InMemoryRepositoryPolicyRepository } from '../governance/repository-policy.repository';
@@ -66,6 +68,7 @@ export function createKernelServices(
   const knowledgeRepository = new InMemoryKnowledgeRepository();
   const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
+  const governanceStateProjectionRepository = new InMemoryGovernanceStateProjectionRepository();
   const ratificationAuthoritySnapshotRepository = new InMemoryRatificationAuthoritySnapshotRepository();
   const roleRegistry = new InMemoryRoleRegistry();
   const engineeringRoleProfileRegistry = new InMemoryEngineeringRoleProfileRegistry(
@@ -157,6 +160,7 @@ export function createKernelServices(
     assignmentPolicyService,
     repositoryPolicyService,
     governanceService,
+    new GovernanceStateProjectionService(governanceStateProjectionRepository, eventBus),
     ratificationAttributionValidationService,
     executionStrategyService,
     new ExecutionService(),
