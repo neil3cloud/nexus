@@ -2615,11 +2615,11 @@ Reviewer Validation Result:
 
 # Milestone 10 — Autonomous Engineering Readiness
 
-Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is Implemented — Pending Reviewer Validation, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block)
+Status: 🟡 ACTIVE (Sprint 63 — Governance State Projection Foundation is ✅ Approved — `NEXUS-REV-2026-07-16-016`, originally authorized by `NEXUS-RAT-2026-07-16-015`, narrowed to Mission-scoped-only by `NEXUS-RAT-2026-07-16-016` after a brief pre-implementation block. Sprint 64 — Event-Driven Mission Completion is now Current, authorized by `NEXUS-RAT-2026-07-16-017`, narrowing Milestone 10 Step 2 to Mission Completion only.)
 
 ## Sprint 63 — Governance State Projection Foundation
 
-Status: Implemented — Pending Reviewer Validation (Mission-scoped only). First implementation cycle was Blocked (`NEXUS-REV-2026-07-16-015`) when the Builder correctly stopped before writing code upon discovering that a per-Workflow-position Objective could not be satisfied by any authorized data source (`GovernanceDecisionRecorded` carries no Workflow-Step attribution, nor does `GovernanceDecision`). `NEXUS-RAT-2026-07-16-016` narrowed the Objective to Mission-scoped-only reporting, resolving the block.
+Status: ✅ Approved — `NEXUS-REV-2026-07-16-016` (Mission-scoped only; fully closed with zero open findings of any blocking category). First implementation cycle was Blocked (`NEXUS-REV-2026-07-16-015`) when the Builder correctly stopped before writing code upon discovering that a per-Workflow-position Objective could not be satisfied by any authorized data source (`GovernanceDecisionRecorded` carries no Workflow-Step attribution, nor does `GovernanceDecision`). `NEXUS-RAT-2026-07-16-016` narrowed the Objective to Mission-scoped-only reporting, resolving the block.
 
 RFC Coverage:
 
@@ -2647,6 +2647,41 @@ Deferred Concepts:
 Notes:
 
 - See `knowledge/implementation/sprints/sprint-0063-governance-state-projection-foundation.md` for the complete Sprint Implementation Record, including the Cycle 1 (Blocked) / Cycle 2 (narrowed) Revision History.
+- This Sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0011, or the Kernel Canon.
+
+---
+
+## Sprint 64 — Event-Driven Mission Completion
+
+Status: Implemented — Pending Reviewer Validation. Authorized by `NEXUS-RAT-2026-07-16-017`, narrowing Milestone 10 Step 2 — Event-Driven Workflow Coordination — to Mission Completion only.
+
+RFC Coverage:
+
+- RFC-0004 — Execution Model (Referenced; existing completion authority invoked unmodified)
+- RFC-0005 — Domain Event Model (Referenced; consumes existing, unmodified events only)
+- RFC-0001 — Mission Model (Referenced)
+- RFC-0011 — Engineering Governance Model (Referenced)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-16-015` — Milestone 10 Objective, Architectural Boundary, Initial Capability Sequence (unmodified).
+- `NEXUS-RAT-2026-07-16-016` — Sprint 63 Mission-scoped-only `GovernanceStateProjection` scope (frozen, consumed read-only).
+- `NEXUS-RAT-2026-07-16-017` — narrows Milestone 10 Step 2 to Event-Driven Mission Completion only; authorizes Sprint 64 and its trigger-source/idempotency refinements.
+
+Implemented Concepts:
+
+- A concrete Domain Event consumer (e.g. `GovernanceGatedMissionCompletionCoordinator`) subscribed to `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` that resolves each event's `missionId`, consults the Mission-scoped `GovernanceStateProjection` as a read model, and invokes the existing `MissionExecutionService.completeMission` authority only when fully non-blocking.
+- Deterministic, idempotent behavior under duplicate/replayed events; no automatic retry.
+- Kernel service composition wiring for the coordinator through existing `EventBusContract`, `GovernanceStateProjectionService`, and `MissionExecutionService` contracts.
+- Deterministic coordinator diagnostics for skipped blocking projections and `completeMission` rejections.
+
+Deferred Concepts:
+
+- Event-Driven Workflow Advancement; Engineering Session/Workflow Step attribution; session/step-scoped governance projections; Recovery Workflow Automation; Autonomous Engineering Integration Validation; autonomous recovery/decision-making; any new completion authority; Host/Adapter surfacing.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0064-event-driven-mission-completion.md` for the complete Sprint Implementation Record.
 - This Sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0011, or the Kernel Canon.
 
 ---

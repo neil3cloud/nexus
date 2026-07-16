@@ -27,6 +27,7 @@ import { GovernanceService } from '../../src/kernel/governance/governance.servic
 import { GovernanceStateProjectionService } from '../../src/kernel/governance/governance-state-projection.service';
 import { RatificationAttributionValidationService } from '../../src/kernel/governance/ratification-attribution-validation';
 import { RepositoryPolicyService } from '../../src/kernel/governance/repository-policy.service';
+import { GovernanceGatedMissionCompletionCoordinator } from '../../src/kernel/mission/governance-gated-mission-completion.coordinator';
 import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../src/kernel/mission/mission-execution.service';
 import { MissionPlanningService } from '../../src/kernel/mission/mission-planning.service';
@@ -51,6 +52,7 @@ interface KernelHarness {
   readonly missionService: MissionService;
   readonly planningService: MissionPlanningService;
   readonly missionExecutionService: MissionExecutionService;
+  readonly governanceGatedMissionCompletionCoordinator: GovernanceGatedMissionCompletionCoordinator;
   readonly evidenceService: EvidenceService;
   readonly projectionService: ProjectionService;
   readonly roleService: RoleService;
@@ -77,6 +79,7 @@ const expectedKernelServiceNames = [
   'MissionService',
   'MissionPlanningService',
   'MissionExecutionService',
+  'GovernanceGatedMissionCompletionCoordinator',
   'EvidenceService',
   'ProjectionService',
   'RoleService',
@@ -161,6 +164,9 @@ describe('RFC-0010 Kernel boundary certification', () => {
     expect(harness.governanceService.serviceName).toBe('GovernanceService');
     expect(harness.governanceStateProjectionService.serviceName).toBe(
       'GovernanceStateProjectionService',
+    );
+    expect(harness.governanceGatedMissionCompletionCoordinator.serviceName).toBe(
+      'GovernanceGatedMissionCompletionCoordinator',
     );
 
     const assignment = await harness.roleService.assignRole({
@@ -380,6 +386,12 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'MissionExecutionService',
       (service): service is MissionExecutionService => service instanceof MissionExecutionService,
+    ),
+    governanceGatedMissionCompletionCoordinator: requireService(
+      services,
+      'GovernanceGatedMissionCompletionCoordinator',
+      (service): service is GovernanceGatedMissionCompletionCoordinator =>
+        service instanceof GovernanceGatedMissionCompletionCoordinator,
     ),
     evidenceService: requireService(
       services,

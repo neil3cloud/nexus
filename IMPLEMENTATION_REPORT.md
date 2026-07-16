@@ -1,5 +1,102 @@
 # Nexus Implementation Report
 
+## Sprint 64 — Event-Driven Mission Completion
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 64 Event-Driven Mission Completion vertical slice authorized by `NEXUS-RAT-2026-07-16-017`.
+
+Implemented scope:
+
+- Added `GovernanceGatedMissionCompletionCoordinator` as a thin Kernel service and concrete Domain Event consumer.
+- Subscribed the coordinator to exactly `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` through the existing `EventBusContract`.
+- For each authorized event, the coordinator resolves the Mission identity, reads the Mission-scoped `GovernanceStateProjection`, confirms the projection is fully non-blocking, and invokes the existing `MissionExecutionService.completeMission({ missionId })` public contract.
+- Added deterministic diagnostics for completed, skipped, and `completeMission`-rejected handling results without retrying or reinterpreting Mission completion semantics.
+- Added idempotency so duplicate/replayed event delivery does not produce more than one successful Mission completion.
+- Wired `createKernelServices()` so the coordinator consumes the existing shared `GovernanceStateProjectionService` and `MissionExecutionService`.
+- Added Sprint 64 tests for every Required Test Matrix item and updated kernel boundary certification for the newly composed service.
+
+Out of scope and not implemented:
+
+- Event-Driven Workflow Advancement.
+- Engineering Session or Workflow Step attribution.
+- Session/step-scoped governance projections or extensions to `GovernanceStateProjection`.
+- Recovery Workflow Automation.
+- Autonomous Engineering Integration Validation.
+- Autonomous recovery or autonomous decision-making.
+- Any new completion authority or reinterpretation of existing Mission completion rules and diagnostics.
+- Host or Adapter surfacing.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0005 — Domain Event Model; consumed existing immutable Mission-scoped Domain Events without modifying event types, envelopes, or publishers.
+- RFC-0004 v1.13 — Execution Model; existing completion authority and Recovery Requirement lifecycle state consumed unmodified.
+- RFC-0001 v1.1 — Mission Model; Mission completion authority consumed through `MissionExecutionService.completeMission` without changing completion semantics.
+- RFC-0011 — Engineering Governance Model; `GovernanceDecision` consumed read-only through the existing projection and events.
+
+Implemented Concepts:
+
+- Event-driven Mission completion trigger.
+- Concrete minimal Domain Event consumer for exactly the authorized governance/recovery event types.
+- Read-only use of Mission-scoped `GovernanceStateProjection`.
+- Existing `MissionExecutionService.completeMission` invocation through its public contract.
+- Deterministic idempotency and completion diagnostics.
+
+Deferred Concepts:
+
+- Event-Driven Workflow Advancement.
+- Engineering Session or Workflow Step attribution.
+- Session/step-scoped governance projections.
+- Recovery Workflow Automation.
+- Autonomous Engineering Integration Validation.
+- Autonomous recovery and autonomous decision-making.
+- Host/Adapter governance surfacing.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-16-016`, `NEXUS-RAT-2026-07-16-017`).
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0064-event-driven-mission-completion.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `GovernanceStateProjection` remains a read model and is not treated as an independent event source.
+- `MissionExecutionService.completeMission` remains the sole Mission completion authority; coordinator diagnostics surface its existing rejections without reinterpretation.
+- Event-driven Mission completion is Mission-scoped only; no Engineering Session or Workflow Step attribution is inferred.
+
+### Known Limitations
+
+- The coordinator is a thin in-process trigger over the existing `EventBusContract`.
+- It does not add durable subscription delivery, retry, Host presentation, Adapter dispatch, or autonomous recovery behavior.
+- Event-Driven Workflow Advancement remains deferred pending future RFC ownership analysis and Sprint scope ratification.
+
+### Validation Summary
+
+- Targeted Sprint 64 validation passed: `governance-gated-mission-completion.coordinator.test.ts` and `kernel-boundary-certification.integration.test.ts` (13 tests).
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Vitest passed: 87 files, 559 tests.
+- esbuild passed: `npm run build`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 63 — Governance State Projection Foundation
 
 ### Implemented Slice

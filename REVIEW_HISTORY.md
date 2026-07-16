@@ -2,6 +2,63 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-017 — Sprint 64 — Event-Driven Mission Completion
+
+- **Reviewed Sprint:** Sprint 64 — Event-Driven Mission Completion (Milestone 10, Step 2, narrowed to Mission Completion only by `NEXUS-RAT-2026-07-16-017`).
+- **Reviewed Vertical Slice:** A new, concrete Domain Event consumer — `GovernanceGatedMissionCompletionCoordinator` — subscribed to exactly `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` through the existing `EventBusContract`. For each event, it resolves the event's Mission identity, reads the Mission-scoped `GovernanceStateProjection` (Sprint 63, frozen) as a read model, and invokes the existing, unmodified `MissionExecutionService.completeMission` authority (Sprint 4/61, frozen) only when the projection is fully non-blocking. Additive `createKernelServices()` wiring.
+- **RFC Coverage:** RFC-0005 (Referenced), RFC-0004 v1.13 (Referenced), RFC-0011 (Referenced), RFC-0001 v1.1 (Referenced). No RFC amended.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 64 implements exactly the narrowed scope authorized by `NEXUS-RAT-2026-07-16-017`, including its activation-time trigger-source and idempotency refinements. Independently verified in source (`governance-gated-mission-completion.coordinator.ts`) that the coordinator never treats `GovernanceStateProjection` as an independent event source: it subscribes only to the four authorized Domain Events, and for each event calls `GovernanceStateProjectionService.getGovernanceStateProjection(missionId)` — a read-only public contract call — exactly as the Ratification requires. Traced the resulting event-ordering question this design raises: `GovernanceStateProjectionService` (Sprint 63) also subscribes to the same four event types on the same shared `EventBusContract`, and `EventBus.publish()` (`event-bus.ts`) invokes subscribers in registration order, with the coordinator registered before the projection service in `createKernelServices()`. This could have been a race (the coordinator reading a stale, not-yet-updated projection for the very event that just changed it), but is not: `EventBus.publish()` pushes the event into `eventsByMissionId` before invoking any subscriber, and `getGovernanceStateProjection` unconditionally replays the full Mission event history from `eventBus.replay(missionId)` on every call before returning a snapshot (Sprint 63's already-approved, idempotent-by-`eventId` replay-on-read design) — so the coordinator always observes the triggering event's effect regardless of subscriber registration order. This is a correct, if implicit, reliance on an already-certified Sprint 63 behavior; verified by reasoning through both files, not merely by the passing test suite.
+
+Confirmed the coordinator introduces no Engineering Session or Workflow Step attribution: it never reads `event.payload['engineeringSessionId']`/`workflowStepId`, even though the test fixtures' `RecoveryRequirement`s carry those fields (pre-existing from Sprint 58/59) — correctly ignored, exactly mirroring Sprint 63's own honored prohibition. Confirmed idempotency is enforced by two independent, correctly-layered mechanisms: an `eventId`-keyed diagnostic cache (handles literal duplicate/replayed delivery of the same event) and a `completedMissionIds` `Set` (prevents a second `completeMission` call for the same Mission triggered by a *different* qualifying event after the first success) — together satisfying "a Mission SHALL NOT be successfully completed more than once" without introducing retry logic. Confirmed `completeMission` rejections are caught and surfaced as deterministic diagnostics (`status: 'CompletionRejected'`, the underlying error's `name`/`message`) without reinterpretation or retry, and that Mission completion eligibility, Task-completeness checking, and governance-decision re-verification remain entirely inside the existing, unmodified `MissionExecutionService.completeMission`/`assertGovernanceGatedMissionCompletionEligible` — the coordinator adds no new completion or governance semantics, exactly as required.
+
+Confirmed via `git diff --stat` that `governance-state-projection*.ts`, `governance-decision.ts`, `governance.events.ts`, `recovery-requirement*.ts`, `mission-execution.service.ts`, `mission-completion-eligibility.ts`, `event-bus.ts`, and `event-bus-contract.ts` are all byte-for-byte unmodified — only `create-kernel-services.ts` (additive wiring: extracted `missionExecutionService`/`governanceStateProjectionService` to local bindings and appended the new coordinator to the composed service array) and two test files changed outside the new coordinator/test pair. Confirmed no `src/hosts` or `src/adapters` file changed (`git diff --stat -- src/hosts src/adapters` empty, independently re-run). Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 87 files / 559 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. One Category 6, Informational Observation recorded below (an incidental, out-of-Sprint-scope test-timeout stabilization); it does not affect the disposition. No architectural violations detected.
+
+### Findings
+
+None of Category 1 through 5.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 (informational, non-blocking, no Builder Task; see below) |
+
+### Observations (Category 6, informational; no Builder Task)
+
+- `test/integration/local-process-runtime.integration.test.ts` had its `LocalProcessTestAdapter` runtime `timeoutMs` raised from `1000` to `5000`, disclosed by the Builder as aligning it with other adapter integration tests' timeouts. This file and concept (Sprint 21's Local Process Runtime) are entirely outside Sprint 64's authorized scope (Event-Driven Mission Completion) — Sprint 64's Sprint Implementation Record authorizes no touch to any Sprint 21 file. The change is test-only (no production `src` file touched by it), does not alter Sprint 21's certified behavior or assertions, and is consistent with a benign flakiness-stabilization fix of the kind already tolerated as an Observation in prior cycles (e.g., `NEXUS-REV-2026-07-15-009-F-002`'s Sprint 21 process-timing flake note). No Builder Task; future Sprints should keep incidental cross-Sprint test touches like this disclosed in `IMPLEMENTATION_REPORT.md` (which the Builder did) rather than silent.
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: Event-Driven Workflow Advancement (the `engineeringSessionId`/`currentWorkflowStepId`-scoped remainder of Milestone 10 Step 2); Engineering Session/Workflow Step attribution of any kind; session/step-scoped governance projections or extensions to `GovernanceStateProjection`; Recovery Workflow Automation (Step 3); Autonomous Engineering Integration Validation (Step 4); autonomous recovery/decision-making; any new completion authority or reinterpretation of `completeMission`'s existing rules; Host/Adapter surfacing of the coordinator. `git diff --stat -- src/` confirms no file outside the new coordinator and the additive `create-kernel-services.ts` wiring point changed in `src/`, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the Event-Driven Mission Completion vertical slice authorized by `NEXUS-RAT-2026-07-16-017` was added. Compliant.
+- **Ratification Compliance:** All `NEXUS-RAT-2026-07-16-017` activation-time refinements are honored: `GovernanceStateProjection` consulted as a read model per-event, never as an independent event source; deterministic and safe under duplicate/replayed events; no automatic retry; no modification to `GovernanceStateProjection`, `GovernanceDecision`, `RecoveryRequirement`, `MissionExecutionService`, Mission completion semantics, any existing Domain Event contract, any repository, or any Host/Adapter file. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** The coordinator is a thin orchestrator; all Mission completion eligibility and state-transition logic remains inside the existing, unmodified `MissionExecutionService`/`Mission` aggregate. It does not access any foreign aggregate's internals — only public contracts (`GovernanceStateProjectionServiceContract`, `completeMission`). Compliant.
+- **Event Compliance (Gate 7):** Consumes only the four existing, frozen event types via the existing `EventBusContract.subscribe()`; publishes no new event type. Compliant.
+- **Determinism (Gate 9):** Duplicate/replayed event delivery is proven not to produce more than one successful completion (dedicated test); the projection-read/replay design is proven race-free regardless of subscriber registration order (independently reasoned above). Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly `create-kernel-services.ts` (additive wiring) plus the new `governance-gated-mission-completion.coordinator.ts`; `git diff --stat -- src/hosts src/adapters` is empty. Compliant.
+- **Tests (Gate 11):** All seven Required Test Matrix items are covered by `governance-gated-mission-completion.coordinator.test.ts`, plus updated coverage in `kernel-boundary-certification.integration.test.ts`. The full repository suite (87 files / 559 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 64 is fully closed. Event-Driven Workflow Advancement (the remainder of Milestone 10 Step 2) remains deferred pending its own future RFC ownership analysis and Sprint scope ratification via a future `nexus-plan` cycle; this review does not authorize it.
+
+---
+
 ## NEXUS-REV-2026-07-16-016 — Sprint 63 — Governance State Projection Foundation (Mission-Scoped, Narrowed Scope)
 
 - **Reviewed Sprint:** Sprint 63 — Governance State Projection Foundation (Milestone 10's opening Sprint), under the Mission-scoped-only Objective narrowed by `NEXUS-RAT-2026-07-16-016`.

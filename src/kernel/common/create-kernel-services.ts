@@ -45,6 +45,7 @@ import { RatificationAttributionValidationService } from '../governance/ratifica
 import { InMemoryRepositoryPolicyRepository } from '../governance/repository-policy.repository';
 import { RepositoryPolicyService } from '../governance/repository-policy.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
+import { GovernanceGatedMissionCompletionCoordinator } from '../mission/governance-gated-mission-completion.coordinator';
 import { MissionPlanningService } from '../mission/mission-planning.service';
 import { InMemoryMissionRepository } from '../mission/mission.repository';
 import { MissionService } from '../mission/mission.service';
@@ -129,18 +130,30 @@ export function createKernelServices(
     recoveryRequirementRepository,
     eventBus,
   );
+  const missionExecutionService = new MissionExecutionService(
+    missionRepository,
+    eventBus,
+    randomUUID,
+    () => new Date().toISOString(),
+    governanceDecisionRepository,
+  );
+  const governanceStateProjectionService = new GovernanceStateProjectionService(
+    governanceStateProjectionRepository,
+    eventBus,
+  );
+  const governanceGatedMissionCompletionCoordinator =
+    new GovernanceGatedMissionCompletionCoordinator(
+      eventBus,
+      governanceStateProjectionService,
+      missionExecutionService,
+    );
 
   return [
     adapterService,
     new MissionService(missionRepository, eventBus),
     new MissionPlanningService(missionRepository, eventBus),
-    new MissionExecutionService(
-      missionRepository,
-      eventBus,
-      randomUUID,
-      () => new Date().toISOString(),
-      governanceDecisionRepository,
-    ),
+    missionExecutionService,
+    governanceGatedMissionCompletionCoordinator,
     new EvidenceService(evidenceRepository, eventBus),
     new ProjectionService(missionRepository, evidenceRepository),
     new RoleService(roleRegistry, roleAssignmentRepository),
@@ -160,7 +173,7 @@ export function createKernelServices(
     assignmentPolicyService,
     repositoryPolicyService,
     governanceService,
-    new GovernanceStateProjectionService(governanceStateProjectionRepository, eventBus),
+    governanceStateProjectionService,
     ratificationAttributionValidationService,
     executionStrategyService,
     new ExecutionService(),
