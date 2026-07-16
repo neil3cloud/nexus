@@ -1,6 +1,13 @@
 import { GovernanceDecisionId } from '../governance/governance-decision-id';
 import { MissionId } from '../mission/mission-id';
+import type { DomainEventMetadata } from '../mission/mission.types';
 import { EngineeringSessionId } from './engineering-session-id';
+import type { RecoveryRequirementDomainEvent } from './recovery-requirement.events';
+import {
+  createRecoveryRequirementCreatedEvent,
+  createRecoveryRequirementResolvedEvent,
+  createRecoveryRequirementWithdrawnEvent,
+} from './recovery-requirement.events';
 import {
   InvalidRecoveryRequirementDefinitionError,
 } from './recovery-requirement.errors';
@@ -20,6 +27,7 @@ export interface CreateRecoveryRequirementInput {
   readonly workflowStepId: string;
   readonly governanceDecisionId: string;
   readonly createdAt: string;
+  readonly creationEventId: string;
   readonly creationCausality?: readonly string[];
   readonly creationCorrelationId?: string;
 }
@@ -28,6 +36,7 @@ export interface ResolveRecoveryRequirementInput {
   readonly acceptedOutcomeReference: string;
   readonly resolvedAt: string;
   readonly attribution: string;
+  readonly eventId: string;
   readonly causality?: readonly string[];
   readonly correlationId?: string;
 }
@@ -37,73 +46,52 @@ export interface WithdrawRecoveryRequirementInput {
   readonly reason: string;
   readonly withdrawnAt: string;
   readonly attribution: string;
+  readonly eventId: string;
   readonly causality?: readonly string[];
   readonly correlationId?: string;
 }
 
 export class RecoveryRequirement {
+  private readonly recordedEvents: RecoveryRequirementDomainEvent[] = [];
+
   private constructor(private readonly snapshotValue: RecoveryRequirementSnapshot) {
     Object.freeze(this);
   }
 
   public static create(input: CreateRecoveryRequirementInput): RecoveryRequirement {
-    return new RecoveryRequirement(
-      Object.freeze({
-        id: RecoveryRequirementId.fromString(input.id).toString(),
-        missionId: MissionId.fromString(input.missionId).toString(),
-        engineeringSessionId: EngineeringSessionId.fromString(input.engineeringSessionId).toString(),
-        workflowStepId: normalizeNonEmptyString(input.workflowStepId, 'RecoveryRequirement workflowStepId'),
-        governanceDecisionId: GovernanceDecisionId.fromString(input.governanceDecisionId).toString(),
-        createdAt: normalizeNonEmptyString(input.createdAt, 'RecoveryRequirement createdAt'),
-        creationCausality: normalizeStringList(
-          input.creationCausality ?? [],
-          'RecoveryRequirement creationCausality',
-        ),
+    const recoveryRequirement = new RecoveryRequirement(
+      normalizeSnapshot({
+        id: input.id,
+        missionId: input.missionId,
+        engineeringSessionId: input.engineeringSessionId,
+        workflowStepId: input.workflowStepId,
+        governanceDecisionId: input.governanceDecisionId,
+        createdAt: input.createdAt,
+        creationCausality: input.creationCausality ?? [],
         ...(input.creationCorrelationId === undefined
           ? {}
-          : {
-              creationCorrelationId: normalizeNonEmptyString(
-                input.creationCorrelationId,
-                'RecoveryRequirement creationCorrelationId',
-              ),
-            }),
+          : { creationCorrelationId: input.creationCorrelationId }),
         status: 'Open',
       }),
     );
+
+    recoveryRequirement.recordedEvents.push(
+      createRecoveryRequirementCreatedEvent(
+        recoveryRequirement,
+        createMetadata(
+          input.creationEventId,
+          recoveryRequirement.snapshotValue.createdAt,
+          recoveryRequirement.snapshotValue.creationCausality,
+          recoveryRequirement.snapshotValue.creationCorrelationId,
+        ),
+      ),
+    );
+
+    return recoveryRequirement;
   }
 
   public static fromSnapshot(snapshot: RecoveryRequirementSnapshot): RecoveryRequirement {
-    const normalizedStatus = normalizeStatus(snapshot.status);
-    const normalized: RecoveryRequirementSnapshot = Object.freeze({
-      id: RecoveryRequirementId.fromString(snapshot.id).toString(),
-      missionId: MissionId.fromString(snapshot.missionId).toString(),
-      engineeringSessionId: EngineeringSessionId.fromString(snapshot.engineeringSessionId).toString(),
-      workflowStepId: normalizeNonEmptyString(
-        snapshot.workflowStepId,
-        'RecoveryRequirement workflowStepId',
-      ),
-      governanceDecisionId: GovernanceDecisionId.fromString(snapshot.governanceDecisionId).toString(),
-      createdAt: normalizeNonEmptyString(snapshot.createdAt, 'RecoveryRequirement createdAt'),
-      creationCausality: normalizeStringList(
-        snapshot.creationCausality,
-        'RecoveryRequirement creationCausality',
-      ),
-      ...(snapshot.creationCorrelationId === undefined
-        ? {}
-        : {
-            creationCorrelationId: normalizeNonEmptyString(
-              snapshot.creationCorrelationId,
-              'RecoveryRequirement creationCorrelationId',
-            ),
-          }),
-      status: normalizedStatus,
-      ...(snapshot.resolution === undefined
-        ? {}
-        : { resolution: normalizeResolution(snapshot.resolution) }),
-      ...(snapshot.withdrawal === undefined
-        ? {}
-        : { withdrawal: normalizeWithdrawal(snapshot.withdrawal) }),
-    });
+    const normalized = normalizeSnapshot(snapshot);
 
     validateLifecycleSnapshot(normalized);
 
@@ -155,11 +143,20 @@ export class RecoveryRequirement {
 
     this.assertOpen('Resolved');
 
-    return RecoveryRequirement.fromSnapshot({
+    const resolved = RecoveryRequirement.fromSnapshot({
       ...this.snapshotValue,
       status: 'Resolved',
       resolution,
     });
+
+    resolved.recordedEvents.push(
+      createRecoveryRequirementResolvedEvent(
+        resolved,
+        createMetadata(input.eventId, resolution.resolvedAt, resolution.causality, resolution.correlationId),
+      ),
+    );
+
+    return resolved;
   }
 
   public withdraw(input: WithdrawRecoveryRequirementInput): RecoveryRequirement {
@@ -187,11 +184,33 @@ export class RecoveryRequirement {
 
     this.assertOpen('Withdrawn');
 
-    return RecoveryRequirement.fromSnapshot({
+    const withdrawn = RecoveryRequirement.fromSnapshot({
       ...this.snapshotValue,
       status: 'Withdrawn',
       withdrawal,
     });
+
+    withdrawn.recordedEvents.push(
+      createRecoveryRequirementWithdrawnEvent(
+        withdrawn,
+        createMetadata(
+          input.eventId,
+          withdrawal.withdrawnAt,
+          withdrawal.causality,
+          withdrawal.correlationId,
+        ),
+      ),
+    );
+
+    return withdrawn;
+  }
+
+  public pullDomainEvents(): readonly RecoveryRequirementDomainEvent[] {
+    const events = [...this.recordedEvents];
+
+    this.recordedEvents.length = 0;
+
+    return events;
   }
 
   public toSnapshot(): RecoveryRequirementSnapshot {
@@ -214,6 +233,42 @@ export class RecoveryRequirement {
       );
     }
   }
+
+}
+
+function normalizeSnapshot(snapshot: RecoveryRequirementSnapshot): RecoveryRequirementSnapshot {
+  const normalizedStatus = normalizeStatus(snapshot.status);
+
+  return Object.freeze({
+    id: RecoveryRequirementId.fromString(snapshot.id).toString(),
+    missionId: MissionId.fromString(snapshot.missionId).toString(),
+    engineeringSessionId: EngineeringSessionId.fromString(snapshot.engineeringSessionId).toString(),
+    workflowStepId: normalizeNonEmptyString(
+      snapshot.workflowStepId,
+      'RecoveryRequirement workflowStepId',
+    ),
+    governanceDecisionId: GovernanceDecisionId.fromString(snapshot.governanceDecisionId).toString(),
+    createdAt: normalizeNonEmptyString(snapshot.createdAt, 'RecoveryRequirement createdAt'),
+    creationCausality: normalizeStringList(
+      snapshot.creationCausality,
+      'RecoveryRequirement creationCausality',
+    ),
+    ...(snapshot.creationCorrelationId === undefined
+      ? {}
+      : {
+          creationCorrelationId: normalizeNonEmptyString(
+            snapshot.creationCorrelationId,
+            'RecoveryRequirement creationCorrelationId',
+          ),
+        }),
+    status: normalizedStatus,
+    ...(snapshot.resolution === undefined
+      ? {}
+      : { resolution: normalizeResolution(snapshot.resolution) }),
+    ...(snapshot.withdrawal === undefined
+      ? {}
+      : { withdrawal: normalizeWithdrawal(snapshot.withdrawal) }),
+  });
 }
 
 function validateLifecycleSnapshot(snapshot: RecoveryRequirementSnapshot): void {
@@ -317,3 +372,16 @@ function normalizeNonEmptyString(value: string, label: string): string {
   return normalized;
 }
 
+function createMetadata(
+  eventId: string,
+  timestamp: string,
+  causality: readonly string[],
+  correlationId?: string,
+): DomainEventMetadata {
+  return {
+    eventId: normalizeNonEmptyString(eventId, 'RecoveryRequirement eventId'),
+    timestamp,
+    causality,
+    ...(correlationId === undefined ? {} : { correlationId }),
+  };
+}

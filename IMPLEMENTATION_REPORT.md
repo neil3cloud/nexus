@@ -1,5 +1,101 @@
 # Nexus Implementation Report
 
+## Sprint 59 — Recovery Requirement Domain Event Publication
+
+### Implemented Slice
+
+Implemented the Milestone 9 Sprint 59 Recovery Requirement Domain Event Publication vertical slice. This sprint additively publishes RFC-0005 Execution-category Domain Events for the existing Sprint 58 `RecoveryRequirement` aggregate creation, resolution, and withdrawal transitions.
+
+Implemented scope:
+
+- Added `recovery-requirement.events.ts` with `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` factories.
+- Added a recorded-events collection and drain-once `pullDomainEvents()` to `RecoveryRequirement`.
+- Recorded `RecoveryRequirementCreated` only during authoritative creation; `fromSnapshot` rehydration records no event.
+- Added save-then-publish `EventBusContract` injection to `RecoveryRequirementGovernanceDecisionConsumer` and `RecoveryRequirementService`.
+- Preserved idempotent duplicate creation and repeated terminal-transition behavior without duplicate publication.
+- Updated `createKernelServices()` to inject the shared production `EventBusContract` into both Recovery Requirement publisher surfaces.
+- Added the three Recovery Requirement events to `knowledge/reference/kernel-event-catalog.md` under Execution Events.
+- Added Sprint 59 event-publication test coverage.
+
+Out of scope and not implemented:
+
+- Event subscriptions or consumers of the new Recovery Requirement events.
+- Governed Mission Completion or any Mission completion precondition change.
+- Workflow Chain topology, Workflow Step, GovernanceService, GovernanceDecision, or GovernanceEscalation changes.
+- Durable or transactional event delivery.
+- Any `src/hosts` or `src/adapters` change.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0005 — Domain Event Model v1.0 (Domain Event, Event Attribution, Event Causality, Event Correlation, Execution Events, Engineering Progression).
+
+Referenced RFCs:
+
+- RFC-0004 v1.12 — Execution Model (`RecoveryRequirement` aggregate, uniqueness, lifecycle, and boundaries consumed unmodified).
+- RFC-0011 v1.1 — Engineering Governance Model (`GovernanceDecision` consumed unmodified).
+- RFC-0010 — Kernel Boundaries.
+
+Implemented Concepts:
+
+- `RecoveryRequirementCreated` Domain Event.
+- `RecoveryRequirementResolved` Domain Event.
+- `RecoveryRequirementWithdrawn` Domain Event.
+- Aggregate recorded-events drain for `RecoveryRequirement`.
+- Save-then-publish EventBus wiring for Recovery Requirement creation, resolution, and withdrawal.
+
+Deferred Concepts:
+
+- Event subscribers/consumers for Recovery Requirement Domain Events.
+- Governed Mission Completion / Mission completion precondition changes.
+- Differentiated Rejected / Deferred / Escalation Required Engineering Session state.
+- Host/Adapter surfacing and durable Event Streams.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-009`).
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/reference/kernel-event-catalog.md`.
+- `knowledge/implementation/sprints/sprint-0059-recovery-requirement-domain-event-publication.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Recovery Requirement event Mission attribution is read from the existing `RecoveryRequirement.missionId`.
+- `RecoveryRequirementCreated` uses the originating `GovernanceDecisionRecorded` event timestamp, causality, and correlation metadata.
+- Resolution and withdrawal event timestamps and metadata come from the corresponding service command's transition metadata.
+- Publication failure after successful persistence surfaces to the caller; durable or transactional delivery remains outside this Sprint.
+
+### Known Limitations
+
+- Recovery Requirement persistence and EventBus storage remain in-memory and process-local.
+- No downstream consumer reacts to the new events.
+- Governed Mission Completion remains unauthorized and unimplemented.
+
+### Validation Summary
+
+- Targeted Sprint 59 validation passed: `recovery-requirement.test.ts` (18 tests).
+- TypeScript compile passed.
+- ESLint passed.
+- Repository validation passed with `npm run validate`: TypeScript compile, ESLint, Vitest, and esbuild.
+- Vitest passed: 84 files, 500 tests.
+- Extension-host bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 58 — Governance Recovery and Blocking-State Foundation
 
 ### Implemented Slice

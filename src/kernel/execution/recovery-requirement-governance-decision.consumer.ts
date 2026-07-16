@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import type { EventBusContract } from '../common/event-bus-contract';
 import type { EventBusEvent } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
@@ -8,7 +9,9 @@ import { RecoveryRequirement } from './recovery-requirement';
 import {
   InvalidRecoveryRequirementDefinitionError,
 } from './recovery-requirement.errors';
-import type { IRecoveryRequirementRepository } from './recovery-requirement.repository';
+import type {
+  IRecoveryRequirementRepository,
+} from './recovery-requirement.repository';
 
 export interface HandleRecoveryRequirementGovernanceDecisionRecordedCommand {
   readonly event: EventBusEvent;
@@ -19,8 +22,12 @@ export interface HandleRecoveryRequirementGovernanceDecisionRecordedCommand {
 export class RecoveryRequirementGovernanceDecisionConsumer extends ServiceLifecycle {
   public constructor(
     private readonly governanceDecisionRepository: Pick<IGovernanceDecisionRepository, 'getById'>,
-    private readonly recoveryRequirementRepository: Pick<IRecoveryRequirementRepository, 'register'>,
+    private readonly recoveryRequirementRepository: Pick<
+      IRecoveryRequirementRepository,
+      'findByAttributionKey' | 'register'
+    >,
     private readonly createIdentity: () => string = randomUUID,
+    private readonly eventBus?: EventBusContract,
   ) {
     super('RecoveryRequirementGovernanceDecisionConsumer');
   }
@@ -49,20 +56,48 @@ export class RecoveryRequirementGovernanceDecisionConsumer extends ServiceLifecy
       return undefined;
     }
 
-    const recoveryRequirement = RecoveryRequirement.create({
-      id: this.createIdentity(),
+    const attributionKey = {
       missionId: governanceDecisionSnapshot.missionId,
       engineeringSessionId: command.engineeringSessionId,
       workflowStepId: command.workflowStepId,
       governanceDecisionId: governanceDecisionSnapshot.id,
+    };
+    const existingRequirement = await this.recoveryRequirementRepository.findByAttributionKey(
+      attributionKey,
+    );
+
+    if (existingRequirement !== undefined) {
+      return existingRequirement.toSnapshot();
+    }
+
+    const recoveryRequirement = RecoveryRequirement.create({
+      id: this.createIdentity(),
+      ...attributionKey,
       createdAt: command.event.timestamp,
+      creationEventId: this.createIdentity(),
       creationCausality: command.event.causality,
       ...(command.event.correlationId === undefined
         ? {}
         : { creationCorrelationId: command.event.correlationId }),
     });
 
-    return (await this.recoveryRequirementRepository.register(recoveryRequirement)).toSnapshot();
+    const registered = await this.recoveryRequirementRepository.register(recoveryRequirement);
+
+    if (registered.id.toString() === recoveryRequirement.id.toString()) {
+      await this.publishDomainEvents(recoveryRequirement);
+    }
+
+    return registered.toSnapshot();
+  }
+
+  private async publishDomainEvents(recoveryRequirement: RecoveryRequirement): Promise<void> {
+    if (this.eventBus === undefined) {
+      return;
+    }
+
+    for (const event of recoveryRequirement.pullDomainEvents()) {
+      await this.eventBus.publish(event);
+    }
   }
 }
 
@@ -77,4 +112,3 @@ function readGovernanceDecisionId(event: EventBusEvent): string {
 
   return governanceDecisionId;
 }
-

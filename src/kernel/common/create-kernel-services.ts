@@ -121,7 +121,10 @@ export function createKernelServices(
     randomUUID,
     () => new Date().toISOString(),
   );
-  const recoveryRequirementService = new RecoveryRequirementService(recoveryRequirementRepository);
+  const recoveryRequirementService = new RecoveryRequirementService(
+    recoveryRequirementRepository,
+    eventBus,
+  );
 
   return [
     adapterService,
@@ -139,6 +142,8 @@ export function createKernelServices(
     new RecoveryRequirementGovernanceDecisionConsumer(
       governanceDecisionRepository,
       recoveryRequirementRepository,
+      randomUUID,
+      eventBus,
     ),
     executionSessionService,
     new WorkflowChainService(workflowChainRepository),

@@ -9,6 +9,7 @@ import type { GovernanceDecisionValue } from '../../../src/kernel/governance/gov
 import {
   InvalidRecoveryRequirementDefinitionError,
 } from '../../../src/kernel/execution/recovery-requirement.errors';
+import { RecoveryRequirement } from '../../../src/kernel/execution/recovery-requirement';
 import { RecoveryRequirementGovernanceDecisionConsumer } from '../../../src/kernel/execution/recovery-requirement-governance-decision.consumer';
 import { InMemoryRecoveryRequirementRepository } from '../../../src/kernel/execution/recovery-requirement.repository';
 import { RecoveryRequirementService } from '../../../src/kernel/execution/recovery-requirement.service';
@@ -16,10 +17,20 @@ import type { RecoveryRequirementSnapshot } from '../../../src/kernel/execution/
 import { createKernelServices } from '../../../src/kernel/common/create-kernel-services';
 import { EventBus } from '../../../src/kernel/events/event-bus';
 import type { KernelLogger } from '../../../src/kernel/common/kernel-logger';
+import type { EventBusEvent } from '../../../src/kernel/common/event-bus-contract';
 
 class TestLogger implements KernelLogger {
   public info(): void {}
   public error(): void {}
+}
+
+class CollectingEventBus extends EventBus {
+  public readonly publishedEvents: EventBusEvent[] = [];
+
+  public override async publish(event: EventBusEvent): Promise<void> {
+    await super.publish(event);
+    this.publishedEvents.push(event);
+  }
 }
 
 describe('RecoveryRequirement', () => {
@@ -44,6 +55,26 @@ describe('RecoveryRequirement', () => {
       status: 'Open',
     });
     expect(await harness.recoveryRequirementRepository.enumerate()).toHaveLength(1);
+    expect(collectRecoveryRequirementEvents(harness.eventBus, 'RecoveryRequirementCreated')).toEqual([
+      expect.objectContaining({
+        eventId: 'event-recovery-requirement-created-1',
+        missionId: 'mission-1',
+        eventType: 'RecoveryRequirementCreated',
+        timestamp: '2026-07-16T01:00:00.000Z',
+        causality: ['event-policy-evaluation'],
+        correlationId: 'correlation-1',
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: expect.objectContaining({
+          recoveryRequirementId: 'recovery-requirement-1',
+          recoveryRequirementStatus: 'Open',
+          engineeringSessionId: 'engineering-session-1',
+          workflowStepId: 'workflow-step-1',
+          governanceDecisionId: 'governance-decision-1',
+        }),
+      }),
+    ]);
   });
 
   it.each(['Deferred', 'Escalation Required', 'Approved'] as const)(
@@ -63,7 +94,12 @@ describe('RecoveryRequirement', () => {
   );
 
   it('M5 returns the existing record for duplicate handling of the same Rejected GovernanceDecision', async () => {
-    const harness = await createHarness('Rejected', ['recovery-requirement-1', 'recovery-requirement-2']);
+    const harness = await createHarness('Rejected', [
+      'recovery-requirement-1',
+      'event-recovery-requirement-created-1',
+      'recovery-requirement-2',
+      'event-recovery-requirement-created-2',
+    ]);
     const command = {
       event: harness.event,
       engineeringSessionId: 'engineering-session-1',
@@ -76,10 +112,16 @@ describe('RecoveryRequirement', () => {
     expect(first?.id).toBe('recovery-requirement-1');
     expect(duplicate?.id).toBe('recovery-requirement-1');
     expect(await harness.recoveryRequirementRepository.enumerate()).toHaveLength(1);
+    expect(collectRecoveryRequirementEvents(harness.eventBus, 'RecoveryRequirementCreated')).toHaveLength(1);
   });
 
   it('M6 creates a separate requirement for a distinct Rejected GovernanceDecision on the same Mission Session and Step', async () => {
-    const harness = await createHarness('Rejected', ['recovery-requirement-1', 'recovery-requirement-2']);
+    const harness = await createHarness('Rejected', [
+      'recovery-requirement-1',
+      'event-recovery-requirement-created-1',
+      'recovery-requirement-2',
+      'event-recovery-requirement-created-2',
+    ]);
     const secondDecision = createGovernanceDecision('Rejected', 'governance-decision-2');
     const secondEvent = createGovernanceDecisionRecordedEvent(secondDecision, {
       eventId: 'event-governance-decision-recorded-2',
@@ -102,19 +144,41 @@ describe('RecoveryRequirement', () => {
       'recovery-requirement-1',
       'recovery-requirement-2',
     ]);
+    expect(collectRecoveryRequirementEvents(harness.eventBus, 'RecoveryRequirementCreated')).toHaveLength(2);
   });
 
   it('M7 resolves an Open RecoveryRequirement and rejects further conflicting transition attempts', async () => {
-    const { service, recoveryRequirement } = await createOpenRecoveryRequirement();
+    const { service, recoveryRequirement, eventBus } = await createOpenRecoveryRequirement();
 
     const resolved = await service.resolveRecoveryRequirement({
       recoveryRequirementId: recoveryRequirement.id,
       acceptedOutcomeReference: 'review-outcome:accepted-remediation',
       resolvedAt: '2026-07-16T02:00:00.000Z',
       attribution: 'builder:primary',
+      causality: ['event-recovery-requirement-created-1'],
+      correlationId: 'correlation-resolution',
     });
 
     expect(resolved.status).toBe('Resolved');
+    expect(collectRecoveryRequirementEvents(eventBus, 'RecoveryRequirementResolved')).toEqual([
+      expect.objectContaining({
+        eventType: 'RecoveryRequirementResolved',
+        missionId: 'mission-1',
+        timestamp: '2026-07-16T02:00:00.000Z',
+        causality: ['event-recovery-requirement-created-1'],
+        correlationId: 'correlation-resolution',
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: expect.objectContaining({
+          recoveryRequirementId: recoveryRequirement.id,
+          recoveryRequirementStatus: 'Resolved',
+          governanceDecisionId: 'governance-decision-1',
+          acceptedOutcomeReference: 'review-outcome:accepted-remediation',
+          resolvedAt: '2026-07-16T02:00:00.000Z',
+        }),
+      }),
+    ]);
     await expect(
       service.withdrawRecoveryRequirement({
         recoveryRequirementId: recoveryRequirement.id,
@@ -124,10 +188,11 @@ describe('RecoveryRequirement', () => {
         attribution: 'sprint-owner',
       }),
     ).rejects.toThrow(InvalidRecoveryRequirementDefinitionError);
+    expect(collectRecoveryRequirementEvents(eventBus, 'RecoveryRequirementWithdrawn')).toHaveLength(0);
   });
 
   it('M8 withdraws an Open RecoveryRequirement and rejects further conflicting transition attempts', async () => {
-    const { service, recoveryRequirement } = await createOpenRecoveryRequirement();
+    const { service, recoveryRequirement, eventBus } = await createOpenRecoveryRequirement();
 
     const withdrawn = await service.withdrawRecoveryRequirement({
       recoveryRequirementId: recoveryRequirement.id,
@@ -135,9 +200,30 @@ describe('RecoveryRequirement', () => {
       reason: 'Superseding Ratification resolves the rejected input.',
       withdrawnAt: '2026-07-16T02:00:00.000Z',
       attribution: 'sprint-owner',
+      causality: ['event-recovery-requirement-created-1'],
+      correlationId: 'correlation-withdrawal',
     });
 
     expect(withdrawn.status).toBe('Withdrawn');
+    expect(collectRecoveryRequirementEvents(eventBus, 'RecoveryRequirementWithdrawn')).toEqual([
+      expect.objectContaining({
+        eventType: 'RecoveryRequirementWithdrawn',
+        missionId: 'mission-1',
+        timestamp: '2026-07-16T02:00:00.000Z',
+        causality: ['event-recovery-requirement-created-1'],
+        correlationId: 'correlation-withdrawal',
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: expect.objectContaining({
+          recoveryRequirementId: recoveryRequirement.id,
+          recoveryRequirementStatus: 'Withdrawn',
+          governanceDecisionId: 'governance-decision-1',
+          authoritativeDecisionReference: 'NEXUS-RAT-2026-07-16-009',
+          withdrawnAt: '2026-07-16T02:00:00.000Z',
+        }),
+      }),
+    ]);
     await expect(
       service.resolveRecoveryRequirement({
         recoveryRequirementId: recoveryRequirement.id,
@@ -146,6 +232,7 @@ describe('RecoveryRequirement', () => {
         attribution: 'builder:primary',
       }),
     ).rejects.toThrow(InvalidRecoveryRequirementDefinitionError);
+    expect(collectRecoveryRequirementEvents(eventBus, 'RecoveryRequirementResolved')).toHaveLength(0);
   });
 
   it('M9 stores only GovernanceDecision identity and no copied GovernanceDecision diagnostics', async () => {
@@ -161,6 +248,14 @@ describe('RecoveryRequirement', () => {
     expect('criterionResults' in (recoveryRequirement as RecoveryRequirementSnapshot)).toBe(false);
     expect('explanationCodes' in (recoveryRequirement as RecoveryRequirementSnapshot)).toBe(false);
     expect('reviewId' in (recoveryRequirement as RecoveryRequirementSnapshot)).toBe(false);
+  });
+
+  it('M9-S59 rehydrates RecoveryRequirement snapshots without recording Domain Events', async () => {
+    const { recoveryRequirement } = await createOpenRecoveryRequirement();
+
+    const rehydrated = RecoveryRequirement.fromSnapshot(recoveryRequirement);
+
+    expect(rehydrated.pullDomainEvents()).toEqual([]);
   });
 
   it('M10 keeps frozen governance workflow and event files free of RecoveryRequirement ownership', () => {
@@ -184,10 +279,18 @@ describe('RecoveryRequirement', () => {
     expect(services.map((service) => service.serviceName)).toContain(
       'RecoveryRequirementGovernanceDecisionConsumer',
     );
+    const compositionSource = readFileSync('src\\kernel\\common\\create-kernel-services.ts', 'utf8');
+
+    expect(compositionSource).toMatch(
+      /new RecoveryRequirementService\(\s*recoveryRequirementRepository,\s*eventBus,\s*\)/,
+    );
+    expect(compositionSource).toMatch(
+      /new RecoveryRequirementGovernanceDecisionConsumer\(\s*governanceDecisionRepository,\s*recoveryRequirementRepository,\s*randomUUID,\s*eventBus,\s*\)/,
+    );
   });
 
   it('M12 rejects resolution without an accepted outcome reference', async () => {
-    const { service, recoveryRequirement } = await createOpenRecoveryRequirement();
+    const { service, recoveryRequirement, eventBus } = await createOpenRecoveryRequirement();
 
     await expect(
       service.resolveRecoveryRequirement({
@@ -197,10 +300,11 @@ describe('RecoveryRequirement', () => {
         attribution: 'builder:primary',
       }),
     ).rejects.toThrow(InvalidRecoveryRequirementDefinitionError);
+    expect(collectRecoveryRequirementEvents(eventBus, 'RecoveryRequirementResolved')).toHaveLength(0);
   });
 
   it('M13 rejects withdrawal without authoritative decision attribution', async () => {
-    const { service, recoveryRequirement } = await createOpenRecoveryRequirement();
+    const { service, recoveryRequirement, eventBus } = await createOpenRecoveryRequirement();
 
     await expect(
       service.withdrawRecoveryRequirement({
@@ -211,6 +315,7 @@ describe('RecoveryRequirement', () => {
         attribution: 'sprint-owner',
       }),
     ).rejects.toThrow(InvalidRecoveryRequirementDefinitionError);
+    expect(collectRecoveryRequirementEvents(eventBus, 'RecoveryRequirementWithdrawn')).toHaveLength(0);
   });
 
   it('M14 preserves immutable resolution metadata after terminal transition', async () => {
@@ -334,8 +439,9 @@ describe('RecoveryRequirement', () => {
 async function createOpenRecoveryRequirement(id = 'recovery-requirement-1'): Promise<{
   readonly service: RecoveryRequirementService;
   readonly recoveryRequirement: RecoveryRequirementSnapshot;
+  readonly eventBus: CollectingEventBus;
 }> {
-  const harness = await createHarness('Rejected', [id]);
+  const harness = await createHarness('Rejected', [id, 'event-recovery-requirement-created-1']);
   const recoveryRequirement = await harness.consumer.handleGovernanceDecisionRecorded({
     event: harness.event,
     engineeringSessionId: 'engineering-session-1',
@@ -349,34 +455,46 @@ async function createOpenRecoveryRequirement(id = 'recovery-requirement-1'): Pro
   return {
     service: harness.service,
     recoveryRequirement,
+    eventBus: harness.eventBus,
   };
 }
 
 async function createHarness(
   governanceDecisionValue: GovernanceDecisionValue,
-  identities: string[] = ['recovery-requirement-1'],
+  identities: string[] = ['recovery-requirement-1', 'event-recovery-requirement-created-1'],
 ): Promise<{
   readonly governanceDecisionRepository: InMemoryGovernanceDecisionRepository;
   readonly recoveryRequirementRepository: InMemoryRecoveryRequirementRepository;
   readonly service: RecoveryRequirementService;
   readonly consumer: RecoveryRequirementGovernanceDecisionConsumer;
   readonly event: ReturnType<typeof createGovernanceDecisionRecordedEvent>;
+  readonly eventBus: CollectingEventBus;
 }> {
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
   const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
-  const service = new RecoveryRequirementService(recoveryRequirementRepository);
+  const eventBus = new CollectingEventBus(new TestLogger());
+  let generatedIdentityCount = 0;
+  const createIdentity = (): string => {
+    const identity = identities.shift();
+
+    if (identity !== undefined) {
+      return identity;
+    }
+
+    generatedIdentityCount += 1;
+
+    return `generated-recovery-requirement-event-${generatedIdentityCount}`;
+  };
+  const service = new RecoveryRequirementService(
+    recoveryRequirementRepository,
+    eventBus,
+    createIdentity,
+  );
   const consumer = new RecoveryRequirementGovernanceDecisionConsumer(
     governanceDecisionRepository,
     recoveryRequirementRepository,
-    () => {
-      const identity = identities.shift();
-
-      if (identity === undefined) {
-        throw new Error('No RecoveryRequirement identity available for test.');
-      }
-
-      return identity;
-    },
+    createIdentity,
+    eventBus,
   );
   const governanceDecision = createGovernanceDecision(governanceDecisionValue);
   const event = createGovernanceDecisionRecordedEvent(governanceDecision, {
@@ -394,7 +512,15 @@ async function createHarness(
     service,
     consumer,
     event,
+    eventBus,
   };
+}
+
+function collectRecoveryRequirementEvents(
+  eventBus: CollectingEventBus,
+  eventType: EventBusEvent['eventType'],
+): readonly EventBusEvent[] {
+  return eventBus.publishedEvents.filter((event) => event.eventType === eventType);
 }
 
 function createGovernanceDecision(
@@ -425,4 +551,3 @@ function createGovernanceDecision(
     explanationCodes: [`governance-decision-${value.toLowerCase().replaceAll(' ', '-')}`],
   });
 }
-

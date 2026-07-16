@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+
+import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
 import {
   RecoveryRequirementNotFoundError,
@@ -20,6 +23,8 @@ export class RecoveryRequirementService
   public constructor(
     private readonly repository: IRecoveryRequirementRepository =
       new InMemoryRecoveryRequirementRepository(),
+    private readonly eventBus?: EventBusContract,
+    private readonly createIdentity: () => string = randomUUID,
   ) {
     super('RecoveryRequirementService');
   }
@@ -37,11 +42,13 @@ export class RecoveryRequirementService
       acceptedOutcomeReference: command.acceptedOutcomeReference,
       resolvedAt: command.resolvedAt,
       attribution: command.attribution,
+      eventId: this.createIdentity(),
       ...(command.causality === undefined ? {} : { causality: command.causality }),
       ...(command.correlationId === undefined ? {} : { correlationId: command.correlationId }),
     });
 
     await this.repository.save(resolved);
+    await this.publishDomainEvents(resolved);
 
     return resolved.toSnapshot();
   }
@@ -60,13 +67,26 @@ export class RecoveryRequirementService
       reason: command.reason,
       withdrawnAt: command.withdrawnAt,
       attribution: command.attribution,
+      eventId: this.createIdentity(),
       ...(command.causality === undefined ? {} : { causality: command.causality }),
       ...(command.correlationId === undefined ? {} : { correlationId: command.correlationId }),
     });
 
     await this.repository.save(withdrawn);
+    await this.publishDomainEvents(withdrawn);
 
     return withdrawn.toSnapshot();
   }
-}
 
+  private async publishDomainEvents(recoveryRequirement: {
+    pullDomainEvents(): readonly Parameters<EventBusContract['publish']>[0][];
+  }): Promise<void> {
+    if (this.eventBus === undefined) {
+      return;
+    }
+
+    for (const event of recoveryRequirement.pullDomainEvents()) {
+      await this.eventBus.publish(event);
+    }
+  }
+}

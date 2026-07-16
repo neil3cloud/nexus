@@ -2273,9 +2273,45 @@ Notes:
 
 ---
 
+## Sprint 59 — Recovery Requirement Domain Event Publication
+
+Status: Implemented — Pending Reviewer Validation. Sprint scope authorized by `NEXUS-RAT-2026-07-16-009`. No RFC amendment. Milestone 9's eighth Sprint.
+
+RFC Coverage:
+
+- RFC-0005 — Domain Event Model (Partial; new catalog entries under the existing "Execution Events" category; no RFC-0005 text amendment).
+- RFC-0004 v1.12 — Execution Model (Referenced; `RecoveryRequirement` aggregate, lifecycle, and boundaries consumed unmodified).
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed unmodified).
+
+Authorized Concepts:
+
+- `recovery-requirement.events.ts`: `RecoveryRequirementEventType` union (`RecoveryRequirementCreated`, `RecoveryRequirementResolved`, `RecoveryRequirementWithdrawn`), `RecoveryRequirementDomainEvent` type, and factory functions, mirroring `governance.events.ts` (Sprint 56).
+- `RecoveryRequirement` aggregate recorded-events collection and `pullDomainEvents()`, mirroring `Mission`/`Evidence`/`Review`/`Knowledge`/`GovernanceDecision`.
+- `RecoveryRequirementGovernanceDecisionConsumer` and `RecoveryRequirementService` gain constructor-injected `EventBusContract`, publishing only after successful persistence (save-then-publish pattern).
+- `createKernelServices` updated so both receive the shared, production `EventBusContract` instance.
+- `kernel-event-catalog.md` reference-document addition for the three new event types under "Execution Events."
+
+Deferred Concepts:
+
+- Event subscriptions/consumers of these new events.
+- Governed Mission Completion; any Mission completion precondition change (still unscheduled; requires its own future RFC-0001 amendment).
+- `WorkflowChain`/`WorkflowStep` mutation; any `GovernanceService`/`GovernanceDecision`/`GovernanceEscalation` modification.
+- Durable/transactional event delivery.
+- Any `src/hosts` or `src/adapters` change.
+
+Notes:
+
+- `RecoveryRequirementCreated` is recorded only during authoritative creation, never during `fromSnapshot` rehydration, and never duplicated on idempotent creation handling — Sprint Owner refinements incorporated by `NEXUS-RAT-2026-07-16-009`.
+- No event is published on failed persistence or on a rejected/conflicting lifecycle transition.
+- `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` envelope remain unmodified.
+- See `knowledge/implementation/sprints/sprint-0059-recovery-requirement-domain-event-publication.md` for the complete Sprint Implementation Record.
+- Builder implementation complete: added Recovery Requirement Domain Event factories, aggregate recorded-events draining, save-then-publish EventBus wiring for creation/resolution/withdrawal, production `createKernelServices` injection, event catalog entries, and Sprint 59 tests. Repository validation passed: TypeScript compile, ESLint, Vitest (84 files / 500 tests), esbuild, and extension-host bundle build.
+
+---
+
 ## Sprint 58 — Governance Recovery and Blocking-State Foundation
 
-Status: Implemented — Pending Reviewer Validation. RFC-0004 amended to v1.12 by `NEXUS-RAT-2026-07-16-007`; Sprint scope authorized by `NEXUS-RAT-2026-07-16-008`. Milestone 9's seventh Sprint.
+Status: ✅ Approved — `NEXUS-REV-2026-07-16-009` (fully closed; one Category 6, Informational Observation, zero Builder Tasks; zero open findings of any blocking category). RFC-0004 amended to v1.12 by `NEXUS-RAT-2026-07-16-007`; Sprint scope authorized by `NEXUS-RAT-2026-07-16-008`. Milestone 9's seventh Sprint.
 
 RFC Coverage:
 
@@ -2293,9 +2329,9 @@ Authorized Concepts:
 
 Deferred Concepts:
 
-- Recovery Requirement Domain Event publication.
+- Recovery Requirement Domain Event publication (delivered by Sprint 59).
 - AI-generated remediation plan generation.
-- Governed Mission Completion or Mission completion precondition changes (Sprint 59 candidate; unscheduled; requires an RFC-0001 amendment; depends on this Sprint's `RecoveryRequirement` existing).
+- Governed Mission Completion or Mission completion precondition changes (still unscheduled; requires its own future RFC-0001 amendment).
 - Differentiated Rejected/Deferred/Escalation-Required Engineering Session state beyond Sprint 57's uniform Blocking classification.
 - Any `src/hosts` or `src/adapters` change.
 

@@ -5895,3 +5895,94 @@ None yet. A Sprint 58 Reviewer certification is required following implementatio
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-16-009
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-009
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 59 Scope Ratification — Recovery Requirement Domain Event Publication. Authorizes Domain Event publication for `RecoveryRequirement` (RFC-0004 v1.12, Sprint 58) creation, resolution, and withdrawal under RFC-0005's existing "Execution Events" category. No RFC-0005 text amendment.
+
+## Originating Request
+
+Following Sprint 58's closure with zero open findings, `nexus-plan` performed a Repository Analysis and Governance Scan. Two next-Sprint candidates were identified: (1) Governed Mission Completion (the provisional roadmap's original Sprint 59 candidate, requiring an unratified RFC-0001 amendment), and (2) Recovery Requirement Domain Event Publication (no RFC amendment required, mirroring the established Sprint 12→13 and Sprint 53→56 Foundation → Event Publication pattern). The Sprint Owner selected option (2). `nexus-plan` drafted a Sprint 59 scope proposal; the Sprint Owner approved it with seven refinements concerning attribution completeness, creation-event idempotency, rehydration safety, failure-path silence, save-then-publish sequencing, production EventBus wiring, and test coverage.
+
+## Governance Decision
+
+**Approved, with refinements incorporated.** Sprint 59 — Recovery Requirement Domain Event Publication is authorized for implementation, strictly as follows.
+
+### Authorized Vertical Slice
+
+Sprint 59 SHALL introduce:
+
+- `recovery-requirement.events.ts`: `RecoveryRequirementEventType` union (`RecoveryRequirementCreated`, `RecoveryRequirementResolved`, `RecoveryRequirementWithdrawn`), a `RecoveryRequirementDomainEvent` type, and factory functions — mirroring `governance.events.ts`'s (Sprint 56) shape, catalogued under RFC-0005's existing "Execution Events" category (RFC-0004 owns `RecoveryRequirement`; no RFC-0005 text amendment).
+- `RecoveryRequirement` aggregate: a recorded-events collection and `pullDomainEvents()` (drain-once), mirroring `Mission`/`Evidence`/`Review`/`Knowledge`/`GovernanceDecision`.
+- `RecoveryRequirementGovernanceDecisionConsumer` and `RecoveryRequirementService` each gain constructor-injected `EventBusContract`, publishing only after the associated state transition has been successfully persisted (established save-then-publish pattern) — no event on failed persistence.
+- `createKernelServices` updated so both receive the shared, production `EventBusContract` instance; optional injection MAY remain solely for isolated unit testing or backward compatibility, but production Kernel composition SHALL NOT omit it.
+- `kernel-event-catalog.md` reference-document addition for the three new event types under "Execution Events."
+
+#### Refinements (Sprint Owner, incorporated as binding)
+
+1. Every Recovery Requirement Domain Event SHALL preserve RFC-0005 Mission attribution, causality, correlation, and the originating `GovernanceDecision` identity reference.
+2. `RecoveryRequirementCreated` SHALL be recorded by the `RecoveryRequirement` aggregate during authoritative creation only. Aggregate rehydration (`fromSnapshot`) SHALL NOT emit a creation event.
+3. Idempotent handling of an existing Recovery Requirement (duplicate `GovernanceDecisionRecorded` handling, same attribution key) SHALL NOT publish a duplicate creation event.
+4. Invalid, repeated-conflicting, or failed lifecycle transitions SHALL publish no event.
+5. Domain Events SHALL be published only after successful persistence — save-then-publish, matching Mission/Evidence/Review/Knowledge/GovernanceDecision.
+6. Production Kernel composition (`createKernelServices`) SHALL inject the shared `EventBusContract`; optional injection MAY remain solely for isolated testing or backward compatibility.
+7. Tests SHALL verify exact-once event recording per successful transition, event draining, attribution completeness, idempotency (no duplicate event on idempotent creation), and absence of publication on failed persistence or rejected/conflicting transitions.
+
+### Explicitly Unauthorized
+
+Sprint 59 SHALL NOT introduce: event subscriptions or consumers of the new events; Governed Mission Completion or any Mission completion precondition change; any `WorkflowChain`/`WorkflowStep`/Workflow Chain Execution mutation; any `GovernanceService`, `GovernanceDecision`, or `GovernanceEscalation` modification; durable or transactional event delivery; or any `src/hosts`/`src/adapters` change.
+
+### Required Test Matrix
+
+1. Successful `RecoveryRequirement` creation (Rejected `GovernanceDecision`, new attribution key) publishes exactly one `RecoveryRequirementCreated` event with complete Mission/causality/correlation/`GovernanceDecision` attribution.
+2. Idempotent handling of an already-existing attribution key (duplicate `GovernanceDecisionRecorded` delivery) publishes no additional `RecoveryRequirementCreated` event.
+3. Aggregate rehydration via `fromSnapshot` records and publishes no event.
+4. `resolveRecoveryRequirement` on a valid `Open` record publishes exactly one `RecoveryRequirementResolved` event with complete attribution after successful persistence.
+5. `withdrawRecoveryRequirement` on a valid `Open` record publishes exactly one `RecoveryRequirementWithdrawn` event with complete attribution after successful persistence.
+6. A rejected/conflicting transition (e.g., resolving an already-`Withdrawn` record, or vice versa) publishes no event.
+7. A transition that fails validation (missing required reference) publishes no event.
+8. `GovernanceDecision`, `GovernanceService`, `WorkflowChain`, `EventBusContract`, `DomainEvent` envelope remain byte-for-byte unmodified.
+9. Full repository validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint scope only; it operates at the Implementation Plan tier. It does not amend any RFC — RFC-0005 already permits additional events within its existing "Execution Events" category, and RFC-0004 v1.12's `RecoveryRequirement` definition is consumed unmodified.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to generate the Sprint 59 Sprint Implementation Record and Builder handoff, strictly limited to the Authorized Vertical Slice, incorporated Refinements, and Required Test Matrix above.
+
+## Deferred Concepts
+
+Event subscriptions/consumers; Governed Mission Completion and any Mission completion precondition change; `WorkflowChain`/`WorkflowStep` mutation; `GovernanceService`/`GovernanceDecision` modification; durable/transactional event delivery; Host or Adapter changes.
+
+## Related Sprint(s)
+
+- Sprint 59 — Recovery Requirement Domain Event Publication (this ratification's authorized scope).
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (precedent aggregate/consumer/service, unmodified).
+- Sprint 56 — Governance Decision Domain Event Publication (direct structural precedent: `governance.events.ts`, optional `EventBusContract` injection, save-then-publish).
+- Sprint 13 — Knowledge Event Publication (earlier precedent for the Foundation → Event Publication pattern).
+
+## Related Review(s)
+
+None yet. A Sprint 59 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 59 — Recovery Requirement Domain Event Publication, per the Governance Decision recorded above, implementing exactly the `RecoveryRequirementCreated`/`RecoveryRequirementResolved`/`RecoveryRequirementWithdrawn` Domain Events under RFC-0005's existing "Execution Events" category, with the seven incorporated Refinements binding. Sprint 59 SHALL implement only the Authorized Vertical Slice above. `nexus-plan` is authorized to record this ratification, generate the Sprint 59 Sprint Implementation Record, and prepare Builder handoff.
+
+## Current Status
+
+Active
+
+---

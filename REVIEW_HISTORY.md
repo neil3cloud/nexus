@@ -2,6 +2,66 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-010 — Sprint 59 — Recovery Requirement Domain Event Publication
+
+- **Reviewed Sprint:** Sprint 59 — Recovery Requirement Domain Event Publication
+- **Reviewed Vertical Slice:** RFC-0005 Domain Event publication for the existing Sprint 58 `RecoveryRequirement` aggregate — `recovery-requirement.events.ts` factory functions, aggregate recorded-events collection and drain-once `pullDomainEvents()`, save-then-publish `EventBusContract` wiring on `RecoveryRequirementGovernanceDecisionConsumer` and `RecoveryRequirementService`, production `createKernelServices` injection, `kernel-event-catalog.md` reference-document additions.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Partial; new "Execution Events" catalog entries; no text amendment); RFC-0004 v1.12 — Execution Model (Referenced, unmodified); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified); RFC-0010 — Kernel Boundaries (Referenced).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 59 implements exactly the Domain Event publication vertical slice authorized by `NEXUS-RAT-2026-07-16-009`, including its seven binding Sprint Owner refinements. Confirmed `recovery-requirement.events.ts` mirrors `governance.events.ts`'s established shape: a `RecoveryRequirementEventType` union (`RecoveryRequirementCreated`, `RecoveryRequirementResolved`, `RecoveryRequirementWithdrawn`) and factory functions that populate the shared `DomainEvent` envelope with `missionId`, `causality`, `correlationId`, and Mission attribution, plus a payload carrying the `RecoveryRequirement` identity, status, Engineering Session, Workflow Step, and originating `GovernanceDecision` identity — satisfying Refinement 1 (attribution completeness). Confirmed `RecoveryRequirement.create()` records exactly one `RecoveryRequirementCreated` event, `RecoveryRequirement.fromSnapshot()` records none (test M9-S59), and the consumer's pre-existing `findByAttributionKey` idempotency check short-circuits before any aggregate or event is constructed for a duplicate `GovernanceDecisionRecorded` delivery (test M5, event count unchanged at 1) — satisfying Refinements 2 and 3. Confirmed `resolveRecoveryRequirement`/`withdrawRecoveryRequirement` publish only after `repository.save()` succeeds (save-then-publish, source inspection of `recovery-requirement.service.ts`), and that the aggregate's idempotent-same-value early return and its `InvalidRecoveryRequirementDefinitionError` conflicting/invalid-transition paths never reach a `recordedEvents.push` call, so no event is published on repeated, conflicting, or validation-failed transitions (tests M7, M8, M12, M13, M17) — satisfying Refinements 4 and 5. Confirmed via `git diff` that `createKernelServices` now passes the shared production `EventBus` instance into both `RecoveryRequirementService` and `RecoveryRequirementGovernanceDecisionConsumer` (test M11 asserts the exact composition source pattern) — satisfying Refinement 6. All nine Required Test Matrix rows from `NEXUS-RAT-2026-07-16-009` are covered — satisfying Refinement 7. Confirmed via `git diff --stat` and a dedicated negative test (M10, unchanged from Sprint 58) that `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` remain byte-for-byte unmodified; no `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer of the new events was introduced; RFC-0004, RFC-0005, and RFC-0011 text are unmodified (confirmed via `git diff` against each specification file). Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (18/18 in `recovery-requirement.test.ts`), `npm run test` (84 files / 500 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-010-F-001 — `IMPLEMENTATION_PLAN.md` Milestone 9 status summary not synchronized with the Sprint 59 detail section
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Governance Artifacts (permanent traceability)
+- **Summary:** The Builder correctly updated the `## Sprint 59` detail section's own Status line to "Implemented — Pending Reviewer Validation," but the Milestone 9 status summary bullet list entry for Sprint 59 (originally drafted during `nexus-plan` activation) still read "Current Sprint, authorized for implementation" prior to this review's Repository State Update.
+- **Evidence:** `IMPLEMENTATION_PLAN.md` (Milestone 9 status bullet list vs. the `## Sprint 59` detail section's own Status line).
+- **Impact:** None on implemented behavior; a reader consulting only the summary bullet would see stale status text. This review's mandatory Repository State Update (below) reconciles it directly as part of marking Sprint 59 Approved.
+- **Required Disposition:** Resolved by this review's Repository State Update; no separate Documentation Task required.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Documentation Drift (Category 4) / Informational | 1 / 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest 18/18, full Vitest 84 files / 500 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 59 deferred concepts remain unimplemented and are correctly tracked in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md`: event subscriptions/consumers of the three new events, Governed Mission Completion / Mission completion precondition changes (still unscheduled, requires its own future RFC-0001 amendment), differentiated Rejected/Deferred/Escalation-Required Engineering Session state beyond Sprint 57's uniform Blocking classification, downstream Host/Adapter surfacing, and durable/persistent Event Streams. No deferred concept was silently introduced; source inspection and the M10 negative test confirm no event subscriber was added and no Governance/Workflow/Mission file was modified.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership:** `RecoveryRequirement` records its own Domain Events via its own `pullDomainEvents()`; it does not reach into `GovernanceDecision`, `EngineeringSession`, or `Mission` internals to construct event payloads, only their public identity values (already established by Sprint 58, unmodified here). Compliant.
+- **Event Categories (RFC-0005):** The three new events are catalogued under the existing "Execution Events" category, consistent with RFC-0004's ownership of `RecoveryRequirement`; no RFC-0005 text amendment was made or required, since RFC-0005 explicitly permits additional events within existing categories. Compliant.
+- **Engineering Progression (RFC-0005):** Every implemented `RecoveryRequirement` state transition (creation, resolution, withdrawal) now emits exactly one corresponding Domain Event; no observable transition occurs silently. Compliant.
+- **Attribution completeness:** Every published event carries `missionId` (envelope + attribution), `causality`, optional `correlationId`, and `governanceDecisionId` (payload) — verified by tests M1, M7, M8. Compliant.
+- **Creation-event idempotency and rehydration safety:** `RecoveryRequirementCreated` is recorded only inside `RecoveryRequirement.create()`; `fromSnapshot()` never records an event (test M9-S59); the consumer's attribution-key lookup prevents a duplicate `GovernanceDecisionRecorded` delivery from ever reaching `.create()` a second time (test M5). Compliant.
+- **Save-then-publish sequencing:** Both `RecoveryRequirementService` methods call `repository.save()` before `publishDomainEvents()`; the consumer calls `repository.register()` before `publishDomainEvents()` and gates publication on the registered id matching the locally created id, so a race-condition duplicate detected by the repository is never published. Compliant.
+- **Failure-path silence:** Idempotent-same-value resolution/withdrawal returns `this` without pushing a new event; conflicting transitions and empty-reference validation failures both throw `InvalidRecoveryRequirementDefinitionError` before any `recordedEvents.push` call — verified by tests M7, M8, M12, M13, M17. Compliant.
+- **Architectural boundaries:** `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` are byte-for-byte unmodified (confirmed by `git diff --stat` and the M10 negative source-content test). No `src/hosts` or `src/adapters` file was touched. RFC-0004, RFC-0005, and RFC-0011 specification text is unmodified (confirmed by `git diff`). Compliant.
+- **Terminology:** Event names (`RecoveryRequirementCreated`/`Resolved`/`Withdrawn`) and the "Execution Events" category placement exactly match `NEXUS-RAT-2026-07-16-009`. Compliant.
+- **Tests:** `recovery-requirement.test.ts` (18 tests: M1, parameterized M2–M4, M5–M9, M9-S59, M10–M17, one per Required Test Matrix row plus the pre-existing Sprint 58 lifecycle matrix); full suite 500/500 passing (up from 499, net +1 consistent with the file's test-count delta).
+
+### Builder Task Recommendation
+
+None. No Builder Tasks are required. Sprint 59 satisfies the approval criteria: implemented concepts conform exactly to RFC-0005's Execution Events category and `NEXUS-RAT-2026-07-16-009`'s Authorized Vertical Slice and seven binding Refinements, deferred concepts are correctly excluded and tracked, all nine Required Test Matrix rows pass, and no Critical, Major, or Minor findings remain. The sole finding (`NEXUS-REV-2026-07-16-010-F-001`, Documentation Drift, Informational) is resolved directly by this review's Repository State Update. Recommend the Sprint Owner mark Sprint 59 **Approved** and proceed to commit.
+
+---
+
 ## NEXUS-REV-2026-07-16-009 — Sprint 58 — Governance Recovery and Blocking-State Foundation
 
 - **Reviewed Sprint:** Sprint 58 — Governance Recovery and Blocking-State Foundation
