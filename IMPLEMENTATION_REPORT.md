@@ -1,5 +1,98 @@
 # Nexus Implementation Report
 
+## Sprint 61 — Governance-Gated Mission Completion
+
+### Implemented Slice
+
+Implemented the Milestone 9 Sprint 61 Governance-Gated Mission Completion vertical slice. This sprint additively gates `MissionExecutionService.completeMission` after the existing Sprint 4 Task-completion precondition succeeds and before Mission completion is persisted.
+
+Implemented scope:
+
+- Added `mission-completion-eligibility.ts` with a pure deterministic eligibility function for RFC-0001 v1.1's Required Behavioral Matrix.
+- Extended `MissionExecutionService.completeMission` to enumerate `GovernanceDecision`s through the existing `IGovernanceDecisionRepository.enumerate()` contract, filter by `missionId`, and reject completion when any applicable decision is Rejected, Deferred, or Escalation Required.
+- Preserved no-applicable-`GovernanceDecision` behavior as non-blocking Sprint 4 completion behavior.
+- Wired `createKernelServices()` so the production `MissionExecutionService` receives the shared `IGovernanceDecisionRepository`.
+- Added unit/service/integration coverage for every matrix row, independent blocking, pure-function determinism, no repository access inside eligibility evaluation, production wiring, no applicable decisions, and no recovery-symbol references in the new eligibility code.
+
+Out of scope and not implemented:
+
+- Recovery-aware Mission completion.
+- Mission-level Recovery Requirement projection or aggregation.
+- Engineering Session/Workflow Step attribution bridging.
+- Review-outcome or Knowledge-requirement completion gating.
+- Event subscribers/consumers or Host/Adapter surfacing.
+
+### RFC Coverage
+
+Primary RFC:
+
+- RFC-0001 v1.1 — Mission Model, Governance-Gated Mission Completion.
+
+Referenced RFCs:
+
+- RFC-0004 v1.11 — Execution Model, Blocking/Non-Blocking Governance Decision classification consumed read-only.
+- RFC-0011 v1.1 — Engineering Governance Model, `GovernanceDecision` consumed unmodified.
+- RFC-0004 v1.12/v1.13 — Recovery Requirement / Recovery-Gated Re-Advancement referenced only as explicitly out of scope.
+
+Implemented Concepts:
+
+- Governance-Gated Mission Completion.
+- Pure Mission Completion governance eligibility evaluation.
+- Read-only Mission-attributed Governance Decision enumeration.
+- Production repository injection for the shared `IGovernanceDecisionRepository`.
+
+Deferred Concepts:
+
+- Recovery-aware Mission completion.
+- Mission-level Recovery Requirement projection or aggregation.
+- Engineering Session/Workflow Step attribution bridging.
+- Withdrawn Recovery Requirement eligibility.
+- Review-outcome and Knowledge-requirement completion gating.
+- The `MissionPaused` lifecycle inconsistency.
+- Downstream Host/Adapter surfacing.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-012`, `NEXUS-RAT-2026-07-16-013`).
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0061-governance-gated-mission-completion.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `MissionExecutionService.completeMission` is the Sprint 61 orchestration boundary for retrieving Mission-attributed `GovernanceDecision`s before completion.
+- `Approved` is the only Non-Blocking Governance Decision for Mission Completion; Rejected, Deferred, and Escalation Required block uniformly and unconditionally.
+- Recovery Requirement consultation remains excluded because Mission Completion has no authoritative Engineering Session/Workflow Step context for RFC-0004 v1.12's attribution key.
+
+### Known Limitations
+
+- Rejected, Deferred, and Escalation Required Governance Decisions block Mission Completion permanently and unconditionally under this sprint.
+- Governance-Gated Mission Completion is not surfaced through Host or Adapter code.
+- Mission Completion still uses in-memory repositories in the current production composition.
+- The `MissionPaused` lifecycle inconsistency remains unresolved.
+
+### Validation Summary
+
+- Targeted Sprint 61 validation passed: `mission-execution.service.test.ts` (19 tests).
+- TypeScript compile passed.
+- ESLint passed.
+- Vitest passed: 84 files, 528 tests.
+- esbuild passed.
+- Extension-host bundle build passed with `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 60 — Recovery-Gated Re-Advancement
 
 ### Implemented Slice

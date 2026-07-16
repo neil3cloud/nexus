@@ -2,6 +2,68 @@
 
 ---
 
+## NEXUS-REV-2026-07-16-012 — Sprint 61 — Governance-Gated Mission Completion
+
+- **Reviewed Sprint:** Sprint 61 — Governance-Gated Mission Completion
+- **Reviewed Vertical Slice:** RFC-0001 v1.1 § 15a Governance-Gated Mission Completion — a new pure, deterministic eligibility module `mission-completion-eligibility.ts` (`isGovernanceGatedMissionCompletionEligible` / `assertGovernanceGatedMissionCompletionEligible`); an additive read-only gate in `MissionExecutionService.completeMission` that enumerates Mission-attributed `GovernanceDecision`s via the existing `IGovernanceDecisionRepository.enumerate()` and rejects completion when any is Blocking; production `createKernelServices` wiring so `MissionExecutionService` always receives the shared `IGovernanceDecisionRepository`.
+- **RFC Coverage:** RFC-0001 v1.1 — Mission Model (Primary; "§ 15a. Governance-Gated Mission Completion", new); RFC-0004 v1.11 — Execution Model (Referenced; Blocking/Non-Blocking Governance Decision classification, unmodified); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 61 implements exactly the Governance-Gated Mission Completion vertical slice authorized by `NEXUS-RAT-2026-07-16-012` (RFC-0001 v1.1 amendment) and `NEXUS-RAT-2026-07-16-013` (Sprint scope). Confirmed the new `mission-completion-eligibility.ts` implements every row of the Required Behavioral Matrix exactly: `Approved` is Non-Blocking; `Rejected`, `Deferred`, and `Escalation Required` are uniformly and unconditionally Blocking; an empty applicable-decision set is Non-Blocking (`Array.prototype.every` over zero elements returns `true`, preserving existing Sprint 4 completion behavior) — verified by a parameterized per-value test, a per-blocking-value service test, and a no-applicable-decision service test. Confirmed the two-applicable-decision independent-satisfaction test rejects completion when one `Approved` and one `Deferred` decision are both attributed to the Mission. Confirmed the eligibility function is pure: it takes an in-memory snapshot array, performs no repository access, no persistence, and no mutation of `GovernanceDecision` or `Mission` state — verified by source inspection (no `await`, no repository import in `mission-completion-eligibility.ts`) and a dedicated determinism test asserting the function does not invoke `enumerate()`. Confirmed the read-only lookup is confined to `MissionExecutionService.assertGovernanceGatedCompletionPermitted`, using the existing, unmodified `enumerate()` contract filtered client-side by `missionId`, with no repository mutation and no `GovernanceService` invocation; no repository interface was changed. Confirmed `createKernelServices()` passes the single shared `InMemoryGovernanceDecisionRepository` instance (the same object also injected into `GovernanceService` and `EngineeringSessionService`) into `MissionExecutionService`, verified by a dedicated composition test that evaluates a real governance policy producing an Escalation-Required decision and then observes `completeMission` reject — proving both wiring and end-to-end behavior. Confirmed the RFC-0001 v1.1 ordering requirement (existing completion preconditions satisfied first, governance eligibility evaluated second) is honored: `completeMission` calls the existing, unmodified `assertCompletionPermitted` before the governance gate. Confirmed a source-level negative test asserts the eligibility module references no `RecoveryRequirement`/`IRecoveryRequirementRepository` symbol, matching the Sprint Owner's directed exclusion of Recovery consultation. Confirmed via `git diff --stat` and file-level `git diff` that `GovernanceDecision`, `GovernanceService`, `RecoveryRequirement`, `RecoveryRequirementService`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `Mission.aggregate` (including `assertCompletionPermitted` and `complete`), `Mission.errors`, RFC-0004, and RFC-0011 are all byte-for-byte unmodified; no `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer was introduced. Independent re-validation confirmed `tsc --noEmit`, ESLint (`src/**` + `test/**`), `npm run test` (Vitest 84 files / 528 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-012-F-001 — `assertCompletionPermitted` evaluated twice on the completion path
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation / code quality convention
+- **Summary:** `MissionExecutionService.completeMission` now calls `mission.assertCompletionPermitted(missionPlan.tasks)` explicitly (to satisfy RFC-0001 v1.1's ordering requirement that existing preconditions precede governance evaluation) and then calls `mission.complete(...)`, which invokes `assertCompletionPermitted` a second time internally. The Task-completion precondition is therefore evaluated twice on the happy path.
+- **Evidence:** `src/kernel/mission/mission-execution.service.ts` lines 50–52; `src/kernel/mission/mission.aggregate.ts` line 89 (`complete` → `assertCompletionPermitted`).
+- **Impact:** None on behavior or correctness. `assertCompletionPermitted` is a pure, idempotent validation with no mutation and no event emission, so the redundant call is side-effect-free. This is arguably the correct architectural choice given the constraints: it enforces the ratified ordering without modifying the frozen `complete()` / `assertCompletionPermitted` methods.
+- **Required Disposition:** No action required.
+- **Builder Action:** None unless directed. If a future Builder iteration touches this method, the redundancy MAY be removed incidentally (e.g. by relying solely on the internal check once ordering is otherwise guaranteed); it does not independently justify a Builder Task.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Observation (Category 6) / Informational | 1 / 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, full Vitest 84 files / 528 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 61 deferred concepts remain unimplemented and are correctly tracked in the Sprint Implementation Record, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md`: Recovery-aware Mission completion, Mission-level Recovery Requirement projection or aggregation, Engineering Session/Workflow Step attribution bridging, Withdrawn Recovery Requirement eligibility, Review-outcome and Knowledge-requirement completion gating, the `MissionPaused` lifecycle inconsistency, and downstream Host/Adapter surfacing. Source inspection and the dedicated negative test confirm no Recovery Requirement symbol is referenced by the new eligibility code, no event subscriber was added, and no Host/Adapter file was touched. The exclusion of Recovery consultation is not a silent scope reduction: it is the Sprint-Owner-directed resolution of the attribution-key feasibility conflict recorded in `NEXUS-RAT-2026-07-16-012`/`-013`, and is correctly reflected in RFC-0001 v1.1 § 15a.
+
+### Architectural Compliance Summary
+
+- **Domain ownership / RFC-0001 boundary:** Mission remains the sole owner of Mission Completion. The new gate is an additive precondition in the application service; `Mission.aggregate` and `Mission.complete`/`assertCompletionPermitted` are byte-for-byte unmodified (`git diff` empty). Compliant.
+- **RFC-0004 v1.11 boundary:** The Blocking/Non-Blocking classification (`Approved` Non-Blocking; `Rejected`/`Deferred`/`Escalation Required` Blocking) is consumed exactly as defined; `mission-completion-eligibility.ts` reads the already-produced `GovernanceDecisionSnapshot` as plain data and never mutates it. Compliant.
+- **RFC-0011 boundary:** `GovernanceDecision`'s value, semantics, lifecycle, and production are untouched (`src/kernel/governance/` has zero diff); RFC-0011 is unmodified. Compliant.
+- **RFC-0004 v1.12/v1.13 boundary (Recovery):** No Recovery Requirement consultation exists; `RecoveryRequirement`, its service, consumer, and contracts show zero diff, and a source-level negative test enforces the absence of any Recovery symbol in the eligibility module. Compliant with the ratified exclusion.
+- **Read-only orchestration:** All repository access is confined to `MissionExecutionService`, uses the existing `enumerate()` contract, mutates nothing, and invokes no `GovernanceService` operation. Compliant.
+- **Pure eligibility evaluation:** `isGovernanceGatedMissionCompletionEligible` / `assertGovernanceGatedMissionCompletionEligible` perform no repository access, no persistence, and no mutation, confirmed by source inspection and a determinism test. Compliant.
+- **Production wiring:** `createKernelServices()` injects the shared `InMemoryGovernanceDecisionRepository` into `MissionExecutionService`; the constructor parameter remains optional solely for isolated unit-test construction, as authorized. Compliant.
+- **Ordering:** Existing completion preconditions are evaluated before governance eligibility, exactly per RFC-0001 v1.1 § 15a. Compliant (see F-001 for the resulting benign redundancy).
+- **Architectural boundaries:** No `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer was introduced; only `create-kernel-services.ts` (wiring), `mission-execution.service.ts` (additive gate), the new `mission-completion-eligibility.ts`, and the test file changed. Compliant.
+- **Tests:** All eight rows of the Required Test Matrix are covered: per-value classification, no-applicable-decision non-blocking, per-blocking-value rejection, two-decision independent-satisfaction, pure/deterministic no-repository-access, production `createKernelServices` wiring, Sprint 4 regression (no-applicable-decision completes), and the recovery-symbol negative test. Full suite 528/528 passing (up from 517, net +11 consistent with the added coverage).
+
+### Builder Task Recommendation
+
+No Builder Task is generated. The single finding (`NEXUS-REV-2026-07-16-012-F-001`) is a Category 6 Observation requiring no action. Sprint 61 is fully closed with zero open findings of any blocking category.
+
+The pre-existing `IMPLEMENTATION_MANIFEST.md` Sprint 59 status-line drift (tracked by `builder-task.md` DOC-001, originating from `NEXUS-REV-2026-07-16-011-F-001`) remains an open, non-blocking Documentation Task owned by the Builder; it is outside this review's scope and is not re-raised here.
+
+---
+
 ## NEXUS-REV-2026-07-16-011 — Sprint 60 — Recovery-Gated Re-Advancement
 
 - **Reviewed Sprint:** Sprint 60 — Recovery-Gated Re-Advancement

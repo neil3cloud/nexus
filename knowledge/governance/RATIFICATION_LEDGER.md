@@ -6068,6 +6068,176 @@ Active
 
 ---
 
+# NEXUS-RAT-2026-07-16-012
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-012
+
+## Date
+
+2026-07-16
+
+## Subject
+
+RFC-0001 Amendment Ratification — Governance-Gated Mission Completion. Amends RFC-0001 — Mission Model to Version 1.1, adding a new "§ 15a. Governance-Gated Mission Completion" section.
+
+## Originating Request
+
+Following Sprint 60's closure with zero open findings, `nexus-plan` performed a Repository Analysis. Sprint 60's Final Disposition named three unscheduled Milestone 9 candidates: (1) Withdrawn Recovery Requirement eligibility; (2) event subscriptions/consumers; (3) Governed Mission Completion, requiring its own RFC-0001 amendment. `nexus-plan` confirmed via `RATIFICATION_LEDGER.md` that none of the three had prior ratified law, and — noting Governed Mission Completion's greater scope and risk relative to the other two — recommended option (1) as the narrowest, most precedented increment. The Sprint Owner selected option (3), Governed Mission Completion, instead. `nexus-plan` drafted an initial amendment narrowing the ledger's only existing design sketch (`RATIFICATION_LEDGER.md` §§ 5664, 5915, 6006: "Review, `GovernanceDecision`, unresolved recovery, and Knowledge requirements") to the `GovernanceDecision`/Recovery Requirement subset only, deferring Review-outcome and Knowledge-requirement gating to future amendments, and flagging the unrelated, still-unresolved `MissionPaused` lifecycle inconsistency (RFC-0001 § 13; `IMPLEMENTATION_MANIFEST.md:180,188`) as out of scope. The Sprint Owner approved this narrowed scope but required the amendment wording be revised: (a) existing Mission completion preconditions (RFC-0001 v1.0, unmodified) SHALL be evaluated first, before Governance eligibility; (b) Recovery Requirement attribution SHALL remain RFC-0004 v1.12's existing full four-part (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) key — not redefined to a two-part (Mission, `GovernanceDecision`) key as `nexus-plan`'s first draft had proposed; (c) Mission completion evaluation SHALL consider every applicable `GovernanceDecision` attributed to the Mission, each independently satisfying the matrix; (d) the originating Rejected `GovernanceDecision` remains immutable and historically authoritative. While preparing the Sprint 61 Implementation Record against this revised text, `nexus-plan` discovered that (b) is not implementable: `GovernanceDecision` carries no `engineeringSessionId`/`workflowStepId`, and `MissionExecutionService.completeMission()` has no Engineering Session or Workflow Step context in scope, so the exact four-part Recovery Requirement attribution key required by (b) cannot be constructed at Mission Completion time — confirmed by source inspection of `governance-decision.ts`, `engineering-session.service.ts`, and `recovery-requirement-governance-decision.consumer.ts`. `nexus-plan` reported this finding to the Sprint Owner rather than resolve it unilaterally. The Sprint Owner directed that Recovery Requirement override be dropped from this amendment entirely — not loosened to a two-part key, and not bridged with new cross-subsystem plumbing — deferring Recovery-aware Mission completion to its own future RFC amendment. This ratification and RFC-0001 § 15a were revised in place to remove all Recovery Requirement content before this ratification issued in its final form.
+
+## Governance Decision
+
+**RFC-0001 Amendment Approved, with refinements incorporated.** The Sprint Owner amends RFC-0001 to Version 1.1, adding Governance-Gated Mission Completion.
+
+### Ratified Semantics
+
+Before a Mission may transition `Reviewing → Completed`, the existing Mission completion preconditions (RFC-0001 v1.0 § 8 Invariant 7, § 9 Lifecycle, § 10 Operations — unmodified) SHALL first be satisfied. Governance eligibility is then evaluated against every `GovernanceDecision` (RFC-0011) attributed to the Mission:
+
+| Governance Decision | Mission Completion |
+| --- | --- |
+| Approved | Non-blocking |
+| Rejected | Blocking |
+| Deferred | Blocking |
+| Escalation Required | Blocking |
+
+- Mission Completion is rejected when any applicable `GovernanceDecision` is Blocking. Every applicable `GovernanceDecision` independently satisfies the matrix.
+- This amendment introduces no Recovery Requirement consultation of any kind. RFC-0004 v1.12's Recovery Requirement attribution key is scoped to (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) — the full four-part key, unmodified — and Mission Completion has no authoritative Engineering Session or Workflow Step context to supply it. This amendment SHALL NOT weaken that attribution matching, infer missing Engineering Session or Workflow Step context, or introduce new cross-subsystem plumbing bridging Mission Completion to Engineering Session/Workflow Step. A Rejected, Deferred, or Escalation Required `GovernanceDecision` therefore blocks Mission Completion unconditionally. Recovery-aware Mission completion requires its own future RFC amendment and Sprint Owner ratification.
+- When no `GovernanceDecision` is attributed to the Mission, this section does not apply; existing Mission completion behavior (Sprint 4, unmodified) governs unchanged.
+
+This amendment SHALL NOT modify `GovernanceDecision`, `GovernanceService`, `RecoveryRequirement`, `RecoveryRequirementService`, the Recovery Resolution Contract, or the Recovery Withdrawal Contract (RFC-0004/RFC-0011, unmodified); SHALL NOT modify `WorkflowChain`, `WorkflowStep`, or `EngineeringSession`; SHALL NOT introduce Review-outcome or Knowledge-requirement completion gating, Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, Mission-level Recovery Requirement projection or aggregation, Engineering Session/Workflow Step attribution bridging, or any resolution of the `MissionPaused` lifecycle inconsistency; and SHALL NOT introduce event publication/subscription or any Host/Adapter surface.
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0001's own text (Amendment History, new § 15a) and therefore carries RFC-tier authority for that amendment, per RFC-0004/RFC-0011's shared Authority Hierarchy convention. It does not modify RFC-0004, RFC-0011, RFC-0002–0003, RFC-0005–0010, or the Kernel Canon, and does not redefine any concept owned by another RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to:
+
+1. amend RFC-0001 to v1.1 as recorded in `knowledge/specifications/rfc-0001-mission-model.md` — complete;
+2. update RFC-0001's Amendment History accordingly — complete;
+3. prepare this ratification entry — complete;
+4. prepare a companion Sprint-scope ratification authorizing Sprint 61's implementation of this amendment, narrowly scoped to this amendment's actual text.
+
+No Builder implementation is authorized by this ratification alone; implementation requires the companion Sprint-scope ratification.
+
+## Deferred Concepts
+
+Recovery-aware Mission completion; Mission-level Recovery Requirement projection or aggregation; Engineering Session/Workflow Step attribution bridging; Review-outcome completion gating; Knowledge-requirement completion gating; Withdrawn Recovery Requirement eligibility (still gated by `NEXUS-RAT-2026-07-16-010`/`-011`); `MissionPaused` lifecycle semantics; event subscriptions/consumers; Host or Adapter changes. Each remains unauthorized pending its own future RFC amendment and/or Sprint Owner scope ratification.
+
+## Related Sprint(s)
+
+- Sprint 61 — Governance-Gated Mission Completion (implements this amendment; companion Sprint-scope ratification to follow).
+- Sprint 60 — Recovery-Gated Re-Advancement (related architectural precedent for a possible future Recovery-aware Mission completion amendment; frozen, consumed read-only; not extended by this amendment).
+- Sprint 58 — Governance Recovery and Blocking-State Foundation (`RecoveryRequirement`, Recovery Resolution Contract; frozen, consumed read-only; not consumed by this amendment).
+- Sprint 4 — Mission Execution (existing Mission completion precondition; frozen, consumed read-only).
+
+## Related Review(s)
+
+None yet. A Sprint 61 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner amends RFC-0001 — Mission Model to Version 1.1, adding Governance-Gated Mission Completion, per the Governance Decision recorded above. Existing Mission completion preconditions (v1.0, unmodified) are evaluated first; every `GovernanceDecision` attributed to the Mission is then independently evaluated against the ratified matrix, using RFC-0004's existing Blocking/Non-Blocking classification. This amendment introduces no Recovery Requirement consultation: the Sprint Owner accepted `nexus-plan`'s finding that Mission Completion has no Engineering Session/Workflow Step context to construct RFC-0004 v1.12's exact attribution key, and directed that Recovery-aware Mission completion be deferred to its own future RFC amendment rather than weaken attribution matching or introduce new cross-subsystem plumbing. This amendment does not modify RFC-0004, RFC-0011, Recovery Requirement's existing lifecycle or contracts, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, or the `MissionPaused` inconsistency. The Sprint Owner authorizes `nexus-plan` to prepare the companion Sprint 61 scope ratification narrowly implementing this amendment.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-16-013
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-013
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 61 Scope Ratification — Governance-Gated Mission Completion. Authorizes implementation of Governance-Gated Mission Completion as defined by `NEXUS-RAT-2026-07-16-012` (RFC-0001 v1.1).
+
+## Originating Request
+
+Following `NEXUS-RAT-2026-07-16-012`'s RFC-0001 v1.1 amendment, `nexus-plan` drafted an initial Sprint 61 scope proposal that included Recovery Requirement override, using `IRecoveryRequirementRepository.findByAttributionKey`. Before Builder handoff, `nexus-plan` discovered a feasibility conflict: `GovernanceDecision` carries no `engineeringSessionId`/`workflowStepId`, and `MissionExecutionService.completeMission()` has no Engineering Session or Workflow Step context in scope, so the exact four-part Recovery Requirement attribution key required by RFC-0004 v1.12 (and by `NEXUS-RAT-2026-07-16-012`'s prohibition on loosening it) cannot be constructed at Mission Completion time. `nexus-plan` reported this finding to the Sprint Owner, who directed that Sprint 61 drop Recovery Requirement override entirely rather than weaken attribution matching or introduce new cross-subsystem plumbing, and that `NEXUS-RAT-2026-07-16-012` and RFC-0001 v1.1 be revised accordingly before this ratification issued. `knowledge/specifications/rfc-0001-mission-model.md` § 15a and `NEXUS-RAT-2026-07-16-012` were revised in place (not superseded) to remove all Recovery Requirement content prior to recording this ratification. This ratification reflects the revised, Recovery-free scope directly; no separate revision history is required for this ratification since it is issued for the first time in its final form.
+
+## Governance Decision
+
+**Approved.** Sprint 61 — Governance-Gated Mission Completion is authorized for implementation, strictly as follows.
+
+### Authorized Vertical Slice
+
+Sprint 61 SHALL introduce:
+
+- Optional constructor-injected `IGovernanceDecisionRepository` on `MissionExecutionService`, used exclusively within `completeMission` — after the existing, unmodified `assertCompletionPermitted` Task-completion precondition succeeds and before the Mission's status is persisted as `Completed` — to retrieve every `GovernanceDecision` attributed to the Mission via the existing, unmodified `IGovernanceDecisionRepository.enumerate()` method (read-only), filtered client-side by `missionId`. No repository interface change; no repository mutation; no `GovernanceService` invocation; no `RecoveryRequirement`/`IRecoveryRequirementRepository` reference of any kind.
+- A pure, deterministic Mission Completion eligibility function implementing exactly the Required Behavioral Matrix below over the full set of applicable `GovernanceDecision`s, with no repository access, no persistence, and no mutation of `GovernanceDecision` or `Mission` state.
+- `createKernelServices()` wiring so `MissionExecutionService` always receives the shared, production `IGovernanceDecisionRepository` instance.
+- Unit and integration tests satisfying the Required Test Matrix below.
+
+#### Required Behavioral Matrix (binding, per `NEXUS-RAT-2026-07-16-012` as revised)
+
+| Governance Decision | Mission Completion |
+| --- | --- |
+| Approved | Non-blocking |
+| Rejected | Blocking |
+| Deferred | Blocking |
+| Escalation Required | Blocking |
+| No applicable `GovernanceDecision` | Non-blocking (existing Sprint 4 behavior unchanged) |
+
+Every applicable `GovernanceDecision` SHALL independently satisfy the matrix; Mission Completion SHALL be rejected when any applicable `GovernanceDecision` is Blocking. This Sprint introduces no Recovery Requirement consultation of any kind — Rejected, Deferred, and Escalation Required are uniformly and unconditionally Blocking.
+
+### Explicitly Unauthorized
+
+Sprint 61 SHALL NOT modify: `GovernanceDecision`'s lifecycle or semantics, `GovernanceService`, `GovernanceEscalation`; `RecoveryRequirement`'s lifecycle, identity, or attribution, `RecoveryRequirementService`, `RecoveryRequirementGovernanceDecisionConsumer`, the Recovery Resolution Contract, or the Recovery Withdrawal Contract; `WorkflowChain`, `WorkflowStep`, or `EngineeringSession`; Manual, Automatic/Event-Driven, Review-Gated, or Governance-Gated Advancement, or Recovery-Gated Re-Advancement Eligibility (Sprints 57/60, frozen); the existing `assertCompletionPermitted` Task-completion precondition (Sprint 4, unmodified — this Sprint's gate SHALL apply additively, after it succeeds); Review-outcome or Knowledge-requirement completion gating; Recovery-aware Mission completion; Mission-level Recovery Requirement projection or aggregation; Engineering Session/Workflow Step attribution bridging; the `MissionPaused` lifecycle inconsistency; any event subscriber/consumer; or Host or Adapter code. Sprint 61 SHALL introduce no `IRecoveryRequirementRepository` reference anywhere.
+
+### Required Test Matrix
+
+1. Every row of the Required Behavioral Matrix above, exercised as a dedicated test.
+2. A Mission with two applicable `GovernanceDecision`s where at least one is Blocking SHALL NOT complete, regardless of the other's value (independent-satisfaction test).
+3. The eligibility function is verified pure: given identical inputs it is deterministic, and a dedicated test confirms no repository or persistence call occurs within it.
+4. `createKernelServices()` wires the shared, production `IGovernanceDecisionRepository` into `MissionExecutionService` (integration-level test).
+5. `GovernanceDecision`, `GovernanceService`, `RecoveryRequirement`, `RecoveryRequirementService`, `WorkflowChain`, `EngineeringSession` remain byte-for-byte unmodified.
+6. A Mission with no applicable `GovernanceDecision` completes exactly as before this Sprint (regression test against Sprint 4 behavior).
+7. A source-level check (e.g. import-graph or grep-based negative test) confirms no `RecoveryRequirement`/`IRecoveryRequirementRepository` symbol is referenced by the new Mission Completion eligibility code.
+8. Full repository validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint scope only; it operates at the Implementation Plan tier, below the RFC-tier authority already established by `NEXUS-RAT-2026-07-16-012`. It does not itself amend any RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to generate the Sprint 61 Sprint Implementation Record, activate Sprint 61 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, and prepare Builder handoff, strictly limited to the Authorized Vertical Slice, Required Behavioral Matrix, and Required Test Matrix above.
+
+## Deferred Concepts
+
+Recovery-aware Mission completion; Mission-level Recovery Requirement projection or aggregation; Engineering Session/Workflow Step attribution bridging; Withdrawn Recovery Requirement eligibility; Review-outcome completion gating; Knowledge-requirement completion gating; `MissionPaused` lifecycle semantics; event subscriptions/consumers; Host or Adapter changes.
+
+## Related Sprint(s)
+
+- Sprint 61 — Governance-Gated Mission Completion (this ratification's authorized scope).
+- Sprint 60 — Recovery-Gated Re-Advancement (related architectural precedent for a possible future Recovery-aware Mission completion amendment; frozen, consumed read-only; not extended by this Sprint).
+- Sprint 53 — Policy Evaluation and Governance Decision Foundation (`GovernanceDecision`, `IGovernanceDecisionRepository`; frozen, consumed read-only).
+- Sprint 4 — Mission Execution (`MissionExecutionService.completeMission`, `assertCompletionPermitted`; extended additively, not redefined).
+
+## Related Review(s)
+
+None yet. A Sprint 61 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 61 — Governance-Gated Mission Completion, per the Governance Decision recorded above, implementing exactly the Required Behavioral Matrix via optional, production-wired `IGovernanceDecisionRepository` injection on `MissionExecutionService` and a pure, side-effect-free eligibility function evaluated over every applicable `GovernanceDecision`. This Sprint introduces no Recovery Requirement consultation: the Sprint Owner accepted `nexus-plan`'s feasibility finding that Mission Completion has no Engineering Session/Workflow Step context to construct RFC-0004 v1.12's exact attribution key, and directed that Recovery-aware Mission completion be deferred to its own future RFC amendment rather than weaken attribution matching. Sprint 61 SHALL implement only the Authorized Vertical Slice above. `nexus-plan` is authorized to record this ratification, generate the Sprint 61 Sprint Implementation Record, activate Sprint 61, and prepare Builder handoff.
+
+## Current Status
+
+Active
+
+---
+
 # NEXUS-RAT-2026-07-16-011
 
 ## Ratification Identifier
@@ -6153,6 +6323,97 @@ None yet. A Sprint 60 Reviewer certification is required following implementatio
 ## Full Ratification Text
 
 > The Sprint Owner authorizes Sprint 60 — Recovery-Gated Re-Advancement, per the Governance Decision recorded above, implementing exactly the Required Behavioral Matrix via an optional, production-wired `IRecoveryRequirementRepository` injection on `EngineeringSessionService` and a pure, side-effect-free eligibility function consuming its lookup result. Sprint 60 SHALL implement only the Authorized Vertical Slice above. `nexus-plan` is authorized to record this ratification, generate the Sprint 60 Sprint Implementation Record, activate Sprint 60, and prepare Builder handoff.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-16-014
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-16-014
+
+## Date
+
+2026-07-16
+
+## Subject
+
+Sprint 62 Scope Ratification — Governance Automation Integration Validation and Milestone 9 Certification. Authorizes a validation-only Sprint exercising the complete Sprint 52–61 governed engineering path end-to-end and producing a Milestone 9 closure recommendation.
+
+## Originating Request
+
+Following Sprint 61's closure (`NEXUS-REV-2026-07-16-012`) with no Current Milestone 9 Sprint remaining, `nexus-plan` presented four candidate directions for Sprint 62 — Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, a narrow event consumer, and MissionPaused/MissionResumed lifecycle correction — each requiring its own future RFC amendment or narrower Sprint Owner scoping decision before it could be responsibly proposed. The Sprint Owner declined all four as the next Sprint and instead directed a certification Sprint validating the complete Sprint 52–61 governance chain as an integrated system, with a Milestone 9 closure decision contingent on its outcome.
+
+## Governance Decision
+
+**Approved as directed.** Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification is authorized for implementation, strictly as follows. Sprint 62 SHALL introduce no new production capability, lifecycle state, domain concept, event consumer, or architectural dependency.
+
+### Authorized Vertical Slice
+
+Sprint 62 SHALL introduce only:
+
+- An integration test suite exercising the complete governed engineering path: Review → Repository Policy Evaluation → Ratification Authority Validation → Governance Decision → Governance Decision Event Publication → Governance-Gated Workflow Advancement → (Rejected) → Recovery Requirement Creation → Recovery Requirement Event Publication → Recovery Resolution → Recovery-Gated Re-Advancement → Governance-Gated Mission Completion, assembled exclusively from existing, frozen Sprint 52–61 services and repositories through their existing public contracts.
+- A Milestone 9 certification verdict and closure recommendation, documented in the Sprint 62 Implementation Record.
+
+No modification to any Sprint 1–61 production source is authorized, except a change strictly required to correct a genuine defect exposed by certification. Any such defect SHALL be reported and routed through the established review and recovery workflow rather than silently expanding Sprint scope.
+
+### Required Scenarios (binding)
+
+1. Approved governance path advances the Workflow and permits Mission completion.
+2. Rejected governance blocks both Workflow advancement and Mission completion.
+3. A Rejected `GovernanceDecision` creates exactly one Recovery Requirement.
+4. An Open Recovery Requirement remains blocking.
+5. A Resolved Recovery Requirement restores Workflow advancement eligibility.
+6. A Resolved Recovery Requirement does not override Sprint 61's Governance-Gated Mission Completion rules.
+7. Deferred remains blocking.
+8. Escalation Required remains blocking.
+9. A missing Review produces the established fail-closed behavior.
+10. Ratification attribution that is Invalid or Unresolvable produces Escalation Required.
+11. A cross-Mission attribution mismatch fails closed.
+12. Idempotent evaluation produces no duplicate Governance Decisions, Recovery Requirements, or Domain Events.
+13. Failed persistence publishes no Domain Event.
+14. Existing RFC ownership and Kernel boundaries remain intact throughout the exercised path.
+
+### Certification Scope
+
+Conformance SHALL be assessed against RFC-0001 v1.1, RFC-0004 v1.13, RFC-0005, RFC-0006, RFC-0011, the Kernel Canon, the Implementation Constitution, and all Milestone 9 Ratifications.
+
+### Explicitly Unauthorized
+
+Sprint 62 SHALL NOT introduce: Withdrawn Recovery Requirement eligibility; Recovery-aware Mission completion; any `MissionPaused`/`MissionResumed` lifecycle correction; generic event subscription infrastructure; Host or Adapter governance UI; autonomous ratification; AI governance deliberation.
+
+### Milestone Decision Authority
+
+If Sprint 62 certification passes with no blocking findings, the next `nexus-plan` cycle SHALL declare Milestone 9 — Engineering Governance Automation complete, synchronize all repository-state artifacts, close Sprint 62, and begin planning the next milestone. No Sprint 63 SHALL be created solely for administrative certification unless Sprint 62 uncovers remediation work.
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint scope only, at the Implementation Plan tier. It amends no RFC and redefines no previously approved vertical slice.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, generate the Sprint 62 Sprint Implementation Record, activate Sprint 62 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, and prepare Builder handoff, strictly limited to the Authorized Vertical Slice, Required Scenarios, and Certification Scope above.
+
+## Deferred Concepts
+
+Withdrawn Recovery Requirement eligibility; Recovery-aware Mission completion; `MissionPaused`/`MissionResumed` lifecycle correction; generic event subscription/consumer infrastructure; Host/Adapter governance surfacing; autonomous ratification; AI governance deliberation.
+
+## Related Sprint(s)
+
+- Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (this ratification's authorized scope).
+- Sprint 52 through Sprint 61 (all frozen, consumed read-only through existing public contracts).
+
+## Related Review(s)
+
+None yet. A Sprint 62 Reviewer certification is required following implementation.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification, per the Governance Decision recorded above: a validation-only integration test suite exercising the complete Sprint 52–61 governed engineering path through existing, frozen public contracts, producing a Milestone 9 certification verdict and closure recommendation. No new production capability, lifecycle state, domain concept, event consumer, or architectural dependency is authorized. `nexus-plan` is authorized to record this ratification, generate the Sprint 62 Sprint Implementation Record, activate Sprint 62, and prepare Builder handoff.
 
 ## Current Status
 
