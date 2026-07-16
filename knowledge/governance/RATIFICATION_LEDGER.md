@@ -6790,3 +6790,99 @@ None yet — Sprint 65 has not been reviewed. This ratification responds to a pr
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-001
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Sprint 66 Scope Ratification — Engineering Session State Projection. Resolves the `nexus-plan` Sprint Proposal presented after Sprint 65's certification (`NEXUS-REV-2026-07-17-001`), authorizing a read-only projection of `EngineeringSessionWorkflowAdvanced` events.
+
+## Originating Request
+
+None. This ratification originates from a `nexus-plan` Sprint Proposal (Sprint 66 — Engineering Session State Projection), approved by the Sprint Owner with binding refinements.
+
+## Governance Decision
+
+**Approved with refinements.** The Sprint Owner authorizes Sprint 66 — Engineering Session State Projection as Milestone 10's next Sprint, implementing the Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018` ("EngineeringSession Session State Projection").
+
+**Objective (binding):** Introduce a deterministic, read-only projection of observed `EngineeringSession` Workflow position changes by consuming exactly the existing `EngineeringSessionWorkflowAdvanced` event stream (Sprint 65, frozen) through the existing `EventBusContract`. The projection SHALL expose the latest observed Workflow position and advancement history per Engineering Session. It SHALL NOT mutate Workflow state, trigger Workflow advancement, automate recovery, or infer unrecorded domain facts.
+
+**Known Source Limitation (binding):** `EngineeringSessionCreated` remains deferred (per `NEXUS-RAT-2026-07-16-019`). Sprint 66 SHALL NOT claim to represent an Engineering Session's creation-time state. The projection SHALL distinguish "no observed advancement" from "an observed current Workflow position," MAY initialize its first history entry from the first event's `previousWorkflowStepId`/`newWorkflowStepId`, and SHALL NOT infer creation-time state from any repository, `WorkflowChain` definition, Mission Engineering Group, command, or unrelated event. A newly created Engineering Session with no advancement event MAY legitimately have no projection record.
+
+**Architectural Responsibilities (binding):**
+
+| Concern | Owner |
+| --- | --- |
+| Authoritative Workflow position, advancement behavior | `EngineeringSession`/`EngineeringSessionService` (Sprint 39/42/43/45/46/65, unmodified) |
+| `EngineeringSessionWorkflowAdvanced` event contract, publication semantics | Sprint 65 (frozen, consumed unmodified) |
+| Mission attribution | Copied exclusively from the consumed event; never independently resolved or re-derived |
+| Observed Workflow-position read model | New `EngineeringSessionStateProjection`/`EngineeringSessionStateProjectionService` (this Sprint) |
+| Event delivery, ordering, replay/subscription mechanics | Existing `EventBusContract` (Sprint 1/63, unmodified) |
+
+## Authorized Scope
+
+The Builder MAY:
+
+- Introduce `EngineeringSessionStateProjection` (read model), `IEngineeringSessionStateProjectionRepository`/in-memory implementation, and `EngineeringSessionStateProjectionService`, subscribed to exactly `EngineeringSessionWorkflowAdvanced` through the existing `EventBusContract`, mirroring the Sprint 63 `GovernanceStateProjection` pattern where structurally reusable.
+- Extend `createKernelServices()` composition only as additive wiring required to construct and register the new service/repository.
+
+The Builder SHALL NOT:
+
+- Modify `EngineeringSession`, `EngineeringSessionService`, `WorkflowChain`, Mission Engineering Group, Execution Strategy, Assignment Policy, Review, Governance, `RecoveryRequirement`, `Mission`, or Sprint 65's existing event contract.
+- Modify any `src/hosts` or `src/adapters` file.
+- Introduce Workflow mutation, Workflow-step execution, Review-outcome evaluation, Governance-decision evaluation, Recovery-requirement resolution, Adapter selection/dispatch, or Mission/Engineering-Session mutation of any kind from the projection or its service.
+- Introduce event consumers of the projection itself, Host/Adapter surfacing, projection caching, durable persistence, distributed consumers, checkpoints, consumer offsets, dead-letter queues, retry policies, or event-stream compaction.
+- Independently resolve or infer Mission association; Mission identity SHALL be copied exclusively from the consumed Domain Event.
+- Reorder events by timestamp, introduce speculative sorting, conflict resolution, or eventual-consistency reconciliation; events SHALL be applied in authoritative `EventBus` order only.
+
+## Deterministic Event Consumption (binding)
+
+For every accepted `EngineeringSessionWorkflowAdvanced` event, the consumer SHALL: validate the event; locate the existing projection by `engineeringSessionId`; verify Mission attribution consistency; verify Workflow continuity when a prior projection exists (`event.previousWorkflowStepId` SHALL equal `projection.currentWorkflowStepId`); append exactly one advancement history entry; update the current observed Workflow position; persist the updated projection. Equivalent ordered event streams SHALL produce equivalent projections.
+
+A continuity mismatch SHALL fail deterministically, leaving the existing projection unchanged — the consumer SHALL NOT repair the event, skip the mismatch silently, infer an intermediate transition, or overwrite the projection with contradictory state. A conflicting Mission identity for the same `engineeringSessionId` SHALL fail closed with deterministic diagnostics, leaving the existing projection unchanged; no Mission reassignment behavior is authorized.
+
+Processing the same Domain Event identity more than once SHALL NOT duplicate history, increment projection revision, alter current state, or produce a second effective update. Idempotency SHALL be based on authoritative event identity, not payload similarity. The implementation SHALL avoid duplicate effective updates when historical replay and live subscription overlap, using the existing EventBus consumption mechanism only.
+
+## Builder Stop Conditions (binding)
+
+The Builder SHALL stop and report, rather than invent new event infrastructure or an inferred-state workaround, if: the EventBus cannot provide deterministic consumption or replay; replay and live subscription cannot be deduplicated using existing event identity; `EngineeringSessionWorkflowAdvanced` lacks required attribution; event ordering cannot be established through the existing contract; projection continuity cannot be validated without modifying Sprint 65; or implementation would require Host, Adapter, aggregate, or RFC changes.
+
+## Ownership Model (ratified)
+
+`EngineeringSession` remains the sole owner of authoritative Workflow position and advancement behavior. `EngineeringSessionStateProjection` is derived, read-only state, never authoritative domain state, consistent with the Sprint 63 `GovernanceStateProjection` precedent. This ratification introduces no new aggregate ownership and amends no RFC.
+
+## Authorized Scope (planning artifacts)
+
+`nexus-plan` is authorized to record this ratification, generate the Sprint 66 Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0066-engineering-session-state-projection.md`), update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for Sprint 66, and issue Builder handoff.
+
+## Deferred Concepts
+
+`EngineeringSessionCreated`; projection of creation-time Session state; Event-Driven Workflow Advancement; event-driven Workflow mutation; Recovery Workflow Automation; automatic recovery execution; Autonomous Engineering Integration Validation; Host projection UI; Adapter consumers; projection caching; durable projection storage; distributed consumers; event checkpoints; consumer offsets; dead-letter queues; retry policies; event-stream compaction; Mission-level orchestration; WorkflowStep execution-status projection; ExecutionSession projection.
+
+## Related Sprint(s)
+
+- Sprint 63 — Governance State Projection Foundation (structural precedent, frozen, unaffected).
+- Sprint 65 — EngineeringSession Domain Event Publication (frozen; sole event source for this Sprint).
+- Sprint 66 — Engineering Session State Projection (this ratification's authorized scope).
+
+## Related Review(s)
+
+None yet — Sprint 66 has not been reviewed. This ratification precedes Sprint 66 implementation and its Reviewer cycle.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 66 — Engineering Session State Projection as Milestone 10's next Sprint, fulfilling the Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`. The Sprint introduces a deterministic, read-only projection (`EngineeringSessionStateProjection`/`EngineeringSessionStateProjectionRepository`/`EngineeringSessionStateProjectionService`) consuming exactly the existing `EngineeringSessionWorkflowAdvanced` event stream through the existing `EventBusContract`, exposing the latest observed Workflow position and ordered advancement history per Engineering Session. Because `EngineeringSessionCreated` remains deferred, the projection SHALL NOT claim to represent creation-time state, distinguishing "no observed advancement" from "an observed current position," and MAY initialize its first history entry from the first consumed event's previous/new Workflow positions only. Mission attribution SHALL be copied exclusively from the consumed event, never independently resolved. Event consumption SHALL be deterministic: Workflow continuity mismatches and Mission attribution conflicts SHALL fail closed, leaving any existing projection unchanged; duplicate event identities SHALL NOT produce duplicate history or a second effective update; events SHALL be applied in authoritative EventBus order only, with no timestamp-based reordering or reconciliation. `EngineeringSession`, `EngineeringSessionService`, `WorkflowChain`, Mission Engineering Group, Execution Strategy, Assignment Policy, Review, Governance, `RecoveryRequirement`, `Mission`, Sprint 65's event contract, and all `src/hosts`/`src/adapters` files SHALL NOT be modified. No Workflow mutation, execution, Review/Governance evaluation, Recovery resolution, Adapter dispatch, or Mission/Engineering-Session mutation is authorized from the projection or its service. The Builder SHALL stop and report rather than invent new event infrastructure if the EventBus cannot guarantee deterministic consumption, replay deduplication, or event ordering as required. `nexus-plan` SHALL record this ratification, generate the Sprint 66 Sprint Implementation Record, update planning artifacts, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

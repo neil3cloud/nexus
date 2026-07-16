@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 66 — Engineering Session State Projection
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 66 vertical slice authorized by `NEXUS-RAT-2026-07-17-001`.
+
+Implemented scope:
+
+- Added immutable `EngineeringSessionStateProjection` read model snapshots keyed by `engineeringSessionId`, preserving authoritative `missionId` copied exclusively from `EngineeringSessionWorkflowAdvanced`.
+- Added `IEngineeringSessionStateProjectionRepository` and `InMemoryEngineeringSessionStateProjectionRepository` with retrieval by Engineering Session, global enumeration, and Mission-scoped enumeration.
+- Added `EngineeringSessionStateProjectionService` subscribed to exactly `EngineeringSessionWorkflowAdvanced` through the existing `EventBusContract`.
+- Implemented deterministic event consumption: first-observed event initialization, Workflow continuity validation, Mission attribution consistency, ordered advancement history, event-identity idempotency, explicit replay application, and deterministic rejection diagnostics.
+- Wired `createKernelServices()` additively for the new read-model service.
+- Added Sprint 66 tests covering the Required Test Matrix, including no projection before observed advancement, all four advancement strategies, continuity and Mission conflicts, replay/live deduplication, reconstruction, malformed event rejection, persistence failure, enumeration immutability, Kernel composition, and Host/Adapter boundary protection.
+
+Out of scope and not implemented:
+
+- `EngineeringSessionCreated`.
+- Projection of Engineering Session creation-time state.
+- Event-Driven Workflow Advancement or any Workflow mutation.
+- Recovery Workflow Automation or automatic recovery execution.
+- Autonomous Engineering Integration Validation.
+- Host or Adapter projection surfacing.
+- Durable projection storage, distributed consumers, event checkpoints, offsets, retries, dead-letter queues, or event-stream compaction.
+- Mission-level orchestration, WorkflowStep execution-status projection, or ExecutionSession projection.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0005 — Domain Event Model; consumed the existing immutable `EngineeringSessionWorkflowAdvanced` event stream without modifying the event envelope, event contract, or publisher.
+- RFC-0004 v1.13 — Execution Model; consumed existing `EngineeringSession` Workflow Advancement state read-only without redefining Workflow ownership, advancement behavior, or Mission Engineering Group ownership.
+
+Implemented Concepts:
+
+- `EngineeringSessionStateProjection` observed-state read model.
+- `IEngineeringSessionStateProjectionRepository` and in-memory implementation.
+- `EngineeringSessionStateProjectionService`.
+- Deterministic `EngineeringSessionWorkflowAdvanced` consumption with continuity validation, Mission attribution consistency, ordered history, idempotent duplicate handling, and explicit replay support.
+- Additive Kernel service composition.
+
+Deferred Concepts:
+
+- `EngineeringSessionCreated` and creation-time Session projection.
+- Event-Driven Workflow Advancement.
+- Recovery Workflow Automation.
+- Autonomous Engineering Integration Validation.
+- Host/Adapter surfacing and durable/distributed projection infrastructure.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-16-016`, `NEXUS-RAT-2026-07-16-018`, `NEXUS-RAT-2026-07-16-019`, `NEXUS-RAT-2026-07-17-001`).
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/implementation/sprints/sprint-0066-engineering-session-state-projection.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `knowledge/reference/kernel-event-catalog.md`.
+
+### Architectural Assumptions
+
+- The existing `EventBusContract` provides authoritative in-process publication order for live delivery and Mission-scoped replay for explicit reconstruction.
+- Event identity is the authoritative idempotency key; duplicate event identities do not produce duplicate effective projection updates.
+- Projection reads are read-only and do not replay or mutate projection state.
+
+### Known Limitations
+
+- No projection exists for an Engineering Session before its first observed `EngineeringSessionWorkflowAdvanced` event.
+- The projection represents observed advancement state only; it does not represent creation-time state because `EngineeringSessionCreated` remains deferred.
+- The projection is in-memory only; durable storage and distributed replay mechanics remain deferred.
+- Event-Driven Workflow Advancement and Recovery Workflow Automation remain unimplemented pending future Sprint scope ratification.
+
+### Validation Summary
+
+- Targeted Sprint 66 validation passed: `engineering-session-state-projection.test.ts` and `kernel-boundary-certification.integration.test.ts` (17 tests).
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Vitest passed: 88 files, 580 tests.
+- esbuild passed: `npm run build`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+---
+
 ## Sprint 65 — EngineeringSession Domain Event Publication
 
 ### Implemented Slice

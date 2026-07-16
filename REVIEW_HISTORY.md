@@ -2,6 +2,57 @@
 
 ---
 
+## NEXUS-REV-2026-07-17-002 — Sprint 66 — Engineering Session State Projection
+
+- **Reviewed Sprint:** Sprint 66 — Engineering Session State Projection (Milestone 10, fulfilling the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`), authorized by `NEXUS-RAT-2026-07-17-001`.
+- **Reviewed Vertical Slice:** A new, read-only Kernel projection — `EngineeringSessionStateProjection`/`IEngineeringSessionStateProjectionRepository`/`InMemoryEngineeringSessionStateProjectionRepository`/`EngineeringSessionStateProjectionService` — subscribed to exactly `EngineeringSessionWorkflowAdvanced` (Sprint 65, frozen) through the existing `EventBusContract`. The projection exposes the latest observed Workflow position and ordered advancement history per Engineering Session, deterministically enforcing Workflow continuity and Mission attribution consistency, and treating duplicate event identity as an idempotent no-op. `createKernelServices()` wiring is additive.
+- **RFC Coverage:** RFC-0005 (Referenced — event-consumption contract), RFC-0004 v1.13 (Referenced — `EngineeringSession`/Workflow Advancement state consumed read-only). No RFC amended.
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 66 implements exactly the vertical slice authorized by `NEXUS-RAT-2026-07-17-001`. Independently verified in source (`engineering-session-state-projection.ts`) that the projection is derived, read-only state: `createFromEvent` initializes the observed position exclusively from the first consumed event's `previousWorkflowStepId`/`newWorkflowStepId` — never from `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, or any other repository — satisfying the binding Known Source Limitation that creation-time state is unrepresentable and that a Session with no observed advancement legitimately has no projection record (confirmed by a dedicated test). Confirmed `apply()` enforces Workflow continuity (`event.previousWorkflowStepId` must equal `projection.currentWorkflowStepId`) and Mission attribution consistency (`event.missionId` must equal the projection's stored `missionId`, itself copied exclusively from the first event — no repository lookup or caller-supplied fallback anywhere in the code), both throwing a `KernelError` that the service layer (`engineering-session-state-projection.service.ts`) catches without calling `repository.save()`, independently confirmed by two dedicated tests asserting the existing projection is byte-for-byte unchanged (`toEqual(before)`) after a continuity mismatch and after a Mission conflict respectively. Confirmed idempotency: the service checks `currentProjection?.hasProcessedEvent(event.eventId)` before applying, short-circuiting to a `Duplicate` result with the unchanged existing snapshot and no revision increment — verified for both live re-delivery and explicit `replayMissionEventStream` overlap by a dedicated test. Confirmed the replay/live reconstruction test proves a projection built by explicit Mission-stream replay is structurally identical (`toEqual`) to one built by live subscription for the same ordered event stream, and that reads (`getEngineeringSessionStateProjection`) never mutate stored state.
+
+Confirmed via `git diff --stat -- src/` that exactly the four new projection files plus one additive line-range change to `create-kernel-services.ts` changed, and that `git diff --stat -- src/hosts src/adapters` and `git diff --stat` on `engineering-session.ts`, `engineering-session.service.ts`, `engineering-session.events.ts`, `mission-engineering-orchestration.repository.ts`, and `workflow-chain.ts` are all empty — Sprint 65's frozen event contract and every named out-of-boundary file are untouched. The pre-existing `GovernanceGatedWorkflowAdvancementConsumer`/`RecoveryRequirementGovernanceDecisionConsumer` kernel services observed in `create-kernel-services.ts` predate this Sprint (traced to Sprint 57/59 commits already an ancestor of `HEAD`) and are unmodified by this diff; they are not Sprint 66 event consumers of the new projection and do not constitute scope creep. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 88 files / 580 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. No architectural violations detected.
+
+### Findings
+
+None of Category 1 through 5.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: `EngineeringSessionCreated` and projection of creation-time Session state (no projection is fabricated before a Session's first observed advancement event, confirmed by a dedicated test); Event-Driven Workflow Advancement; Recovery Workflow Automation; Autonomous Engineering Integration Validation (Milestone 10 Step 4); Host or Adapter projection surfacing; projection caching; durable/distributed projection storage; event checkpoints, consumer offsets, dead-letter queues, retry policies, or event-stream compaction; Mission-level orchestration; WorkflowStep execution-status projection; ExecutionSession projection. `git diff --stat -- src/` confirms no file outside the four new projection files and the additive `create-kernel-services.ts` wiring changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the vertical slice authorized by `NEXUS-RAT-2026-07-17-001` was added. Compliant.
+- **Ratification Compliance:** The binding Known Source Limitation, Deterministic Event Consumption steps, Workflow Continuity rule, Mission Attribution Consistency rule, and Idempotency rule are all honored exactly as specified. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `EngineeringSession` remains the sole owner of authoritative Workflow position and advancement behavior; the projection is derived, read-only state that does not mutate `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, or any other aggregate. Compliant.
+- **Event Compliance (Gate 7):** Introduces no new event type; consumes exactly the existing, frozen `EngineeringSessionWorkflowAdvanced` event through the existing `EventBusContract.subscribe()`. Compliant.
+- **Determinism (Gate 9):** Equivalent ordered event streams produce equivalent projections (dedicated replay-vs-live reconstruction test); duplicate event identity never produces a second effective update; contradictory events (continuity mismatch, Mission conflict) fail closed, leaving existing projection state unchanged. Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly the four new projection files plus additive `create-kernel-services.ts` wiring; `git diff --stat -- src/hosts src/adapters` is empty; Sprint 65's event contract and every named out-of-boundary file are unmodified. Compliant.
+- **Tests (Gate 11):** All fourteen Required Test Matrix items are covered across `engineering-session-state-projection.test.ts` and `kernel-boundary-certification.integration.test.ts`. The full repository suite (88 files / 580 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, the Known Source Limitation, idempotency/continuity/replay semantics, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 66 is fully closed. Event-Driven Workflow Advancement (Step 2's remainder) and Recovery Workflow Automation (Step 3) remain unscheduled and require their own future RFC ownership analysis and Sprint scope ratification via a future `nexus-plan` cycle; this review does not authorize either.
+
+---
+
 ## NEXUS-REV-2026-07-17-001 — Sprint 65 — EngineeringSession Domain Event Publication (Cycle 2, revised scope)
 
 - **Reviewed Sprint:** Sprint 65 — EngineeringSession Domain Event Publication (Milestone 10 prerequisite foundation, authorized by `NEXUS-RAT-2026-07-16-018`). Cycle 1 was blocked pre-implementation (the Builder correctly stopped upon discovering no authorized `missionId` source exists on `EngineeringSession`); `NEXUS-RAT-2026-07-16-019` revised the scope. This review certifies Cycle 2, the revised and implemented scope.

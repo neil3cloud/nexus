@@ -15,6 +15,8 @@ import { EngineeringRoleProfileService } from '../execution/engineering-role-pro
 import { InMemoryEngineeringSessionCheckpointRepository } from '../execution/engineering-session-checkpoint.repository';
 import { InMemoryEngineeringSessionRepository } from '../execution/engineering-session.repository';
 import { EngineeringSessionService } from '../execution/engineering-session.service';
+import { InMemoryEngineeringSessionStateProjectionRepository } from '../execution/engineering-session-state-projection.repository';
+import { EngineeringSessionStateProjectionService } from '../execution/engineering-session-state-projection.service';
 import { GovernanceGatedWorkflowAdvancementConsumer } from '../execution/governance-gated-workflow-advancement.consumer';
 import { InMemoryExecutionSessionRepository } from '../execution/execution-session.repository';
 import { ExecutionSessionService } from '../execution/execution-session.service';
@@ -78,6 +80,8 @@ export function createKernelServices(
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
   const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
   const engineeringSessionCheckpointRepository = new InMemoryEngineeringSessionCheckpointRepository();
+  const engineeringSessionStateProjectionRepository =
+    new InMemoryEngineeringSessionStateProjectionRepository();
   const missionEngineeringGroupRepository = new InMemoryMissionEngineeringGroupRepository();
   const engineeringSessionHandoffRepository = new InMemoryEngineeringSessionHandoffRepository();
   const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
@@ -143,6 +147,10 @@ export function createKernelServices(
     governanceStateProjectionRepository,
     eventBus,
   );
+  const engineeringSessionStateProjectionService = new EngineeringSessionStateProjectionService(
+    engineeringSessionStateProjectionRepository,
+    eventBus,
+  );
   const governanceGatedMissionCompletionCoordinator =
     new GovernanceGatedMissionCompletionCoordinator(
       eventBus,
@@ -161,6 +169,7 @@ export function createKernelServices(
     new RoleService(roleRegistry, roleAssignmentRepository),
     new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
     engineeringSessionService,
+    engineeringSessionStateProjectionService,
     new GovernanceGatedWorkflowAdvancementConsumer(engineeringSessionService),
     missionEngineeringOrchestrationService,
     recoveryRequirementService,

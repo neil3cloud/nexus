@@ -14,6 +14,7 @@ import { EvidenceService } from '../../src/kernel/evidence/evidence.service';
 import { AssignmentPolicyService } from '../../src/kernel/execution/assignment-policy.service';
 import { EngineeringRoleProfileService } from '../../src/kernel/execution/engineering-role-profile.service';
 import { EngineeringSessionService } from '../../src/kernel/execution/engineering-session.service';
+import { EngineeringSessionStateProjectionService } from '../../src/kernel/execution/engineering-session-state-projection.service';
 import { ExecutionSessionService } from '../../src/kernel/execution/execution-session.service';
 import { ExecutionStrategyReferenceError } from '../../src/kernel/execution/execution-strategy.errors';
 import { ExecutionStrategyService } from '../../src/kernel/execution/execution-strategy.service';
@@ -58,6 +59,7 @@ interface KernelHarness {
   readonly roleService: RoleService;
   readonly engineeringRoleProfileService: EngineeringRoleProfileService;
   readonly engineeringSessionService: EngineeringSessionService;
+  readonly engineeringSessionStateProjectionService: EngineeringSessionStateProjectionService;
   readonly missionEngineeringOrchestrationService: MissionEngineeringOrchestrationService;
   readonly recoveryRequirementService: RecoveryRequirementService;
   readonly executionSessionService: ExecutionSessionService;
@@ -85,6 +87,7 @@ const expectedKernelServiceNames = [
   'RoleService',
   'EngineeringRoleProfileService',
   'EngineeringSessionService',
+  'EngineeringSessionStateProjectionService',
   'GovernanceGatedWorkflowAdvancementConsumer',
   'MissionEngineeringOrchestrationService',
   'RecoveryRequirementService',
@@ -167,6 +170,9 @@ describe('RFC-0010 Kernel boundary certification', () => {
     );
     expect(harness.governanceGatedMissionCompletionCoordinator.serviceName).toBe(
       'GovernanceGatedMissionCompletionCoordinator',
+    );
+    expect(harness.engineeringSessionStateProjectionService.serviceName).toBe(
+      'EngineeringSessionStateProjectionService',
     );
 
     const assignment = await harness.roleService.assignRole({
@@ -418,6 +424,12 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'EngineeringSessionService',
       (service): service is EngineeringSessionService => service instanceof EngineeringSessionService,
+    ),
+    engineeringSessionStateProjectionService: requireService(
+      services,
+      'EngineeringSessionStateProjectionService',
+      (service): service is EngineeringSessionStateProjectionService =>
+        service instanceof EngineeringSessionStateProjectionService,
     ),
     missionEngineeringOrchestrationService: requireService(
       services,

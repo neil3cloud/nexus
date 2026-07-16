@@ -602,6 +602,10 @@ Producer
 
 EngineeringSessionService
 
+Consumers
+
+- EngineeringSessionStateProjectionService
+
 Payload
 
 - Engineering Session Identifier
