@@ -141,6 +141,7 @@ function createGovernanceDecision(
   input: {
     readonly id?: string;
     readonly missionId?: string;
+    readonly evaluatedAt?: string;
   } = {},
 ): GovernanceDecision {
   const id = input.id ?? `decision-${value.toLowerCase().replaceAll(' ', '-')}`;
@@ -156,7 +157,7 @@ function createGovernanceDecision(
     policyEvaluationId: `policy-evaluation-${id}`,
     evaluationKey: `evaluation-key-${id}`,
     criterionResults: [],
-    evaluatedAt: timestamp,
+    evaluatedAt: input.evaluatedAt ?? timestamp,
     explanationCodes: [`decision-${value.toLowerCase().replaceAll(' ', '-')}`],
   });
 }

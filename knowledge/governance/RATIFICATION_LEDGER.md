@@ -7351,3 +7351,99 @@ None yet. Sprint 69 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-008
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-008
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Sprint 70 Scope Ratification — Autonomous Engineering Integration Validation (Milestone 10 Step 4). Authorizes a validation-only integration test suite exercising the composed Milestone 10 lifecycle (Sprints 63–69) through existing public contracts, with a Milestone 10 closure recommendation. No RFC-0004 amendment; introduces no new production capability, mirroring the Sprint 62 / Milestone 9 closure precedent (`NEXUS-RAT-2026-07-16-014`).
+
+## Originating Request
+
+`nexus-plan` Governance Scan following Sprint 69's certification (`NEXUS-REV-2026-07-17-006`) found that Milestone 10 Step 4 — Autonomous Engineering Integration Validation — remained unscheduled and, unlike Steps 2 and 3, required no preceding RFC-0004 amendment: Step 4's own description in `NEXUS-RAT-2026-07-16-015` ("validates the complete Plan → Build → Review → Govern → Recover → Re-review → Advance → Complete lifecycle") defines no new mechanism, consumer, or domain concept — it certifies composition of the already-ratified and implemented Sprint 63–69 capabilities. `nexus-plan` presented this as a governance question (RFC amendment required, or Sprint-scope ratification alone) and recommended the Sprint-scope-only path, citing Sprint 62 as the controlling precedent.
+
+## Governance Decision
+
+**APPROVE SPRINT-SCOPE RATIFICATION ONLY.** Sprint 70 does not introduce a new architectural mechanism. It validates the already-ratified and implemented Milestone 10 lifecycle across the existing public contracts established by Sprints 63 through 69. No RFC-0004 amendment is required. The Sprint Owner authorizes `nexus-plan` to activate Sprint 70 as detailed in the Sprint 70 Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0070-autonomous-engineering-integration-validation.md`), including its binding Objective, Architectural Intent, Required Validation Scenarios (1–8), Lifecycle Certification Flow, Event Ordering Assertions, Consumer Separation proof obligations, Production Source Restrictions, Category 6 Observation non-expansion rule, Repository Synchronization requirement, Acceptance Criteria, Milestone 10 Completion Conditions, and Builder Stop Conditions, reproduced in full in that record.
+
+**Production Source Restrictions (binding):** Sprint 70 SHALL NOT modify production behavior in Mission, EngineeringSession, WorkflowChain, Engineering Decision Correlation, Governance Decision, Review, Recovery Requirement, projections, event consumers, Host, or Adapters. Permitted source changes are limited to test-support code that does not alter production semantics. If integration testing exposes an actual production defect, the Builder SHALL stop, document the defect with evidence, identify the owning Sprint or RFC, and await Sprint Owner authorization — Sprint 70 SHALL NOT silently repair architecture while acting as a validation sprint.
+
+**Category 6 Observations (binding):** existing non-blocking Category 6 observations SHALL remain deferred unless they directly prevent the integration suite from executing. Sprint 70 SHALL NOT become a general cleanup sprint.
+
+**Milestone 10 Completion Conditions (binding):** Sprint 70 SHALL recommend Milestone 10 closure only if all required integration scenarios pass, no Category 1–5 findings remain, no architectural contradiction is discovered, all Milestone 10 capabilities compose through public contracts, repository state is synchronized, and no open Builder task remains. If a defect is found, Milestone 10 remains open and the defect SHALL be routed through the existing review and recovery workflow rather than closed over.
+
+## RFC Coverage
+
+- RFC-0001 — Mission Model (Referenced; consumed read-only)
+- RFC-0004 v1.16 — Execution Model (Referenced; consumed read-only, unmodified)
+- RFC-0005 — Domain Event Model (Referenced; consumed read-only)
+- RFC-0006 — Engineering Assessment Model (Referenced; consumed read-only)
+- RFC-0011 — Engineering Governance Model (Referenced; consumed read-only)
+
+No RFC is amended. No RFC-owned concept is redefined.
+
+## Authorized Concepts
+
+- An integration-only test suite exercising the composed Milestone 10 lifecycle (Sprints 63–69) through existing public service contracts and existing Kernel composition wiring, exclusively.
+- Integration fixtures, deterministic test helpers, lifecycle assertions, event-order assertions, idempotency assertions, and failure-isolation assertions.
+- Milestone 10 certification documentation and a Milestone 10 closure recommendation (Ready to Close / Not Ready, with justification), recorded in the Sprint 70 record's Reserved Sections.
+- Repository-state synchronization across `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 70 record.
+- A narrowly targeted, reported production defect fix, strictly required to make a Required Validation Scenario pass — SHALL be explicitly called out in `IMPLEMENTATION_REPORT.md` as defect remediation, not new capability, per the same authorization pattern as Sprint 62.
+
+## Deferred Concepts
+
+- Autonomous Mission planning, dynamic Workflow generation, AI deliberation, automatic policy generation, automatic recovery execution, provider selection, distributed orchestration, durable event infrastructure, production telemetry, autonomous deployment, cross-project engineering — each requires future milestone ratification.
+- Any new production capability, event, mechanism, lifecycle state, or domain concept.
+- Host or Adapter surfacing of any kind.
+- General cleanup, dead-code removal, or documentation polish beyond what Repository Synchronization requires.
+
+## Definition of Done
+
+- Required Validation Scenarios 1 through 8 (Approved Governance Path; Rejected Governance Path; Recovery Resolution and Re-Advancement; Governance-Gated Mission Completion; Missing Correlation; Attribution Mismatch; Duplicate and Replay Delivery; Persistence Failure Isolation) and the single composed Lifecycle Certification Flow scenario all pass.
+- Consumer Separation is proven: the Advancement Consumer (Sprint 68) and Recovery Consumer (Sprint 69) each perform only their own ratified responsibility across Approved, Rejected, Deferred, and Escalation Required outcomes.
+- No Sprint 1–69 production contract, Host, or Adapter file is found to have drifted, or any drift found is reported as a defect and routed through the established review/recovery workflow rather than silently fixed within this Sprint's scope.
+- Repository-wide validation passes: TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build.
+- A Milestone 10 closure recommendation is documented in the Sprint 70 record's Reserved Sections.
+- `IMPLEMENTATION_MANIFEST.md`'s stale Sprint 69 status line is synchronized (already applied by `nexus-plan` at activation).
+
+## Ownership Model (ratified)
+
+This ratification authorizes one Sprint's scope, at the Implementation Plan tier. It amends no RFC and redefines no previously approved vertical slice. `NEXUS-RAT-2026-07-16-015`'s Milestone 10 Objective, Architectural Boundary, and Initial Capability Sequence remain unmodified; all Sprint 63–69 ratifications and their frozen implementation contracts remain unmodified.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, synchronize the stale Sprint 69 status line in `IMPLEMENTATION_MANIFEST.md`, generate the Sprint 70 Sprint Implementation Record, update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for Sprint 70, activate Sprint 70, and prepare Builder handoff.
+
+## Related Sprint(s)
+
+- Sprint 63 — Governance State Projection Foundation (frozen; consumed read-only).
+- Sprint 64 — Event-Driven Mission Completion (frozen; consumed read-only).
+- Sprint 65 — EngineeringSession Domain Event Publication (frozen; consumed read-only).
+- Sprint 66 — Engineering Session State Projection (frozen; consumed read-only).
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen; consumed read-only).
+- Sprint 68 — Event-Driven Workflow Advancement (frozen; consumed read-only).
+- Sprint 69 — Recovery Workflow Automation (frozen; consumed read-only).
+- Sprint 70 — Autonomous Engineering Integration Validation (this ratification's authorized scope).
+- Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (controlling precedent for a validation-only, no-new-capability integration Sprint).
+
+## Related Review(s)
+
+None yet. Sprint 70 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 70 — Autonomous Engineering Integration Validation as Milestone 10's closing Sprint, validating the complete Milestone 10 lifecycle (Governance state established → `GovernanceDecisionRecorded` → Approved → Event-Driven Workflow Advancement, or Rejected → Recovery Requirement Automation → Recovery resolution → Recovery-Gated Re-Advancement → Governance-Gated Mission Completion) through an integration-only test suite exercising Sprints 63–69's existing public contracts and Kernel composition wiring exclusively. The Sprint SHALL introduce no new production capability, event, mechanism, lifecycle state, or domain concept, and SHALL NOT modify production behavior in Mission, EngineeringSession, WorkflowChain, Engineering Decision Correlation, Governance Decision, Review, Recovery Requirement, projections, event consumers, Host, or Adapters, except a narrowly targeted, reported defect fix strictly required by a Required Validation Scenario. The Sprint SHALL prove Consumer Separation between the Advancement Consumer (Sprint 68) and Recovery Consumer (Sprint 69), event-ordering guarantees (no publication before persistence, no consumer observing unpersisted facts), and idempotent handling of duplicate/replayed events. The Sprint SHALL record a Milestone 10 closure recommendation, and SHALL recommend closure only if all required scenarios pass, no Category 1–5 findings remain, and repository state is synchronized. `nexus-plan` SHALL record this ratification, synchronize the stale Sprint 69 status line in `IMPLEMENTATION_MANIFEST.md`, generate the Sprint 70 Sprint Implementation Record reproducing this ratification's full binding detail, update planning artifacts, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

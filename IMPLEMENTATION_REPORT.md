@@ -1,5 +1,97 @@
 # Nexus Implementation Report
 
+## Sprint 70 — Autonomous Engineering Integration Validation
+
+### Implemented Slice
+
+Implemented the Milestone 10 Sprint 70 vertical slice authorized by `NEXUS-RAT-2026-07-17-008`.
+
+Implemented scope:
+
+- Added `test/integration/autonomous-engineering-integration-validation.integration.test.ts`, an integration-only certification suite covering all eight required validation scenarios plus the composed Milestone 10 lifecycle.
+- Exercised the approved Milestone 10 path through existing public contracts: Governance State Projection, Governance Decision recording, Event-Driven Workflow Advancement, Recovery Requirement Automation, Recovery Requirement resolution, recovery-gated re-advancement, Engineering Session State Projection, and Governance-Gated Mission Completion.
+- Proved consumer separation: Approved governance advances workflow without recovery creation; Rejected governance creates recovery without event-driven advancement; Deferred and Escalation Required do neither.
+- Proved duplicate/replay behavior, missing correlation fail-closed behavior, attribution mismatch fail-closed behavior, event-ordering/persistence isolation, and Host/Adapter non-drift.
+- Reverted the unratified Mission Completion latest-decision remediation attempted during Sprint 70; `src/kernel/mission/mission-completion-eligibility.ts` again enforces RFC-0001 v1.1 §15a by requiring every applicable `GovernanceDecision` to be independently non-blocking.
+- Preserved the Sprint 70 integration suite while documenting the discovered historical-decision-superseding gap as unresolved and unimplemented.
+
+Out of scope and not implemented:
+
+- New production capability, event, mechanism, lifecycle state, or domain concept.
+- Autonomous Mission planning, dynamic Workflow generation, AI deliberation, automatic policy generation, automatic recovery execution, provider selection, distributed orchestration, durable event infrastructure, production telemetry, autonomous deployment, or cross-project engineering.
+- Host or Adapter surfacing.
+- General cleanup, dead-code removal, or documentation polish outside required repository synchronization.
+
+### RFC Coverage
+
+Referenced RFCs:
+
+- RFC-0001 — Mission Model; consumed existing Mission lifecycle and completion contract.
+- RFC-0004 v1.16 — Execution Model; consumed Engineering Session Workflow advancement, Engineering Decision Correlation, Event-Driven Workflow Advancement, Recovery Workflow Automation, and recovery-gated re-advancement.
+- RFC-0005 — Domain Event Model; consumed existing immutable Domain Events and EventBus ordering.
+- RFC-0006 — Engineering Assessment Model; consumed Review outcomes read-only.
+- RFC-0011 — Engineering Governance Model; consumed GovernanceDecision outcomes read-only.
+
+No RFC was amended. No RFC-owned concept was redefined.
+
+Implemented Concepts:
+
+- Integration-only certification suite.
+- Deterministic integration fixtures and assertions for all eight Sprint 70 scenarios.
+- Lifecycle Certification Flow proof from Mission creation through recovery-gated re-advancement and Mission completion evaluation.
+
+Deferred Concepts:
+
+- All deferred concepts listed in the Sprint 70 record remain deferred, including autonomous planning/execution capabilities, Host/Adapter surfacing, durable/distributed event infrastructure, and any new production events or lifecycle states.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-16-015`, `NEXUS-RAT-2026-07-17-008`).
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0070-autonomous-engineering-integration-validation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Sprint 70 certifies the in-memory, single-process Kernel composition exercised by existing tests.
+- Engineering Decision Correlation remains the authoritative source for resolving GovernanceDecision to Engineering Session and Workflow Step attribution.
+- Recovery resolution restores eligibility; actual re-advancement remains through the existing authoritative EngineeringSession advancement path.
+- Mission Completion remains governed by RFC-0001 v1.1 §15a's independent-satisfaction rule for every applicable `GovernanceDecision`.
+
+### Known Limitations
+
+- Durable persistence, multi-process delivery, retry/dead-letter handling, and Host/Adapter-integrated behavior remain outside this Sprint.
+- A historical applicable blocking `GovernanceDecision` continues to block Mission Completion even after Recovery Requirement resolution and a later Approved decision. Sprint 70 reports this as an unresolved architectural question requiring future RFC-0001 analysis and Sprint Owner ratification; it is not implemented.
+- The Milestone 10 closure recommendation is not itself Milestone closure; Reviewer validation and the next planning cycle remain authoritative for closure.
+
+### Validation Summary
+
+- Targeted Sprint 70 and affected Mission validation passed: `autonomous-engineering-integration-validation.integration.test.ts`, `governance-automation-integration-validation.integration.test.ts`, and `mission-execution.service.test.ts`.
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Repository Vitest suite passed serialized: `npm exec vitest run -- --exclude "test/extension-host/**" --maxWorkers=1 --testTimeout=10000` (90 files / 619 tests).
+- Build passed: `npm run build`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+Milestone 10 Closure Recommendation: **Not Ready pending future governance resolution**, because Sprint 70 exposed an unresolved RFC-0001 Mission Completion gap that cannot be fixed inside this validation-only Sprint without ratification.
+
+### Deviations
+
+No architectural deviations. The unratified latest-decision Mission Completion change was reverted.
+
+---
+
 ## Sprint 69 — Recovery Workflow Automation
 
 ### Implemented Slice
