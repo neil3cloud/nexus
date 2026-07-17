@@ -4139,7 +4139,7 @@ See `knowledge/implementation/sprints/sprint-0070-autonomous-engineering-integra
 
 # Milestone 11 — Autonomous Engineering Planning Readiness
 
-Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`, Milestone 11's opening Sprint. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` [review] (fully closed; `BT-072-001`/`BT-072-002` independently verified Resolved). No further Milestone 11 Sprint is yet authorized; Initial Capability Sequence step 4 [Governed Plan Generation] requires its own future `nexus-plan` cycle.)
+Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`, Milestone 11's opening Sprint. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` [review] (fully closed; `BT-072-001`/`BT-072-002` independently verified Resolved). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS, zero findings, fully closed). No further Milestone 11 Sprint is yet authorized; Initial Capability Sequence step 5 [Plan Review, Governance, and Activation] requires its own future `nexus-plan` cycle.)
 
 Objective
 
@@ -4155,6 +4155,7 @@ Ratification
 
 - `NEXUS-RAT-2026-07-17-009` — declares Milestone 10 Complete, amends RFC-0001 to v1.2, opens Milestone 11 with its binding Objective and Architectural Boundary, and authorizes Sprint 71.
 - `NEXUS-RAT-2026-07-17-010` — ratifies RFC-0012 v1.0 Final, closes Initial Capability Sequence step 2, and authorizes Sprint 72.
+- `NEXUS-RAT-2026-07-17-011` — renames Initial Capability Sequence step 4 to "Planning Service and Proposal Lifecycle Foundation" and authorizes Sprint 73.
 
 Architectural Boundary (binding, from `NEXUS-RAT-2026-07-17-009`)
 
@@ -4165,9 +4166,38 @@ Initial Capability Sequence (non-binding sequencing; each step requires its own 
 1. Governance Decision Applicability Correction (Sprint 71 — ✅ Approved, implements RFC-0001 v1.2)
 2. RFC-0012 drafting and ratification (Autonomous Engineering Planning Model) — ✅ Closed by `NEXUS-RAT-2026-07-17-010`; RFC-0012 v1.0 Final
 3. Planning Policy and Proposed Plan Foundation (Sprint 72 — ✅ Approved, `NEXUS-REV-2026-07-17-012`, fully closed)
-4. Governed Plan Generation
+4. Planning Service and Proposal Lifecycle Foundation (renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`; Sprint 73 — ✅ Approved, `NEXUS-REV-2026-07-17-013`, fully closed)
 5. Plan Review, Governance, and Activation
 6. Autonomous Planning Integration Validation
+
+---
+
+## Sprint 73 — Planning Service and Proposal Lifecycle Foundation
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS; fully closed, zero findings of any category). Ratified by `NEXUS-RAT-2026-07-17-011`. Milestone 11 Initial Capability Sequence step 4.
+
+Objective
+
+Introduce a thin `PlanningService` application-orchestration layer over Sprint 72's frozen Planning domain model: Kernel-composed creation of `ProposedMissionPlan` and `ProposedPlanRevision`, and the existing `Draft`/`Submitted`/`Withdrawn` Proposal Lifecycle transitions only. This Sprint introduces no Domain Event publication, no new Proposal Lifecycle state, no Review/Governance integration, and no Activation.
+
+RFC Coverage
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; `PlanningService` orchestrates Sprint 72's frozen domain model, unmodified)
+- RFC-0001, RFC-0004, RFC-0008 (Referenced; consumed read-only, unmodified)
+
+Ratification
+
+- `NEXUS-RAT-2026-07-17-011` — renames Initial Capability Sequence step 4 and authorizes this Sprint's exact scope, reproduced in full in the Sprint 73 record.
+
+See `knowledge/implementation/sprints/sprint-0073-planning-service-and-proposal-lifecycle-foundation.md` for the complete Sprint Implementation Record.
+
+Builder Implementation Result
+
+- Implemented `PlanningService` in `src/kernel/planning/` as a thin application-orchestration layer over Sprint 72's frozen Planning domain model.
+- Registered `PlanningService` through Kernel composition with the existing in-memory Proposed Mission Plan repository.
+- Added service operations for idempotent Proposed Mission Plan creation, idempotent Proposed Plan Revision creation, and the authorized `Draft`/`Submitted`/`Withdrawn` lifecycle transitions only.
+- Reused Sprint 72 Structural Plan Validation, Planning Policy validation, Planner Attribution validation, repository persistence, and Planning domain errors without modifying Sprint 72 domain/value-object logic.
+- Added Planning service and Kernel boundary tests covering construction, composition, idempotency, lifecycle transitions, validation propagation, Planner Attribution enforcement, and missing proposal lookup diagnostics.
 
 ---
 

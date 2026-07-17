@@ -53,6 +53,8 @@ import { GovernanceGatedMissionCompletionCoordinator } from '../mission/governan
 import { MissionPlanningService } from '../mission/mission-planning.service';
 import { InMemoryMissionRepository } from '../mission/mission.repository';
 import { MissionService } from '../mission/mission.service';
+import { InMemoryProposedMissionPlanRepository } from '../planning/proposed-mission-plan.repository';
+import { PlanningService } from '../planning/planning.service';
 import { InMemoryReviewRepository } from '../review/review.repository';
 import { ReviewService } from '../review/review.service';
 import { ProjectionService } from '../shared-reality/projection.service';
@@ -71,6 +73,7 @@ export function createKernelServices(
   const evidenceRepository = new InMemoryEvidenceRepository();
   const reviewRepository = new InMemoryReviewRepository();
   const knowledgeRepository = new InMemoryKnowledgeRepository();
+  const proposedMissionPlanRepository = new InMemoryProposedMissionPlanRepository();
   const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
   const governanceStateProjectionRepository = new InMemoryGovernanceStateProjectionRepository();
@@ -212,6 +215,7 @@ export function createKernelServices(
     executionStrategyService,
     new ExecutionService(),
     new ReviewService(reviewRepository, eventBus),
+    new PlanningService(proposedMissionPlanRepository),
     new KnowledgeService(
       knowledgeRepository,
       reviewRepository,

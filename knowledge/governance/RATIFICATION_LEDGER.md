@@ -7643,3 +7643,80 @@ None yet. Sprint 72 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-011
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-011
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Milestone 11 Initial Capability Sequence step 4 renamed from "Governed Plan Generation" to "Planning Service and Proposal Lifecycle Foundation"; Sprint 73 — Planning Service and Proposal Lifecycle Foundation authorized.
+
+## Originating Request
+
+Following Sprint 72's Reviewer certification (`NEXUS-REV-2026-07-17-012`, PASS, fully closed with zero open findings of any category) and confirmation that no open Builder Tasks remain, `nexus-plan` found that Milestone 11 Initial Capability Sequence step 4 ("Governed Plan Generation") has no concrete definition anywhere in RFC-0012, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, or this ledger beyond its bare label — a genuine governance ambiguity, consistent with `NEXUS-RAT-2026-07-16-015`'s own note that "the provisional compression of steps 3–6 ... remains subject to revision." `nexus-plan` presented the Sprint Owner three scoping alternatives plus an open option before drafting any Sprint proposal, mirroring the precedent set before RFC-0012 drafting itself.
+
+## Governance Decision
+
+**APPROVED.** The Sprint Owner directs that Milestone 11 Initial Capability Sequence step 4 be renamed **"Planning Service and Proposal Lifecycle Foundation"**, replacing the label "Governed Plan Generation" wherever it appears in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`, because no Review, Governance, or Activation behavior is authorized at this step and the prior label implied unsupported semantics.
+
+**Sprint 73 — Planning Service and Proposal Lifecycle Foundation (authorized):**
+
+Sprint 73 SHALL implement, strictly within the existing Planning domain module (`src/kernel/planning/`) established by Sprint 72, without modifying any Sprint 1–72 production file:
+
+- a thin `PlanningService` (mirroring the established `KnowledgeService`/`ReviewService` application-service pattern);
+- Kernel composition registration of `PlanningService`;
+- support for creating a `ProposedMissionPlan`;
+- support for creating immutable `ProposedPlanRevision` instances;
+- support for the existing `Draft`, `Submitted`, and `Withdrawn` Proposal Lifecycle transitions only (Sprint 72, frozen; no new state);
+- enforcement of RFC-0012 Structural Plan Validation and Planner Attribution requirements at the service boundary, reusing Sprint 72's frozen validation and value objects unmodified;
+- deterministic, idempotent proposal creation and revision behavior;
+- persistence of proposal state exclusively through the existing Sprint 72 `IProposedMissionPlanRepository`/in-memory implementation, unmodified.
+
+Sprint 73 SHALL NOT implement: Domain Event publication for any RFC-0012-reserved event; the `Under Review`, `Governed`, `Activated`, `Rejected`, or `Superseded` Proposal Lifecycle states or any transition into or out of them; Planning Correlation; RFC-0006 Review integration; RFC-0011 `GovernanceDecision` integration; Activation or any conversion into RFC-0001 executable objects; AI-generated planning, Adapter invocation, or provider/Adapter selection; workflow orchestration.
+
+Sprint 73 SHALL NOT modify `Mission`, `MissionPlan`, `Task`, `TaskDependency`, `Review`, `GovernanceDecision`, `EngineeringDecisionCorrelation`, `RecoveryRequirement`, any Execution Model concept, any event, any event consumer, any projection, `src/hosts`, or `src/adapters`. Sprint 73 SHALL NOT modify any Sprint 72 domain model, value object, or validation logic — it consumes them read-only/as-is through a new orchestration layer.
+
+**Definition of Done:** `PlanningService` supports Proposed Mission Plan creation, Proposed Plan Revision creation, and the `Draft`/`Submitted`/`Withdrawn` transitions, registered through Kernel composition, with deterministic diagnostics on every validation failure; unit tests cover construction, idempotency, structural validation reuse, and Planner Attribution enforcement at the service boundary; no Sprint 1–72 production contract, Host, or Adapter file is found to have drifted; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized.
+
+## RFC Coverage
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; PlanningService orchestrates Sprint 72's frozen domain model; RFC-0012 unmodified)
+- RFC-0001, RFC-0004, RFC-0008 (Referenced; consumed read-only, unmodified, unchanged from Sprint 72)
+
+## Ownership Model (ratified)
+
+This ratification renames one non-binding Milestone sequencing label and authorizes one Sprint's scope at the Implementation Plan tier. It modifies no RFC, redefines no previously approved vertical slice, and does not reopen Sprint 72 (frozen).
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification; rename Milestone 11 Initial Capability Sequence step 4 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`; generate the Sprint 73 Sprint Implementation Record reproducing this ratification's full binding detail; activate Sprint 73; and prepare Builder handoff.
+
+## Deferred Concepts
+
+Domain Event publication for the Planning domain; `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` Proposal Lifecycle states; Planning Correlation; RFC-0006 Review integration; RFC-0011 Governance integration; Activation; conversion into RFC-0001 executable objects; AI-generated planning; workflow orchestration — each requires its own future Sprint scope ratification, gated on Sprint 73's certification.
+
+## Related Sprint(s)
+
+- Sprint 72 — Planning Policy and Proposed Plan Foundation (frozen; consumed read-only; Reviewer-certified, unblocking this cycle).
+- Sprint 73 — Planning Service and Proposal Lifecycle Foundation (this ratification's authorized implementation scope).
+
+## Related Review(s)
+
+None yet. Sprint 73 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner renames Milestone 11 Initial Capability Sequence step 4 from "Governed Plan Generation" to "Planning Service and Proposal Lifecycle Foundation," because no Review, Governance, or Activation behavior is authorized at this step and the prior label implied unsupported semantics. The Sprint Owner authorizes Sprint 73 — Planning Service and Proposal Lifecycle Foundation, strictly limited to a thin `PlanningService`, its Kernel composition registration, Proposed Mission Plan creation, Proposed Plan Revision creation, and the existing `Draft`/`Submitted`/`Withdrawn` Proposal Lifecycle transitions, enforcing RFC-0012 Structural Plan Validation and Planner Attribution requirements and persisting exclusively through the existing Sprint 72 repository, explicitly excluding Domain Event publication, `Under Review`, Planning Correlation, RFC-0006 Review integration, RFC-0011 Governance integration, `Governed`, Activation, conversion into RFC-0001 objects, AI-generated planning, and workflow orchestration. `nexus-plan` SHALL record this ratification, synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, generate the Sprint 73 Sprint Implementation Record, activate Sprint 73, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

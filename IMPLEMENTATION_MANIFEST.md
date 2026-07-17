@@ -2912,7 +2912,7 @@ Notes:
 
 # Milestone 11 — Autonomous Engineering Planning Readiness
 
-Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is Implemented — Pending Reviewer Validation.)
+Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` (fully closed, zero open findings). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is Implemented — Pending Reviewer Validation.)
 
 Opened by `NEXUS-RAT-2026-07-17-009`.
 
@@ -2924,16 +2924,58 @@ Initial Capability Sequence (binding, sequencing only — each future step requi
 
 1. Governance Decision Applicability Correction (Sprint 71). ✅ Approved.
 2. RFC-0012 drafting and ratification. ✅ Closed by `NEXUS-RAT-2026-07-17-010`; RFC-0012 v1.0 Final.
-3. Planning Policy and Proposed Plan Foundation. Sprint 72 — Implemented — Pending Reviewer Validation.
-4. Governed Plan Generation.
+3. Planning Policy and Proposed Plan Foundation. Sprint 72 — ✅ Approved, `NEXUS-REV-2026-07-17-012`, fully closed.
+4. Planning Service and Proposal Lifecycle Foundation (renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`, which found the prior label undefined and implying unsupported Review/Governance/Activation semantics). Sprint 73 — Implemented — Pending Reviewer Validation.
 5. Plan Review, Governance, and Activation.
 6. Autonomous Planning Integration Validation.
 
 ---
 
-## Sprint 72 — Planning Policy and Proposed Plan Foundation
+## Sprint 73 — Planning Service and Proposal Lifecycle Foundation
 
 Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; `PlanningService` orchestrates Sprint 72's frozen domain model; RFC-0012 unmodified)
+- RFC-0001, RFC-0004, RFC-0008 (Referenced; consumed read-only, unmodified, unchanged from Sprint 72)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-17-011` — renames Milestone 11 Initial Capability Sequence step 4 and authorizes this Sprint's exact scope.
+
+Authorized Concepts:
+
+- A thin `PlanningService` (mirroring `KnowledgeService`/`ReviewService`).
+- Kernel composition registration of `PlanningService`.
+- `ProposedMissionPlan` creation.
+- `ProposedPlanRevision` creation (immutable).
+- The existing `Draft`/`Submitted`/`Withdrawn` Proposal Lifecycle transitions only (Sprint 72, frozen; no new state).
+- RFC-0012 Structural Plan Validation and Planner Attribution enforcement at the service boundary, reusing Sprint 72's frozen validation and value objects unmodified.
+- Deterministic, idempotent proposal creation and revision behavior.
+- Persistence exclusively through the existing Sprint 72 `IProposedMissionPlanRepository`/in-memory implementation, unmodified.
+
+Deferred Concepts:
+
+- Domain Event publication for the Planning domain.
+- `Under Review`, `Governed`, `Activated`, `Rejected`, `Superseded` Proposal Lifecycle states and transitions.
+- Planning Correlation.
+- RFC-0006 Review integration; RFC-0011 Governance integration.
+- Activation; conversion into RFC-0001 executable objects.
+- AI-generated planning, Adapter invocation, provider/Adapter selection.
+- Workflow orchestration.
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0073-planning-service-and-proposal-lifecycle-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0006, RFC-0008, RFC-0011, RFC-0012, or the Kernel Canon, and does not modify any Sprint 72 domain model, value object, or validation logic.
+- Implemented in `src/kernel/planning/planning.service.ts`, registered in `src/kernel/common/create-kernel-services.ts`, with tests under `test/kernel/planning/` and Kernel boundary certification updated for the new composed service.
+
+---
+
+## Sprint 72 — Planning Policy and Proposed Plan Foundation
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-17-012` (PASS; fully closed, zero open findings of any category). `BT-072-001`/`BT-072-002` independently verified Resolved.
 
 RFC Coverage:
 

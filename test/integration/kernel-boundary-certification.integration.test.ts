@@ -34,6 +34,7 @@ import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../src/kernel/mission/mission-execution.service';
 import { MissionPlanningService } from '../../src/kernel/mission/mission-planning.service';
 import { MissionService } from '../../src/kernel/mission/mission.service';
+import { PlanningService } from '../../src/kernel/planning/planning.service';
 import { ReviewService } from '../../src/kernel/review/review.service';
 import { ProjectionService } from '../../src/kernel/shared-reality/projection.service';
 
@@ -74,6 +75,7 @@ interface KernelHarness {
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
+  readonly proposedPlanningService: PlanningService;
   readonly knowledgeService: KnowledgeService;
   readonly logger: TestLogger;
 }
@@ -105,6 +107,7 @@ const expectedKernelServiceNames = [
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
+  'PlanningService',
   'KnowledgeService',
 ] as const;
 
@@ -502,6 +505,11 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'ReviewService',
       (service): service is ReviewService => service instanceof ReviewService,
+    ),
+    proposedPlanningService: requireService(
+      services,
+      'PlanningService',
+      (service): service is PlanningService => service instanceof PlanningService,
     ),
     knowledgeService: requireService(
       services,

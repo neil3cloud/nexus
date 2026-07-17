@@ -1,5 +1,83 @@
 # Nexus Implementation Report
 
+## Sprint 73 — Planning Service and Proposal Lifecycle Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 11 Sprint 73 vertical slice authorized by `NEXUS-RAT-2026-07-17-011`.
+
+Implemented scope:
+
+- Added a thin `PlanningService` application-orchestration boundary in `src/kernel/planning/`.
+- Registered `PlanningService` through Kernel composition using the existing in-memory Proposed Mission Plan repository contract.
+- Implemented idempotent `ProposedMissionPlan` creation through Sprint 72's frozen domain constructors and repository.
+- Implemented idempotent immutable `ProposedPlanRevision` creation through existing `ProposedMissionPlan.appendRevision`.
+- Implemented service-level `Draft -> Submitted`, `Draft -> Withdrawn`, and `Submitted -> Withdrawn` operations by invoking Sprint 72's existing lifecycle methods.
+- Reused existing Structural Plan Validation, Planning Policy validation, Planner Attribution validation, repository persistence, and Planning domain error types without modifying Sprint 72 domain/value-object logic.
+- Added unit and integration coverage for service construction, Kernel composition, idempotency, lifecycle transitions, validation propagation, Planner Attribution enforcement, and missing proposal lookup diagnostics.
+
+Out of scope and not implemented:
+
+- Domain Event publication for RFC-0012 reserved event names.
+- `Under Review`, `Governed`, `Activated`, `Rejected`, or `Superseded` states or transitions.
+- Planning Correlation, Review integration, Governance integration, Activation, or conversion into RFC-0001 executable `MissionPlan`, `Task`, or `TaskDependency`.
+- AI planning, Adapter invocation, provider/Adapter selection, workflow orchestration, Host changes, or Adapter changes.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model; implemented only the authorized `PlanningService` orchestration layer over the existing Proposed Mission Plan, Proposed Plan Revision, Planner Attribution, Proposal Lifecycle foundation, Structural Plan Validation, Planning Policy, and Planning Diagnostics.
+
+Referenced:
+
+- RFC-0001 — Mission Model; consumed `missionId` by identity only through existing Sprint 72 Planning snapshots. No executable Mission Plan, Task, Task Dependency, Mission Planning Service, or Mission Execution Service behavior was modified.
+- RFC-0004 — Execution Model; consumed `executionRoleId`, Engineering Session identity, and Execution Session identity as existing Planner Attribution identifiers only.
+- RFC-0008 — Kernel Adapter Contract; consumed `adapterId` as an existing Planner Attribution identifier only.
+
+Deferred Concepts:
+
+- Domain Event publication for the Planning domain.
+- Proposal Lifecycle states `Under Review`, `Governed`, `Activated`, `Rejected`, and `Superseded`.
+- Planning Correlation, Review execution, Governance evaluation, Activation, executable Mission Plan conversion, AI-generated planning, Adapter invocation, provider selection, workflow orchestration, Plan Review/Governance/Activation, and Autonomous Planning Integration Validation.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-011`).
+- `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/implementation/sprints/sprint-0073-planning-service-and-proposal-lifecycle-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Exact-repeat idempotency is represented at the service boundary by returning the existing persisted snapshot when the same create/revision/lifecycle command is retried with identical identity and metadata.
+- Conflicting reuse of an existing Proposed Mission Plan or Proposed Plan Revision identity remains a deterministic Planning-domain error using existing Sprint 72 error types.
+- `ProposedMissionPlanNotFoundError` from Sprint 72 is sufficient for service-boundary repository lookup misses; no new Planning diagnostic code was required.
+
+### Known Limitations
+
+- Proposed Mission Plans cannot be reviewed, governed, activated, converted to executable Mission Plans, or published as events until future Milestone 11 Sprints authorize those capabilities.
+- The service persists through the in-memory repository implementation, consistent with this Sprint's single-process Kernel composition scope.
+
+### Validation Summary
+
+- Repository validation passed: `npm run validate` (TypeScript compile, ESLint, Vitest excluding extension-host tests, esbuild).
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Targeted Planning validation passed: `npx vitest run test/kernel/planning/planning.service.test.ts test/kernel/planning/planning-domain.test.ts test/kernel/planning/proposed-mission-plan.repository.test.ts`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
 ## Sprint 72 — Planning Policy and Proposed Plan Foundation
 
 ### Implemented Slice

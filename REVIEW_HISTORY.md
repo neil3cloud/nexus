@@ -2,6 +2,70 @@
 
 ---
 
+## NEXUS-REV-2026-07-17-013 — Sprint 73 — Planning Service and Proposal Lifecycle Foundation
+
+- **Reviewed Sprint:** Sprint 73 — Planning Service and Proposal Lifecycle Foundation (Milestone 11, Initial Capability Sequence step 4, renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`).
+- **Reviewed Change:** New `src/kernel/planning/planning.service.ts` (`PlanningService`, thin application-orchestration layer over Sprint 72's frozen Planning domain model) and `test/kernel/planning/planning.service.test.ts`; `src/kernel/common/create-kernel-services.ts` (additive `PlanningService` Kernel composition registration) and `test/integration/kernel-boundary-certification.integration.test.ts` (additive `PlanningService` boundary coverage).
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; `PlanningService` orchestrates Sprint 72's frozen domain model, unmodified). RFC-0001, RFC-0004, RFC-0008 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Ratification:** `NEXUS-RAT-2026-07-17-011` — renames Initial Capability Sequence step 4 and authorizes this Sprint's exact scope.
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0073-planning-service-and-proposal-lifecycle-foundation.md`
+
+### Executive Summary
+
+Independently verified Sprint 73's implementation against `NEXUS-RAT-2026-07-17-011`'s authorized scope. `PlanningService` is a thin, constructor-injected application service (mirroring the established `KnowledgeService`/`ReviewService` pattern) providing `createProposedMissionPlan`, `createProposedPlanRevision`, `submitCurrentRevision`, and `withdrawCurrentRevision` — exactly the `ProposedMissionPlan`/`ProposedPlanRevision` creation and `Draft`/`Submitted`/`Withdrawn` transition operations authorized. Every operation delegates construction and validation to Sprint 72's frozen `ProposedMissionPlan`, `ProposedPlanRevision`, `PlanningPolicy`, and Structural Plan Validation logic unmodified; confirmed by direct inspection that `src/kernel/planning/proposed-mission-plan.ts`, `proposed-plan-revision.ts`, `proposed-task.ts`, `proposed-task-dependency.ts`, `planner-attribution.ts`, `planning-policy.ts`, `planning.types.ts`, `planning.errors.ts`, and `proposed-mission-plan.repository.ts` are byte-for-byte unchanged from Sprint 72 (absent from `git status --porcelain -- src test`). `DuplicateProposedMissionPlanError` and `ProposedMissionPlanNotFoundError`, both used by the new service, were already defined in Sprint 72's frozen `planning.errors.ts` — no new Planning diagnostic code was introduced, consistent with the ratification's constraint.
+
+Idempotency is implemented deterministically at the service boundary: exact-repeat create/revision/transition commands return the existing persisted snapshot (verified by structural snapshot comparison), while conflicting reuse of an existing identity is rejected with the appropriate existing Sprint 72 error type. Kernel composition registration in `create-kernel-services.ts` is purely additive (two new lines: repository instantiation and service construction) and does not reorder, remove, or alter any existing service registration. `test/integration/kernel-boundary-certification.integration.test.ts` was extended additively to assert `PlanningService` is composed, mirroring the existing pattern for every other Kernel service.
+
+Confirmed by import inspection across `planning.service.ts` and its test that no Deferred Concept is present: no Domain Event publication (no `EventBusContract` import or usage), no `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` state or transition, no Planning Correlation type or field, no import from `src/kernel/review/`, `src/kernel/governance/`, `src/kernel/mission/mission-planning.service`, or `src/kernel/mission/mission-execution.service`, and no `src/hosts` or `src/adapters` reference.
+
+Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, the full test suite (**643/643 tests passing, 93 files** — up from 637/92 at Sprint 72's close, consistent with exactly one new test file), `npm run build`, and `npm run test:extension-host:build`, all clean. `git status --porcelain -- src test` confirms drift is limited to exactly the four files listed above (two modified, two new) — zero Sprint 1–72 production/test drift beyond the two authorized additive edits, and zero Host/Adapter drift. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized and mutually consistent with the Sprint 73 record and `NEXUS-RAT-2026-07-17-011`.
+
+### Overall Disposition
+
+**PASS.**
+
+No findings of any category.
+
+### Findings
+
+None. Zero Category 1 (Implementation Defect), Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings. No Category 6 (Observation) recorded in this cycle.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- No Domain Event publication: confirmed no `EventBusContract` import or reference in `planning.service.ts`.
+- No `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` state or transition: confirmed `planning.service.ts` invokes only `submitCurrentRevision`/`withdrawCurrentRevision`/`appendRevision`, all pre-existing Sprint 72 `Draft`/`Submitted`/`Withdrawn` operations.
+- No Planning Correlation, Review (RFC-0006), or Governance (RFC-0011) integration: confirmed no import from `src/kernel/review/` or any governance module.
+- No Activation or RFC-0001 conversion: confirmed no import from `src/kernel/mission/mission-planning.service` or `mission-execution.service`, and no construction of RFC-0001 `MissionPlan`/`Task`/`TaskDependency`.
+- No AI plan generation, Adapter invocation, or workflow orchestration: confirmed no Adapter dispatch or Workflow Chain/Step reference.
+- No `src/hosts` or `src/adapters` file changed: confirmed via `git status --porcelain -- src/hosts src/adapters` (empty).
+
+### Architectural Compliance Summary
+
+- **Service boundary discipline:** `PlanningService` is thin — every operation delegates to Sprint 72's existing domain constructors/methods (`ProposedMissionPlan.create`, `.appendRevision`, `.submitCurrentRevision`, `.withdrawCurrentRevision`, `PlanningPolicy.create`) and adds no independent business logic beyond idempotency detection and repository orchestration, consistent with the `KnowledgeService`/`ReviewService` precedent and the Constitution's thin-service convention.
+- **Approved Vertical Slice Immutability:** verified Sprint 72's domain model, value objects, diagnostics, and validation logic are unmodified (absent from the changed-file set); Sprint 73 consumes them read-only, exactly as the ratification requires.
+- **Kernel composition:** additive only; no existing service registration, ordering, or constructor signature was altered.
+- **Tests:** `planning.service.test.ts` covers service construction/Kernel composition, idempotent Proposed Mission Plan creation (including duplicate-identity rejection), idempotent Proposed Plan Revision creation (including conflicting-content rejection), submit/withdraw idempotency and terminal-state rejection, structural validation and Planner Attribution failure propagation from Sprint 72's frozen rules, and missing-proposal diagnostics. `kernel-boundary-certification.integration.test.ts` confirms `PlanningService` is present in Kernel composition alongside every other service. Full repository suite: 643/643 passing, 93 files (independently re-executed).
+- **Documentation:** `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` Sprint 73 sections are mutually consistent and accurately describe the implemented scope, Referenced RFCs, Assumptions, Limitations, and Validation Summary, satisfying the Constitution's Implementation Report requirements.
+
+### Builder Task Recommendation
+
+None. Sprint 73 is fully closed with zero open findings of any category. Milestone 11 Initial Capability Sequence step 5 (Plan Review, Governance, and Activation) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
 ## NEXUS-REV-2026-07-17-012 — Sprint 72 — Planning Policy and Proposed Plan Foundation (BT-072-001/BT-072-002 Resolution Verification)
 
 - **Reviewed Sprint:** Sprint 72 — Planning Policy and Proposed Plan Foundation (Milestone 11, Initial Capability Sequence step 3). Follow-up cycle verifying `builder-task.md`'s two Open Builder Tasks generated from `NEXUS-REV-2026-07-17-011`'s Minor findings.
