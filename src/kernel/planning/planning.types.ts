@@ -1,4 +1,4 @@
-export const proposalLifecycleStates = ['Draft', 'Submitted', 'Withdrawn'] as const;
+export const proposalLifecycleStates = ['Draft', 'Submitted', 'Under Review', 'Withdrawn'] as const;
 
 export type ProposalLifecycleState = (typeof proposalLifecycleStates)[number];
 
@@ -116,4 +116,16 @@ export interface TransitionProposedPlanRevisionInput {
   readonly createdAt: string;
   readonly causality?: readonly string[];
   readonly correlationId?: string;
+}
+
+export interface PlanningCorrelationSnapshot {
+  readonly id: string;
+  readonly missionId: string;
+  readonly proposedMissionPlanId: string;
+  readonly proposedPlanRevisionId: string;
+  readonly plannerAttribution: PlannerAttributionSnapshot;
+  readonly createdAt: string;
+  readonly causality: readonly string[];
+  readonly correlationId?: string;
+  readonly reviewId?: string;
 }

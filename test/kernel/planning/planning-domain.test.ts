@@ -317,6 +317,68 @@ describe('Planning domain', () => {
     ).toThrow(InvalidProposalLifecycleTransitionError);
   });
 
+  it('transitions a Submitted ProposedPlanRevision to Under Review at the aggregate level', () => {
+    const submittedMissionPlan = ProposedMissionPlan.create(
+      createProposedMissionPlanInput(),
+    ).submitCurrentRevision(
+      {
+        id: 'proposed-plan-revision-2',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T01:00:00.000Z',
+      },
+      createPlanningPolicy(),
+    );
+    const underReviewMissionPlan = submittedMissionPlan.markCurrentRevisionUnderReview({
+      id: 'proposed-plan-revision-3',
+      plannerAttribution: humanPlannerAttribution,
+      createdAt: '2026-07-17T02:00:00.000Z',
+    });
+
+    expect(underReviewMissionPlan.lifecycleState).toBe('Under Review');
+    expect(underReviewMissionPlan.toSnapshot().revisions.map((revision) => revision.lifecycleState)).toEqual([
+      'Draft',
+      'Submitted',
+      'Under Review',
+    ]);
+  });
+
+  it('rejects an aggregate-level Under Review transition from Draft', () => {
+    const proposedMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput());
+
+    expect(() =>
+      proposedMissionPlan.markCurrentRevisionUnderReview({
+        id: 'proposed-plan-revision-2',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T01:00:00.000Z',
+      }),
+    ).toThrow(InvalidProposalLifecycleTransitionError);
+  });
+
+  it('rejects an aggregate-level Under Review transition from Withdrawn', () => {
+    const withdrawnMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput())
+      .submitCurrentRevision(
+        {
+          id: 'proposed-plan-revision-2',
+          plannerAttribution: humanPlannerAttribution,
+          createdAt: '2026-07-17T01:00:00.000Z',
+        },
+        createPlanningPolicy(),
+      )
+      .withdrawCurrentRevision({
+        id: 'proposed-plan-revision-3',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T02:00:00.000Z',
+      });
+
+    expect(() =>
+      withdrawnMissionPlan.markCurrentRevisionUnderReview({
+        id: 'proposed-plan-revision-4',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T03:00:00.000Z',
+      }),
+    ).toThrow(InvalidProposalLifecycleTransitionError);
+  });
+
   it('runs Structural Plan Validation and Planning Policy before submission', () => {
     const proposedMissionPlan = ProposedMissionPlan.create({
       id: 'proposed-mission-plan-1',

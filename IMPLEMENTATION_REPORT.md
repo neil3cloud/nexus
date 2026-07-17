@@ -1,5 +1,100 @@
 # Nexus Implementation Report
 
+## Sprint 74 — Planning Correlation and Review Entry Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 11 Sprint 74 vertical slice authorized by `NEXUS-RAT-2026-07-17-012` and clarified by `NEXUS-RAT-2026-07-17-013`.
+
+Implemented scope:
+
+- Added immutable `PlanningCorrelation` and `PlanningCorrelationId` within `src/kernel/planning/`.
+- Added `IPlanningCorrelationRepository` and `InMemoryPlanningCorrelationRepository` with snapshot persistence, Review lookup, Proposed Plan Revision lookup, and append-only history.
+- Added additive `Under Review` support to the existing RFC-0012 Proposal Lifecycle, preserving existing `Draft`, `Submitted`, and `Withdrawn` behavior.
+- Added `PlanningCorrelationService` as a thin orchestration boundary that starts an RFC-0006 `Review`, creates a `PlanningCorrelation`, persists the `Submitted -> Under Review` transition, and detects idempotent already-`Under Review` retries.
+- Registered `PlanningCorrelationService` and its repository through Kernel composition using the existing Planning and Review repositories/services.
+- Added fail-closed rejection for missing or ambiguous Proposed Mission Plan references, missing/non-current/non-Submitted Proposed Plan Revision references, Review/Mission or Review/revision mismatch, reused Review references, later-revision conditions, and unresolved Planner Attribution.
+- Added unit coverage for `PlanningCorrelation` construction, immutability, append-only history, the `Submitted -> Under Review` transition, idempotency, Kernel composition, and fail-closed rejection conditions.
+
+Out of scope and not implemented:
+
+- Terminal Review outcome handling or `ReviewOutcome` consumption.
+- `Governed`, `Activated`, `Rejected`, or `Superseded` Proposal Lifecycle states or transitions.
+- `GovernanceDecision` correlation or RFC-0011 Governance evaluation.
+- Activation or conversion into RFC-0001 executable `MissionPlan`, `Task`, or `TaskDependency`.
+- RFC-0012 Domain Event publication.
+- AI plan generation, Adapter invocation, provider/Adapter selection, workflow orchestration, Host changes, or Adapter changes.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model; implemented Planning Correlation and the `Submitted -> Under Review` Proposal Lifecycle transition only.
+
+Referenced:
+
+- RFC-0006 — Engineering Assessment Model; consumed `ReviewService.startReview` through its public contract and did not interpret terminal Review outcomes.
+- RFC-0001 — Mission Model; consumed `missionId` by identity only.
+- RFC-0004 — Execution Model; consumed existing Planner Attribution identifiers only.
+- RFC-0005 — Domain Event Model; consumed causation/correlation identifier shape only and published no Planning events.
+- RFC-0008 — Kernel Adapter Contract; consumed existing Planner Attribution `adapterId` shape only.
+
+Deferred Concepts:
+
+- Terminal Review outcome handling / `ReviewOutcome` consumption.
+- `Governed`, `Activated`, `Rejected`, and `Superseded` Proposal Lifecycle states and transitions.
+- `GovernanceDecision` correlation and RFC-0011 Governance evaluation.
+- Activation and conversion into RFC-0001 executable objects.
+- Domain Event publication for the Planning domain.
+- AI-generated planning, Adapter invocation, provider selection, workflow orchestration, and Autonomous Planning Integration Validation.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-012`, `NEXUS-RAT-2026-07-17-013`).
+- `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/implementation/sprints/sprint-0074-planning-correlation-and-review-entry-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- `NEXUS-RAT-2026-07-17-013` authorizes the additive `Under Review` lifecycle extension required to realize RFC-0012's `Submitted -> Under Review` transition.
+- Existing Sprint 72/73 lifecycle behavior remains valid; Sprint 74 adds only the new `Submitted -> Under Review` path.
+- Review initiation through RFC-0006 may publish existing Review events; Sprint 74 publishes no Planning-domain event.
+- `PlanningCorrelationService` remains orchestration-only; Planning business rules remain in Planning domain objects and Review behavior remains owned by RFC-0006.
+
+### Known Limitations
+
+- Planning Correlation stores only the Review association in this Sprint; Governance correlation remains deferred to Sprint 75.
+- Proposal Lifecycle cannot advance beyond `Under Review` until future ratified sprints implement Governance and Activation.
+- Persistence remains in-memory and process-local.
+- No Planning-domain event is published for Review entry in this Sprint.
+
+### Validation Summary
+
+- Repository validation passed: `npm run validate` (TypeScript compile, ESLint, Vitest excluding extension-host tests, esbuild).
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Targeted Planning validation passed: `npx vitest run test\kernel\planning\planning-domain.test.ts test\kernel\planning\planning.service.test.ts test\kernel\planning\planning-correlation.test.ts`.
+
+### Deviations
+
+No architectural deviations.
+
+### Review Remediation
+
+- `BT-074-001` — Added direct aggregate-level unit tests for `Submitted -> Under Review` success and rejection from `Draft` and `Withdrawn`. No production source was modified for this remediation.
+
+---
+
 ## Sprint 73 — Planning Service and Proposal Lifecycle Foundation
 
 ### Implemented Slice

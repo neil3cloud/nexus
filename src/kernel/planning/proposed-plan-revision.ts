@@ -176,6 +176,7 @@ function isAllowedTransition(
   return (
     (from === 'Draft' && to === 'Submitted') ||
     (from === 'Draft' && to === 'Withdrawn') ||
+    (from === 'Submitted' && to === 'Under Review') ||
     (from === 'Submitted' && to === 'Withdrawn')
   );
 }

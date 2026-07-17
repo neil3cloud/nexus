@@ -41,3 +41,31 @@ export class ProposedMissionPlanNotFoundError extends PlanningDomainError {
     this.name = 'ProposedMissionPlanNotFoundError';
   }
 }
+
+export class InvalidPlanningCorrelationDefinitionError extends PlanningDomainError {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'InvalidPlanningCorrelationDefinitionError';
+  }
+}
+
+export class DuplicatePlanningCorrelationError extends PlanningDomainError {
+  public constructor(planningCorrelationId: string) {
+    super(`PlanningCorrelation '${planningCorrelationId}' already exists.`);
+    this.name = 'DuplicatePlanningCorrelationError';
+  }
+}
+
+export class PlanningCorrelationNotFoundError extends PlanningDomainError {
+  public constructor(planningCorrelationId: string) {
+    super(`PlanningCorrelation '${planningCorrelationId}' was not found.`);
+    this.name = 'PlanningCorrelationNotFoundError';
+  }
+}
+
+export class PlanningCorrelationAssociationRejectedError extends PlanningDomainError {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'PlanningCorrelationAssociationRejectedError';
+  }
+}

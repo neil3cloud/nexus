@@ -7720,3 +7720,159 @@ None yet. Sprint 73 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-012
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-012
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Milestone 11 Initial Capability Sequence step 5 ("Plan Review, Governance, and Activation") decomposed into four independently-scoped Sprints; Sprint 74 — Planning Correlation and Review Entry Foundation authorized.
+
+## Originating Request
+
+Following Sprint 73's Reviewer certification (`NEXUS-REV-2026-07-17-013`, PASS, fully closed with zero open findings of any category) and confirmation that no open Builder Tasks remain, `nexus-plan` found that Milestone 11 Initial Capability Sequence step 5 ("Plan Review, Governance, and Activation") bundles four architecturally distinct RFC-0012 concerns — Planning Correlation and Review initiation, Governance integration, and Activation (with its own roughly ten independent sub-requirements: idempotency, atomicity, concurrent-conflict rejection, revalidation, traceability, sibling supersession) — with no Sprint-level scope defined anywhere in RFC-0012, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, or this ledger, mirroring the exact ambiguity resolved for step 4 by `NEXUS-RAT-2026-07-17-011`. `nexus-plan` presented the Sprint Owner three scoping alternatives (narrow to Correlation/Review-entry only; combine Correlation, Review, and Governance integration; implement the full step as originally labeled) plus an open option, before drafting any Sprint proposal.
+
+## Governance Decision
+
+**APPROVED — NARROW STEP 5.**
+
+Milestone 11 Initial Capability Sequence step 5 SHALL be decomposed into separate implementation Sprints, each independently implemented and Reviewer-certified, because each changes a separate authoritative boundary (Review initiation, Governance correlation, and Activation/executable-state conversion are not safely combinable into one vertical slice):
+
+1. **Sprint 74 — Planning Correlation and Review Entry Foundation** (authorized below).
+2. **Sprint 75 — Proposal Governance Integration** (not yet authorized; requires its own future Sprint scope ratification gated on Sprint 74's certification).
+3. **Sprint 76 — Approved Plan Activation** (not yet authorized; requires its own future Sprint scope ratification gated on Sprint 75's certification).
+4. **Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure** (not yet authorized; requires its own future Sprint scope ratification gated on Sprint 76's certification).
+
+The Milestone 11 Initial Capability Sequence is refined accordingly: step 5 ("Plan Review, Governance, and Activation") is replaced by steps 5–7 above (Sprints 74–76); former step 6 ("Autonomous Planning Integration Validation") becomes step 8, renamed to include explicit Milestone 11 closure (Sprint 77). This refinement is non-binding sequencing only, consistent with `NEXUS-RAT-2026-07-16-015`'s and `NEXUS-RAT-2026-07-17-009`'s existing practice of revising provisional step compression once analysis confirms the safe division of scope; it amends no RFC and redefines no previously approved vertical slice.
+
+### Sprint 74 — Planning Correlation and Review Entry Foundation (authorized)
+
+Sprint 74 SHALL implement, strictly within the existing Planning domain module (`src/kernel/planning/`) established by Sprint 72 and extended by Sprint 73, without modifying any Sprint 1–73 production file:
+
+- an immutable `PlanningCorrelation` record correlating: `missionId`; `ProposedMissionPlanId`; the exact `ProposedPlanRevisionId` under evaluation; Planner Attribution; an RFC-0006 `reviewId`, appended once Review is initiated; and causation/correlation identifiers, consistent with RFC-0005's Domain Event envelope;
+- a repository contract and in-memory implementation for `PlanningCorrelation`, following this repository's established pattern (constructor-injected contracts, snapshot persistence, append-only history);
+- the `Submitted → Under Review` Proposal Lifecycle transition only, implemented by requiring Review initiation (an RFC-0006 `Review`, consumed through its existing public contract, unmodified) against exactly one immutable `ProposedPlanRevision`;
+- deterministic, fail-closed rejection when Planning Correlation association is attempted with: a missing or ambiguous Proposed Mission Plan, Proposed Plan Revision, or Review reference; a Review or Mission reference that does not match the Proposed Mission Plan's own `missionId`; an unresolved Planner Attribution; or a Proposed Mission Plan that has produced a later revision since the correlation was requested;
+- a thin `PlanningService` extension (or sibling service) invoking Sprint 72/73's existing `ProposedMissionPlan`/`ProposedPlanRevision` operations and the new `PlanningCorrelation` record, adding no independent business logic beyond orchestration and idempotency detection, mirroring the `KnowledgeService`/`ReviewService`/`PlanningService` precedent;
+- deterministic diagnostics for every rejection condition above;
+- unit tests covering `PlanningCorrelation` construction, immutability, append-only history, every fail-closed rejection condition, the `Submitted → Under Review` transition (including idempotency for an already-`Under Review` revision), and Planner Attribution enforcement.
+
+Sprint 74 SHALL NOT implement: terminal Review outcome handling or consumption of `ReviewOutcome`; the `Governed` Proposal Lifecycle transition; `GovernanceDecision` correlation or any RFC-0011 Governance evaluation; Activation or any conversion into RFC-0001 executable `MissionPlan`/`Task`/`TaskDependency` objects; Domain Event publication for any RFC-0012-reserved event; AI-generated planning, Adapter invocation, or provider/Adapter selection; workflow orchestration.
+
+Sprint 74 SHALL NOT modify `Mission`, `MissionPlan`, `Task`, `TaskDependency`, `Review`, `GovernanceDecision`, `EngineeringDecisionCorrelation`, `RecoveryRequirement`, any Execution Model concept, any event, any event consumer, any projection, `src/hosts`, or `src/adapters`. Sprint 74 SHALL NOT modify any Sprint 72 or Sprint 73 domain model, value object, service, or validation logic — it consumes them read-only/as-is through a new, additive orchestration and correlation layer.
+
+**Definition of Done:** `PlanningCorrelation` is implemented immutably with append-only history; the `Submitted → Under Review` transition is implemented and requires Review initiation against exactly one immutable Proposed Plan Revision; every fail-closed rejection condition above is enforced and tested; Kernel composition registration (if a new service/repository pair is introduced) is additive only; unit tests cover construction, immutability, every rejection condition, transition idempotency, and Planner Attribution enforcement; no Sprint 1–73 production contract, Host, or Adapter file is found to have drifted; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized.
+
+## RFC Coverage
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; Planning Correlation and the `Submitted → Under Review` transition implement RFC-0012's Planning Correlation and Proposal Lifecycle sections, unmodified)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` consumed read-only through its existing public contract, unmodified)
+- RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced; consumed read-only, unmodified, unchanged from Sprint 72/73)
+
+## Ownership Model (ratified)
+
+This ratification decomposes one non-binding Milestone sequencing step into four and authorizes one Sprint's scope at the Implementation Plan tier. It modifies no RFC, redefines no previously approved vertical slice, and does not reopen Sprint 72 or Sprint 73 (both frozen).
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification; refine Milestone 11 Initial Capability Sequence step 5 into steps 5–7 (Sprints 74–76) and renumber former step 6 to step 8 (Sprint 77) in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`; generate the Sprint 74 Sprint Implementation Record reproducing this ratification's full binding detail; activate Sprint 74; and prepare Builder handoff.
+
+## Deferred Concepts
+
+Terminal Review outcome handling; `GovernanceDecision` correlation and RFC-0011 Governance integration (Sprint 75); Activation and conversion into RFC-0001 executable objects (Sprint 76); Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77); Domain Event publication for the Planning domain; AI-generated planning; workflow orchestration — each requires its own future Sprint scope ratification, gated on Sprint 74's certification.
+
+## Related Sprint(s)
+
+- Sprint 72 — Planning Policy and Proposed Plan Foundation (frozen; consumed read-only).
+- Sprint 73 — Planning Service and Proposal Lifecycle Foundation (frozen; consumed read-only; Reviewer-certified, unblocking this cycle).
+- Sprint 74 — Planning Correlation and Review Entry Foundation (this ratification's authorized implementation scope).
+
+## Related Review(s)
+
+None yet. Sprint 74 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner directs that Milestone 11 Initial Capability Sequence step 5 ("Plan Review, Governance, and Activation") be decomposed into four independently-scoped, independently-certified Sprints, because Review initiation, Governance correlation, and Activation each change a separate authoritative boundary and must not be combined into one vertical slice. The Sprint Owner authorizes Sprint 74 — Planning Correlation and Review Entry Foundation, strictly limited to an immutable `PlanningCorrelation` record correlating Mission, Proposed Mission Plan, exact Proposed Plan Revision, RFC-0006 Review, and Planner Attribution; the `Submitted → Under Review` Proposal Lifecycle transition; fail-closed rejection on missing, ambiguous, cross-Mission, cross-proposal, or cross-revision attribution; append-only correlation history; and repository, thin service, Kernel composition, diagnostics, and tests — explicitly excluding terminal Review outcome handling, the `Governed` transition, `GovernanceDecision` correlation, Governance evaluation, Activation, conversion into RFC-0001 objects, Domain Event publication, AI plan generation, and workflow orchestration. The remaining sequence is refined as: Sprint 74 — Planning Correlation and Review Entry Foundation; Sprint 75 — Proposal Governance Integration; Sprint 76 — Approved Plan Activation; Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure. `nexus-plan` SHALL record this ratification, synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, generate the Sprint 74 Sprint Implementation Record, activate Sprint 74, and issue Builder handoff.
+
+## Current Status
+
+Superseded in part by `NEXUS-RAT-2026-07-17-013` (Sprint 74 authorized-scope correction only; the Initial Capability Sequence decomposition and Sprint 74 authorization otherwise remain Active).
+
+---
+
+# NEXUS-RAT-2026-07-17-013
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-013
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Correction of a self-contradiction in `NEXUS-RAT-2026-07-17-012`'s Sprint 74 authorization: Sprint 74 is explicitly authorized to additively extend the frozen `ProposedPlanRevision` lifecycle with an `Under Review` state and transition method.
+
+## Originating Request
+
+During Sprint 74 implementation, the Builder reported a stop condition: `NEXUS-RAT-2026-07-17-012` authorizes the `Submitted → Under Review` Proposal Lifecycle transition, but Sprint 72/73's frozen `ProposedPlanRevision` lifecycle model implements only `Draft`, `Submitted`, and `Withdrawn` — it has no `Under Review` value — and the same ratification prohibits modifying any Sprint 72/73 domain model, value object, service, or validation logic. Implementing the authorized transition is impossible without either extending that frozen lifecycle or representing `Under Review` as a derived state computed externally from `PlanningCorrelation`, and the ratification did not specify which. `nexus-plan` presented the Sprint Owner both alternatives, plus an open option, before making any correction.
+
+## Governance Decision
+
+**APPROVED — RATIFICATION CORRECTION.**
+
+`NEXUS-RAT-2026-07-17-012`'s Sprint 74 authorization is corrected: Sprint 74 SHALL additively extend the existing `ProposedPlanRevision` lifecycle by adding an `Under Review` state and a corresponding transition method (e.g. `initiateReview()`/`markUnderReview()`), mirroring the precedent established by Sprint 12 → Sprint 14 (`KnowledgeStatus`: Sprint 12 froze `Candidate → Approved` only; Sprint 14 was explicitly ratified to add `Active`/`Superseded`/`Archived` as new transition methods on the same aggregate, without reopening or rewriting Sprint 12's existing behavior).
+
+This extension SHALL be additive only:
+
+- Sprint 72/73's existing `Draft → Submitted`, `Draft → Withdrawn`, and `Submitted → Withdrawn` transitions, their method signatures, and their existing validation and diagnostics SHALL remain byte-for-byte unchanged;
+- the new `Under Review` state and its transition method SHALL be added to `ProposedPlanRevision`'s existing lifecycle type/enum and aggregate, following the same construction pattern already used for `Draft`/`Submitted`/`Withdrawn`;
+- the new transition SHALL be reachable only from `Submitted`, SHALL be rejected from `Draft` or `Withdrawn`, and SHALL require an associated `PlanningCorrelation` carrying a `reviewId` for the exact same revision, per RFC-0012's Planning Correlation and Proposal Lifecycle sections;
+- no other Sprint 72/73 concept (Planning Policy, Structural Plan Validation, `ProposedMissionPlan`, `ProposedTask`, `ProposedTaskDependency`, `PlannerAttribution`, the repository contract) SHALL be modified.
+
+`NEXUS-RAT-2026-07-17-012`'s blanket prohibition on modifying "any Sprint 72 or Sprint 73 domain model, value object, service, or validation logic" is corrected to read: "SHALL NOT modify any Sprint 72 or Sprint 73 domain model, value object, service, or validation logic, **except the additive `ProposedPlanRevision` lifecycle extension explicitly authorized by `NEXUS-RAT-2026-07-17-013`**." All other Sprint 74 authorized scope, boundaries, and deferred concepts from `NEXUS-RAT-2026-07-17-012` remain unchanged and in effect.
+
+## RFC Coverage
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (unchanged; this correction clarifies implementation-layer aggregate design, not RFC-0012's Proposal Lifecycle definition, which already describes `Under Review` as a state a Proposed Plan Revision progresses through)
+
+## Ownership Model (ratified)
+
+This ratification corrects a self-contradiction within one prior ratification's Sprint authorization, at the Implementation Plan tier. It amends no RFC and does not reopen Sprint 72's or Sprint 73's already-approved, certified behavior — it authorizes exactly one narrow additive extension to `ProposedPlanRevision`, consistent with the Sprint 12 → Sprint 14 Knowledge precedent for additive lifecycle extension of a previously frozen aggregate.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification and update the Sprint 74 Sprint Implementation Record's Authorized Concepts and Architectural Boundaries to reflect the corrected authorization. No change to `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` beyond referencing this ratification is required, since Sprint 74's status and scope label are unchanged.
+
+## Deferred Concepts
+
+Unchanged from `NEXUS-RAT-2026-07-17-012`: terminal Review outcome handling; `GovernanceDecision` correlation and RFC-0011 Governance integration (Sprint 75); Activation (Sprint 76); Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77); Domain Event publication; AI-generated planning; workflow orchestration.
+
+## Related Sprint(s)
+
+- Sprint 72 — Planning Policy and Proposed Plan Foundation (frozen; consumed read-only; its `Draft`/`Submitted`/`Withdrawn` behavior is unmodified by this correction).
+- Sprint 73 — Planning Service and Proposal Lifecycle Foundation (frozen; consumed read-only; unmodified by this correction).
+- Sprint 74 — Planning Correlation and Review Entry Foundation (this ratification's corrected authorization).
+
+## Related Review(s)
+
+None yet. Sprint 74 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner corrects `NEXUS-RAT-2026-07-17-012`'s Sprint 74 authorization, which prohibited modifying any Sprint 72/73 domain model while simultaneously authorizing a `Submitted → Under Review` transition that Sprint 72/73's frozen `ProposedPlanRevision` lifecycle cannot express. Sprint 74 is explicitly authorized to additively extend `ProposedPlanRevision`'s existing lifecycle with an `Under Review` state and transition method, reachable only from `Submitted`, requiring an associated `PlanningCorrelation` with a `reviewId` for the same revision, and leaving every existing Sprint 72/73 transition, method signature, validation rule, and diagnostic byte-for-byte unchanged — mirroring the Sprint 12 → Sprint 14 `KnowledgeStatus` precedent for additive lifecycle extension of a previously frozen aggregate. All other Sprint 74 scope, boundaries, and deferred concepts from `NEXUS-RAT-2026-07-17-012` remain unchanged. `nexus-plan` SHALL record this ratification and update the Sprint 74 Sprint Implementation Record accordingly.
+
+## Current Status
+
+Active
+
+---

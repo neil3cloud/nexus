@@ -2912,7 +2912,7 @@ Notes:
 
 # Milestone 11 — Autonomous Engineering Planning Readiness
 
-Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` (fully closed, zero open findings). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is Implemented — Pending Reviewer Validation.)
+Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` (fully closed, zero open findings). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS, zero findings, fully closed). Initial Capability Sequence step 5 decomposed by `NEXUS-RAT-2026-07-17-012` into steps 5–7 (Sprints 74–76) plus renumbered step 8 (Sprint 77). Sprint 74 — Planning Correlation and Review Entry Foundation is Implemented — Pending Reviewer Validation.)
 
 Opened by `NEXUS-RAT-2026-07-17-009`.
 
@@ -2925,15 +2925,58 @@ Initial Capability Sequence (binding, sequencing only — each future step requi
 1. Governance Decision Applicability Correction (Sprint 71). ✅ Approved.
 2. RFC-0012 drafting and ratification. ✅ Closed by `NEXUS-RAT-2026-07-17-010`; RFC-0012 v1.0 Final.
 3. Planning Policy and Proposed Plan Foundation. Sprint 72 — ✅ Approved, `NEXUS-REV-2026-07-17-012`, fully closed.
-4. Planning Service and Proposal Lifecycle Foundation (renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`, which found the prior label undefined and implying unsupported Review/Governance/Activation semantics). Sprint 73 — Implemented — Pending Reviewer Validation.
-5. Plan Review, Governance, and Activation.
-6. Autonomous Planning Integration Validation.
+4. Planning Service and Proposal Lifecycle Foundation (renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`, which found the prior label undefined and implying unsupported Review/Governance/Activation semantics). Sprint 73 — ✅ Approved, `NEXUS-REV-2026-07-17-013`, fully closed.
+5. Planning Correlation and Review Entry Foundation (refined from "Plan Review, Governance, and Activation" by `NEXUS-RAT-2026-07-17-012`, which found the prior label bundled four architecturally distinct concerns with no Sprint-level scope). Sprint 74 — Implemented — Pending Reviewer Validation.
+6. Proposal Governance Integration. Sprint 75 — not yet authorized.
+7. Approved Plan Activation. Sprint 76 — not yet authorized.
+8. Autonomous Planning Integration Validation and Milestone 11 Closure (renumbered from step 6). Sprint 77 — not yet authorized.
+
+---
+
+## Sprint 74 — Planning Correlation and Review Entry Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; Planning Correlation and the `Submitted → Under Review` transition implement RFC-0012's Planning Correlation and Proposal Lifecycle sections, unmodified)
+- RFC-0006 — Engineering Assessment Model (Referenced; `Review` consumed read-only through its existing public contract, unmodified)
+- RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced; consumed read-only, unmodified, unchanged from Sprint 72/73)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-17-012` — decomposes Milestone 11 Initial Capability Sequence step 5 into Sprints 74–77 and authorizes this Sprint's exact scope.
+- `NEXUS-RAT-2026-07-17-013` — authorizes the additive `Under Review` lifecycle extension required to resolve Sprint 74's `Submitted → Under Review` transition scope.
+
+Authorized Concepts:
+
+- Immutable `PlanningCorrelation` record correlating `missionId`, `ProposedMissionPlanId`, the exact `ProposedPlanRevisionId` under evaluation, Planner Attribution, an RFC-0006 `reviewId`, and causation/correlation identifiers.
+- `IPlanningCorrelationRepository` and in-memory implementation, with append-only history.
+- The `Submitted → Under Review` Proposal Lifecycle transition only, requiring Review initiation against exactly one immutable `ProposedPlanRevision`.
+- Fail-closed diagnostics for missing/ambiguous references, Review/Mission identity mismatch, unresolved Planner Attribution, and superseding-revision conditions.
+- Kernel composition registration of any new repository/service, purely additive.
+
+Deferred Concepts:
+
+- Terminal Review outcome handling / `ReviewOutcome` consumption.
+- `Governed`, `Activated`, `Rejected`, `Superseded` Proposal Lifecycle states and transitions.
+- `GovernanceDecision` correlation; RFC-0011 Governance evaluation.
+- Activation; conversion into RFC-0001 executable objects.
+- Domain Event publication for the Planning domain.
+- AI-generated planning, Adapter invocation, provider/Adapter selection.
+- Workflow orchestration.
+- Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77).
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0074-planning-correlation-and-review-entry-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0006, RFC-0008, RFC-0011, RFC-0012, or the Kernel Canon. Per `NEXUS-RAT-2026-07-17-013`, it additively extends the existing Sprint 72/73 Proposal Lifecycle with `Under Review` while preserving all existing `Draft`, `Submitted`, and `Withdrawn` behavior.
 
 ---
 
 ## Sprint 73 — Planning Service and Proposal Lifecycle Foundation
 
-Status: Implemented — Pending Reviewer Validation
+Status: ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS; fully closed, zero findings of any category)
 
 RFC Coverage:
 

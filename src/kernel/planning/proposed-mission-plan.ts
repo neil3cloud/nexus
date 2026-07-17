@@ -119,6 +119,12 @@ export class ProposedMissionPlan {
     return this.appendLifecycleRevision(input, 'Withdrawn');
   }
 
+  public markCurrentRevisionUnderReview(
+    input: TransitionProposedPlanRevisionInput,
+  ): ProposedMissionPlan {
+    return this.appendLifecycleRevision(input, 'Under Review');
+  }
+
   public toSnapshot(): ProposedMissionPlanSnapshot {
     const originatingRevision = this.revisionsValue[0];
 

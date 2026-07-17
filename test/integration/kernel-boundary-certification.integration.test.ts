@@ -108,6 +108,7 @@ const expectedKernelServiceNames = [
   'ExecutionService',
   'ReviewService',
   'PlanningService',
+  'PlanningCorrelationService',
   'KnowledgeService',
 ] as const;
 

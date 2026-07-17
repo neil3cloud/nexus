@@ -2,6 +2,155 @@
 
 ---
 
+## NEXUS-REV-2026-07-17-015 — Sprint 74 — Planning Correlation and Review Entry Foundation (BT-074-001 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 74 — Planning Correlation and Review Entry Foundation (Milestone 11, Initial Capability Sequence step 5). Follow-up cycle verifying `builder-task.md`'s one Open Builder Task, `BT-074-001`, generated from `NEXUS-REV-2026-07-17-014`'s Minor finding F-001.
+- **Reviewed Change:** `test/kernel/planning/planning-domain.test.ts` — three new test cases: `ProposedMissionPlan.markCurrentRevisionUnderReview` success from a `Submitted` current revision, and rejection (`InvalidProposalLifecycleTransitionError`) from `Draft` and from `Withdrawn`, all invoked directly at the aggregate level (bypassing `PlanningCorrelationService`). No other file changed.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (unchanged; this cycle adds test coverage within Sprint 74's already-approved scope, not new capability).
+- **Review Date:** 2026-07-17
+- **Ratification:** `NEXUS-RAT-2026-07-17-012` (Sprint 74 scope), `NEXUS-RAT-2026-07-17-013` (additive `Under Review` lifecycle-extension authorization) — both unchanged and consumed read-only by this cycle.
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0074-planning-correlation-and-review-entry-foundation.md`
+
+### Executive Summary
+
+Independently verified `BT-074-001`'s resolution of `NEXUS-REV-2026-07-17-014-F-001`. `git diff -- test/kernel/planning/planning-domain.test.ts` shows exactly the three test cases `BT-074-001` required, added after the pre-existing `'rejects an Under Review... '`-adjacent test block, with no modification to any pre-existing test in the file. Each new test exercises `ProposedMissionPlan.markCurrentRevisionUnderReview` directly — not through `PlanningCorrelationService` — closing the coverage gap F-001 identified: the first test constructs a `Draft` plan, transitions it through `submitCurrentRevision` to `Submitted`, then calls `markCurrentRevisionUnderReview` and asserts the resulting `lifecycleState` is `'Under Review'` and the revision history is `['Draft', 'Submitted', 'Under Review']`; the second test calls `markCurrentRevisionUnderReview` directly on a freshly-created (`Draft`) `ProposedMissionPlan` and asserts it throws `InvalidProposalLifecycleTransitionError`; the third test transitions a plan through `Submitted → Withdrawn` and asserts calling `markCurrentRevisionUnderReview` on the `Withdrawn` plan also throws `InvalidProposalLifecycleTransitionError`. All three exercise the exact `isAllowedTransition` boundary `NEXUS-RAT-2026-07-17-013` authorized and bounded ("reachable only from `Submitted`, rejected from `Draft` or `Withdrawn`").
+
+Confirmed via `git status --porcelain -- src test` that drift is limited to exactly this one test file — `BT-074-001`'s Acceptance Criteria required no production source change, and none occurred. Confirmed via `git diff --stat` that `src/kernel/planning/proposed-mission-plan.ts` and `proposed-plan-revision.ts` are byte-for-byte identical to their state at `NEXUS-REV-2026-07-17-014` (same additive diff, unchanged since). Confirmed no existing test in `planning-domain.test.ts`, `planning.service.test.ts`, or `planning-correlation.test.ts` was modified or removed.
+
+Independently re-executed the full validation pipeline: `npm run validate` (`tsc --noEmit`, ESLint, Vitest — **652/652 tests passing, 94 files**, up from 649/94 at `NEXUS-REV-2026-07-17-014`, consistent with exactly three new tests in the same file) and `npm run build`, both clean; `npm run test:extension-host:build` clean. `git status --porcelain -- src/hosts src/adapters` is empty. `IMPLEMENTATION_REPORT.md`'s new "Review Remediation" subsection under Sprint 74 accurately records `BT-074-001`'s resolution and correctly states no production source was modified.
+
+### Overall Disposition
+
+**PASS.**
+
+`BT-074-001` is resolved exactly as scoped. No new findings. `NEXUS-REV-2026-07-17-014-F-002` and `F-003` (Category 6 Observations) are untouched by this cycle and remain carried forward for future Sprint awareness — no Builder Task associated with either.
+
+### Findings
+
+None. Zero Category 1 (Implementation Defect), Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings. No new Category 6 (Observation) recorded in this cycle.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- Unchanged from `NEXUS-REV-2026-07-17-014`: terminal Review outcome consumption; `Governed`/`Activated`/`Rejected`/`Superseded` states; `GovernanceDecision` correlation; Activation; Domain Event publication for the Planning domain; AI-generated planning; workflow orchestration — all confirmed still absent.
+
+### Architectural Compliance Summary
+
+- **Approved Vertical Slice Immutability:** confirmed Sprint 72/73's frozen transitions, method signatures, validation, and diagnostics remain unmodified; the one additive `Under Review` extension authorized by `NEXUS-RAT-2026-07-17-013` is unchanged since `NEXUS-REV-2026-07-17-014` and is now directly, independently tested at the aggregate level.
+- **Test coverage:** the exact gap identified by F-001 is closed — `ProposedMissionPlan.markCurrentRevisionUnderReview`/`ProposedPlanRevision.transitionTo('Under Review')` now have direct, isolated coverage for success from `Submitted` and rejection from `Draft` and `Withdrawn`, independent of `PlanningCorrelationService`'s own separate guard. Full repository suite: 652/652 passing, 94 files (independently re-executed).
+- **Scope discipline:** `BT-074-001`'s Required Changes and Acceptance Criteria were followed exactly — test-only change, no production source modified, no existing test altered.
+- **Documentation:** `IMPLEMENTATION_REPORT.md`'s Sprint 74 "Review Remediation" subsection accurately reflects the resolution.
+
+### Builder Task Recommendation
+
+None. `BT-074-001` is resolved and should be marked Completed. No further Builder action arises from this cycle. Sprint 74 remains Approved with Findings (its Final Disposition already recorded F-002/F-003 as Observations requiring no action); `builder-task.md` should be updated to reflect `BT-074-001` as Completed, with zero remaining Open Builder Tasks.
+
+---
+
+## NEXUS-REV-2026-07-17-014 — Sprint 74 — Planning Correlation and Review Entry Foundation
+
+- **Reviewed Sprint:** Sprint 74 — Planning Correlation and Review Entry Foundation (Milestone 11, Initial Capability Sequence step 5, refined from "Plan Review, Governance, and Activation").
+- **Reviewed Change:** New `src/kernel/planning/planning-correlation.ts`, `planning-correlation-id.ts`, `planning-correlation.repository.ts`, `planning-correlation.service.ts`, and `test/kernel/planning/planning-correlation.test.ts`; additive changes to `src/kernel/planning/planning.errors.ts` (four new error classes), `planning.types.ts` (`Under Review` lifecycle value, `PlanningCorrelationSnapshot`), `proposed-mission-plan.ts` (`markCurrentRevisionUnderReview`), `proposed-plan-revision.ts` (`Submitted → Under Review` added to `isAllowedTransition`), and `src/kernel/common/create-kernel-services.ts` (additive `PlanningCorrelationService` Kernel composition registration); additive allowlist updates to `test/integration/kernel-boundary-certification.integration.test.ts`, `test/integration/autonomous-engineering-integration-validation.integration.test.ts`, and `test/integration/governance-automation-integration-validation.integration.test.ts`.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; Planning Correlation and the `Submitted → Under Review` transition, unmodified). RFC-0006 (Referenced; `Review` consumed read-only through its existing public contract). RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Ratification:** `NEXUS-RAT-2026-07-17-012` (Sprint 74 scope authorization) and `NEXUS-RAT-2026-07-17-013` (additive `Under Review` lifecycle-extension correction).
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0074-planning-correlation-and-review-entry-foundation.md`
+
+### Executive Summary
+
+Independently verified Sprint 74's implementation against `NEXUS-RAT-2026-07-17-012`'s authorized scope as corrected by `NEXUS-RAT-2026-07-17-013`. `PlanningCorrelation` is a new, immutable value type correlating `missionId`, `ProposedMissionPlanId`, the exact `ProposedPlanRevisionId`, Planner Attribution, an optional `reviewId` (appended exactly once via `associateReview`), and causation/correlation identifiers; `InMemoryPlanningCorrelationRepository` enforces append-only association (`assertAppendOnlyAssociations` rejects changing an already-set `reviewId`) and immutable creation fields (`assertImmutableCreationFields`), with lookup by id, by Review, and by exact revision key.
+
+`PlanningCorrelationService.enterReview` orchestrates the `Submitted → Under Review` transition: it resolves the exact `ProposedMissionPlan` (by id, or uniquely by Mission when unambiguous — rejecting zero or multiple matches), asserts the current revision is exactly the requested `Submitted` revision (rejecting missing, non-current, or non-`Submitted` revisions), invokes the new `ProposedMissionPlan.markCurrentRevisionUnderReview` (delegating to the existing, unmodified `appendLifecycleRevision` helper), initiates an RFC-0006 `Review` through `ReviewService.startReview`'s existing public contract, verifies the returned `Review`'s `missionId` and `missionPlanRevision` match the Planning Correlation's own Mission and revision (rejecting cross-Mission or cross-revision Review references), rejects a Review already associated with a different `PlanningCorrelation`, and persists the correlation and the transitioned `ProposedMissionPlan` only after both succeed. Idempotency is implemented at the top of `enterReview`: an already-`Under Review` current revision short-circuits to the existing persisted `PlanningCorrelation`/`Review` reference rather than re-transitioning or re-registering.
+
+Confirmed the additive lifecycle extension authorized by `NEXUS-RAT-2026-07-17-013` is minimal and precisely bounded: `planning.types.ts`'s `proposalLifecycleStates` gained exactly one new value (`'Under Review'`), and `proposed-plan-revision.ts`'s `isAllowedTransition` gained exactly one new allowed pair (`Submitted → Under Review`); the existing `Draft → Submitted`, `Draft → Withdrawn`, and `Submitted → Withdrawn` pairs, the shared `transitionTo` guard, and every other Sprint 72/73 method, signature, and validation rule are byte-for-byte unchanged (confirmed by diff inspection — no other line in either file changed). `ProposedMissionPlan.markCurrentRevisionUnderReview` is a new one-line method delegating to the existing, unmodified `appendLifecycleRevision` private helper, mirroring `withdrawCurrentRevision`'s existing shape exactly.
+
+Confirmed by import inspection across all new/changed Planning files that no Deferred Concept is present: no `ReviewOutcome` field is read or branched on anywhere in `planning-correlation.service.ts`; no `Governed`/`Activated`/`Rejected`/`Superseded` lifecycle value exists in `planning.types.ts`; no import from `src/kernel/governance/`; no import from `src/kernel/mission/mission-planning.service` or `mission-execution.service`; no `EventBusContract` import in any Planning file (no Planning-domain Domain Event publication); no Adapter dispatch or Workflow Chain/Step reference; and `git status --porcelain -- src/hosts src/adapters` is empty.
+
+Independently re-executed the full validation pipeline: `npm run validate` (`tsc --noEmit`, ESLint, Vitest — **649/649 tests passing, 94 files**, up from 643/93 at Sprint 73's close, consistent with exactly one new test file and six new tests), and `npm run build`, both clean; `npm run test:extension-host:build` clean. `git status --porcelain -- src test` confirms drift limited to exactly the file set listed above — zero Sprint 1–73 production/test drift beyond the two authorized additive edits (`create-kernel-services.ts`, and the one ratified `ProposedPlanRevision`/`ProposedMissionPlan` lifecycle extension), and zero `src/hosts`/`src/adapters` drift. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized and mutually consistent with the Sprint 74 record and both ratifications.
+
+### Overall Disposition
+
+**PASS WITH FINDINGS.**
+
+One Minor, non-blocking Category 1 finding (missing direct unit coverage for the newly authorized aggregate-level lifecycle extension). Two Category 6 Observations. Zero Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-014-F-001 — No direct unit test exercises `ProposedPlanRevision`'s new `Submitted → Under Review` transition or its rejection from `Draft`/`Withdrawn` at the aggregate level
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Testing ("Tests SHALL validate: aggregate behavior... state transitions"); `NEXUS-RAT-2026-07-17-013` ("reachable only from `Submitted`, rejected from `Draft` or `Withdrawn`"); Sprint 74 record — Acceptance Criteria ("every rejection condition above is enforced and tested").
+- **Summary:** `ProposedMissionPlan.markCurrentRevisionUnderReview` and `ProposedPlanRevision.transitionTo('Under Review')` (via the new `isAllowedTransition` pair) are exercised only indirectly, through `PlanningCorrelationService.enterReview`'s integration-style tests in `planning-correlation.test.ts`. `enterReview` independently asserts the current revision is `Submitted` (`assertSubmittedCurrentRevision`) *before* calling `markCurrentRevisionUnderReview`, so no test ever reaches the aggregate with a `Draft` or `Withdrawn` revision to verify `transitionTo` itself still rejects those transitions into `Under Review`. No test in `planning-domain.test.ts` (unchanged by this Sprint) or `planning-correlation.test.ts` calls `ProposedMissionPlan.markCurrentRevisionUnderReview`/`ProposedPlanRevision.transitionTo('Under Review')` directly.
+- **Evidence:** `git diff -- test/kernel/planning/planning-domain.test.ts` is empty; `grep -rn "markCurrentRevisionUnderReview" test/` matches nothing; `src/kernel/planning/planning-correlation.service.ts:95-99` (`assertSubmittedCurrentRevision`) executes and would throw before the aggregate method could ever be called with a non-`Submitted` current revision.
+- **Impact:** A future regression to `isAllowedTransition` (e.g., accidentally widening it to allow `Draft → Under Review`) would not be caught by any existing test, because the only current caller (`PlanningCorrelationService`) has its own separate, redundant guard that would mask the aggregate-level defect. The ratification's precise boundary ("reachable only from `Submitted`, rejected from `Draft` or `Withdrawn`") is therefore unverified at the layer it was authorized for.
+- **Required Disposition:** Builder Task — add direct unit tests in `planning-domain.test.ts` (or `planning-correlation.test.ts`) exercising `ProposedMissionPlan.markCurrentRevisionUnderReview`/`ProposedPlanRevision.transitionTo('Under Review')` in isolation: success from `Submitted`, and rejection (`InvalidProposalLifecycleTransitionError`) from `Draft` and from `Withdrawn`.
+- **Builder Action:** Fix (add tests only; no production behavior change required).
+
+#### NEXUS-REV-2026-07-17-014-F-002 — `Review.missionPlanRevision` now holds a non-executable `ProposedPlanRevisionId`, not an executable RFC-0001 `MissionPlan` revision reference
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** RFC-0012 — Boundaries ("does not permit a Proposed Mission Plan... to be treated as executable state prior to Activation"); RFC-0006 (does not itself define `missionPlanRevision`'s semantics — it is Sprint 9/`NEXUS-RAT-2026-07-12-006` implementation-layer vocabulary, a normalized non-empty string with no type constraint tying it to an RFC-0001 `MissionPlan` revision number).
+- **Summary:** `PlanningCorrelationService.createStartReviewCommand` passes the `ProposedPlanRevision`'s id as `StartReviewCommand.missionPlanRevision`. The field's name ("MissionPlan revision") reads as an executable RFC-0001 reference, but for Planning-originated Reviews it now holds a pre-Activation, non-executable Proposed Plan Revision identifier. This does not violate RFC-0012 (no executable `MissionPlan`/`Task` object is constructed or coerced; the field is a loosely-typed reference string, not itself executable state) or RFC-0006 (which does not normatively constrain the field), but the same field name now carries two different meanings depending on caller (executable Mission Plan revision for Mission-originated Reviews; Proposed Plan Revision id for Planning-originated Reviews).
+- **Impact:** A future reader of `Review.missionPlanRevision` cannot tell, without also checking Planning Correlation, whether the referenced revision is executable RFC-0001 state or a still-speculative Proposed Plan Revision. Low risk at this Sprint's scope (no code branches on the distinction), but worth resolving before Sprint 76 (Activation) or any future Review-outcome consumer that might assume executable-state semantics.
+- **Required Disposition:** No action required this Sprint. Recommend Sprint 75 or a future documentation pass note this dual usage explicitly (e.g., in a reference document), or consider whether Planning Correlation should become the canonical lookup path rather than relying on `Review.missionPlanRevision` for Planning-domain identification.
+- **Builder Action:** None unless directed.
+
+#### NEXUS-REV-2026-07-17-014-F-003 — `PlanningCorrelationService` constructor silently default-constructs its `ReviewService`, repositories, and identity generator when not injected
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Deterministic Implementation (avoid hidden behavior); precedent `NEXUS-REV-2026-07-12-008-F-006` (Sprint 5).
+- **Summary:** `PlanningCorrelationService`'s constructor parameters default to `new InMemoryProposedMissionPlanRepository()`, `new InMemoryPlanningCorrelationRepository()`, and `new ReviewService()` (no `EventBusContract`) when not explicitly supplied. Kernel composition (`create-kernel-services.ts`) injects the shared, correctly-wired instances explicitly, so this does not affect the certified composition path. Unlike the Sprint 5 precedent, an accidental default-constructed `ReviewService()` would fail fast at `startReview`'s `requireEventBus()` guard rather than silently producing a private, unshared repository — a materially lower risk than the original F-006 pattern, but the same class of hidden-default risk this repository has previously flagged.
+- **Impact:** Low. A future wiring mistake would fail loudly (via `requireEventBus()`) for the Review path, though the two default-constructed repositories would still silently diverge from the shared Kernel instances if ever mis-wired.
+- **Required Disposition:** No action required; recommend removing the default parameters in a future slice, consistent with the still-open Sprint 5 F-006 recommendation.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 3 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001) |
+| Informational | 2 (F-002, F-003) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- Confirmed absent: terminal Review outcome / `ReviewOutcome` consumption; `Governed`/`Activated`/`Rejected`/`Superseded` Proposal Lifecycle states or transitions; `GovernanceDecision` correlation or RFC-0011 Governance evaluation; Activation or conversion into RFC-0001 executable objects; Domain Event publication for the Planning domain; AI-generated planning, Adapter invocation, provider/Adapter selection, or workflow orchestration.
+- No placeholder or stub implementation of any deferred concept was found.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership:** `PlanningCorrelation` owns its own identity, associations, and append-only history; no foreign aggregate internals accessed. `ProposedMissionPlan`/`ProposedPlanRevision` remain the sole owners of Proposal Lifecycle state; `PlanningCorrelationService` does not duplicate or bypass their validation. Compliant.
+- **Approved Vertical Slice Immutability:** Sprint 72/73's `Draft`/`Submitted`/`Withdrawn` transitions, method signatures, validation, and diagnostics are byte-for-byte unchanged (confirmed by diff inspection); the one additive `Under Review` extension is exactly the scope `NEXUS-RAT-2026-07-17-013` authorized. Compliant.
+- **Cross-domain interaction:** `Review` is consumed exclusively through `ReviewService.startReview`'s existing public contract; no `Review` internal state is accessed or mutated. Compliant.
+- **Fail-closed behavior:** Every RFC-0012 Planning Correlation rejection condition (missing/ambiguous Proposed Mission Plan, missing/non-current/non-`Submitted` revision, Review/Mission mismatch, Review/revision mismatch, reused Review reference, unresolved Planner Attribution) is enforced and tested. Compliant.
+- **Determinism:** Idempotent `enterReview` retry for an already-`Under Review` revision returns the existing persisted result rather than re-transitioning or re-registering; append-only repository invariants enforced (`assertImmutableCreationFields`, `assertAppendOnlyAssociations`). Compliant.
+- **Tests:** `planning-correlation.test.ts` covers construction/immutability/append-only history, the `Submitted → Under Review` transition with idempotency, every fail-closed rejection condition, and additive Kernel composition. Full repository suite: 649/649 passing, 94 files (independently re-executed). One coverage gap identified (F-001).
+- **Documentation:** `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` Sprint 74 sections are mutually consistent and accurately describe the implemented scope, Referenced RFCs, Assumptions, Limitations, and Validation Summary.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for F-001 (Minor, non-blocking — add direct aggregate-level unit tests for the new `Under Review` transition and its rejection from `Draft`/`Withdrawn`). F-002 and F-003 require no action; both are carried forward as Observations for future Sprint awareness.
+
+---
+
 ## NEXUS-REV-2026-07-17-013 — Sprint 73 — Planning Service and Proposal Lifecycle Foundation
 
 - **Reviewed Sprint:** Sprint 73 — Planning Service and Proposal Lifecycle Foundation (Milestone 11, Initial Capability Sequence step 4, renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`).

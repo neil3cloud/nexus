@@ -53,6 +53,8 @@ import { GovernanceGatedMissionCompletionCoordinator } from '../mission/governan
 import { MissionPlanningService } from '../mission/mission-planning.service';
 import { InMemoryMissionRepository } from '../mission/mission.repository';
 import { MissionService } from '../mission/mission.service';
+import { InMemoryPlanningCorrelationRepository } from '../planning/planning-correlation.repository';
+import { PlanningCorrelationService } from '../planning/planning-correlation.service';
 import { InMemoryProposedMissionPlanRepository } from '../planning/proposed-mission-plan.repository';
 import { PlanningService } from '../planning/planning.service';
 import { InMemoryReviewRepository } from '../review/review.repository';
@@ -74,6 +76,7 @@ export function createKernelServices(
   const reviewRepository = new InMemoryReviewRepository();
   const knowledgeRepository = new InMemoryKnowledgeRepository();
   const proposedMissionPlanRepository = new InMemoryProposedMissionPlanRepository();
+  const planningCorrelationRepository = new InMemoryPlanningCorrelationRepository();
   const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
   const governanceStateProjectionRepository = new InMemoryGovernanceStateProjectionRepository();
@@ -181,6 +184,13 @@ export function createKernelServices(
       engineeringDecisionCorrelationService,
       eventBus,
     );
+  const reviewService = new ReviewService(reviewRepository, eventBus);
+  const planningCorrelationService = new PlanningCorrelationService(
+    proposedMissionPlanRepository,
+    planningCorrelationRepository,
+    reviewService,
+    randomUUID,
+  );
 
   return [
     adapterService,
@@ -214,8 +224,9 @@ export function createKernelServices(
     ratificationAttributionValidationService,
     executionStrategyService,
     new ExecutionService(),
-    new ReviewService(reviewRepository, eventBus),
+    reviewService,
     new PlanningService(proposedMissionPlanRepository),
+    planningCorrelationService,
     new KnowledgeService(
       knowledgeRepository,
       reviewRepository,

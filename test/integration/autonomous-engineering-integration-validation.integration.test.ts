@@ -536,6 +536,14 @@ describe('Sprint 70 autonomous engineering integration validation', () => {
       'src/kernel/common/create-kernel-services.ts',
       'src/kernel/mission/mission-completion-eligibility.ts',
       'src/kernel/mission/mission-execution.service.ts',
+      'src/kernel/planning/planning-correlation-id.ts',
+      'src/kernel/planning/planning-correlation.repository.ts',
+      'src/kernel/planning/planning-correlation.service.ts',
+      'src/kernel/planning/planning-correlation.ts',
+      'src/kernel/planning/planning.errors.ts',
+      'src/kernel/planning/planning.types.ts',
+      'src/kernel/planning/proposed-mission-plan.ts',
+      'src/kernel/planning/proposed-plan-revision.ts',
     ]);
     const changedProductionPaths = execFileSync(
       'git',
