@@ -8,6 +8,11 @@ import { InMemoryGovernanceDecisionRepository } from '../../../src/kernel/govern
 import { GovernanceService } from '../../../src/kernel/governance/governance.service';
 import { GovernanceDecision } from '../../../src/kernel/governance/governance-decision';
 import type { GovernanceDecisionSnapshot } from '../../../src/kernel/governance/governance.types';
+import { Mission } from '../../../src/kernel/mission/mission.aggregate';
+import { MissionId } from '../../../src/kernel/mission/mission-id';
+import { MissionObjective } from '../../../src/kernel/mission/mission-objective';
+import { InMemoryMissionRepository } from '../../../src/kernel/mission/mission.repository';
+import { PlanningActivationService } from '../../../src/kernel/planning/planning-activation.service';
 import { InMemoryRatificationAuthoritySnapshotRepository } from '../../../src/kernel/governance/ratification-authority.repository';
 import { RatificationAuthoritySnapshot } from '../../../src/kernel/governance/ratification-authority-snapshot';
 import { RatificationAttributionValidationService } from '../../../src/kernel/governance/ratification-attribution-validation';
@@ -33,6 +38,7 @@ import type {
 import {
   InMemoryProposedMissionPlanRepository,
 } from '../../../src/kernel/planning/proposed-mission-plan.repository';
+import { ProposedMissionPlan } from '../../../src/kernel/planning/proposed-mission-plan';
 import { InMemoryReviewRepository } from '../../../src/kernel/review/review.repository';
 import { ReviewService } from '../../../src/kernel/review/review.service';
 import type { ReviewSnapshot } from '../../../src/kernel/review/review.types';
@@ -47,6 +53,81 @@ const plannerAttribution: PlannerAttributionInput = {
   correlationId: 'planner-correlation-1',
 };
 
+class FailingProposedMissionPlanRepository extends InMemoryProposedMissionPlanRepository {
+  private failNextSave = false;
+
+  public failNextProposedMissionPlanSave(): void {
+    this.failNextSave = true;
+  }
+
+  public override async save(proposedMissionPlan: ProposedMissionPlan): Promise<ProposedMissionPlan> {
+    if (this.failNextSave) {
+      this.failNextSave = false;
+      throw new Error('ProposedMissionPlan governance transition failed.');
+    }
+
+    return super.save(proposedMissionPlan);
+  }
+}
+
+class LineageMismatchProposedMissionPlanRepository extends InMemoryProposedMissionPlanRepository {
+  private mismatch: 'mission' | 'proposal' | undefined;
+
+  public forceMissionMismatch(): void {
+    this.mismatch = 'mission';
+  }
+
+  public forceProposalMismatch(): void {
+    this.mismatch = 'proposal';
+  }
+
+  public override async getById(
+    proposedMissionPlanId: Parameters<InMemoryProposedMissionPlanRepository['getById']>[0],
+  ): Promise<ProposedMissionPlan | undefined> {
+    const proposedMissionPlan = await super.getById(proposedMissionPlanId);
+
+    if (proposedMissionPlan === undefined || this.mismatch === undefined) {
+      return proposedMissionPlan;
+    }
+
+    const snapshot = proposedMissionPlan.toSnapshot();
+
+    return ProposedMissionPlan.fromSnapshot({
+      ...snapshot,
+      ...(this.mismatch === 'mission' ? { missionId: 'mission-other' } : {}),
+      ...(this.mismatch === 'proposal' ? { id: 'proposed-mission-plan-other' } : {}),
+    });
+  }
+}
+
+class FailingPlanningCorrelationRepository extends InMemoryPlanningCorrelationRepository {
+  private failNextCorrelationSave = false;
+
+  public failNextSave(): void {
+    this.failNextCorrelationSave = true;
+  }
+
+  public override async save(planningCorrelation: PlanningCorrelation): Promise<PlanningCorrelation> {
+    if (this.failNextCorrelationSave) {
+      this.failNextCorrelationSave = false;
+      throw new Error('PlanningCorrelation governed lineage persistence failed.');
+    }
+
+    return super.save(planningCorrelation);
+  }
+
+  public override async saveWithSupersededGovernanceDecision(
+    planningCorrelation: PlanningCorrelation,
+  ): Promise<PlanningCorrelation> {
+    if (this.failNextCorrelationSave) {
+      this.failNextCorrelationSave = false;
+      throw new Error('PlanningCorrelation governed lineage persistence failed.');
+    }
+
+    return super.saveWithSupersededGovernanceDecision(planningCorrelation);
+  }
+}
+
 describe('PlanningCorrelation', () => {
   it('constructs immutable PlanningCorrelation records and appends Review association history', async () => {
     const repository = new InMemoryPlanningCorrelationRepository();
@@ -54,7 +135,7 @@ describe('PlanningCorrelation', () => {
       id: 'planning-correlation-1',
       missionId: 'mission-1',
       proposedMissionPlanId: 'proposed-mission-plan-1',
-      proposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      reviewedProposedPlanRevisionId: 'proposed-plan-revision-under-review',
       plannerAttribution,
       createdAt: '2026-07-17T03:00:00.000Z',
       causality: ['proposed-plan-revision-submitted'],
@@ -71,7 +152,7 @@ describe('PlanningCorrelation', () => {
       id: 'planning-correlation-1',
       missionId: 'mission-1',
       proposedMissionPlanId: 'proposed-mission-plan-1',
-      proposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      reviewedProposedPlanRevisionId: 'proposed-plan-revision-under-review',
       plannerAttribution,
       createdAt: '2026-07-17T03:00:00.000Z',
       causality: ['proposed-plan-revision-submitted'],
@@ -84,7 +165,7 @@ describe('PlanningCorrelation', () => {
     ]);
     expect(await repository.findByReviewId('review-1')).toEqual(saved);
     expect(
-      await repository.findByProposedPlanRevision({
+      await repository.findByReviewedProposedPlanRevision({
         missionId: 'mission-1',
         proposedMissionPlanId: 'proposed-mission-plan-1',
         proposedPlanRevisionId: 'proposed-plan-revision-under-review',
@@ -111,11 +192,38 @@ describe('PlanningCorrelation', () => {
     expect(await repository.findByGovernanceDecisionId('governance-decision-1')).toEqual(
       governed,
     );
+    expect(await repository.findByGovernedProposedPlanRevision({
+      missionId: 'mission-1',
+      proposedMissionPlanId: 'proposed-mission-plan-1',
+      proposedPlanRevisionId: 'proposed-plan-revision-governed',
+    })).toBeUndefined();
     expect(() =>
       governed.associateRepositoryPolicy({
         repositoryPolicyId: 'repository-policy-2',
         repositoryPolicyVersion: 1,
       }),
+    ).toThrow(InvalidPlanningCorrelationDefinitionError);
+
+    const governedRevision = await repository.save(
+      governed.associateGovernedProposedPlanRevision('proposed-plan-revision-governed'),
+    );
+
+    expect(governedRevision.toSnapshot()).toMatchObject({
+      reviewedProposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      governedProposedPlanRevisionId: 'proposed-plan-revision-governed',
+    });
+    expect(
+      governedRevision.associateGovernedProposedPlanRevision('proposed-plan-revision-governed'),
+    ).toBe(governedRevision);
+    expect(
+      await repository.findByGovernedProposedPlanRevision({
+        missionId: 'mission-1',
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      }),
+    ).toEqual(governedRevision);
+    expect(() =>
+      governedRevision.associateGovernedProposedPlanRevision('proposed-plan-revision-other'),
     ).toThrow(InvalidPlanningCorrelationDefinitionError);
   });
 
@@ -137,7 +245,7 @@ describe('PlanningCorrelation', () => {
       id: 'planning-correlation-1',
       missionId: 'mission-1',
       proposedMissionPlanId: 'proposed-mission-plan-1',
-      proposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      reviewedProposedPlanRevisionId: 'proposed-plan-revision-under-review',
       reviewId: 'review-1',
     });
     expect((await harness.reviewRepository.getById('review-1'))?.toSnapshot()).toMatchObject({
@@ -233,7 +341,7 @@ describe('PlanningCorrelation', () => {
         id: 'planning-correlation-existing',
         missionId: 'mission-1',
         proposedMissionPlanId: 'proposed-mission-plan-existing',
-        proposedPlanRevisionId: 'proposed-plan-revision-existing',
+        reviewedProposedPlanRevisionId: 'proposed-plan-revision-existing',
         plannerAttribution,
         createdAt: '2026-07-17T00:00:00.000Z',
       }).associateReview('review-1'),
@@ -281,6 +389,8 @@ describe('PlanningCorrelation', () => {
       'Governed',
     ]);
     expect(result.planningCorrelation).toMatchObject({
+      reviewedProposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      governedProposedPlanRevisionId: 'proposed-plan-revision-governed',
       repositoryPolicyId: 'repository-policy-1',
       repositoryPolicyVersion: 1,
       governanceDecisionId: 'governance-decision-1',
@@ -295,6 +405,160 @@ describe('PlanningCorrelation', () => {
     });
     expect(repeated.proposedMissionPlan).toEqual(result.proposedMissionPlan);
     expect(repeated.planningCorrelation).toEqual(result.planningCorrelation);
+  });
+
+  it('activates a revision governed by the real PlanningCorrelationService evaluation chain', async () => {
+    const harness = await createGovernanceHarness();
+    const eventBus = new EventBus(new TestLogger());
+    const missionRepository = new InMemoryMissionRepository();
+    await missionRepository.save(
+      Mission.create(
+        MissionId.fromString('mission-1'),
+        MissionObjective.fromString('Activate approved plan.'),
+        { eventId: 'event-mission-created', timestamp: '2026-07-17T00:00:00.000Z' },
+      ),
+    );
+    await harness.policyRepository.registerInitialVersion(createRepositoryPolicy());
+    await createSubmittedPlan(harness.planningService);
+    await harness.planningCorrelationService.enterReview(reviewEntryCommand());
+    await harness.reviewService.finalizeReviewOutcome({
+      reviewId: 'review-1',
+      outcome: 'Accepted',
+    });
+
+    const governanceResult = await harness.planningCorrelationService.evaluateGovernance(
+      governanceCommand(),
+    );
+    const governedProposedPlanRevisionId =
+      governanceResult.planningCorrelation.governedProposedPlanRevisionId;
+
+    if (governedProposedPlanRevisionId === undefined) {
+      throw new Error('Expected real Governance evaluation to record governed revision lineage.');
+    }
+
+    const activationService = new PlanningActivationService(
+      harness.proposedMissionPlanRepository,
+      harness.planningCorrelationRepository,
+      harness.reviewService,
+      harness.governanceDecisionRepository,
+      missionRepository,
+      eventBus,
+    );
+    const activationResult = await activationService.activate({
+      proposedMissionPlanId: 'proposed-mission-plan-1',
+      proposedPlanRevisionId: governedProposedPlanRevisionId,
+      activatedAt: '2026-07-17T06:00:00.000Z',
+    });
+
+    expect(activationResult.proposedMissionPlan.lifecycleState).toBe('Activated');
+    expect(activationResult.missionPlan.metadata).toMatchObject({
+      proposedMissionPlanId: 'proposed-mission-plan-1',
+      proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      reviewPlanRevisionKind: 'ProposedPlanRevision',
+      reviewPlanRevisionId: 'proposed-plan-revision-under-review',
+      reviewId: 'review-1',
+      governanceDecisionId: 'governance-decision-1',
+      planningCorrelationId: 'planning-correlation-1',
+    });
+  });
+
+  it('does not record terminal PlanningCorrelation lineage when Governed revision persistence fails', async () => {
+    const proposedMissionPlanRepository = new FailingProposedMissionPlanRepository();
+    const harness = await createGovernanceHarness({ proposedMissionPlanRepository });
+    await harness.policyRepository.registerInitialVersion(createRepositoryPolicy());
+    await createSubmittedPlan(harness.planningService);
+    await harness.planningCorrelationService.enterReview(reviewEntryCommand());
+    await harness.reviewService.finalizeReviewOutcome({
+      reviewId: 'review-1',
+      outcome: 'Accepted',
+    });
+
+    proposedMissionPlanRepository.failNextProposedMissionPlanSave();
+
+    await expect(
+      harness.planningCorrelationService.evaluateGovernance(governanceCommand()),
+    ).rejects.toThrow('ProposedMissionPlan governance transition failed.');
+
+    const planningCorrelation = await harness.planningCorrelationRepository.getById(
+      'planning-correlation-1',
+    );
+
+    expect(planningCorrelation?.toSnapshot()).toMatchObject({
+      reviewedProposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      reviewId: 'review-1',
+    });
+    expect(planningCorrelation?.governanceDecisionId).toBeUndefined();
+    expect(planningCorrelation?.governedProposedPlanRevisionId).toBeUndefined();
+  });
+
+  it('rolls back the Governed revision when PlanningCorrelation governed lineage persistence fails', async () => {
+    const planningCorrelationRepository = new FailingPlanningCorrelationRepository();
+    const harness = await createGovernanceHarness({ planningCorrelationRepository });
+    await harness.policyRepository.registerInitialVersion(createRepositoryPolicy());
+    await createSubmittedPlan(harness.planningService);
+    await harness.planningCorrelationService.enterReview(reviewEntryCommand());
+    await harness.reviewService.finalizeReviewOutcome({
+      reviewId: 'review-1',
+      outcome: 'Accepted',
+    });
+
+    planningCorrelationRepository.failNextSave();
+
+    await expect(
+      harness.planningCorrelationService.evaluateGovernance(governanceCommand()),
+    ).rejects.toThrow('PlanningCorrelation governed lineage persistence failed.');
+
+    const proposedMissionPlan = await harness.proposedMissionPlanRepository.getById(
+      'proposed-mission-plan-1',
+    );
+    const planningCorrelation = await harness.planningCorrelationRepository.getById(
+      'planning-correlation-1',
+    );
+
+    expect(proposedMissionPlan?.toSnapshot().lifecycleState).toBe('Under Review');
+    expect(proposedMissionPlan?.toSnapshot().revisions.map((revision) => revision.lifecycleState)).toEqual([
+      'Draft',
+      'Submitted',
+      'Under Review',
+    ]);
+    expect(planningCorrelation?.governanceDecisionId).toBeUndefined();
+    expect(planningCorrelation?.governedProposedPlanRevisionId).toBeUndefined();
+  });
+
+  it('rejects cross-Mission lineage at the Governance evaluation checkpoint', async () => {
+    const proposedMissionPlanRepository = new LineageMismatchProposedMissionPlanRepository();
+    const harness = await createGovernanceHarness({ proposedMissionPlanRepository });
+    await harness.policyRepository.registerInitialVersion(createRepositoryPolicy());
+    await createSubmittedPlan(harness.planningService);
+    await harness.planningCorrelationService.enterReview(reviewEntryCommand());
+    await harness.reviewService.finalizeReviewOutcome({
+      reviewId: 'review-1',
+      outcome: 'Accepted',
+    });
+
+    proposedMissionPlanRepository.forceMissionMismatch();
+
+    await expect(
+      harness.planningCorrelationService.evaluateGovernance(governanceCommand()),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+  });
+
+  it('rejects cross-proposal lineage at the Governance evaluation checkpoint', async () => {
+    const proposedMissionPlanRepository = new LineageMismatchProposedMissionPlanRepository();
+    const harness = await createGovernanceHarness({ proposedMissionPlanRepository });
+    await harness.policyRepository.registerInitialVersion(createRepositoryPolicy());
+    await createSubmittedPlan(harness.planningService);
+    await harness.planningCorrelationService.enterReview(reviewEntryCommand());
+    await harness.reviewService.finalizeReviewOutcome({
+      reviewId: 'review-1',
+      outcome: 'Accepted',
+    });
+
+    proposedMissionPlanRepository.forceProposalMismatch();
+
+    await expect(
+      harness.planningCorrelationService.evaluateGovernance(governanceCommand()),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
   });
 
   it('rejects cross-policy re-evaluation and superseded RepositoryPolicy attribution', async () => {
@@ -690,17 +954,22 @@ function createHarness(overrides: {
 async function createGovernanceHarness(overrides: {
   readonly governanceService?: GovernanceServiceContract;
   readonly governanceDecisions?: readonly GovernanceDecisionSnapshot[];
+  readonly proposedMissionPlanRepository?: InMemoryProposedMissionPlanRepository;
+  readonly planningCorrelationRepository?: InMemoryPlanningCorrelationRepository;
 } = {}): Promise<{
   readonly planningService: PlanningService;
   readonly planningCorrelationService: PlanningCorrelationService;
   readonly planningCorrelationRepository: InMemoryPlanningCorrelationRepository;
+  readonly proposedMissionPlanRepository: InMemoryProposedMissionPlanRepository;
   readonly policyRepository: InMemoryRepositoryPolicyRepository;
   readonly reviewService: ReviewService;
   readonly reviewRepository: InMemoryReviewRepository;
   readonly governanceDecisionRepository: InMemoryGovernanceDecisionRepository;
 }> {
-  const proposedMissionPlanRepository = new InMemoryProposedMissionPlanRepository();
-  const planningCorrelationRepository = new InMemoryPlanningCorrelationRepository();
+  const proposedMissionPlanRepository =
+    overrides.proposedMissionPlanRepository ?? new InMemoryProposedMissionPlanRepository();
+  const planningCorrelationRepository =
+    overrides.planningCorrelationRepository ?? new InMemoryPlanningCorrelationRepository();
   const reviewRepository = new InMemoryReviewRepository();
   const policyRepository = new InMemoryRepositoryPolicyRepository();
   const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
@@ -769,6 +1038,7 @@ async function createGovernanceHarness(overrides: {
       governanceDecisionRepository,
     ),
     planningCorrelationRepository,
+    proposedMissionPlanRepository,
     policyRepository,
     reviewService,
     reviewRepository,

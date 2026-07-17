@@ -8335,3 +8335,210 @@ Unchanged: RFC-0012 Domain Event publication for the Planning domain; AI-generat
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-18-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-18-002
+
+## Date
+
+2026-07-18
+
+## Subject
+
+Authorizes Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (Milestone 11 Initial Capability Sequence step 8), incorporating a required end-to-end validation-coverage refinement over `nexus-plan`'s original Sprint 77 Proposal.
+
+## Originating Request
+
+`nexus-plan` presented a Sprint 77 Proposal (Autonomous Planning Integration Validation and Milestone 11 Closure): one dedicated integration test exercising the full Planning domain flow through real Kernel composition, no new domain capability, followed by a Milestone 11 closure declaration. The Sprint Owner approved the Proposal and required the integration test's coverage to be enumerated explicitly and bindingly, rather than left to Builder discretion, given this Sprint is the sole certification gate for Milestone 11 closure.
+
+## Governance Decision
+
+**APPROVED WITH VALIDATION REFINEMENT.**
+
+Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure is authorized. The Sprint SHALL remain validation-only: no Sprint 1–76 production file may be modified. The new integration test SHALL validate, through real (non-mocked) Kernel service composition only:
+
+### 1. Complete happy path (binding)
+
+Draft → Submitted → Under Review → terminal eligible Review → exact Planning Correlation → terminal `Approved` `GovernanceDecision` → Governed → Activated → executable RFC-0001 `MissionPlan`, `Task`, and `TaskDependency` created, with exact proposal-to-executable traceability preserved.
+
+### 2. Typed revision integrity (binding)
+
+`Review` uses `kind: ProposedPlanRevision`; the revision ID matches the exact activated revision; a mismatched `kind` or revision fails closed.
+
+### 3. Activation safety (binding)
+
+Repeated activation of the same revision is idempotent; activation of a sibling revision after a successful activation is rejected; no partial executable state exists after a failed activation attempt; the activated revision remains immutable; `Governed` sibling revisions become `Superseded`.
+
+### 4. Governance protection (binding)
+
+Non-`Approved` `GovernanceDecision`s cannot activate; stale or mismatched Planning Correlation cannot activate; Activation cannot bypass Review or Governance.
+
+### 5. Milestone closure (binding)
+
+Full repository validation passes; zero production drift is confirmed (no Sprint 1–76 production file modified); Milestone 11 SHALL be declared complete only after independent Reviewer PASS of this Sprint.
+
+**Definition of Done:** the new integration test covers every enumerated item above, exercised exclusively through Kernel-composed services (no direct construction of domain internals); no Sprint 1–76 production file is modified; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); Milestone 11 closure in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` is deferred until Reviewer certification, not declared by the Builder.
+
+### Scope Confirmation
+
+Explicitly out of scope, unchanged: RFC-0012 Domain Event publication, AI-generated planning, Adapter execution, workflow orchestration, and Corpus Review Mode implementation. None of these SHALL be introduced by this Sprint.
+
+## RFC Coverage
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model (Referenced; validates the already-implemented Activation section, does not amend it)
+- RFC-0001, RFC-0006 v1.1, RFC-0011 (Referenced; consumed read-only through existing public contracts, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint 77's validation-only scope. It does not modify RFC-0001, RFC-0006, RFC-0011, RFC-0012, or the Kernel Canon, and does not modify any Sprint 1–76 production contract.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, activate Sprint 77 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, and generate `knowledge/implementation/sprints/sprint-0077-autonomous-planning-integration-validation-and-milestone-11-closure.md` as the Sprint 77 Sprint Implementation Record (Builder implementation contract), incorporating the five binding validation-coverage categories above as Acceptance Criteria.
+
+## Deferred Concepts
+
+RFC-0012 Domain Event publication for the Planning domain; AI-generated planning; Adapter invocation or selection; workflow orchestration/participation; Corpus Review Mode implementation; any new domain capability of any kind. Milestone 11 closure itself is conditional on this Sprint's independent Reviewer PASS, not self-declared by the Builder.
+
+## Related Sprint(s)
+
+- Sprint 71–76 — Milestone 11 Initial Capability Sequence steps 1–7 (frozen; validated read-only by this Sprint's integration test).
+- Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (authorized by this ratification).
+
+## Related Review(s)
+
+None yet; Sprint 77 has not yet been Reviewer-certified.
+
+## Full Ratification Text
+
+> Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure is approved, validation-only: no Sprint 1–76 production file may be modified. The new integration test SHALL validate, through real Kernel composition only: (1) the complete happy path from Draft through Activated executable RFC-0001 state with exact traceability; (2) typed revision integrity (`kind: ProposedPlanRevision`, exact revision-ID match, fail-closed on mismatch); (3) Activation safety (idempotent repeat, sibling-revision rejection, no partial state on failure, activated-revision immutability, sibling supersession); (4) Governance protection (non-`Approved` decisions cannot activate, stale/mismatched correlation cannot activate, Review/Governance cannot be bypassed); (5) Milestone closure (full repository validation passes, zero production drift, Milestone 11 declared complete only after independent Reviewer PASS). RFC-0012 Domain Events, AI-generated planning, Adapter execution, workflow orchestration, and Corpus Review Mode implementation remain out of scope.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-18-003
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-18-003
+
+## Date
+
+2026-07-18
+
+## Subject
+
+Corrective ratification resolving a Planning Correlation lineage defect discovered during Sprint 77 validation: `PlanningCorrelation.proposedPlanRevisionId` remains pinned to the `Under Review` revision reviewed by RFC-0006 `Review`, while `evaluateGovernance`'s `Under Review → Governed` transition mints a new successor `ProposedPlanRevision` with a different ID that the correlation is never updated to reference — making the correlation permanently unresolvable by `PlanningActivationService`, which requires the exact `Governed` revision ID. Authorizes a narrow corrective scope to the Sprint 74–76 Planning Correlation, Governance transition, and Activation resolution paths. Sprint 77 remains paused until this correction is implemented and independently Reviewer-certified.
+
+## Originating Request
+
+While implementing Sprint 77's real Kernel-composition happy-path integration test (`NEXUS-RAT-2026-07-18-002`), the Builder drove the actual `evaluateGovernance → activateExclusive` chain end-to-end for the first time and hit a Builder Stop Condition: `PlanningActivationService.requirePlanningCorrelation` throws `PlanningCorrelation for ProposedPlanRevision '<governed-revision-id>' was not found for Activation`, because no `PlanningCorrelation` is ever persisted under the `Governed` revision's ID — `savePlanningCorrelationGovernanceDecision` (`planning-correlation.service.ts:525-550`) only updates `governanceDecisionId`/Repository Policy fields, never `proposedPlanRevisionId`, and is invoked before `markCurrentRevisionGoverned` mints the new revision. Sprint 74–76's own unit tests did not catch this because each constructs `PlanningCorrelation`/`ProposedMissionPlan` fixtures directly with matching pre-set IDs rather than driving the real transition chain. Sprint 77's Architectural Boundaries forbid modifying any Sprint 1–76 production file, so the Builder correctly stopped and reported rather than fixing frozen code outside its authorization or weakening the test. `nexus-plan` presented two corrective options (overwrite the correlation's revision reference on Governed; resolve Activation by proposal rather than exact revision); the Sprint Owner rejected both and specified the approved resolution below.
+
+## Governance Decision
+
+**APPROVED — CORRELATION LINEAGE EXTENSION.**
+
+Neither prior option is authorized: overwriting `proposedPlanRevisionId` would destroy the immutable identity of the exact revision reviewed; resolving Activation by `proposedMissionPlanId` alone would weaken exact-revision correlation for an irreversible operation. `PlanningCorrelation` SHALL instead preserve both ends of the governed revision lineage as two distinct, individually immutable fields.
+
+### Field Rename and Addition (binding)
+
+- Rename the existing `PlanningCorrelation` field `proposedPlanRevisionId` to `reviewedProposedPlanRevisionId`.
+- Add a new field, `governedProposedPlanRevisionId`.
+
+### Required Semantics (binding)
+
+`reviewedProposedPlanRevisionId` SHALL:
+
+- identify the exact immutable `ProposedPlanRevision` submitted to RFC-0006 Review;
+- remain unchanged for the lifetime of the Planning Correlation;
+- continue to anchor the Review and `GovernanceDecision` lineage.
+
+`governedProposedPlanRevisionId` SHALL:
+
+- identify the exact successor revision created by the `Under Review → Governed` transition;
+- be assigned exactly once;
+- remain immutable after assignment;
+- be used as the authoritative revision identity for Activation.
+
+### Required Invariants (binding)
+
+The implementation SHALL verify: both revisions belong to the same Mission; both revisions belong to the same `ProposedMissionPlan`; the Governed revision is the direct successor of the reviewed revision; the Review targets `reviewedProposedPlanRevisionId`; the Review uses `ReviewPlanRevisionReference.kind = ProposedPlanRevision`; the `GovernanceDecision` remains correlated to the reviewed revision lineage; the Governed revision carries the terminal `GovernanceDecision` recorded by the correlation; Activation resolves only through `governedProposedPlanRevisionId`; the revision supplied for Activation exactly matches the correlation's governed revision. Missing, duplicate, ambiguous, cross-Mission, cross-proposal, or broken lineage SHALL fail closed.
+
+### Planning Correlation Persistence Rules (binding)
+
+The Planning Correlation repository SHALL: preserve `reviewedProposedPlanRevisionId` unchanged; permit `governedProposedPlanRevisionId` to transition from absent to exactly one value; reject reassignment to a different governed revision; treat an identical repeated assignment as idempotent; reject unrelated mutation of immutable correlation fields; preserve Review, `GovernanceDecision`, Repository Policy, Planner Attribution, causation, and correlation data, including `GovernanceDecision` supersession history; remain deterministic and fail closed.
+
+### Governance Transition Ordering (binding)
+
+During `evaluateGovernance`:
+
+1. Load the exact reviewed revision.
+2. Validate the Review and Planning Correlation against that revision.
+3. Evaluate and persist the terminal `GovernanceDecision`.
+4. Create the new Governed successor revision.
+5. Validate direct reviewed-to-governed lineage.
+6. Persist `governedProposedPlanRevisionId` on the existing Planning Correlation.
+7. Commit the `GovernanceDecision`, Governed revision, and correlation update as one atomic operation.
+8. Publish no event if any part of the operation fails.
+
+The repository SHALL NOT retain: a terminal `GovernanceDecision` without a resolvable Governed revision; a Governed revision without an updated Planning Correlation; a Planning Correlation pointing to a nonexistent or unrelated Governed revision.
+
+### Activation Resolution (binding)
+
+`PlanningActivationService.requirePlanningCorrelation` SHALL: resolve the Planning Correlation using `governedProposedPlanRevisionId`; verify the reviewed and governed revision lineage; verify the exact terminal `Approved` `GovernanceDecision`; verify Mission and `ProposedMissionPlan` consistency; reject proposal-level-only matching; reject fallback to `reviewedProposedPlanRevisionId`; reject silent inference from revision chronology; reject activation when `governedProposedPlanRevisionId` is absent; reject activation when the supplied revision is not the exact governed revision.
+
+### Existing Correlation Migration (binding)
+
+Existing Planning Correlations created before this correction SHALL be migrated explicitly: the existing `proposedPlanRevisionId` becomes `reviewedProposedPlanRevisionId`; `governedProposedPlanRevisionId` SHALL only be populated from authoritative persisted governance-transition evidence; missing governed lineage SHALL NOT be inferred from revision order alone; unresolved historical lineage SHALL remain unresolvable and fail closed; no correlation history may be rewritten to fabricate missing authority.
+
+**Definition of Done:** every Required Semantics, Invariant, Persistence Rule, Governance Transition Ordering step, Activation Resolution rule, and Migration rule above is implemented and independently testable per the Required Test Coverage below; the real `evaluateGovernance → activateExclusive` chain succeeds through real Kernel composition with no fixture-level shortcut; no correlation history is fabricated or silently inferred; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); independent Reviewer PASS is recorded before Sprint 77 resumes.
+
+## RFC Coverage
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model (Referenced; corrects the Planning Correlation/Governance/Activation implementation to actually satisfy the already-ratified guarantees; amends no RFC text)
+- RFC-0006 v1.1, RFC-0011, RFC-0001 (Referenced; consumed read-only, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification authorizes a narrow corrective scope confined to the Planning Correlation, Governance transition persistence, and Activation resolution paths (Sprint 74–76). It does not modify RFC-0001, RFC-0006, RFC-0011, RFC-0012, or the Kernel Canon, and does not reinterpret the "each lifecycle transition mints a new `ProposedPlanRevision`" design (carried-forward Observation `NEXUS-REV-2026-07-17-011`), which remains intentional and unchanged.
+
+## Authorized Scope
+
+Authorize the minimum required production and test changes to: `PlanningCorrelation`; Planning Correlation value types and contracts; the Planning Correlation repository; `PlanningCorrelationService`; Governance transition persistence; `PlanningActivationService`; affected Sprint 74–76 tests; affected implementation and governance documentation. Production changes outside the Planning Correlation, Governance integration, and Activation paths remain prohibited.
+
+`nexus-sprint` is authorized to translate this ratification into a corrective Builder Task. The corrective work SHALL be independently Reviewer-certified before Sprint 77 resumes.
+
+## Required Test Coverage
+
+Add focused tests proving: reviewed revision identity remains unchanged after Governance; governed revision identity is recorded exactly once; identical repeated governed-revision assignment is idempotent; conflicting governed-revision reassignment is rejected; direct reviewed-to-governed successor lineage succeeds; unrelated successor lineage is rejected; cross-Mission lineage is rejected; cross-proposal lineage is rejected; missing governed revision identity blocks Activation; Activation using the reviewed revision is rejected; Activation using the exact governed revision succeeds; stale or mismatched `GovernanceDecision` lineage is rejected; partial Governance transition persistence leaves no orphaned terminal state; the real `evaluateGovernance → activateExclusive` chain succeeds through Kernel composition.
+
+## Deferred Concepts
+
+Unchanged: RFC-0012 Domain Event publication for the Planning domain; AI-generated planning; Adapter invocation or selection; workflow orchestration/participation; Corpus Review Mode implementation; any new domain capability. This ratification does not reopen or expand Sprint 77's original validation-only scope.
+
+## Related Sprint(s)
+
+- Sprint 74 — Planning Correlation and Review Entry Foundation (frozen; `reviewedProposedPlanRevisionId` field rename applies here).
+- Sprint 75 — Proposal Governance Integration (frozen; `evaluateGovernance`'s transition ordering and `governedProposedPlanRevisionId` persistence correction apply here).
+- Sprint 76 — Approved Plan Activation (frozen; `PlanningActivationService.requirePlanningCorrelation`'s resolution-by-`governedProposedPlanRevisionId` correction applies here).
+- Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (paused pending this correction's independent Reviewer PASS; resumes with its original validation-only scope unexpanded).
+
+## Related Review(s)
+
+None yet; this corrective scope has not yet been Reviewer-certified.
+
+## Full Ratification Text
+
+> `PlanningCorrelation` SHALL preserve both ends of the governed revision lineage as two distinct, individually immutable fields: `reviewedProposedPlanRevisionId` (renamed from `proposedPlanRevisionId`, pinned permanently to the exact revision submitted to Review) and `governedProposedPlanRevisionId` (assigned exactly once, immutable thereafter, identifying the exact successor revision created by the `Under Review → Governed` transition). `evaluateGovernance` SHALL persist `governedProposedPlanRevisionId` on the existing correlation as part of the same atomic commit as the terminal `GovernanceDecision` and the Governed revision, after validating direct reviewed-to-governed lineage; no partial state (a terminal decision without a resolvable Governed revision, a Governed revision without an updated correlation, or a correlation pointing to a nonexistent or unrelated revision) may be observable on any failure. `PlanningActivationService` SHALL resolve the Planning Correlation exclusively through `governedProposedPlanRevisionId`, rejecting proposal-level-only matching, fallback to the reviewed revision, silent chronological inference, and any mismatch against the revision supplied for Activation. Existing correlations SHALL be migrated by renaming their field only; missing governed lineage SHALL never be inferred or fabricated. This corrective scope is confined to the Planning Correlation, Governance transition persistence, and Activation resolution paths (Sprint 74–76); it does not reinterpret the per-transition revision-minting design, and it does not expand Sprint 77's validation-only scope, which remains paused until this correction is implemented and independently Reviewer-certified.
+
+## Current Status
+
+Active
+
+---

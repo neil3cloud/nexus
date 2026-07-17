@@ -29,7 +29,10 @@ export interface IPlanningCorrelationRepository {
   findByGovernanceDecisionId(
     governanceDecisionId: string,
   ): Promise<PlanningCorrelation | undefined>;
-  findByProposedPlanRevision(
+  findByReviewedProposedPlanRevision(
+    key: PlanningCorrelationRevisionKey,
+  ): Promise<PlanningCorrelation | undefined>;
+  findByGovernedProposedPlanRevision(
     key: PlanningCorrelationRevisionKey,
   ): Promise<PlanningCorrelation | undefined>;
   history(
@@ -43,15 +46,16 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
   private readonly historiesById = new Map<string, PlanningCorrelationSnapshot[]>();
   private readonly correlationIdsByReviewId = new Map<string, Set<string>>();
   private readonly correlationIdsByGovernanceDecisionId = new Map<string, Set<string>>();
-  private readonly correlationIdsByRevisionKey = new Map<string, Set<string>>();
+  private readonly correlationIdsByReviewedRevisionKey = new Map<string, Set<string>>();
+  private readonly correlationIdsByGovernedRevisionKey = new Map<string, Set<string>>();
   private operationQueue: Promise<unknown> = Promise.resolve();
 
   public async register(planningCorrelation: PlanningCorrelation): Promise<PlanningCorrelation> {
     return this.runExclusive(() => {
       const snapshot = planningCorrelation.toSnapshot();
-      const revisionKey = createRevisionKey(snapshot);
+      const revisionKey = createReviewedRevisionKey(snapshot);
       const existingByRevision = this.findUniqueSnapshotByIndexedKey(
-        this.correlationIdsByRevisionKey,
+        this.correlationIdsByReviewedRevisionKey,
         revisionKey,
       );
 
@@ -65,7 +69,7 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
 
       this.correlationsById.set(snapshot.id, snapshot);
       this.historiesById.set(snapshot.id, [snapshot]);
-      addIndexValue(this.correlationIdsByRevisionKey, revisionKey, snapshot.id);
+      addIndexValue(this.correlationIdsByReviewedRevisionKey, revisionKey, snapshot.id);
       this.indexAssociations(snapshot);
 
       return PlanningCorrelation.fromSnapshot(snapshot);
@@ -152,12 +156,25 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
     });
   }
 
-  public async findByProposedPlanRevision(
+  public async findByReviewedProposedPlanRevision(
     key: PlanningCorrelationRevisionKey,
   ): Promise<PlanningCorrelation | undefined> {
     return this.runExclusive(() => {
       const snapshot = this.findUniqueSnapshotByIndexedKey(
-        this.correlationIdsByRevisionKey,
+        this.correlationIdsByReviewedRevisionKey,
+        createRevisionKeyFromInput(key),
+      );
+
+      return snapshot === undefined ? undefined : PlanningCorrelation.fromSnapshot(snapshot);
+    });
+  }
+
+  public async findByGovernedProposedPlanRevision(
+    key: PlanningCorrelationRevisionKey,
+  ): Promise<PlanningCorrelation | undefined> {
+    return this.runExclusive(() => {
+      const snapshot = this.findUniqueSnapshotByIndexedKey(
+        this.correlationIdsByGovernedRevisionKey,
         createRevisionKeyFromInput(key),
       );
 
@@ -214,6 +231,10 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
         snapshot.id,
       );
     }
+
+    if (snapshot.governedProposedPlanRevisionId !== undefined) {
+      addIndexValue(this.correlationIdsByGovernedRevisionKey, createGovernedRevisionKey(snapshot), snapshot.id);
+    }
   }
 
   private async runExclusive<T>(operation: () => T): Promise<T> {
@@ -234,7 +255,7 @@ function assertImmutableCreationFields(
   if (
     existingSnapshot.missionId !== snapshot.missionId ||
     existingSnapshot.proposedMissionPlanId !== snapshot.proposedMissionPlanId ||
-    existingSnapshot.proposedPlanRevisionId !== snapshot.proposedPlanRevisionId ||
+    existingSnapshot.reviewedProposedPlanRevisionId !== snapshot.reviewedProposedPlanRevisionId ||
     existingSnapshot.createdAt !== snapshot.createdAt ||
     existingSnapshot.correlationId !== snapshot.correlationId ||
     existingSnapshot.causality.join('\u0000') !== snapshot.causality.join('\u0000') ||
@@ -277,13 +298,36 @@ function assertAppendOnlyAssociations(
       `PlanningCorrelation '${snapshot.id}' GovernanceDecision association cannot be changed.`,
     );
   }
+
+  if (
+    existingSnapshot.governedProposedPlanRevisionId !== undefined &&
+    existingSnapshot.governedProposedPlanRevisionId !== snapshot.governedProposedPlanRevisionId
+  ) {
+    throw new InvalidPlanningCorrelationDefinitionError(
+      `PlanningCorrelation '${snapshot.id}' Governed ProposedPlanRevision association cannot be changed.`,
+    );
+  }
 }
 
-function createRevisionKey(snapshot: PlanningCorrelationSnapshot): string {
+function createReviewedRevisionKey(snapshot: PlanningCorrelationSnapshot): string {
   return createRevisionKeyFromInput({
     missionId: snapshot.missionId,
     proposedMissionPlanId: snapshot.proposedMissionPlanId,
-    proposedPlanRevisionId: snapshot.proposedPlanRevisionId,
+    proposedPlanRevisionId: snapshot.reviewedProposedPlanRevisionId,
+  });
+}
+
+function createGovernedRevisionKey(snapshot: PlanningCorrelationSnapshot): string {
+  if (snapshot.governedProposedPlanRevisionId === undefined) {
+    throw new InvalidPlanningCorrelationDefinitionError(
+      `PlanningCorrelation '${snapshot.id}' has no Governed ProposedPlanRevision association.`,
+    );
+  }
+
+  return createRevisionKeyFromInput({
+    missionId: snapshot.missionId,
+    proposedMissionPlanId: snapshot.proposedMissionPlanId,
+    proposedPlanRevisionId: snapshot.governedProposedPlanRevisionId,
   });
 }
 

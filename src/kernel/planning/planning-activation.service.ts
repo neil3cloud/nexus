@@ -125,8 +125,14 @@ export class PlanningActivationService extends ServiceLifecycle {
 
     this.assertReviewReferenceMatches(
       review.missionPlanRevision,
-      planningCorrelation.proposedPlanRevisionId,
+      planningCorrelation.reviewedProposedPlanRevisionId,
       review.id,
+    );
+    this.assertGovernanceDecisionMatchesCorrelation(
+      governanceDecision.toSnapshot(),
+      planningCorrelation,
+      proposedMissionPlanSnapshot,
+      proposedPlanRevisionId,
     );
 
     const traceability = activationTraceability({
@@ -260,7 +266,7 @@ export class PlanningActivationService extends ServiceLifecycle {
     proposedPlanRevisionId: string,
   ): Promise<PlanningCorrelationSnapshot> {
     const planningCorrelation =
-      await this.planningCorrelationRepository.findByProposedPlanRevision({
+      await this.planningCorrelationRepository.findByGovernedProposedPlanRevision({
         missionId: proposedMissionPlan.missionId,
         proposedMissionPlanId: proposedMissionPlan.id,
         proposedPlanRevisionId,
@@ -272,7 +278,21 @@ export class PlanningActivationService extends ServiceLifecycle {
       );
     }
 
-    return planningCorrelation.toSnapshot();
+    const snapshot = planningCorrelation.toSnapshot();
+
+    if (snapshot.governedProposedPlanRevisionId !== proposedPlanRevisionId) {
+      throw new PlanningCorrelationAssociationRejectedError(
+        `PlanningCorrelation '${snapshot.id}' Governed ProposedPlanRevision does not match Activation revision '${proposedPlanRevisionId}'.`,
+      );
+    }
+
+    if (!hasDirectReviewedToGovernedLineage(proposedMissionPlan, snapshot)) {
+      throw new PlanningCorrelationAssociationRejectedError(
+        `PlanningCorrelation '${snapshot.id}' reviewed-to-governed ProposedPlanRevision lineage is invalid for Activation.`,
+      );
+    }
+
+    return snapshot;
   }
 
   private requireCorrelationReference(reference: string | undefined, label: string): string {
@@ -287,12 +307,37 @@ export class PlanningActivationService extends ServiceLifecycle {
 
   private assertReviewReferenceMatches(
     reference: ReviewPlanRevisionReference,
-    proposedPlanRevisionId: string,
+    reviewedProposedPlanRevisionId: string,
     reviewId: string,
   ): void {
-    if (reference.kind !== 'ProposedPlanRevision' || reference.revisionId !== proposedPlanRevisionId) {
+    if (reference.kind !== 'ProposedPlanRevision' || reference.revisionId !== reviewedProposedPlanRevisionId) {
       throw new PlanningCorrelationAssociationRejectedError(
-        `Review '${reviewId}' ReviewPlanRevisionReference does not match ProposedPlanRevision '${proposedPlanRevisionId}'.`,
+        `Review '${reviewId}' ReviewPlanRevisionReference does not match reviewed ProposedPlanRevision '${reviewedProposedPlanRevisionId}'.`,
+      );
+    }
+  }
+
+  private assertGovernanceDecisionMatchesCorrelation(
+    governanceDecision: {
+      readonly id: string;
+      readonly missionId: string;
+      readonly value: string;
+      readonly reviewId: string;
+    },
+    planningCorrelation: PlanningCorrelationSnapshot,
+    proposedMissionPlan: ProposedMissionPlanSnapshot,
+    proposedPlanRevisionId: string,
+  ): void {
+    if (
+      governanceDecision.id !== planningCorrelation.governanceDecisionId ||
+      governanceDecision.missionId !== proposedMissionPlan.missionId ||
+      governanceDecision.reviewId !== planningCorrelation.reviewId ||
+      planningCorrelation.missionId !== proposedMissionPlan.missionId ||
+      planningCorrelation.proposedMissionPlanId !== proposedMissionPlan.id ||
+      planningCorrelation.governedProposedPlanRevisionId !== proposedPlanRevisionId
+    ) {
+      throw new PlanningCorrelationAssociationRejectedError(
+        `GovernanceDecision '${governanceDecision.id}' does not match PlanningCorrelation '${planningCorrelation.id}' Activation lineage.`,
       );
     }
   }
@@ -423,6 +468,26 @@ function activationTraceability(input: {
     governanceDecisionId: input.governanceDecisionId,
     planningCorrelationId: input.planningCorrelationId,
   });
+}
+
+function hasDirectReviewedToGovernedLineage(
+  proposedMissionPlan: ProposedMissionPlanSnapshot,
+  planningCorrelation: PlanningCorrelationSnapshot,
+): boolean {
+  const reviewedRevision = proposedMissionPlan.revisions.find(
+    (revision) => revision.id === planningCorrelation.reviewedProposedPlanRevisionId,
+  );
+  const governedRevision = proposedMissionPlan.revisions.find(
+    (revision) => revision.id === planningCorrelation.governedProposedPlanRevisionId,
+  );
+
+  return (
+    reviewedRevision !== undefined &&
+    governedRevision !== undefined &&
+    reviewedRevision.proposedMissionPlanId === proposedMissionPlan.id &&
+    governedRevision.proposedMissionPlanId === proposedMissionPlan.id &&
+    governedRevision.revisionNumber === reviewedRevision.revisionNumber + 1
+  );
 }
 
 function dependenciesForTask(

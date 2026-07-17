@@ -1,5 +1,78 @@
 # Nexus Implementation Report
 
+## BT-077-001 — Planning Correlation Reviewed/Governed Revision Lineage
+
+### Implemented Slice
+
+Implemented the corrective Builder Tasks authorized by `NEXUS-RAT-2026-07-18-003` and generated from `NEXUS-REV-2026-07-18-003`.
+
+Implemented scope:
+
+- Split Planning Correlation Proposed Plan Revision identity into immutable `reviewedProposedPlanRevisionId` and one-time `governedProposedPlanRevisionId`.
+- Preserved the reviewed revision as the exact RFC-0006 Review target and recorded the governed revision as the exact successor minted by `Under Review -> Governed`.
+- Added reviewed and governed revision repository indexes and fail-closed Activation lookup by governed revision only.
+- Updated Planning Governance evaluation to associate governed lineage only after validating same Mission, same ProposedMissionPlan, direct successor revision number, and `Governed` lifecycle.
+- Updated Activation validation so Review references must match the reviewed revision while Activation must target the governed successor revision.
+- Adjusted terminal Governance persistence ordering so a failed ProposedMissionPlan governed-revision save does not leave terminal PlanningCorrelation governance lineage behind.
+- Added compensating rollback for the opposite Governance persistence failure direction: if the Governed revision save succeeds but PlanningCorrelation governed-lineage persistence fails, the prior Under Review ProposedMissionPlan state is restored so no unreferenced Governed revision remains observable.
+- Added a real service-chain regression proving `PlanningCorrelationService.evaluateGovernance(...)` records governed lineage that `PlanningActivationService.activate(...)` can consume without fixture-level reconstruction.
+- Added direct cross-Mission and cross-proposal lineage rejection coverage at both Governance-evaluation and Activation checkpoints.
+- Preserved legacy snapshot normalization from `proposedPlanRevisionId` to `reviewedProposedPlanRevisionId`.
+
+Out of scope and not implemented:
+
+- Sprint 77 validation-only concepts remain paused pending independent Reviewer certification.
+- Durable or distributed transaction mechanisms.
+- RFC, Kernel Canon, adapter, or host changes.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model; corrected Planning Correlation lineage across Review, Governance, and Activation.
+
+Referenced:
+
+- RFC-0006 v1.1 — Engineering Assessment Model; Review remains bound to the reviewed ProposedPlanRevision.
+- RFC-0011 — Engineering Governance Model; GovernanceDecision remains correlated by existing public contract.
+- RFC-0001 — Mission Model; Activation continues to produce executable MissionPlan state through existing MissionPlanningService operations only.
+
+Deferred Concepts:
+
+- Autonomous Planning Integration Validation and Milestone 11 closure.
+- Planning-domain Domain Event publication.
+- AI-generated planning, Adapter/provider selection, workflow participation, and Repository Policy selection/routing.
+
+### Architectural Assumptions
+
+- Existing repositories are in-memory and process-local; the corrective ordering and compensation prevent the observed orphaned terminal PlanningCorrelation lineage on ProposedMissionPlan save failure and prevent an unreferenced Governed revision on PlanningCorrelation save failure within those contracts.
+
+### Known Limitations
+
+- Cross-repository durable transaction semantics remain out of scope for this corrective task.
+
+### Validation Summary
+
+- TypeScript compile passed: `npx tsc --noEmit`.
+- Targeted Planning validation passed: `npx vitest run test\kernel\planning\planning-correlation.test.ts test\kernel\planning\planning-activation.service.test.ts` (31 tests across 2 files).
+- Repository validation passed: `npm run validate` (`npm run compile`, `npm run lint`, `npm run test`, `npm run build`).
+- Full non-extension-host Vitest suite passed: 680/680 tests across 95/95 files.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+### Review Remediation
+
+- `BT-077-001` — Corrected Planning Correlation lineage so Activation resolves by the exact governed successor revision while preserving the immutable reviewed revision used by RFC-0006 Review.
+- `BT-077-002` — Added rollback compensation for a PlanningCorrelation persistence failure after the Governed ProposedMissionPlan revision save, with regression coverage proving no unreferenced Governed revision remains.
+- `BT-077-003` — Added a real `evaluateGovernance -> activate` service-chain test using the governed revision identity produced by `evaluateGovernance`.
+- `BT-077-004` — Added cross-Mission and cross-proposal lineage rejection tests at Governance and Activation checkpoints.
+- `DOC-077-001` — Corrected this Validation Summary to record the full validation matrix required by `NEXUS-RAT-2026-07-18-003`.
+
+---
+
 ## Sprint 76 — Approved Plan Activation
 
 ### Implemented Slice

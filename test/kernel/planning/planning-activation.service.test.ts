@@ -70,6 +70,7 @@ describe('PlanningActivationService', () => {
 
     expect(result.proposedMissionPlan.lifecycleState).toBe('Activated');
     expect(result.proposedMissionPlan.revisions.map((revision) => revision.lifecycleState)).toEqual([
+      'Under Review',
       'Activated',
     ]);
     expect(result.missionPlan.tasks.map((task) => task.id)).toEqual(['proposed-task-1', 'proposed-task-2']);
@@ -80,7 +81,7 @@ describe('PlanningActivationService', () => {
       proposedMissionPlanId: 'proposed-mission-plan-1',
       proposedPlanRevisionId: 'proposed-plan-revision-governed',
       reviewPlanRevisionKind: 'ProposedPlanRevision',
-      reviewPlanRevisionId: 'proposed-plan-revision-governed',
+      reviewPlanRevisionId: 'proposed-plan-revision-under-review',
       reviewId: 'review-1',
       governanceDecisionId: 'governance-decision-1',
     });
@@ -97,10 +98,116 @@ describe('PlanningActivationService', () => {
       review: reviewSnapshot({
         missionPlanRevision: {
           kind: 'ExecutableMissionPlan',
-          revisionId: 'proposed-plan-revision-governed',
+          revisionId: 'proposed-plan-revision-under-review',
         },
       }),
     });
+
+    await expect(
+      harness.activationService.activate({
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      }),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+    await expect(
+      harness.missionRepository.getMissionPlansByMissionId(MissionId.fromString('mission-1')),
+    ).resolves.toEqual([]);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+  });
+
+  it('rejects Activation when the PlanningCorrelation has no governed revision identity', async () => {
+    const harness = await createActivationHarness({ associateGovernedRevision: false });
+
+    await expect(
+      harness.activationService.activate({
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      }),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+    await expect(
+      harness.missionRepository.getMissionPlansByMissionId(MissionId.fromString('mission-1')),
+    ).resolves.toEqual([]);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+  });
+
+  it('rejects Activation by reviewed revision instead of the exact governed successor revision', async () => {
+    const harness = await createActivationHarness();
+
+    await expect(
+      harness.activationService.activate({
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-under-review',
+      }),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+    await expect(
+      harness.missionRepository.getMissionPlansByMissionId(MissionId.fromString('mission-1')),
+    ).resolves.toEqual([]);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+  });
+
+  it('rejects Activation when reviewed-to-governed lineage is not a direct successor', async () => {
+    const harness = await createActivationHarness({
+      proposedMissionPlan: proposedMissionPlanSnapshot({
+        revisions: [
+          underReviewRevision('proposed-plan-revision-under-review', 1),
+          {
+            ...governedRevision('proposed-plan-revision-governed'),
+            revisionNumber: 3,
+          },
+        ],
+      }),
+    });
+
+    await expect(
+      harness.activationService.activate({
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      }),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+    await expect(
+      harness.missionRepository.getMissionPlansByMissionId(MissionId.fromString('mission-1')),
+    ).resolves.toEqual([]);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+  });
+
+  it('rejects cross-Mission lineage at the Activation checkpoint', async () => {
+    const harness = await createActivationHarness({
+      proposedMissionPlan: proposedMissionPlanSnapshot({
+        missionId: 'mission-other',
+      }),
+    });
+
+    await expect(
+      harness.activationService.activate({
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      }),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+    await expect(
+      harness.missionRepository.getMissionPlansByMissionId(MissionId.fromString('mission-1')),
+    ).resolves.toEqual([]);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+  });
+
+  it('rejects cross-proposal lineage at the Activation checkpoint', async () => {
+    const harness = await createActivationHarness({
+      correlationProposedMissionPlanId: 'proposed-mission-plan-other',
+    });
+
+    await expect(
+      harness.activationService.activate({
+        proposedMissionPlanId: 'proposed-mission-plan-1',
+        proposedPlanRevisionId: 'proposed-plan-revision-governed',
+      }),
+    ).rejects.toThrow(PlanningCorrelationAssociationRejectedError);
+    await expect(
+      harness.missionRepository.getMissionPlansByMissionId(MissionId.fromString('mission-1')),
+    ).resolves.toEqual([]);
+    expect(harness.eventBus.replay('mission-1')).toEqual([]);
+  });
+
+  it('rejects Activation when the GovernanceDecision no longer matches correlation lineage', async () => {
+    const harness = await createActivationHarness({ governanceDecisionReviewId: 'review-other' });
 
     await expect(
       harness.activationService.activate({
@@ -159,6 +266,7 @@ describe('PlanningActivationService', () => {
 
     const afterFailure = await harness.proposedMissionPlanRepository.getById('proposed-mission-plan-1');
     expect(afterFailure?.toSnapshot().revisions.map((revision) => revision.lifecycleState)).toEqual([
+      'Under Review',
       'Governed',
     ]);
     await expect(
@@ -172,6 +280,7 @@ describe('PlanningActivationService', () => {
     });
 
     expect(retry.proposedMissionPlan.revisions.map((revision) => revision.lifecycleState)).toEqual([
+      'Under Review',
       'Activated',
     ]);
     expect(retry.missionPlan.metadata.proposedPlanRevisionId).toBe(
@@ -183,7 +292,9 @@ describe('PlanningActivationService', () => {
     const harness = await createActivationHarness({
       proposedMissionPlan: proposedMissionPlanSnapshot({
         revisions: [
+          underReviewRevision('proposed-plan-revision-sibling-under-review', 1),
           governedRevision('proposed-plan-revision-sibling'),
+          underReviewRevision('proposed-plan-revision-under-review', 1),
           governedRevision('proposed-plan-revision-governed'),
         ],
       }),
@@ -214,6 +325,10 @@ async function createActivationHarness(
     readonly review?: ReviewSnapshot;
     readonly correlations?: readonly string[];
     readonly missionRepository?: InMemoryMissionRepository;
+    readonly associateGovernedRevision?: boolean;
+    readonly governanceDecisionReviewId?: string;
+    readonly correlationMissionId?: string;
+    readonly correlationProposedMissionPlanId?: string;
   } = {},
 ) {
   const eventBus = new EventBus(new TestLogger());
@@ -246,9 +361,10 @@ async function createActivationHarness(
     await planningCorrelationRepository.register(
       PlanningCorrelation.create({
         id: `planning-correlation-${revisionId}`,
-        missionId: 'mission-1',
-        proposedMissionPlanId: 'proposed-mission-plan-1',
-        proposedPlanRevisionId: revisionId,
+        missionId: overrides.correlationMissionId ?? 'mission-1',
+        proposedMissionPlanId:
+          overrides.correlationProposedMissionPlanId ?? 'proposed-mission-plan-1',
+        reviewedProposedPlanRevisionId: reviewedRevisionIdForGovernedRevision(revisionId),
         plannerAttribution,
         createdAt: timestamp,
       })
@@ -259,6 +375,20 @@ async function createActivationHarness(
         })
         .associateGovernanceDecision('governance-decision-1'),
     );
+
+    if (overrides.associateGovernedRevision !== false) {
+      const registeredCorrelation = await planningCorrelationRepository.getById(
+        `planning-correlation-${revisionId}`,
+      );
+
+      if (registeredCorrelation === undefined) {
+        throw new Error(`Expected PlanningCorrelation for '${revisionId}' to be registered.`);
+      }
+
+      await planningCorrelationRepository.save(
+        registeredCorrelation.associateGovernedProposedPlanRevision(revisionId),
+      );
+    }
   }
 
   await governanceDecisionRepository.register(
@@ -268,7 +398,7 @@ async function createActivationHarness(
       value: 'Approved',
       repositoryPolicyId: 'repository-policy-1',
       repositoryPolicyVersion: 1,
-      reviewId: 'review-1',
+      reviewId: overrides.governanceDecisionReviewId ?? 'review-1',
       reviewStateReference: 'review-1:Completed',
       policyEvaluationId: 'policy-evaluation-1',
       evaluationKey: 'evaluation-1',
@@ -304,16 +434,19 @@ async function createActivationHarness(
 
 function proposedMissionPlanSnapshot(
   overrides: {
+    readonly id?: string;
+    readonly missionId?: string;
     readonly revisions?: ProposedMissionPlanSnapshot['revisions'];
     readonly proposedTasks?: ProposedMissionPlanSnapshot['revisions'][number]['proposedTasks'];
   } = {},
 ): ProposedMissionPlanSnapshot {
   return {
-    id: 'proposed-mission-plan-1',
-    missionId: 'mission-1',
+    id: overrides.id ?? 'proposed-mission-plan-1',
+    missionId: overrides.missionId ?? 'mission-1',
     plannerAttribution,
     lifecycleState: 'Governed',
     revisions: overrides.revisions ?? [
+      underReviewRevision('proposed-plan-revision-under-review', 1),
       {
         ...governedRevision('proposed-plan-revision-governed'),
         proposedTasks: overrides.proposedTasks ?? governedRevision('x').proposedTasks,
@@ -326,7 +459,7 @@ function governedRevision(id: string): ProposedMissionPlanSnapshot['revisions'][
   return {
     id,
     proposedMissionPlanId: 'proposed-mission-plan-1',
-    revisionNumber: id === 'proposed-plan-revision-sibling' ? 1 : 2,
+    revisionNumber: id === 'proposed-plan-revision-sibling' ? 2 : 2,
     proposedTasks: [
       {
         id: 'proposed-task-1',
@@ -352,13 +485,30 @@ function governedRevision(id: string): ProposedMissionPlanSnapshot['revisions'][
   };
 }
 
+function underReviewRevision(
+  id: string,
+  revisionNumber: number,
+): ProposedMissionPlanSnapshot['revisions'][number] {
+  return {
+    ...governedRevision(id),
+    revisionNumber,
+    lifecycleState: 'Under Review',
+  };
+}
+
+function reviewedRevisionIdForGovernedRevision(governedRevisionId: string): string {
+  return governedRevisionId === 'proposed-plan-revision-sibling'
+    ? 'proposed-plan-revision-sibling-under-review'
+    : 'proposed-plan-revision-under-review';
+}
+
 function reviewSnapshot(overrides: Partial<ReviewSnapshot> = {}): ReviewSnapshot {
   return {
     id: 'review-1',
     missionId: 'mission-1',
     missionPlanRevision: {
       kind: 'ProposedPlanRevision',
-      revisionId: 'proposed-plan-revision-governed',
+      revisionId: 'proposed-plan-revision-under-review',
     },
     status: 'Completed',
     outcome: 'Accepted',

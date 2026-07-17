@@ -83,6 +83,11 @@ export interface EvaluatePlanningGovernanceResult {
   readonly governanceDecision?: GovernanceDecisionSnapshot;
 }
 
+interface PreparedPlanningCorrelationGovernanceDecision {
+  readonly planningCorrelation: PlanningCorrelation;
+  readonly allowGovernanceDecisionSupersession: boolean;
+}
+
 export class PlanningCorrelationService extends ServiceLifecycle {
   public constructor(
     private readonly proposedMissionPlanRepository: IProposedMissionPlanRepository =
@@ -160,7 +165,7 @@ export class PlanningCorrelationService extends ServiceLifecycle {
           : command.planningCorrelationId,
       missionId,
       proposedMissionPlanId: proposedMissionPlanSnapshot.id,
-      proposedPlanRevisionId: underReviewRevisionSnapshot.id,
+      reviewedProposedPlanRevisionId: underReviewRevisionSnapshot.id,
       plannerAttribution: command.plannerAttribution,
       createdAt: command.createdAt,
       ...(command.causality === undefined ? {} : { causality: command.causality }),
@@ -265,14 +270,14 @@ export class PlanningCorrelationService extends ServiceLifecycle {
       repositoryPolicyReference,
     );
 
-    const savedPlanningCorrelation = await this.savePlanningCorrelationGovernanceDecision(
-      planningCorrelation,
-      planningCorrelationSnapshot,
-      repositoryPolicyReference,
-      governanceDecision.id,
-    );
-
     if (governanceDecision.value === 'Deferred' || governanceDecision.value === 'Escalation Required') {
+      const savedPlanningCorrelation = await this.savePlanningCorrelationGovernanceDecision(
+        planningCorrelation,
+        planningCorrelationSnapshot,
+        repositoryPolicyReference,
+        governanceDecision.id,
+      );
+
       return Object.freeze({
         proposedMissionPlan: proposedMissionPlan.toSnapshot(),
         planningCorrelation: savedPlanningCorrelation.toSnapshot(),
@@ -284,8 +289,35 @@ export class PlanningCorrelationService extends ServiceLifecycle {
       governanceDecision.value === 'Approved'
         ? proposedMissionPlan.markCurrentRevisionGoverned(command)
         : proposedMissionPlan.rejectCurrentRevision(command);
-    const savedProposedMissionPlan = await this.proposedMissionPlanRepository.save(
+    const evaluatedProposedMissionPlanSnapshot = evaluatedProposedMissionPlan.toSnapshot();
+    const evaluatedRevisionSnapshot = evaluatedProposedMissionPlan.currentRevision.toSnapshot();
+    const governedProposedPlanRevisionId =
+      governanceDecision.value === 'Approved' ? evaluatedRevisionSnapshot.id : undefined;
+
+    if (governanceDecision.value === 'Approved') {
+      this.assertGovernedRevisionLineage(
+        proposedMissionPlan.toSnapshot(),
+        currentRevisionSnapshot,
+        evaluatedProposedMissionPlanSnapshot,
+        evaluatedRevisionSnapshot,
+        planningCorrelationSnapshot,
+      );
+    }
+
+    const preparedPlanningCorrelation = await this.preparePlanningCorrelationGovernanceDecision(
+      planningCorrelation,
+      planningCorrelationSnapshot,
+      repositoryPolicyReference,
+      governanceDecision.id,
+      governedProposedPlanRevisionId,
+    );
+    const {
+      proposedMissionPlan: savedProposedMissionPlan,
+      planningCorrelation: savedPlanningCorrelation,
+    } = await this.commitEvaluatedProposedMissionPlanAndPlanningCorrelation(
+      proposedMissionPlan,
       evaluatedProposedMissionPlan,
+      preparedPlanningCorrelation,
     );
 
     return Object.freeze({
@@ -436,10 +468,10 @@ export class PlanningCorrelationService extends ServiceLifecycle {
 
     if (
       review.missionPlanRevision.kind !== 'ProposedPlanRevision' ||
-      review.missionPlanRevision.revisionId !== planningCorrelation.proposedPlanRevisionId
+      review.missionPlanRevision.revisionId !== planningCorrelation.reviewedProposedPlanRevisionId
     ) {
       throw new PlanningCorrelationAssociationRejectedError(
-        `Review '${review.id}' ProposedPlanRevision '${review.missionPlanRevision.revisionId}' does not match PlanningCorrelation ProposedPlanRevision '${planningCorrelation.proposedPlanRevisionId}'.`,
+        `Review '${review.id}' ProposedPlanRevision '${review.missionPlanRevision.revisionId}' does not match PlanningCorrelation reviewed ProposedPlanRevision '${planningCorrelation.reviewedProposedPlanRevisionId}'.`,
       );
     }
   }
@@ -450,10 +482,10 @@ export class PlanningCorrelationService extends ServiceLifecycle {
   ): void {
     if (
       currentRevisionSnapshot.lifecycleState !== 'Under Review' ||
-      currentRevisionSnapshot.id !== planningCorrelation.proposedPlanRevisionId
+      currentRevisionSnapshot.id !== planningCorrelation.reviewedProposedPlanRevisionId
     ) {
       throw new PlanningCorrelationAssociationRejectedError(
-        `ProposedPlanRevision '${planningCorrelation.proposedPlanRevisionId}' must be the current Under Review revision before Planning Governance evaluation.`,
+        `ProposedPlanRevision '${planningCorrelation.reviewedProposedPlanRevisionId}' must be the current Under Review revision before Planning Governance evaluation.`,
       );
     }
   }
@@ -527,8 +559,27 @@ export class PlanningCorrelationService extends ServiceLifecycle {
     planningCorrelationSnapshot: PlanningCorrelationSnapshot,
     repositoryPolicyReference: RepositoryPolicyReference,
     governanceDecisionId: string,
+    governedProposedPlanRevisionId?: string,
   ): Promise<PlanningCorrelation> {
-    const policyAssociatedCorrelation =
+    const prepared = await this.preparePlanningCorrelationGovernanceDecision(
+      planningCorrelation,
+      planningCorrelationSnapshot,
+      repositoryPolicyReference,
+      governanceDecisionId,
+      governedProposedPlanRevisionId,
+    );
+
+    return this.persistPreparedPlanningCorrelationGovernanceDecision(prepared);
+  }
+
+  private async preparePlanningCorrelationGovernanceDecision(
+    planningCorrelation: PlanningCorrelation,
+    planningCorrelationSnapshot: PlanningCorrelationSnapshot,
+    repositoryPolicyReference: RepositoryPolicyReference,
+    governanceDecisionId: string,
+    governedProposedPlanRevisionId?: string,
+  ): Promise<PreparedPlanningCorrelationGovernanceDecision> {
+    let policyAssociatedCorrelation =
       planningCorrelation.associateRepositoryPolicy(repositoryPolicyReference);
 
     if (
@@ -539,14 +590,90 @@ export class PlanningCorrelationService extends ServiceLifecycle {
         planningCorrelationSnapshot.governanceDecisionId,
       );
 
-      return this.planningCorrelationRepository.saveWithSupersededGovernanceDecision(
-        policyAssociatedCorrelation.supersedeGovernanceDecision(governanceDecisionId),
+      policyAssociatedCorrelation =
+        policyAssociatedCorrelation.supersedeGovernanceDecision(governanceDecisionId);
+      if (governedProposedPlanRevisionId !== undefined) {
+        policyAssociatedCorrelation = policyAssociatedCorrelation.associateGovernedProposedPlanRevision(
+          governedProposedPlanRevisionId,
+        );
+      }
+
+      return {
+        planningCorrelation: policyAssociatedCorrelation,
+        allowGovernanceDecisionSupersession: true,
+      };
+    }
+
+    policyAssociatedCorrelation =
+      policyAssociatedCorrelation.associateGovernanceDecision(governanceDecisionId);
+    if (governedProposedPlanRevisionId !== undefined) {
+      policyAssociatedCorrelation = policyAssociatedCorrelation.associateGovernedProposedPlanRevision(
+        governedProposedPlanRevisionId,
       );
     }
 
-    return this.planningCorrelationRepository.save(
-      policyAssociatedCorrelation.associateGovernanceDecision(governanceDecisionId),
+    return {
+      planningCorrelation: policyAssociatedCorrelation,
+      allowGovernanceDecisionSupersession: false,
+    };
+  }
+
+  private async persistPreparedPlanningCorrelationGovernanceDecision(
+    prepared: PreparedPlanningCorrelationGovernanceDecision,
+  ): Promise<PlanningCorrelation> {
+    return prepared.allowGovernanceDecisionSupersession
+      ? this.planningCorrelationRepository.saveWithSupersededGovernanceDecision(
+          prepared.planningCorrelation,
+        )
+      : this.planningCorrelationRepository.save(prepared.planningCorrelation);
+  }
+
+  private async commitEvaluatedProposedMissionPlanAndPlanningCorrelation(
+    previousProposedMissionPlan: ProposedMissionPlan,
+    evaluatedProposedMissionPlan: ProposedMissionPlan,
+    preparedPlanningCorrelation: PreparedPlanningCorrelationGovernanceDecision,
+  ): Promise<{
+    readonly proposedMissionPlan: ProposedMissionPlan;
+    readonly planningCorrelation: PlanningCorrelation;
+  }> {
+    const savedProposedMissionPlan = await this.proposedMissionPlanRepository.save(
+      evaluatedProposedMissionPlan,
     );
+
+    try {
+      const savedPlanningCorrelation =
+        await this.persistPreparedPlanningCorrelationGovernanceDecision(preparedPlanningCorrelation);
+
+      return Object.freeze({
+        proposedMissionPlan: savedProposedMissionPlan,
+        planningCorrelation: savedPlanningCorrelation,
+      });
+    } catch (error) {
+      await this.proposedMissionPlanRepository.save(previousProposedMissionPlan);
+      throw error;
+    }
+  }
+
+  private assertGovernedRevisionLineage(
+    previousProposedMissionPlan: ProposedMissionPlanSnapshot,
+    reviewedRevision: ProposedPlanRevisionSnapshot,
+    governedProposedMissionPlan: ProposedMissionPlanSnapshot,
+    governedRevision: ProposedPlanRevisionSnapshot,
+    planningCorrelation: PlanningCorrelationSnapshot,
+  ): void {
+    if (
+      planningCorrelation.reviewedProposedPlanRevisionId !== reviewedRevision.id ||
+      previousProposedMissionPlan.id !== governedProposedMissionPlan.id ||
+      previousProposedMissionPlan.missionId !== governedProposedMissionPlan.missionId ||
+      governedRevision.proposedMissionPlanId !== planningCorrelation.proposedMissionPlanId ||
+      governedProposedMissionPlan.missionId !== planningCorrelation.missionId ||
+      governedRevision.revisionNumber !== reviewedRevision.revisionNumber + 1 ||
+      governedRevision.lifecycleState !== 'Governed'
+    ) {
+      throw new PlanningCorrelationAssociationRejectedError(
+        `PlanningCorrelation '${planningCorrelation.id}' Governed ProposedPlanRevision lineage is invalid.`,
+      );
+    }
   }
 
   private async assertExistingGovernanceDecisionCanBeSuperseded(
@@ -606,7 +733,7 @@ export class PlanningCorrelationService extends ServiceLifecycle {
     currentRevisionSnapshot: ProposedPlanRevisionSnapshot,
     proposedMissionPlanSnapshot: ProposedMissionPlanSnapshot,
   ): Promise<EnterPlanningReviewResult> {
-    const planningCorrelation = await this.planningCorrelationRepository.findByProposedPlanRevision({
+    const planningCorrelation = await this.planningCorrelationRepository.findByReviewedProposedPlanRevision({
       missionId,
       proposedMissionPlanId,
       proposedPlanRevisionId: currentRevisionSnapshot.id,

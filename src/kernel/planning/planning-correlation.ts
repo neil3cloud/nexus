@@ -13,7 +13,7 @@ export interface CreatePlanningCorrelationInput {
   readonly id: string;
   readonly missionId: string;
   readonly proposedMissionPlanId: string;
-  readonly proposedPlanRevisionId: string;
+  readonly reviewedProposedPlanRevisionId: string;
   readonly plannerAttribution: PlannerAttributionInput;
   readonly createdAt: string;
   readonly causality?: readonly string[];
@@ -31,7 +31,7 @@ export class PlanningCorrelation {
         id: input.id,
         missionId: input.missionId,
         proposedMissionPlanId: input.proposedMissionPlanId,
-        proposedPlanRevisionId: input.proposedPlanRevisionId,
+        reviewedProposedPlanRevisionId: input.reviewedProposedPlanRevisionId,
         plannerAttribution: PlannerAttribution.create(input.plannerAttribution).toSnapshot(),
         createdAt: input.createdAt,
         causality: input.causality ?? [],
@@ -56,8 +56,12 @@ export class PlanningCorrelation {
     return this.snapshotValue.proposedMissionPlanId;
   }
 
-  public get proposedPlanRevisionId(): string {
-    return this.snapshotValue.proposedPlanRevisionId;
+  public get reviewedProposedPlanRevisionId(): string {
+    return this.snapshotValue.reviewedProposedPlanRevisionId;
+  }
+
+  public get governedProposedPlanRevisionId(): string | undefined {
+    return this.snapshotValue.governedProposedPlanRevisionId;
   }
 
   public get reviewId(): string | undefined {
@@ -170,6 +174,32 @@ export class PlanningCorrelation {
     });
   }
 
+  public associateGovernedProposedPlanRevision(
+    governedProposedPlanRevisionId: string,
+  ): PlanningCorrelation {
+    const normalizedGovernedProposedPlanRevisionId = ProposedPlanRevisionId.fromString(
+      governedProposedPlanRevisionId,
+    ).toString();
+
+    if (this.snapshotValue.governedProposedPlanRevisionId !== undefined) {
+      if (
+        this.snapshotValue.governedProposedPlanRevisionId ===
+        normalizedGovernedProposedPlanRevisionId
+      ) {
+        return this;
+      }
+
+      throw new InvalidPlanningCorrelationDefinitionError(
+        `PlanningCorrelation '${this.snapshotValue.id}' already has Governed ProposedPlanRevision '${this.snapshotValue.governedProposedPlanRevisionId}'.`,
+      );
+    }
+
+    return PlanningCorrelation.fromSnapshot({
+      ...this.snapshotValue,
+      governedProposedPlanRevisionId: normalizedGovernedProposedPlanRevisionId,
+    });
+  }
+
   public toSnapshot(): PlanningCorrelationSnapshot {
     return Object.freeze({
       ...this.snapshotValue,
@@ -181,16 +211,36 @@ export class PlanningCorrelation {
   }
 }
 
-function normalizeSnapshot(snapshot: PlanningCorrelationSnapshot): PlanningCorrelationSnapshot {
+type LegacyPlanningCorrelationSnapshot = PlanningCorrelationSnapshot & {
+  readonly proposedPlanRevisionId?: string;
+};
+
+function normalizeSnapshot(snapshot: LegacyPlanningCorrelationSnapshot): PlanningCorrelationSnapshot {
+  const reviewedProposedPlanRevisionId =
+    snapshot.reviewedProposedPlanRevisionId ?? snapshot.proposedPlanRevisionId;
+
+  if (reviewedProposedPlanRevisionId === undefined) {
+    throw new InvalidPlanningCorrelationDefinitionError(
+      'PlanningCorrelation reviewedProposedPlanRevisionId is required.',
+    );
+  }
+
   return Object.freeze({
     id: PlanningCorrelationId.fromString(snapshot.id).toString(),
     missionId: MissionId.fromString(snapshot.missionId).toString(),
     proposedMissionPlanId: ProposedMissionPlanId.fromString(
       snapshot.proposedMissionPlanId,
     ).toString(),
-    proposedPlanRevisionId: ProposedPlanRevisionId.fromString(
-      snapshot.proposedPlanRevisionId,
+    reviewedProposedPlanRevisionId: ProposedPlanRevisionId.fromString(
+      reviewedProposedPlanRevisionId,
     ).toString(),
+    ...(snapshot.governedProposedPlanRevisionId === undefined
+      ? {}
+      : {
+          governedProposedPlanRevisionId: ProposedPlanRevisionId.fromString(
+            snapshot.governedProposedPlanRevisionId,
+          ).toString(),
+        }),
     plannerAttribution: PlannerAttribution.fromSnapshot(snapshot.plannerAttribution).toSnapshot(),
     createdAt: normalizeNonEmptyString(snapshot.createdAt, 'PlanningCorrelation createdAt'),
     causality: Object.freeze(

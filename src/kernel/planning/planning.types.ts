@@ -131,7 +131,8 @@ export interface PlanningCorrelationSnapshot {
   readonly id: string;
   readonly missionId: string;
   readonly proposedMissionPlanId: string;
-  readonly proposedPlanRevisionId: string;
+  readonly reviewedProposedPlanRevisionId: string;
+  readonly governedProposedPlanRevisionId?: string;
   readonly plannerAttribution: PlannerAttributionSnapshot;
   readonly createdAt: string;
   readonly causality: readonly string[];
