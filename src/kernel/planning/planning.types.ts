@@ -1,4 +1,11 @@
-export const proposalLifecycleStates = ['Draft', 'Submitted', 'Under Review', 'Withdrawn'] as const;
+export const proposalLifecycleStates = [
+  'Draft',
+  'Submitted',
+  'Under Review',
+  'Governed',
+  'Withdrawn',
+  'Rejected',
+] as const;
 
 export type ProposalLifecycleState = (typeof proposalLifecycleStates)[number];
 
@@ -128,4 +135,7 @@ export interface PlanningCorrelationSnapshot {
   readonly causality: readonly string[];
   readonly correlationId?: string;
   readonly reviewId?: string;
+  readonly repositoryPolicyId?: string;
+  readonly repositoryPolicyVersion?: number;
+  readonly governanceDecisionId?: string;
 }

@@ -1,4 +1,6 @@
 import { MissionId } from '../mission/mission-id';
+import { GovernanceDecisionId } from '../governance/governance-decision-id';
+import { RepositoryPolicyId } from '../governance/repository-policy-id';
 import { ReviewId } from '../review/review-id';
 import { PlannerAttribution } from './planner-attribution';
 import { PlanningCorrelationId } from './planning-correlation-id';
@@ -62,6 +64,18 @@ export class PlanningCorrelation {
     return this.snapshotValue.reviewId;
   }
 
+  public get repositoryPolicyId(): string | undefined {
+    return this.snapshotValue.repositoryPolicyId;
+  }
+
+  public get repositoryPolicyVersion(): number | undefined {
+    return this.snapshotValue.repositoryPolicyVersion;
+  }
+
+  public get governanceDecisionId(): string | undefined {
+    return this.snapshotValue.governanceDecisionId;
+  }
+
   public associateReview(reviewId: string): PlanningCorrelation {
     const normalizedReviewId = ReviewId.fromString(reviewId).toString();
 
@@ -78,6 +92,81 @@ export class PlanningCorrelation {
     return PlanningCorrelation.fromSnapshot({
       ...this.snapshotValue,
       reviewId: normalizedReviewId,
+    });
+  }
+
+  public associateRepositoryPolicy(input: {
+    readonly repositoryPolicyId: string;
+    readonly repositoryPolicyVersion: number;
+  }): PlanningCorrelation {
+    const normalizedRepositoryPolicyId = RepositoryPolicyId.fromString(
+      input.repositoryPolicyId,
+    ).toString();
+    const normalizedRepositoryPolicyVersion = normalizePositiveInteger(
+      input.repositoryPolicyVersion,
+      'PlanningCorrelation repositoryPolicyVersion',
+    );
+
+    if (
+      this.snapshotValue.repositoryPolicyId !== undefined ||
+      this.snapshotValue.repositoryPolicyVersion !== undefined
+    ) {
+      if (
+        this.snapshotValue.repositoryPolicyId === normalizedRepositoryPolicyId &&
+        this.snapshotValue.repositoryPolicyVersion === normalizedRepositoryPolicyVersion
+      ) {
+        return this;
+      }
+
+      throw new InvalidPlanningCorrelationDefinitionError(
+        `PlanningCorrelation '${this.snapshotValue.id}' already has RepositoryPolicy '${this.snapshotValue.repositoryPolicyId}' version '${this.snapshotValue.repositoryPolicyVersion}'.`,
+      );
+    }
+
+    return PlanningCorrelation.fromSnapshot({
+      ...this.snapshotValue,
+      repositoryPolicyId: normalizedRepositoryPolicyId,
+      repositoryPolicyVersion: normalizedRepositoryPolicyVersion,
+    });
+  }
+
+  public associateGovernanceDecision(governanceDecisionId: string): PlanningCorrelation {
+    const normalizedGovernanceDecisionId =
+      GovernanceDecisionId.fromString(governanceDecisionId).toString();
+
+    if (this.snapshotValue.governanceDecisionId !== undefined) {
+      if (this.snapshotValue.governanceDecisionId === normalizedGovernanceDecisionId) {
+        return this;
+      }
+
+      throw new InvalidPlanningCorrelationDefinitionError(
+        `PlanningCorrelation '${this.snapshotValue.id}' already has GovernanceDecision '${this.snapshotValue.governanceDecisionId}'.`,
+      );
+    }
+
+    return PlanningCorrelation.fromSnapshot({
+      ...this.snapshotValue,
+      governanceDecisionId: normalizedGovernanceDecisionId,
+    });
+  }
+
+  public supersedeGovernanceDecision(governanceDecisionId: string): PlanningCorrelation {
+    const normalizedGovernanceDecisionId =
+      GovernanceDecisionId.fromString(governanceDecisionId).toString();
+
+    if (this.snapshotValue.governanceDecisionId === undefined) {
+      throw new InvalidPlanningCorrelationDefinitionError(
+        `PlanningCorrelation '${this.snapshotValue.id}' has no GovernanceDecision to supersede.`,
+      );
+    }
+
+    if (this.snapshotValue.governanceDecisionId === normalizedGovernanceDecisionId) {
+      return this;
+    }
+
+    return PlanningCorrelation.fromSnapshot({
+      ...this.snapshotValue,
+      governanceDecisionId: normalizedGovernanceDecisionId,
     });
   }
 
@@ -120,5 +209,35 @@ function normalizeSnapshot(snapshot: PlanningCorrelationSnapshot): PlanningCorre
     ...(snapshot.reviewId === undefined
       ? {}
       : { reviewId: ReviewId.fromString(snapshot.reviewId).toString() }),
+    ...(snapshot.repositoryPolicyId === undefined
+      ? {}
+      : {
+          repositoryPolicyId: RepositoryPolicyId.fromString(
+            snapshot.repositoryPolicyId,
+          ).toString(),
+        }),
+    ...(snapshot.repositoryPolicyVersion === undefined
+      ? {}
+      : {
+          repositoryPolicyVersion: normalizePositiveInteger(
+            snapshot.repositoryPolicyVersion,
+            'PlanningCorrelation repositoryPolicyVersion',
+          ),
+        }),
+    ...(snapshot.governanceDecisionId === undefined
+      ? {}
+      : {
+          governanceDecisionId: GovernanceDecisionId.fromString(
+            snapshot.governanceDecisionId,
+          ).toString(),
+        }),
   });
+}
+
+function normalizePositiveInteger(value: number, label: string): number {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new InvalidPlanningCorrelationDefinitionError(`${label} must be a positive integer.`);
+  }
+
+  return value;
 }

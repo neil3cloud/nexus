@@ -2912,7 +2912,7 @@ Notes:
 
 # Milestone 11 — Autonomous Engineering Planning Readiness
 
-Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` (fully closed, zero open findings). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS, zero findings, fully closed). Initial Capability Sequence step 5 decomposed by `NEXUS-RAT-2026-07-17-012` into steps 5–7 (Sprints 74–76) plus renumbered step 8 (Sprint 77). Sprint 74 — Planning Correlation and Review Entry Foundation is Implemented — Pending Reviewer Validation.)
+Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` (fully closed, zero open findings). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS, zero findings, fully closed). Initial Capability Sequence step 5 decomposed by `NEXUS-RAT-2026-07-17-012` into steps 5–7 (Sprints 74–76) plus renumbered step 8 (Sprint 77). Sprint 74 — Planning Correlation and Review Entry Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-014`/`-015` (fully closed; `BT-074-001` independently verified Resolved; two Informational Observations remain non-blocking, carried forward). Sprint 75 — Proposal Governance Integration is Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-17-014`.)
 
 Opened by `NEXUS-RAT-2026-07-17-009`.
 
@@ -2926,16 +2926,58 @@ Initial Capability Sequence (binding, sequencing only — each future step requi
 2. RFC-0012 drafting and ratification. ✅ Closed by `NEXUS-RAT-2026-07-17-010`; RFC-0012 v1.0 Final.
 3. Planning Policy and Proposed Plan Foundation. Sprint 72 — ✅ Approved, `NEXUS-REV-2026-07-17-012`, fully closed.
 4. Planning Service and Proposal Lifecycle Foundation (renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`, which found the prior label undefined and implying unsupported Review/Governance/Activation semantics). Sprint 73 — ✅ Approved, `NEXUS-REV-2026-07-17-013`, fully closed.
-5. Planning Correlation and Review Entry Foundation (refined from "Plan Review, Governance, and Activation" by `NEXUS-RAT-2026-07-17-012`, which found the prior label bundled four architecturally distinct concerns with no Sprint-level scope). Sprint 74 — Implemented — Pending Reviewer Validation.
-6. Proposal Governance Integration. Sprint 75 — not yet authorized.
+5. Planning Correlation and Review Entry Foundation (refined from "Plan Review, Governance, and Activation" by `NEXUS-RAT-2026-07-17-012`, which found the prior label bundled four architecturally distinct concerns with no Sprint-level scope). Sprint 74 — ✅ Approved, `NEXUS-REV-2026-07-17-014`/`-015`, fully closed.
+6. Proposal Governance Integration. Sprint 75 — Implemented — Pending Reviewer Validation, authorized by `NEXUS-RAT-2026-07-17-014`.
 7. Approved Plan Activation. Sprint 76 — not yet authorized.
 8. Autonomous Planning Integration Validation and Milestone 11 Closure (renumbered from step 6). Sprint 77 — not yet authorized.
 
 ---
 
-## Sprint 74 — Planning Correlation and Review Entry Foundation
+## Sprint 75 — Proposal Governance Integration
 
 Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; Planning Correlation's Governance extension and the `Governed`/`Rejected` Proposal Lifecycle transitions implement RFC-0012's Planning Correlation and Proposal Lifecycle sections, unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision`/`GovernanceServiceContract.evaluateGovernancePolicy` consumed read-only through its existing public contract, unmodified)
+- RFC-0006 — Engineering Assessment Model (Referenced; terminal `Review`/`ReviewOutcome` consumed read-only, unmodified)
+- RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced; consumed read-only, unmodified, unchanged from Sprint 72–74)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-17-012` — decomposed Milestone 11 Initial Capability Sequence step 5 into Sprints 74–77; reserved "`GovernanceDecision` correlation and RFC-0011 Governance integration" for Sprint 75.
+- `NEXUS-RAT-2026-07-17-014` — authorizes this Sprint's exact scope, including the binding explicit Repository Policy attribution rule (no default, no inference, no cross-policy re-evaluation).
+
+Authorized Concepts:
+
+- Additive `PlanningCorrelation` extension carrying an explicit `repositoryPolicyId`, `repositoryPolicyVersion` (required, no default), and a `governanceDecisionId` (appended once Governance evaluation produces a decision).
+- Terminal RFC-0006 Review outcome consumption for the exact `Under Review` Proposed Plan Revision, through `Review`'s existing public contract, unmodified.
+- Invocation of the existing `GovernanceServiceContract.evaluateGovernancePolicy` (RFC-0011, unmodified) with the Planning Correlation's `missionId`, correlated `reviewId`, and caller-supplied Repository Policy reference.
+- Additive `ProposedPlanRevision` lifecycle extension: `Under Review → Governed` (requiring an `Approved` `GovernanceDecision` and Mission-identity match); `Under Review → Rejected` and `Governed → Rejected` (non-eligible Review outcome or non-`Approved` `GovernanceDecision`).
+- Fail-closed diagnostics for missing/invalid/superseded/unresolved Repository Policy attribution, non-terminal Review outcome, Mission-identity mismatch, and cross-policy re-evaluation.
+- Kernel composition registration of any new repository/service, purely additive.
+
+Deferred Concepts:
+
+- Activation; conversion into RFC-0001 executable objects (Sprint 76).
+- `Superseded` Proposal Lifecycle transition (Sprint 76).
+- Domain Event publication for the Planning domain.
+- Any new Repository Policy authoring, versioning, or selection/routing mechanism (permanently owned by RFC-0011).
+- AI-generated planning, Adapter invocation, provider/Adapter selection.
+- Workflow orchestration.
+- Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77).
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0075-proposal-governance-integration.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0006, RFC-0008, RFC-0011, or the Kernel Canon. Per `NEXUS-RAT-2026-07-17-014`, it additively extends the existing Sprint 74 `PlanningCorrelation`/`ProposedPlanRevision` model while preserving all existing `Draft`, `Submitted`, `Withdrawn`, and `Under Review` behavior. `NEXUS-REV-2026-07-17-016` (F-001, Critical) found this sprint's original `GovernanceDecision` outcome handling violated RFC-0011; `NEXUS-RAT-2026-07-17-015` amended RFC-0012 to v1.1 (clarifying that `Deferred`/`Escalation Required` are `GovernanceDecision` outcomes, not Proposal Lifecycle states) and authorized a corrective `BT-075-001`, tracked in `builder-task.md`.
+
+---
+
+## Sprint 74 — Planning Correlation and Review Entry Foundation
+
+Status: ✅ Approved — `NEXUS-REV-2026-07-17-014`/`-015` (fully closed; `BT-074-001` independently verified Resolved; two Informational Observations remain non-blocking, carried forward)
 
 RFC Coverage:
 

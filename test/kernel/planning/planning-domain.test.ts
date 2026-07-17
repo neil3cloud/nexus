@@ -342,6 +342,132 @@ describe('Planning domain', () => {
     ]);
   });
 
+  it('supports additive Governed and Rejected Proposal Lifecycle transitions', () => {
+    const governedMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput())
+      .submitCurrentRevision(
+        {
+          id: 'proposed-plan-revision-2',
+          plannerAttribution: humanPlannerAttribution,
+          createdAt: '2026-07-17T01:00:00.000Z',
+        },
+        createPlanningPolicy(),
+      )
+      .markCurrentRevisionUnderReview({
+        id: 'proposed-plan-revision-3',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T02:00:00.000Z',
+      })
+      .markCurrentRevisionGoverned({
+        id: 'proposed-plan-revision-4',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T03:00:00.000Z',
+      });
+    const rejectedMissionPlan = governedMissionPlan.rejectCurrentRevision({
+      id: 'proposed-plan-revision-5',
+      plannerAttribution: humanPlannerAttribution,
+      createdAt: '2026-07-17T04:00:00.000Z',
+    });
+    const reviewRejectedMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput())
+      .submitCurrentRevision(
+        {
+          id: 'proposed-plan-revision-2',
+          plannerAttribution: humanPlannerAttribution,
+          createdAt: '2026-07-17T01:00:00.000Z',
+        },
+        createPlanningPolicy(),
+      )
+      .markCurrentRevisionUnderReview({
+        id: 'proposed-plan-revision-3',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T02:00:00.000Z',
+      })
+      .rejectCurrentRevision({
+        id: 'proposed-plan-revision-4',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T03:00:00.000Z',
+      });
+
+    expect(governedMissionPlan.lifecycleState).toBe('Governed');
+    expect(rejectedMissionPlan.lifecycleState).toBe('Rejected');
+    expect(reviewRejectedMissionPlan.lifecycleState).toBe('Rejected');
+    expect(() =>
+      ProposedMissionPlan.create(createProposedMissionPlanInput()).markCurrentRevisionGoverned({
+        id: 'proposed-plan-revision-2',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T01:00:00.000Z',
+      }),
+    ).toThrow(InvalidProposalLifecycleTransitionError);
+  });
+
+  it('rejects new ProposedPlanRevision creation when the current revision is Withdrawn', () => {
+    const withdrawnMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput())
+      .submitCurrentRevision(
+        {
+          id: 'proposed-plan-revision-2',
+          plannerAttribution: humanPlannerAttribution,
+          createdAt: '2026-07-17T01:00:00.000Z',
+        },
+        createPlanningPolicy(),
+      )
+      .withdrawCurrentRevision({
+        id: 'proposed-plan-revision-3',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T02:00:00.000Z',
+      });
+
+    const createRevisionAfterWithdrawn = () =>
+      withdrawnMissionPlan.appendRevision({
+        id: 'proposed-plan-revision-4',
+        proposedTasks: [],
+        proposedTaskDependencies: [],
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T03:00:00.000Z',
+      });
+
+    expect(withdrawnMissionPlan.lifecycleState).toBe('Withdrawn');
+    expect(createRevisionAfterWithdrawn).toThrow(InvalidProposalLifecycleTransitionError);
+    expect(createRevisionAfterWithdrawn).toThrow(
+      "ProposedMissionPlan 'proposed-mission-plan-1' cannot create a new ProposedPlanRevision after Withdrawn.",
+    );
+  });
+
+  it('rejects new ProposedPlanRevision creation when the current revision is Rejected', () => {
+    const rejectedMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput())
+      .submitCurrentRevision(
+        {
+          id: 'proposed-plan-revision-2',
+          plannerAttribution: humanPlannerAttribution,
+          createdAt: '2026-07-17T01:00:00.000Z',
+        },
+        createPlanningPolicy(),
+      )
+      .markCurrentRevisionUnderReview({
+        id: 'proposed-plan-revision-3',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T02:00:00.000Z',
+      })
+      .rejectCurrentRevision({
+        id: 'proposed-plan-revision-4',
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T03:00:00.000Z',
+      });
+
+    const createRevisionAfterRejected = () =>
+      rejectedMissionPlan.appendRevision({
+        id: 'proposed-plan-revision-5',
+        proposedTasks: [],
+        proposedTaskDependencies: [],
+        plannerAttribution: humanPlannerAttribution,
+        createdAt: '2026-07-17T04:00:00.000Z',
+      });
+
+    expect(rejectedMissionPlan.lifecycleState).toBe('Rejected');
+    expect(createRevisionAfterRejected).toThrow(InvalidProposalLifecycleTransitionError);
+    expect(createRevisionAfterRejected).toThrow(
+      "ProposedMissionPlan 'proposed-mission-plan-1' cannot create a new ProposedPlanRevision after Rejected.",
+    );
+  });
+
   it('rejects an aggregate-level Under Review transition from Draft', () => {
     const proposedMissionPlan = ProposedMissionPlan.create(createProposedMissionPlanInput());
 

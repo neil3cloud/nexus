@@ -190,6 +190,9 @@ export function createKernelServices(
     planningCorrelationRepository,
     reviewService,
     randomUUID,
+    governanceService,
+    repositoryPolicyRepository,
+    governanceDecisionRepository,
   );
 
   return [

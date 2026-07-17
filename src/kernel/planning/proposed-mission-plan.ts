@@ -125,6 +125,16 @@ export class ProposedMissionPlan {
     return this.appendLifecycleRevision(input, 'Under Review');
   }
 
+  public markCurrentRevisionGoverned(
+    input: TransitionProposedPlanRevisionInput,
+  ): ProposedMissionPlan {
+    return this.appendLifecycleRevision(input, 'Governed');
+  }
+
+  public rejectCurrentRevision(input: TransitionProposedPlanRevisionInput): ProposedMissionPlan {
+    return this.appendLifecycleRevision(input, 'Rejected');
+  }
+
   public toSnapshot(): ProposedMissionPlanSnapshot {
     const originatingRevision = this.revisionsValue[0];
 
@@ -172,9 +182,9 @@ export class ProposedMissionPlan {
   }
 
   private assertCurrentStateAllowsNewRevision(): void {
-    if (this.lifecycleState === 'Withdrawn') {
+    if (this.lifecycleState === 'Withdrawn' || this.lifecycleState === 'Rejected') {
       throw new InvalidProposalLifecycleTransitionError(
-        `ProposedMissionPlan '${this.proposedMissionPlanId.toString()}' cannot create a new ProposedPlanRevision after Withdrawn.`,
+        `ProposedMissionPlan '${this.proposedMissionPlanId.toString()}' cannot create a new ProposedPlanRevision after ${this.lifecycleState}.`,
       );
     }
   }

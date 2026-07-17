@@ -19,10 +19,16 @@ export interface PlanningCorrelationRevisionKey {
 export interface IPlanningCorrelationRepository {
   register(planningCorrelation: PlanningCorrelation): Promise<PlanningCorrelation>;
   save(planningCorrelation: PlanningCorrelation): Promise<PlanningCorrelation>;
+  saveWithSupersededGovernanceDecision(
+    planningCorrelation: PlanningCorrelation,
+  ): Promise<PlanningCorrelation>;
   getById(
     planningCorrelationId: PlanningCorrelationId | string,
   ): Promise<PlanningCorrelation | undefined>;
   findByReviewId(reviewId: ReviewId | string): Promise<PlanningCorrelation | undefined>;
+  findByGovernanceDecisionId(
+    governanceDecisionId: string,
+  ): Promise<PlanningCorrelation | undefined>;
   findByProposedPlanRevision(
     key: PlanningCorrelationRevisionKey,
   ): Promise<PlanningCorrelation | undefined>;
@@ -36,6 +42,7 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
   private readonly correlationsById = new Map<string, PlanningCorrelationSnapshot>();
   private readonly historiesById = new Map<string, PlanningCorrelationSnapshot[]>();
   private readonly correlationIdsByReviewId = new Map<string, Set<string>>();
+  private readonly correlationIdsByGovernanceDecisionId = new Map<string, Set<string>>();
   private readonly correlationIdsByRevisionKey = new Map<string, Set<string>>();
   private operationQueue: Promise<unknown> = Promise.resolve();
 
@@ -66,6 +73,19 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
   }
 
   public async save(planningCorrelation: PlanningCorrelation): Promise<PlanningCorrelation> {
+    return this.saveInternal(planningCorrelation, false);
+  }
+
+  public async saveWithSupersededGovernanceDecision(
+    planningCorrelation: PlanningCorrelation,
+  ): Promise<PlanningCorrelation> {
+    return this.saveInternal(planningCorrelation, true);
+  }
+
+  private async saveInternal(
+    planningCorrelation: PlanningCorrelation,
+    allowGovernanceDecisionSupersession: boolean,
+  ): Promise<PlanningCorrelation> {
     return this.runExclusive(() => {
       const snapshot = planningCorrelation.toSnapshot();
       const existingSnapshot = this.correlationsById.get(snapshot.id);
@@ -77,7 +97,11 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
       }
 
       assertImmutableCreationFields(existingSnapshot, snapshot);
-      assertAppendOnlyAssociations(existingSnapshot, snapshot);
+      assertAppendOnlyAssociations(
+        existingSnapshot,
+        snapshot,
+        allowGovernanceDecisionSupersession,
+      );
 
       this.correlationsById.set(snapshot.id, snapshot);
       this.historiesById.set(snapshot.id, [
@@ -94,7 +118,9 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
     planningCorrelationId: PlanningCorrelationId | string,
   ): Promise<PlanningCorrelation | undefined> {
     return this.runExclusive(() => {
-      const snapshot = this.correlationsById.get(normalizePlanningCorrelationId(planningCorrelationId));
+      const snapshot = this.correlationsById.get(
+        normalizePlanningCorrelationId(planningCorrelationId),
+      );
 
       return snapshot === undefined ? undefined : PlanningCorrelation.fromSnapshot(snapshot);
     });
@@ -107,6 +133,19 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
       const snapshot = this.findUniqueSnapshotByIndexedKey(
         this.correlationIdsByReviewId,
         normalizeReviewId(reviewId),
+      );
+
+      return snapshot === undefined ? undefined : PlanningCorrelation.fromSnapshot(snapshot);
+    });
+  }
+
+  public async findByGovernanceDecisionId(
+    governanceDecisionId: string,
+  ): Promise<PlanningCorrelation | undefined> {
+    return this.runExclusive(() => {
+      const snapshot = this.findUniqueSnapshotByIndexedKey(
+        this.correlationIdsByGovernanceDecisionId,
+        normalizeGovernanceDecisionId(governanceDecisionId),
       );
 
       return snapshot === undefined ? undefined : PlanningCorrelation.fromSnapshot(snapshot);
@@ -167,6 +206,14 @@ export class InMemoryPlanningCorrelationRepository implements IPlanningCorrelati
     if (snapshot.reviewId !== undefined) {
       addIndexValue(this.correlationIdsByReviewId, snapshot.reviewId, snapshot.id);
     }
+
+    if (snapshot.governanceDecisionId !== undefined) {
+      addIndexValue(
+        this.correlationIdsByGovernanceDecisionId,
+        snapshot.governanceDecisionId,
+        snapshot.id,
+      );
+    }
   }
 
   private async runExclusive<T>(operation: () => T): Promise<T> {
@@ -191,7 +238,8 @@ function assertImmutableCreationFields(
     existingSnapshot.createdAt !== snapshot.createdAt ||
     existingSnapshot.correlationId !== snapshot.correlationId ||
     existingSnapshot.causality.join('\u0000') !== snapshot.causality.join('\u0000') ||
-    JSON.stringify(existingSnapshot.plannerAttribution) !== JSON.stringify(snapshot.plannerAttribution)
+    JSON.stringify(existingSnapshot.plannerAttribution) !==
+      JSON.stringify(snapshot.plannerAttribution)
   ) {
     throw new InvalidPlanningCorrelationDefinitionError(
       `PlanningCorrelation '${snapshot.id}' immutable attribution cannot be changed.`,
@@ -202,10 +250,31 @@ function assertImmutableCreationFields(
 function assertAppendOnlyAssociations(
   existingSnapshot: PlanningCorrelationSnapshot,
   snapshot: PlanningCorrelationSnapshot,
+  allowGovernanceDecisionSupersession: boolean,
 ): void {
   if (existingSnapshot.reviewId !== undefined && existingSnapshot.reviewId !== snapshot.reviewId) {
     throw new InvalidPlanningCorrelationDefinitionError(
       `PlanningCorrelation '${snapshot.id}' Review association cannot be changed.`,
+    );
+  }
+
+  if (
+    existingSnapshot.repositoryPolicyId !== undefined &&
+    (existingSnapshot.repositoryPolicyId !== snapshot.repositoryPolicyId ||
+      existingSnapshot.repositoryPolicyVersion !== snapshot.repositoryPolicyVersion)
+  ) {
+    throw new InvalidPlanningCorrelationDefinitionError(
+      `PlanningCorrelation '${snapshot.id}' RepositoryPolicy association cannot be changed.`,
+    );
+  }
+
+  if (
+    existingSnapshot.governanceDecisionId !== undefined &&
+    existingSnapshot.governanceDecisionId !== snapshot.governanceDecisionId &&
+    !allowGovernanceDecisionSupersession
+  ) {
+    throw new InvalidPlanningCorrelationDefinitionError(
+      `PlanningCorrelation '${snapshot.id}' GovernanceDecision association cannot be changed.`,
     );
   }
 }
@@ -242,4 +311,16 @@ function normalizePlanningCorrelationId(
 
 function normalizeReviewId(reviewId: ReviewId | string): string {
   return typeof reviewId === 'string' ? ReviewId.fromString(reviewId).toString() : reviewId.toString();
+}
+
+function normalizeGovernanceDecisionId(governanceDecisionId: string): string {
+  const normalized = governanceDecisionId.trim();
+
+  if (normalized.length === 0) {
+    throw new InvalidPlanningCorrelationDefinitionError(
+      'PlanningCorrelation governanceDecisionId must be a non-empty string.',
+    );
+  }
+
+  return normalized;
 }

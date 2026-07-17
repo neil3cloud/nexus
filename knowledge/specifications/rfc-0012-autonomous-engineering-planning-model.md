@@ -1,11 +1,11 @@
 # RFC-0012 — Autonomous Engineering Planning Model
 
 **Status:** Final
-**Version:** 1.0
+**Version:** 1.1
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
-Ratified Final by `NEXUS-RAT-2026-07-17-010`, following Sprint 71's Reviewer certification (`NEXUS-REV-2026-07-17-010`) and the Sprint Owner's 16-point consistency review. Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
+Ratified Final by `NEXUS-RAT-2026-07-17-010`, following Sprint 71's Reviewer certification (`NEXUS-REV-2026-07-17-010`) and the Sprint Owner's 16-point consistency review. Amended to v1.1 by `NEXUS-RAT-2026-07-17-015`, clarifying that RFC-0011 `GovernanceDecision` outcomes `Deferred` and `Escalation Required` are not Proposal Lifecycle states and do not transition a revision out of `Under Review`. Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
 
 ---
 
@@ -188,14 +188,16 @@ Governed -> Superseded
 
 - **Draft** — the revision has been created and MAY still be superseded by a later revision without formal submission.
 - **Submitted** — the revision has been submitted for Review; it SHALL NOT be further mutated (a change SHALL create a new revision).
-- **Under Review** — an RFC-0006 `Review` has been initiated for this exact revision through a Planning Correlation record (below), but no final eligible Review outcome has yet been accepted.
-- **Governed** — an authoritative RFC-0011 `GovernanceDecision` exists for this exact revision's Review, correlated through the same Planning Correlation record.
+- **Under Review** — an RFC-0006 `Review` has been initiated for this exact revision through a Planning Correlation record (below), but no final eligible `GovernanceDecision` outcome (`Approved` or `Rejected`) has yet been produced. A revision also remains `Under Review` when a Governance evaluation produced a `Deferred` or `Escalation Required` `GovernanceDecision` outcome (see below) — these outcomes are RFC-0011 `GovernanceDecision` values, not Proposal Lifecycle states, and SHALL NOT be introduced as new lifecycle values.
+- **Governed** — an authoritative RFC-0011 `GovernanceDecision` with outcome `Approved` exists for this exact revision's Review, correlated through the same Planning Correlation record.
 - **Activated** — this exact revision has been converted into executable RFC-0001 state through Activation (below). Terminal.
 - **Withdrawn** — the planner or an authorized human withdrew the revision before a terminal Review or Governance outcome was reached. Terminal.
-- **Rejected** — the Review reached a non-eligible outcome, or the `GovernanceDecision` outcome was not `Approved`. Terminal.
+- **Rejected** — the Review reached a non-eligible outcome, or the correlated `GovernanceDecision` outcome was `Rejected`. Terminal for that revision; the proposal may continue only through creation of a new Proposed Plan Revision.
 - **Superseded** — a later revision of the same Proposed Mission Plan reached `Governed` with an `Approved` `GovernanceDecision` first. Terminal.
 
 Only a `Governed` revision whose correlated `GovernanceDecision` outcome is `Approved` is eligible for Activation. Review or Governance rejection SHALL NOT be represented merely as a generic lifecycle transition label; the authoritative `Review` and `GovernanceDecision` remain the system of record, referenced by the Planning Correlation, not duplicated or reinterpreted by the Proposal Lifecycle state itself.
+
+A `GovernanceDecision` outcome of `Deferred` or `Escalation Required` SHALL NOT be treated as, or reported as, either `Governed` or `Rejected` by any Proposal Lifecycle consumer, consistent with RFC-0011's own prohibition on any consumer treating those outcomes as `Approved` or `Rejected`. Neither outcome SHALL imply Governance completion. Neither outcome SHALL permit Activation. Both outcomes SHALL be recorded through the immutable Planning Correlation's `GovernanceDecision` reference (below) without transitioning the Proposal Lifecycle state. A later Governance evaluation for the same exact Proposed Plan Revision MAY produce a new authoritative `GovernanceDecision`.
 
 A revised proposal SHALL always create a new Proposed Plan Revision; an already `Submitted`, `Under Review`, `Governed`, or `Activated` revision SHALL NOT be mutated.
 
@@ -212,10 +214,10 @@ A Planning Correlation record SHALL possess immutable references to:
 - `missionId`;
 - Planner Attribution;
 - `reviewId`, appended once Review is initiated;
-- `governanceDecisionId`, appended once Governance evaluation produces a decision;
+- `governanceDecisionId`, referencing the most recently produced `GovernanceDecision` for this revision;
 - causation and correlation identifiers.
 
-Each association SHALL be recorded exactly once and SHALL be immutable once recorded, matching RFC-0004's Engineering Decision Correlation append-only rule.
+Each association SHALL be recorded exactly once and SHALL be immutable once recorded, matching RFC-0004's Engineering Decision Correlation append-only rule, with one exception: `governanceDecisionId` SHALL be immutable only once the referenced `GovernanceDecision` outcome is `Approved` or `Rejected` (a terminal outcome for that revision). While the referenced `GovernanceDecision` outcome is `Deferred` or `Escalation Required`, `governanceDecisionId` MAY be superseded by a later Governance evaluation's `GovernanceDecision` for the same exact revision.
 
 `Review` SHALL evaluate the exact immutable Proposed Plan Revision identified by the Planning Correlation. `GovernanceDecision` SHALL govern the exact Review/Proposed-Plan-Revision correlation. A `GovernanceDecision` SHALL NOT authorize Activation when:
 
@@ -349,3 +351,4 @@ Implementation of any capability described in this specification requires its ow
 - v0.1 — Draft. Authorized for drafting by `NEXUS-RAT-2026-07-17-009`. Incorporates Sprint Owner decisions on Proposed Task modeling (separate `ProposedTask`/`ProposedTaskDependency` types, converted at Activation), Proposal Lifecycle (`Draft → Submitted → Under Review → Governed → Activated`, with `Withdrawn`/`Rejected`/`Superseded` terminal branches), Review/Governance reuse (unmodified `Review`/`GovernanceDecision`, correlated through a new Planning Correlation record), and Planner Attribution (`executionRoleId` + `actorType`/`actorId`/`adapterId` + optional session references).
 - v0.2 — Draft. Added the previously-missing Planning Policy section and ownership entry, with an explicit boundary that Planning Policy SHALL NOT modify Mission Objective and SHALL NOT grant or substitute for Governance approval authority. Added Activation idempotency for repeated activation of an already-`Activated` revision, explicit rejection of Activation when the owning Proposed Mission Plan already has an Activated revision, and atomic/exclusive resolution of concurrent Activation attempts. Added Planning Correlation Mission-identity mismatch rejection (mirroring RFC-0004 Engineering Decision Correlation) and an explicit fail-closed rule for missing/ambiguous references. Expanded Non-Goals to explicitly exclude autonomous objective creation, self-approval, Adapter/provider selection, Task execution, and workflow orchestration/Workflow Chain participation.
 - v1.0 — Final. Ratified by `NEXUS-RAT-2026-07-17-010`, incorporating v0.2 in full following the Sprint Owner's 16-point consistency review with zero further changes required.
+- v1.1 — Amended by `NEXUS-RAT-2026-07-17-015`. Originates from `NEXUS-REV-2026-07-17-016-F-001` (Category 2, Critical): Sprint 75's implementation of Proposal Governance Integration collapsed RFC-0011 `GovernanceDecision` outcomes `Deferred` and `Escalation Required` into the terminal `Rejected` Proposal Lifecycle state, violating RFC-0011's explicit prohibition on either outcome being treated as Approved or Rejected. Clarifies that `Deferred` and `Escalation Required` are RFC-0011 `GovernanceDecision` outcomes, not Proposal Lifecycle states: no new lifecycle value is introduced; a revision subject to either outcome remains `Under Review`, is not eligible for Activation, and does not constitute Governance completion. Only an `Approved` `GovernanceDecision` outcome transitions a revision to `Governed`; only a `Rejected` `GovernanceDecision` outcome (or a non-eligible Review outcome) transitions a revision to `Rejected`. Permits `governanceDecisionId` on the Planning Correlation to be superseded by a later Governance evaluation's `GovernanceDecision` for the same revision while the referenced outcome remains `Deferred` or `Escalation Required`, becoming immutable only once a terminal (`Approved`/`Rejected`) outcome is reached. This amendment withdraws no other Sprint 72–75 authorized concept and does not modify RFC-0011.

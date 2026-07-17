@@ -7876,3 +7876,196 @@ None yet. Sprint 74 has not been reviewed.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-014
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-014
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Sprint 75 — Proposal Governance Integration authorized (Milestone 11 Initial Capability Sequence step 6); explicit Repository Policy attribution rule for Proposal Governance evaluation established.
+
+## Originating Request
+
+Following Sprint 74's Reviewer certification (`NEXUS-REV-2026-07-17-014`/`-015`, PASS WITH FINDINGS/PASS, fully closed with zero open findings of any blocking category) and confirmation that no open Builder Tasks remain, `nexus-plan` found that `GovernanceServiceContract.evaluateGovernancePolicy` (RFC-0011) requires an explicit `repositoryPolicyId`/`repositoryPolicyVersion`, and neither RFC-0012 nor any prior ratification specifies which Repository Policy governs a Proposal's Governance evaluation. `nexus-plan` presented the Sprint Owner three alternatives (reuse the Workflow Step policy; require explicit policy attribution with no default; defer Governance evaluation itself to a later Sprint) plus an open option, before drafting the Sprint 75 proposal.
+
+## Governance Decision
+
+**APPROVED — EXPLICIT POLICY ATTRIBUTION.**
+
+Sprint 75 SHALL require an explicit `repositoryPolicyId` and `repositoryPolicyVersion` when initiating Proposal Governance evaluation. The selected Repository Policy reference SHALL be recorded in the immutable `PlanningCorrelation` for the exact Proposed Plan Revision.
+
+Rules (binding):
+
+- No default Repository Policy.
+- No reuse based solely on Workflow Step configuration.
+- No Host- or Kernel-inferred policy selection.
+- No automatic policy routing or scoring.
+- The referenced policy must exist, be effective, and be valid for the evaluation.
+- Missing, invalid, superseded, or unresolved policy attribution SHALL fail closed.
+- Repeated evaluation of the same Proposal Revision SHALL use the same recorded policy reference.
+- Changing the policy requires a new governance evaluation and correlation record.
+
+RFC-0011 remains the sole owner of Repository Policy and Governance evaluation semantics; this ratification introduces no new Repository Policy concept and modifies no RFC-0011 behavior.
+
+### Sprint 75 — Proposal Governance Integration (authorized)
+
+Sprint 75 SHALL implement, strictly within the existing Planning domain module (`src/kernel/planning/`) established by Sprint 72, extended by Sprint 73, and extended by Sprint 74, without modifying any Sprint 1–74 production file except the one additive `PlanningCorrelation`/`ProposedPlanRevision` extension named below:
+
+- an additive extension to the existing `PlanningCorrelation` record (Sprint 74, frozen except for this extension) carrying: an explicit `repositoryPolicyId`, `repositoryPolicyVersion` (required at Governance-evaluation initiation, no default); a `governanceDecisionId`, appended once Governance evaluation produces a decision;
+- terminal RFC-0006 Review outcome consumption for the exact `Under Review` Proposed Plan Revision identified by the Planning Correlation, through `Review`'s existing public contract (unmodified) — reading the terminal `ReviewOutcome` only, never reinterpreting or duplicating it;
+- invocation of the existing `GovernanceServiceContract.evaluateGovernancePolicy` (RFC-0011, unmodified) with the Planning Correlation's `missionId`, correlated `reviewId`, and the caller-supplied `repositoryPolicyId`/`repositoryPolicyVersion`, exactly mirroring the existing `EngineeringDecisionCorrelationService` pattern (RFC-0004, Sprint 67, unmodified) for associating a produced `GovernanceDecision`;
+- the `Under Review → Governed` Proposal Lifecycle transition (additive extension to `ProposedPlanRevision`'s lifecycle, mirroring the Sprint 74/`NEXUS-RAT-2026-07-17-013` `Under Review` precedent), reachable only from `Under Review`, requiring a `PlanningCorrelation` carrying a `governanceDecisionId` whose resolved `GovernanceDecision` outcome is `Approved` and whose `missionId` exactly matches the Planning Correlation's `missionId`;
+- the `Under Review → Rejected` and `Governed → Rejected` Proposal Lifecycle transitions (additive extensions, same lifecycle type), reached when: the correlated Review reaches a non-eligible outcome for Governance evaluation; or a produced `GovernanceDecision` outcome is not `Approved` (including `Escalation Required` and `Deferred`, per RFC-0011's existing outcome set — Deferred SHALL NOT be treated as eligible for `Governed`, consistent with RFC-0012's "Only a `Governed` revision whose correlated `GovernanceDecision` outcome is `Approved`");
+- deterministic, fail-closed diagnostics for: missing, invalid, superseded, or unresolved Repository Policy attribution; a non-terminal or missing Review outcome; a `GovernanceDecision`/Review Mission-identity mismatch against the Planning Correlation's own `missionId`; re-evaluation attempted with a different `repositoryPolicyId`/`repositoryPolicyVersion` than the one already recorded for that Planning Correlation; and any other missing/ambiguous reference — no fallback inference is authorized;
+- unit tests covering: Repository Policy attribution recording and its no-default/no-inference/no-reuse rule; re-evaluation-with-different-policy rejection; terminal Review outcome consumption (eligible and non-eligible); the `Under Review → Governed` transition and its `Approved`-only precondition; both `Rejected` paths; Mission-identity mismatch rejection; and idempotency for an already-`Governed`/already-`Rejected` revision.
+
+Sprint 75 SHALL NOT implement: Activation or any conversion into RFC-0001 executable `MissionPlan`/`Task`/`TaskDependency` objects; the `Superseded` Proposal Lifecycle transition (Activation-triggered, Sprint 76); Domain Event publication for any RFC-0012-reserved event; any new Repository Policy concept, policy authoring, policy versioning mechanism, or policy selection/routing logic (RFC-0011 remains the sole owner; Sprint 75 only attributes an existing, externally-identified policy reference); AI-generated planning, Adapter invocation, or provider/Adapter selection; workflow orchestration.
+
+Sprint 75 SHALL NOT modify `Mission`, `MissionPlan`, `Task`, `TaskDependency`, `Review`, `GovernanceDecision`, `GovernanceService`, `EngineeringDecisionCorrelation`, `RecoveryRequirement`, any Execution Model concept, any event, any event consumer, any projection, `src/hosts`, or `src/adapters`. Sprint 75 SHALL NOT modify any Sprint 72, 73, or 74 domain model, value object, service, or validation logic — it consumes them read-only/as-is, except for the one additive `PlanningCorrelation`/`ProposedPlanRevision` lifecycle extension named above.
+
+**Definition of Done:** `PlanningCorrelation` carries explicit Repository Policy attribution with no default, no inference, and no cross-policy re-evaluation; terminal Review outcome consumption and Governance evaluation are correctly invoked through existing, unmodified RFC-0006/RFC-0011 public contracts; the `Under Review → Governed` transition enforces the `Approved`-only precondition and Mission-identity match; both `Rejected` paths are implemented and tested; every fail-closed rejection condition above is enforced and tested; no Sprint 1–74 production contract, Host, or Adapter file is found to have drifted beyond the one authorized additive extension; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized.
+
+## RFC Coverage
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; Planning Correlation's Governance extension and the `Governed`/`Rejected` Proposal Lifecycle transitions implement RFC-0012's Planning Correlation and Proposal Lifecycle sections, unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; `GovernanceDecision`/`GovernanceServiceContract.evaluateGovernancePolicy` consumed read-only through its existing public contract, unmodified)
+- RFC-0006 — Engineering Assessment Model (Referenced; terminal `Review`/`ReviewOutcome` consumed read-only, unmodified)
+- RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced; consumed read-only, unmodified, unchanged from Sprint 72–74)
+
+## Ownership Model (ratified)
+
+This ratification authorizes one Sprint's scope at the Implementation Plan tier and establishes one binding Repository Policy attribution rule for the Planning domain. It modifies no RFC, redefines no previously approved vertical slice, and does not reopen Sprint 72, 73, or 74 (all frozen except the one additive extension it authorizes).
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification; generate the Sprint 75 Sprint Implementation Record reproducing this ratification's full binding detail; update `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` to activate Sprint 75; and prepare Builder handoff.
+
+## Deferred Concepts
+
+Activation and conversion into RFC-0001 executable objects; the `Superseded` transition (Sprint 76); Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77); Domain Event publication for the Planning domain; AI-generated planning; workflow orchestration; any new Repository Policy authoring/versioning/selection mechanism — each requires its own future Sprint scope ratification, gated on Sprint 75's certification (Sprint 76) or remaining permanently out of RFC-0012's scope (Repository Policy authoring, owned exclusively by RFC-0011).
+
+## Related Sprint(s)
+
+- Sprint 72 — Planning Policy and Proposed Plan Foundation (frozen; consumed read-only).
+- Sprint 73 — Planning Service and Proposal Lifecycle Foundation (frozen; consumed read-only).
+- Sprint 74 — Planning Correlation and Review Entry Foundation (frozen except for this ratification's authorized `PlanningCorrelation`/`ProposedPlanRevision` extension; consumed read-only otherwise).
+- Sprint 67 — Engineering Decision Correlation Foundation (frozen; precedent pattern mirrored, not modified).
+- Sprint 75 — Proposal Governance Integration (this ratification's authorized implementation scope).
+
+## Related Review(s)
+
+None yet. Sprint 75 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner authorizes Sprint 75 — Proposal Governance Integration, requiring an explicit `repositoryPolicyId` and `repositoryPolicyVersion` when initiating Proposal Governance evaluation, with no default, no reuse based solely on Workflow Step configuration, no Host- or Kernel-inferred policy selection, and no automatic policy routing or scoring; the referenced policy must exist, be effective, and be valid for the evaluation; missing, invalid, superseded, or unresolved policy attribution SHALL fail closed; repeated evaluation of the same Proposal Revision SHALL use the same recorded policy reference; changing the policy requires a new governance evaluation and correlation record. RFC-0011 remains the sole owner of Repository Policy and Governance evaluation semantics. Sprint 75 is authorized to implement terminal Review outcome handling; `GovernanceDecision` evaluation for the exact Proposed Plan Revision; Repository Policy attribution; `GovernanceDecision` correlation; and the `Under Review → Governed` transition (and its `Rejected` counterparts). Activation and RFC-0001 conversion remain deferred to Sprint 76. `nexus-plan` SHALL record this ratification, generate the Sprint 75 Sprint Implementation Record, synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, activate Sprint 75, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-17-015
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-015
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Resolution of `NEXUS-REV-2026-07-17-016-F-001` (Category 2, Critical): RFC-0011 `GovernanceDecision` outcomes `Deferred` and `Escalation Required` are not Proposal Lifecycle states; RFC-0012 amended to v1.1; corrective scope authorized for `BT-075-001`.
+
+## Originating Request
+
+`NEXUS-REV-2026-07-17-016` found that Sprint 75's `PlanningCorrelationService.evaluateGovernance` collapsed all non-`Approved` `GovernanceDecision` outcomes (`Rejected`, `Deferred`, `Escalation Required`) into the terminal `Rejected` Proposal Lifecycle state, violating RFC-0011's explicit prohibition on treating `Deferred` or `Escalation Required` as either `Approved` or `Rejected`, and specifically undermining Canon 12 (Human Authority) for `Escalation Required`. `nexus-sprint` translated this into `BT-075-001`, Blocked, pending a Sprint Owner Ratification defining how these two `GovernanceDecision` outcomes are represented in the Proposal Lifecycle, since RFC-0012 v1.0 did not address this case and no ratification may introduce new domain behavior without Sprint Owner decision.
+
+## Governance Decision
+
+**APPROVED — GOVERNANCE RESOLUTION.**
+
+RFC-0012 SHALL NOT introduce separate Proposal Lifecycle states for `Deferred` or `Escalation Required`. These are RFC-0011 `GovernanceDecision` outcomes, not Proposal Lifecycle states.
+
+The Proposal Lifecycle SHALL represent them as follows:
+
+- `Approved` → transition `Under Review → Governed`; eligible for Activation.
+- `Rejected` → transition `Under Review → Rejected`; terminal for that revision.
+- `Deferred` → remain `Under Review`; not eligible for Activation.
+- `Escalation Required` → remain `Under Review`; not eligible for Activation.
+
+Rules (binding):
+
+- `Deferred` and `Escalation Required` SHALL be recorded through the immutable `PlanningCorrelation` and `GovernanceDecision` reference.
+- Neither outcome SHALL imply Governance completion.
+- Neither outcome SHALL permit Activation.
+- A later Governance evaluation for the same exact Proposed Plan Revision MAY produce a new authoritative decision.
+- Only an `Approved` decision may transition the revision to `Governed`.
+- A `Rejected` revision may continue only through creation of a new Proposed Plan Revision.
+- No new lifecycle values are authorized.
+
+### RFC-0012 Amendment (authorized)
+
+RFC-0012 is amended to v1.1: the Proposal Lifecycle section's `Under Review`, `Governed`, and `Rejected` state definitions are corrected to reflect the rules above; a new paragraph is added stating that `Deferred`/`Escalation Required` outcomes are not Proposal Lifecycle states, do not transition the revision, are not eligible for Activation, and do not imply Governance completion; the Planning Correlation section's `governanceDecisionId` field is corrected from strictly append-once-immutable to immutable only once a terminal (`Approved`/`Rejected`) outcome is reached, permitting supersession by a later Governance evaluation while the outcome remains `Deferred`/`Escalation Required`. No other RFC-0012 section is amended. RFC-0011 is not modified.
+
+### Sprint 75 Corrective Scope (authorized)
+
+`BT-075-001` is unblocked. The Builder SHALL implement, strictly within `src/kernel/planning/`, without modifying `src/kernel/review/`, `src/kernel/governance/`, `src/hosts`, or `src/adapters`:
+
+- Correct `PlanningCorrelationService.evaluateGovernance`'s outcome handling to distinguish all four `GovernanceDecisionValue` values: `Approved` transitions the revision `Under Review → Governed`; `Rejected` transitions the revision `Under Review → Rejected` (unchanged from the existing, already-Reviewer-confirmed-correct branch); `Deferred` and `Escalation Required` leave the current revision at `Under Review` and record the `GovernanceDecision` reference on the `PlanningCorrelation` without any Proposal Lifecycle transition.
+- Correct `PlanningCorrelation.associateGovernanceDecision` (and/or `evaluateGovernance`'s orchestration) so that a `governanceDecisionId` referencing a `Deferred` or `Escalation Required` `GovernanceDecision` MAY be superseded by a later Governance evaluation's `GovernanceDecision` for the same exact revision, while a `governanceDecisionId` referencing an `Approved` or `Rejected` `GovernanceDecision` remains immutable exactly as already implemented (the existing `PlanningCorrelationAssociationRejectedError`/`InvalidPlanningCorrelationDefinitionError` rejection behavior for terminal outcomes is unchanged).
+- The existing `assertPolicyReevaluationIsStable` Repository Policy stability rule is unchanged: a later Governance evaluation permitted by this correction SHALL still use the same recorded Repository Policy reference; changing the Repository Policy still requires a new Planning Correlation, per `NEXUS-RAT-2026-07-17-014`, unchanged.
+- Add unit tests exercising `Deferred` and `Escalation Required` `GovernanceDecision` outcomes explicitly: the revision remains `Under Review`, is not eligible for Activation (no `Governed` transition occurs), the `GovernanceDecision` reference is recorded, and a subsequent Governance evaluation for the same revision may supersede the recorded `governanceDecisionId` and reach a new terminal or non-terminal outcome.
+
+No other Authorized Concept, Architectural Boundary, or Deferred Concept from `NEXUS-RAT-2026-07-17-014` (Sprint 75's original authorization) is altered by this correction. Activation, the `Superseded` transition, Domain Event publication, and Repository Policy authoring/versioning/selection remain deferred to their originally authorized Sprints.
+
+**Definition of Done:** `evaluateGovernance` correctly distinguishes all four `GovernanceDecisionValue` outcomes per the rules above; `Deferred`/`Escalation Required` outcomes leave the revision `Under Review` and do not permit Activation; `governanceDecisionId` supersession is correctly scoped to non-terminal outcomes only; unit tests cover both previously-untested outcomes and re-evaluation-after-`Deferred`/`Escalation Required`; every previously-passing Sprint 72–75 test continues to pass unmodified; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); RFC-0012 v1.1, the Sprint 75 Sprint Implementation Record, `IMPLEMENTATION_REPORT.md`, and `builder-task.md` are synchronized.
+
+## RFC Coverage
+
+- RFC-0012 (Amended to v1.1 by this ratification — Proposal Lifecycle and Planning Correlation sections corrected)
+- RFC-0011 — Engineering Governance Model (Referenced; clarifies conformance requirement, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0012 (Constitutional Layer authority, RFC Specification Suite) to correct a genuine specification gap that the original Sprint 75 authorization (`NEXUS-RAT-2026-07-17-014`) did not anticipate, and authorizes a narrow corrective Sprint 75 implementation scope. It does not reopen or redefine any other Sprint 72–75 authorized concept, and does not modify RFC-0011.
+
+## Authorized Scope
+
+`nexus-plan`/reviewer workflow is authorized to record this ratification; amend RFC-0012 to v1.1; update the Sprint 75 Sprint Implementation Record's Authorized Concepts, Architectural Boundaries, and Ratification sections to reflect the correction; and `nexus-sprint` is authorized to translate this ratification into a corrective, unblocked Builder Task superseding `BT-075-001`'s Blocked status.
+
+## Deferred Concepts
+
+Unchanged from `NEXUS-RAT-2026-07-17-014`: Activation and conversion into RFC-0001 executable objects (Sprint 76); the `Superseded` transition (Sprint 76); Domain Event publication for the Planning domain; any new Repository Policy authoring/versioning/selection mechanism; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77).
+
+## Related Sprint(s)
+
+- Sprint 72 — Planning Policy and Proposed Plan Foundation (frozen; unaffected).
+- Sprint 73 — Planning Service and Proposal Lifecycle Foundation (frozen; unaffected).
+- Sprint 74 — Planning Correlation and Review Entry Foundation (frozen; unaffected).
+- Sprint 75 — Proposal Governance Integration (this ratification's corrective authorization).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-17-016` (Sprint 75; FAIL; originating Critical finding F-001).
+- `NEXUS-REV-2026-07-17-017` (Sprint 75; BT-075-002 Resolution Verification; FAIL unchanged; F-001 remained open pending this ratification).
+
+## Full Ratification Text
+
+> RFC-0012 SHALL NOT introduce separate Proposal Lifecycle states for `Deferred` or `Escalation Required`. These are RFC-0011 GovernanceDecision outcomes, not Proposal Lifecycle states. The Proposal Lifecycle SHALL represent them as follows: `Approved` → transition `Under Review → Governed`, eligible for Activation; `Rejected` → transition `Under Review → Rejected`, terminal for that revision; `Deferred` → remain `Under Review`, not eligible for Activation; `Escalation Required` → remain `Under Review`, not eligible for Activation. `Deferred` and `Escalation Required` SHALL be recorded through the immutable PlanningCorrelation and GovernanceDecision reference; neither outcome SHALL imply Governance completion; neither outcome SHALL permit Activation; a later Governance evaluation for the same exact Proposed Plan Revision MAY produce a new authoritative decision; only an Approved decision may transition the revision to Governed; a Rejected revision may continue only through creation of a new Proposed Plan Revision; no new lifecycle values are authorized. RFC-0012 and the Sprint 75 implementation contract SHALL be updated accordingly, and the corrective Builder task for F-001 SHALL be generated.
+
+## Current Status
+
+Active
+
+---

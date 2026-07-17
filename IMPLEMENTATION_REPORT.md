@@ -1,5 +1,103 @@
 # Nexus Implementation Report
 
+## Sprint 75 — Proposal Governance Integration
+
+### Implemented Slice
+
+Implemented the Milestone 11 Sprint 75 vertical slice authorized by `NEXUS-RAT-2026-07-17-014`.
+
+Implemented scope:
+
+- Extended immutable `PlanningCorrelation` with explicit `repositoryPolicyId`, `repositoryPolicyVersion`, and append-only `governanceDecisionId`.
+- Added RFC-0012 Proposal Lifecycle values `Governed` and `Rejected` and additive `Under Review -> Governed`, `Under Review -> Rejected`, and `Governed -> Rejected` transitions.
+- Extended `PlanningCorrelationService` to consume the exact correlated terminal RFC-0006 `Review`, require explicit current Repository Policy attribution, invoke `GovernanceServiceContract.evaluateGovernancePolicy`, record the produced `GovernanceDecision`, transition `Approved`/`Rejected` outcomes, and leave `Deferred`/`Escalation Required` outcomes at `Under Review`.
+- Added fail-closed handling for missing/non-terminal Review outcomes, Review/correlation mismatch, missing or superseded Repository Policy attribution, cross-policy re-evaluation, GovernanceDecision Mission/Review/Policy mismatch, and idempotent already-`Governed`/already-`Rejected` retries.
+- Registered the Governance integration path through Kernel composition using the existing shared in-memory Review, Repository Policy, and Governance Decision repositories.
+- Added unit coverage for Repository Policy attribution, append-only GovernanceDecision association, terminal Review outcome consumption, Approved-only Governed transition, Review-rejected and Governance-rejected paths, `Deferred`/`Escalation Required` non-transition handling, non-terminal GovernanceDecision supersession, terminal GovernanceDecision supersession rejection, Mission mismatch rejection, superseded/cross-policy rejection, and idempotency.
+
+Out of scope and not implemented:
+
+- Activation or conversion into RFC-0001 executable `MissionPlan`, `Task`, or `TaskDependency`.
+- `Superseded` Proposal Lifecycle transition.
+- Planning-domain Domain Event publication.
+- Repository Policy authoring, versioning, selection, or routing beyond consuming an explicit existing Repository Policy reference.
+- AI plan generation, Adapter invocation, provider/Adapter selection, workflow orchestration, Host changes, or Adapter changes.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model; implemented Planning Correlation Governance extension, the authorized `Governed`/`Rejected` Proposal Lifecycle transitions, and ratified `Deferred`/`Escalation Required` non-transition handling.
+
+Referenced:
+
+- RFC-0011 — Engineering Governance Model; consumed `GovernanceServiceContract.evaluateGovernancePolicy` and `GovernanceDecision` through existing public contracts, unmodified.
+- RFC-0006 — Engineering Assessment Model; consumed terminal `ReviewOutcome` through existing public contracts, unmodified.
+- RFC-0001 — Mission Model; consumed `missionId` by identity only.
+- RFC-0004 — Execution Model; consumed existing Planner Attribution identifiers only.
+- RFC-0005 — Domain Event Model; consumed causation/correlation identifier shape only and published no Planning events.
+- RFC-0008 — Kernel Adapter Contract; consumed existing Planner Attribution `adapterId` shape only.
+
+Deferred Concepts:
+
+- Activation and conversion into RFC-0001 executable objects.
+- `Superseded` Proposal Lifecycle transition.
+- Domain Event publication for the Planning domain.
+- Repository Policy authoring/versioning/selection/routing.
+- AI-generated planning, Adapter invocation, provider selection, workflow orchestration, and Autonomous Planning Integration Validation.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-012`, `NEXUS-RAT-2026-07-17-014`, `NEXUS-RAT-2026-07-17-015`).
+- `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0005-domain-event-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/implementation/sprints/sprint-0075-proposal-governance-integration.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- The caller supplies an explicit Repository Policy reference; Sprint 75 introduces no policy selection or defaulting mechanism.
+- RFC-0011 remains the sole owner of Repository Policy and GovernanceDecision semantics; Planning records only attribution and correlation.
+- Existing Review and Governance services may publish their own already-authorized events; Sprint 75 publishes no Planning-domain event.
+
+### Known Limitations
+
+- A `Governed` Proposed Plan Revision cannot be Activated until Sprint 76 authorizes Activation.
+- Planning Correlation remains in-memory and process-local.
+- Non-eligible Review outcomes reject the Proposed Plan Revision without producing a Planning-specific GovernanceDecision substitute.
+- A `Deferred` or `Escalation Required` GovernanceDecision leaves the Proposed Plan Revision `Under Review` until a later explicit Governance evaluation supersedes the non-terminal decision.
+
+### Validation Summary
+
+- Repository validation passed: `npm run validate` (TypeScript compile, ESLint, Vitest excluding extension-host tests, esbuild).
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Targeted Planning validation passed: `npx vitest run test\kernel\planning\planning-domain.test.ts test\kernel\planning\planning-correlation.test.ts test\kernel\planning\planning.service.test.ts`.
+- Targeted BT-075-001 remediation validation passed: `npx vitest run test\kernel\planning\planning-correlation.test.ts`.
+- Targeted BT-075-002 remediation validation passed: `npx vitest run test\kernel\planning\planning-domain.test.ts`.
+- Targeted BT-075-003 remediation validation passed: `npx vitest run test\kernel\planning\planning-correlation.test.ts`.
+
+### Deviations
+
+No architectural deviations.
+
+### Review Remediation
+
+- `BT-075-002` — Added direct aggregate-level unit tests proving `ProposedMissionPlan.appendRevision` rejects new Proposed Plan Revision creation when the current revision is `Withdrawn` and when it is `Rejected`. No production source was modified for this remediation.
+- `BT-075-001` — Completed per `NEXUS-RAT-2026-07-17-015`: `Deferred` and `Escalation Required` `GovernanceDecision` outcomes are recorded on `PlanningCorrelation` without Proposal Lifecycle transition, remain `Under Review`, and may be superseded by a later Governance evaluation until an `Approved` or `Rejected` decision is recorded.
+- `BT-075-003` — Added a direct `PlanningCorrelationService.evaluateGovernance` unit test for the non-atomic-write edge case where `PlanningCorrelation.governanceDecisionId` already references a terminal `GovernanceDecision` while the Proposed Plan Revision remains `Under Review`; a later different `governanceDecisionId` is rejected with `PlanningCorrelationAssociationRejectedError`. No production source was modified for this remediation.
+
+---
+
 ## Sprint 74 — Planning Correlation and Review Entry Foundation
 
 ### Implemented Slice
