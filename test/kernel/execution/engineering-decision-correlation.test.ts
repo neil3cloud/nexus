@@ -310,7 +310,10 @@ function createReview(reviewId: string, missionId: string): Review {
   return Review.create({
     id: reviewId,
     missionId,
-    missionPlanRevision: 'mission-plan-revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'mission-plan-revision-1',
+    },
     reviewCriteria: [{ id: 'criterion-1', description: 'Criterion 1' }],
     evidenceReferences: ['evidence-1'],
   });

@@ -3,6 +3,8 @@ export const proposalLifecycleStates = [
   'Submitted',
   'Under Review',
   'Governed',
+  'Activated',
+  'Superseded',
   'Withdrawn',
   'Rejected',
 ] as const;

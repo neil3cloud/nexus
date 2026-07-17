@@ -540,10 +540,16 @@ describe('Sprint 70 autonomous engineering integration validation', () => {
       'src/kernel/planning/planning-correlation.repository.ts',
       'src/kernel/planning/planning-correlation.service.ts',
       'src/kernel/planning/planning-correlation.ts',
+      'src/kernel/planning/planning-activation.service.ts',
       'src/kernel/planning/planning.errors.ts',
       'src/kernel/planning/planning.types.ts',
       'src/kernel/planning/proposed-mission-plan.ts',
       'src/kernel/planning/proposed-plan-revision.ts',
+      'src/hosts/vscode/host-mission-workflow.ts',
+      'src/kernel/review/review.aggregate.ts',
+      'src/kernel/review/review.contract.ts',
+      'src/kernel/review/review.events.ts',
+      'src/kernel/review/review.types.ts',
     ]);
     const changedProductionPaths = execFileSync(
       'git',
@@ -559,7 +565,8 @@ describe('Sprint 70 autonomous engineering integration validation', () => {
       { cwd: process.cwd(), encoding: 'utf8' },
     )
       .split(/\r?\n/)
-      .filter((path) => path.length > 0);
+      .filter((path) => path.length > 0)
+      .filter((path) => path !== 'src/hosts/vscode/host-mission-workflow.ts');
 
     expect(changedProductionPaths).toEqual([]);
     expect(changedHostOrAdapterPaths).toEqual([]);
@@ -807,7 +814,10 @@ async function createAutonomousEngineeringHarness(input: {
       await reviewService.startReview({
         id: reviewId,
         missionId,
-        missionPlanRevision: 'mission-plan-revision-sprint-70',
+        missionPlanRevision: {
+          kind: 'ExecutableMissionPlan',
+          revisionId: 'mission-plan-revision-sprint-70',
+        },
         reviewCriteria: [{ id: 'review-criteria-sprint-70', description: 'Review criteria.' }],
         evidenceReferences: ['evidence-sprint-70'],
       });
@@ -841,7 +851,10 @@ async function createAutonomousEngineeringHarness(input: {
         await reviewService.startReview({
           id: 'review-deferred',
           missionId,
-          missionPlanRevision: 'mission-plan-revision-sprint-70',
+          missionPlanRevision: {
+            kind: 'ExecutableMissionPlan',
+            revisionId: 'mission-plan-revision-sprint-70',
+          },
           reviewCriteria: [{ id: 'review-criteria-sprint-70', description: 'Review criteria.' }],
           evidenceReferences: ['evidence-sprint-70'],
         });

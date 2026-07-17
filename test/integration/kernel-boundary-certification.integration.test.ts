@@ -109,6 +109,7 @@ const expectedKernelServiceNames = [
   'ReviewService',
   'PlanningService',
   'PlanningCorrelationService',
+  'PlanningActivationService',
   'KnowledgeService',
 ] as const;
 
@@ -572,7 +573,10 @@ async function completeBoundaryWorkflow(
   const review = await harness.reviewService.startReview({
     id: reviewId,
     missionId: workflow.missionId,
-    missionPlanRevision: `revision-${workflow.readyRevisionNumber}`,
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: `revision-${workflow.readyRevisionNumber}`,
+    },
     reviewCriteria: [
       {
         id: 'sprint-18-boundary-certification',
@@ -588,7 +592,7 @@ async function completeBoundaryWorkflow(
   const knowledge = await harness.knowledgeService.captureKnowledge({
     id: knowledgeId,
     missionId: workflow.missionId,
-    missionPlanRevisionId: review.missionPlanRevision,
+    missionPlanRevisionId: review.missionPlanRevision.revisionId,
     summary: 'Sprint 18 certified the composed Kernel boundary.',
     scope: 'Repository',
     supportingEvidenceIds: [evidenceId],

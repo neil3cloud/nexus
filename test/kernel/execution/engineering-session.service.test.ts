@@ -2554,7 +2554,10 @@ function createCompletedReview(outcome: ReviewOutcomeValue): Review {
   const review = Review.create({
     id: 'review-governance-gated',
     missionId: 'mission-governance-gated',
-    missionPlanRevision: 'mission-plan-revision-governance-gated',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'mission-plan-revision-governance-gated',
+    },
     reviewCriteria: [{ id: 'review-criteria-1', description: 'Review criteria.' }],
     evidenceReferences: ['evidence-1'],
   });

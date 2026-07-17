@@ -241,7 +241,7 @@ function createRecordingCompletion(): MissionWorkflowCompletionServices {
           review: {
             id: command.reviewId,
             missionId: 'mission-command-mission',
-            missionPlanRevision: 'revision-3',
+            missionPlanRevision: { kind: 'ExecutableMissionPlan', revisionId: 'revision-3' },
             status: 'Completed',
             outcome: 'Accepted',
             reviewCriteria: [],

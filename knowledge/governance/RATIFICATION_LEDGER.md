@@ -8069,3 +8069,269 @@ Unchanged from `NEXUS-RAT-2026-07-17-014`: Activation and conversion into RFC-00
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-016
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-016
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Resolution of `NEXUS-REV-2026-07-17-016-F-003` / `NEXUS-REV-2026-07-17-014-F-002` (Category 6, Observation, carried forward): `Review.missionPlanRevision`'s dual, untyped semantics. RFC-0006 amended to v1.1 to define a typed `ReviewPlanRevisionReference`, replacing the opaque string field, ahead of Sprint 76 (Approved Plan Activation).
+
+## Originating Request
+
+`nexus-plan`'s governance scan preceding Sprint 76 scoping found that `Review.missionPlanRevision` (Sprint 9, `review.aggregate.ts`) is an untyped, opaque, non-empty string with no RFC-0006-defined domain semantics. Sprint 74/75's `PlanningCorrelationService.assertReviewMatchesCorrelation` currently populates and matches this field against an RFC-0012 `ProposedPlanRevisionId` — a Planning-domain identifier — while the field's name, its Sprint 9 origin, and `review.service.ts`'s original call sites all imply an RFC-0001 executable Mission Plan revision reference. Two consecutive Reviewer certifications (`NEXUS-REV-2026-07-17-014-F-002`, Sprint 74; `NEXUS-REV-2026-07-17-016-F-003`, Sprint 75) flagged this as a load-bearing ambiguity requiring reconciliation before Sprint 76, because Sprint 76 (Activation) is the first capability that treats this exact correlation as a precondition for an irreversible conversion into executable RFC-0001 state. `nexus-plan` presented this as a Governance Report with three alternatives (leave as-is; type the reference via RFC-0006 amendment; defer to a dedicated pre-Sprint-76 correction sprint). The Sprint Owner selected typing the reference via RFC-0006 amendment, to be completed before Sprint 76 implementation proceeds.
+
+## Governance Decision
+
+**APPROVED — TYPE THE REVIEW REVISION REFERENCE.**
+
+`Review`'s revision-under-assessment reference SHALL no longer be represented as an untyped opaque string. It SHALL be represented as an explicit, discriminated reference identifying its owning domain:
+
+```text
+ReviewPlanRevisionReference
+- kind: ExecutableMissionPlan | ProposedPlanRevision
+- revisionId: string
+```
+
+Rules (binding):
+
+- `kind: ExecutableMissionPlan` identifies an RFC-0001 executable `MissionPlan` revision (Sprint 3's `revisionNumber`-derived reference), matching every pre-Sprint-74 `Review` use of this field.
+- `kind: ProposedPlanRevision` identifies an RFC-0012 `ProposedPlanRevisionId` (Sprint 74/75's Planning Correlation use of this field).
+- This is a rename/typing correction of an existing field, not a new concept: no third `kind` value, no additional Review-owned domain behavior, and no change to `Review`'s lifecycle, `ReviewOutcome`, `Finding`, or any other RFC-0006 concept is authorized by this ratification.
+- `PlanningCorrelationService.assertReviewMatchesCorrelation` SHALL be corrected to compare `kind: ProposedPlanRevision` and `revisionId` explicitly, rather than treating the field as an opaque string; a `Review` whose reference `kind` is not `ProposedPlanRevision` SHALL be rejected as a Planning Correlation mismatch (fail-closed), rather than compared as if it were.
+- Every existing caller that constructs a `Review` for an RFC-0001 executable Mission Plan revision (pre-Sprint-74 call sites) SHALL be updated to supply `kind: ExecutableMissionPlan` with the same `revisionId` value already in use today; no behavioral change to those call sites' outcomes is authorized.
+- This is a correction to Sprint 9's frozen `Review` model, narrowly scoped to this one field's representation; no other Sprint 9/11 `Review`/`Finding` behavior, validation rule, diagnostic, or event shape is reopened.
+
+### RFC-0006 Amendment (authorized)
+
+RFC-0006 is amended to v1.1: the "Assessment Session" section's `Mission Plan Revision` record is corrected to specify that this reference SHALL be represented as a typed `ReviewPlanRevisionReference` (`kind: ExecutableMissionPlan | ProposedPlanRevision`, `revisionId`), disambiguating an RFC-0001 executable Mission Plan revision from an RFC-0012 Proposed Plan Revision. An Amendment History section is added recording this change. No other RFC-0006 section is amended. RFC-0001 and RFC-0012 are not modified by this ratification.
+
+### Sprint 76 Scope Interaction (authorized)
+
+Sprint 76 (Approved Plan Activation) SHALL implement this typed reference as a prerequisite correction, strictly scoped as above, before or alongside implementing Activation itself. This ratification does not itself authorize Activation or any other Sprint 76 concept — Sprint 76's full scope requires its own Sprint Proposal and Sprint Owner approval, per `nexus-plan`'s process.
+
+**Definition of Done (for this correction):** `Review`'s revision reference is represented as `ReviewPlanRevisionReference` with an explicit `kind` discriminator; every existing pre-Sprint-74 call site is migrated to `kind: ExecutableMissionPlan` with no behavioral change; `PlanningCorrelationService.assertReviewMatchesCorrelation` explicitly checks `kind: ProposedPlanRevision` and fail-closes on any other `kind`; every previously-passing Sprint 9–75 test continues to pass (updated only for the field's shape, not its outcome); RFC-0006 v1.1 is published; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build).
+
+## RFC Coverage
+
+- RFC-0006 (Amended to v1.1 by this ratification — Assessment Session's Mission Plan Revision record corrected)
+- RFC-0012 — Autonomous Engineering Planning Model (Referenced; `ProposedPlanRevisionId` consumed as one of the two typed `kind` values, unmodified)
+- RFC-0001 — Mission Model (Referenced; executable Mission Plan revision consumed as the other typed `kind` value, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification amends RFC-0006 (Constitutional Layer authority, RFC Specification Suite) to correct a genuine specification gap identified by `nexus-plan`'s governance scan, and authorizes a narrow corrective migration within Sprint 76's future scope. It does not reopen or redefine any other RFC-0006 concept, and does not modify RFC-0001 or RFC-0012.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification and amend RFC-0006 to v1.1. Sprint 76's future Sprint Proposal is authorized to include this typed-reference migration as an in-scope prerequisite Authorized Concept, implemented by the Builder and independently verified by the Reviewer as part of Sprint 76's certification.
+
+## Deferred Concepts
+
+Unchanged: Activation and conversion into RFC-0001 executable objects, the `Superseded` Proposal Lifecycle transition, Domain Event publication for the Planning domain, any new Repository Policy authoring/versioning/selection mechanism, and Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77) — each requires Sprint 76's own Sprint Proposal (Activation) or Sprint 77's own future ratification.
+
+## Related Sprint(s)
+
+- Sprint 9 — Review Foundation (frozen; this ratification narrowly corrects `Review`'s revision-reference field shape only, per the rule above).
+- Sprint 74 — Planning Correlation and Review Entry Foundation (frozen; `assertReviewMatchesCorrelation`'s comparison logic is corrected per the rule above; no other Sprint 74 behavior is reopened).
+- Sprint 75 — Proposal Governance Integration (frozen; unaffected beyond the same `assertReviewMatchesCorrelation` correction).
+- Sprint 76 — Approved Plan Activation (not yet authorized; this ratification's correction is a scoped prerequisite for Sprint 76's future Sprint Proposal).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-17-014` (Sprint 74; F-002, Category 6, Observation; originating identification).
+- `NEXUS-REV-2026-07-17-016` (Sprint 75; F-003, Category 6, Observation; elevated priority ahead of Sprint 76).
+
+## Full Ratification Text
+
+> `Review`'s revision-under-assessment reference SHALL be represented as a typed `ReviewPlanRevisionReference` (`kind: ExecutableMissionPlan | ProposedPlanRevision`, `revisionId: string`), replacing the existing untyped opaque string field, with no other change to `Review`'s lifecycle, outcome, Finding, validation, or diagnostic behavior. Every existing pre-Sprint-74 call site SHALL be migrated to `kind: ExecutableMissionPlan` with identical `revisionId` values and no behavioral change. `PlanningCorrelationService.assertReviewMatchesCorrelation` SHALL explicitly check `kind: ProposedPlanRevision` and fail closed on any other `kind`. RFC-0006 is amended to v1.1 to define this typed reference. This correction is authorized as an in-scope prerequisite of Sprint 76's future Sprint Proposal (Approved Plan Activation), which requires its own separate Sprint Owner approval for Activation itself.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-17-017
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-017
+
+## Date
+
+2026-07-17
+
+## Subject
+
+Authorizes Sprint 76 — Approved Plan Activation (Milestone 11 Initial Capability Sequence step 7), incorporating a required Activation atomicity refinement over `nexus-plan`'s original Sprint 76 Proposal.
+
+## Originating Request
+
+`nexus-plan` presented a Sprint 76 Proposal (Approved Plan Activation) implementing RFC-0012's Activation section by sequentially invoking `MissionPlanningService`'s existing public operations (`createMissionPlan`, `addTask` per Proposed Task). The Sprint Owner identified a critical boundary gap: `MissionPlanningService`'s existing operations each independently persist and publish Domain Events per call (`saveMissionPlan` immediately followed by `publishRecordedEvents`); sequentially invoking multiple such operations cannot, by itself, guarantee all-or-nothing Activation — a failure partway through converting a multi-Task Proposed Plan Revision could leave a partially-created executable `MissionPlan` and/or already-published RFC-0001 Domain Events for an Activation that ultimately fails.
+
+## Governance Decision
+
+**APPROVED WITH REQUIRED ACTIVATION ATOMICITY REFINEMENT.**
+
+Sprint 76 — Approved Plan Activation is authorized, incorporating the following binding Required Activation Guarantees in addition to `nexus-plan`'s original Sprint 76 Proposal (typed `ReviewPlanRevisionReference` migration per `NEXUS-RAT-2026-07-17-016`, plus RFC-0012 Activation).
+
+### Required Activation Guarantees (binding)
+
+Activation SHALL:
+
+- validate every RFC-0012 and RFC-0001 precondition before the first executable write;
+- stage the complete `MissionPlan`, `Task`, and `TaskDependency` conversion before commit;
+- commit all executable objects and lifecycle transitions as one exclusive operation;
+- publish RFC-0001 Domain Events only after the entire commit succeeds;
+- publish no events and preserve no executable state if any operation fails;
+- prevent concurrent sibling revisions of the same Proposed Mission Plan from both activating;
+- return the existing Activation result for an idempotent retry of the same already-`Activated` revision;
+- reject Activation of a different revision once one revision of the same Proposed Mission Plan is already `Activated`;
+- preserve exact traceability to `ProposedMissionPlanId`, `ProposedPlanRevisionId`, the typed `ReviewPlanRevisionReference`, `ReviewId`, and the terminal `Approved` `GovernanceDecisionId`.
+
+### Permitted Architecture (non-mandatory guidance)
+
+The implementation MAY introduce a narrow transaction or unit-of-work abstraction around the existing `MissionPlanningService` — for example, a staging decorator over the `IMissionPlanRepository`/`IMissionRepository` contracts and a buffering `EventBusContract` decorator, both flushed to the real repository/event bus only after every conversion step succeeds — but SHALL NOT duplicate RFC-0001 domain rules, SHALL NOT bypass `MissionPlanningService`'s existing public operations, and SHALL NOT modify `MissionPlanningService`, `MissionPlan`, `Task`, or `TaskDependency` themselves.
+
+### Typed Review Migration (confirmed, unchanged from `NEXUS-RAT-2026-07-17-016`)
+
+- pre-Sprint-74 Reviews → `kind: ExecutableMissionPlan`;
+- planning Reviews → `kind: ProposedPlanRevision`;
+- comparison includes both `kind` and `revisionId`;
+- legacy untyped values are not silently inferred;
+- mismatched revision kinds fail closed.
+
+### Scope Confirmation
+
+Still deferred, unchanged: RFC-0012 Domain Event publication (the Planning-domain event catalog, e.g. `ProposedMissionPlanActivated` — distinct from the RFC-0001 Domain Events Activation itself publishes via `MissionPlanningService`); AI-generated planning; Adapter invocation or selection; workflow orchestration/participation; new Repository Policy authoring/versioning/selection mechanisms; Milestone 11 Autonomous Planning Integration Validation and closure (Sprint 77).
+
+**Definition of Done:** every Required Activation Guarantee above is implemented and independently testable; no partial executable state or premature event publication is observable under any injected mid-Activation failure; concurrent Activation of two sibling revisions resolves exclusively; repeat-Activation of an already-`Activated` revision is idempotent and returns the original result; `MissionPlanningService`, `MissionPlan`, `Task`, and `TaskDependency` remain byte-for-byte unmodified; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build).
+
+## RFC Coverage
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model (Primary; implements the Activation section)
+- RFC-0006 v1.1 (Referenced; consumes the `ReviewPlanRevisionReference` typed by `NEXUS-RAT-2026-07-17-016`)
+- RFC-0001 — Mission Model (Referenced; Activation writes exclusively through `MissionPlanningService`'s existing public operations, unmodified)
+- RFC-0011 — Engineering Governance Model (Referenced; terminal `Approved` `GovernanceDecision` re-verified read-only, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification authorizes Sprint 76's implementation scope under RFC-0012 (unmodified) and RFC-0006 v1.1 (amended by `NEXUS-RAT-2026-07-17-016`). It does not modify RFC-0001, RFC-0011, or the Kernel Canon, and does not modify `MissionPlanningService`'s existing public contract.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification, activate Sprint 76 in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, and generate `knowledge/implementation/sprints/sprint-0076-approved-plan-activation.md` as the Sprint 76 Sprint Implementation Record (Builder implementation contract), incorporating the Required Activation Guarantees above as binding Acceptance Criteria.
+
+## Deferred Concepts
+
+RFC-0012 Domain Event publication for the Planning domain; AI-generated planning; Adapter invocation or selection; workflow orchestration/participation; new Repository Policy authoring/versioning/selection mechanisms; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77) — each requires its own future Sprint scope ratification.
+
+## Related Sprint(s)
+
+- Sprint 72–75 — Planning domain foundation (frozen; consumed read-only by Sprint 76 except the `NEXUS-RAT-2026-07-17-016` typed-reference correction).
+- Sprint 3 — Mission Foundation / `MissionPlanningService` (Sprint 3, frozen; consumed exclusively through its existing public operations, unmodified).
+- Sprint 76 — Approved Plan Activation (authorized by this ratification).
+- Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (not yet authorized).
+
+## Related Review(s)
+
+None yet; Sprint 76 has not yet been Reviewer-certified.
+
+## Full Ratification Text
+
+> Sprint 76 — Approved Plan Activation is approved in principle, incorporating a required Activation atomicity refinement over `nexus-plan`'s original Proposal: Activation SHALL validate every precondition before the first executable write; stage the complete conversion before commit; commit all executable objects and lifecycle transitions as one exclusive operation; publish RFC-0001 Domain Events only after the entire commit succeeds; publish no events and preserve no executable state on any failure; prevent concurrent sibling revisions from both activating; return the existing result for an idempotent retry of an already-`Activated` revision; reject Activation of a different revision once one revision is already `Activated`; and preserve exact traceability to `ProposedMissionPlanId`, `ProposedPlanRevisionId`, the typed `ReviewPlanRevisionReference`, `ReviewId`, and the terminal `Approved` `GovernanceDecisionId`. The implementation MAY introduce a narrow transaction/unit-of-work abstraction around the existing `MissionPlanningService` but SHALL NOT duplicate RFC-0001 domain rules or bypass its public operations. The typed Review migration authorized by `NEXUS-RAT-2026-07-17-016` is confirmed unchanged. RFC-0012 Domain Event publication, AI-generated planning, Adapter invocation/selection, workflow participation, new Repository Policy mechanisms, and Milestone 11 integration validation remain deferred.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-18-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-18-001
+
+## Date
+
+2026-07-18
+
+## Subject
+
+Resolution of `NEXUS-REV-2026-07-17-020-F-001` (Category 3, Specification Conflict): authorizes the explicit migration of the legacy `Review` call site in `src/hosts/vscode/host-mission-workflow.ts` to the typed `ReviewPlanRevisionReference`, and withdraws the silent string-inference fallback, unblocking `BT-076-001`.
+
+## Originating Request
+
+`NEXUS-REV-2026-07-17-020` found that Sprint 76's Authorized Concepts required migrating the sole pre-Sprint-74 `Review` construction call site (`host-mission-workflow.ts:471`) to explicitly supply `kind: 'ExecutableMissionPlan'`, while the same Sprint's Architectural Boundaries forbade modifying `src/hosts` — a genuine conflict the Builder did not stop to report, instead retaining a `ReviewPlanRevisionReference | string` union with a silent string-to-`ExecutableMissionPlan` inference path in `review.aggregate.ts`, contrary to the explicit rule ("legacy untyped values are not inferred silently") established by `NEXUS-RAT-2026-07-17-016` and confirmed by `NEXUS-RAT-2026-07-17-017`. `nexus-sprint` translated this into `BT-076-001`, Blocked, presenting two options: (1) authorize the explicit `host-mission-workflow.ts` migration and remove the silent-inference fallback, or (2) ratify the fallback as a permanent, documented exception. The Sprint Owner selected option (1).
+
+## Governance Decision
+
+**APPROVED — REMEDIATION AUTHORIZED (EXPLICIT HOST MIGRATION).**
+
+`src/hosts/vscode/host-mission-workflow.ts:471`'s `reviewService.startReview(...)` call SHALL be updated to construct its `missionPlanRevision` argument explicitly as a typed `ReviewPlanRevisionReference`:
+
+```text
+missionPlanRevision: { kind: 'ExecutableMissionPlan', revisionId: missionPlanRevisionId }
+```
+
+replacing the current bare-string argument. This is a narrow, content-only edit to the one existing call site — not an architectural redesign of the Host — and is authorized as a one-time, explicitly scoped exception to Sprint 76's general `src/hosts` restriction, limited exclusively to this single line.
+
+Following this migration:
+
+- The `ReviewPlanRevisionReference | string` union SHALL be removed from `CreateReviewInput.missionPlanRevision` (`review.aggregate.ts`), `StartReviewCommand.missionPlanRevision` (`review.contract.ts`), and any other public `Review` construction contract; each SHALL require `ReviewPlanRevisionReference` only.
+- The silent string-to-`ExecutableMissionPlan` inference branch in `normalizeReviewPlanRevisionReference` (`review.aggregate.ts`) SHALL be removed; a bare string input SHALL be rejected as an invalid `Review` definition (`InvalidReviewDefinitionError`), not silently coerced.
+- Every test currently relying on the string-coercion branch (`host-mission-workflow.test.ts`, `host-mission-workflow-command-registration.test.ts`, `planning-correlation.test.ts`, and any other affected suite) SHALL be updated to construct the typed reference explicitly; no test SHALL continue to pass a bare string to a `Review`-constructing call.
+- `IMPLEMENTATION_REPORT.md`'s Sprint 76 section SHALL be corrected so its claim that legacy callers were "normalized... to `kind: 'ExecutableMissionPlan'`" is accurate for every call site, with no remaining bare-string path.
+
+Rules (binding):
+
+- No other change to `Review`'s lifecycle, `ReviewOutcome`, `Finding`, or any other RFC-0006 concept is authorized by this ratification.
+- No change to `host-mission-workflow.ts` beyond this one call site's argument construction is authorized.
+- This ratification does not reopen `BT-076-002` (Activation's commit-ordering defect), which remains a separately tracked, independently resolvable Builder Task.
+
+**Definition of Done:** `host-mission-workflow.ts:471` constructs the typed `ReviewPlanRevisionReference` explicitly; `CreateReviewInput`/`StartReviewCommand` accept only `ReviewPlanRevisionReference` (no `string` union); the silent-inference branch is removed and a bare string is rejected with a diagnostic; every affected test is updated accordingly with no remaining bare-string `Review` construction anywhere in the repository; `IMPLEMENTATION_REPORT.md` is corrected; every previously-passing Sprint 1–76 test continues to pass (updated only where this migration requires it); repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build).
+
+## RFC Coverage
+
+- RFC-0006 v1.1 (Referenced; completes the `ReviewPlanRevisionReference` migration `NEXUS-RAT-2026-07-17-016` authorized; RFC-0006 itself is not further amended)
+- RFC-0012 v1.1 (Referenced; unaffected)
+
+## Ownership Model (ratified)
+
+This ratification completes, rather than amends, the RFC-0006 v1.1 migration authorized by `NEXUS-RAT-2026-07-17-016`. It authorizes a narrow, one-call-site exception to Sprint 76's `src/hosts` restriction, strictly scoped as above, and does not modify RFC-0001, RFC-0006, RFC-0011, RFC-0012, or the Kernel Canon.
+
+## Authorized Scope
+
+The Builder is authorized to: migrate `host-mission-workflow.ts:471` to the typed `ReviewPlanRevisionReference`; remove the `ReviewPlanRevisionReference | string` union and the silent-inference branch from `review.aggregate.ts`/`review.contract.ts`/`review.types.ts`; update every affected test; and correct `IMPLEMENTATION_REPORT.md`'s Sprint 76 section. `nexus-sprint` is authorized to translate this ratification into an unblocked, Open Builder Task superseding `BT-076-001`'s Blocked status.
+
+## Deferred Concepts
+
+Unchanged: RFC-0012 Domain Event publication for the Planning domain; AI-generated planning; Adapter invocation or selection; workflow orchestration/participation; new Repository Policy authoring/versioning/selection mechanisms; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77). `BT-076-002` (Activation commit-ordering defect) is unaffected and remains separately open.
+
+## Related Sprint(s)
+
+- Sprint 9 — Review Foundation (frozen; this ratification completes the narrow field-representation correction begun by `NEXUS-RAT-2026-07-17-016`).
+- Sprint 76 — Approved Plan Activation (Rejected by `NEXUS-REV-2026-07-17-020`; this ratification unblocks `BT-076-001`, one of its two remediation items).
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-17-020` (Sprint 76; FAIL; originating Category 3 finding F-001).
+
+## Full Ratification Text
+
+> `src/hosts/vscode/host-mission-workflow.ts:471` SHALL construct its `missionPlanRevision` argument explicitly as `{ kind: 'ExecutableMissionPlan', revisionId: missionPlanRevisionId }`, replacing the bare-string argument, as a narrow, one-time, content-only exception to Sprint 76's `src/hosts` restriction scoped exclusively to this line. Following this migration, the `ReviewPlanRevisionReference | string` union and the silent string-to-`ExecutableMissionPlan` inference path SHALL be removed from `review.aggregate.ts`/`review.contract.ts`/`review.types.ts`; a bare string SHALL be rejected as an invalid `Review` definition. Every test relying on the string-coercion branch SHALL be updated to construct the typed reference explicitly. `IMPLEMENTATION_REPORT.md`'s Sprint 76 section SHALL be corrected accordingly. No other change to `Review`, `host-mission-workflow.ts`, or `BT-076-002`'s scope is authorized.
+
+## Current Status
+
+Active
+
+---

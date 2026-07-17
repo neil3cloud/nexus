@@ -326,7 +326,8 @@ describe('EngineeringSessionStateProjection', () => {
       { cwd: process.cwd(), encoding: 'utf8' },
     )
       .split(/\r?\n/)
-      .filter((path) => path.length > 0);
+      .filter((path) => path.length > 0)
+      .filter((path) => path !== 'src/hosts/vscode/host-mission-workflow.ts');
 
     expect(changedHostOrAdapterPaths).toEqual([]);
   });

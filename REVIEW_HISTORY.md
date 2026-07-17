@@ -2,6 +2,170 @@
 
 ---
 
+## NEXUS-REV-2026-07-18-002 — Sprint 76 — Approved Plan Activation (BT-076-001 Resolution Verification; Sprint Closure)
+
+- **Reviewed Sprint:** Sprint 76 — Approved Plan Activation (Milestone 11, Initial Capability Sequence step 7). Follow-up cycle verifying `builder-task.md`'s last remaining Open Builder Task, `BT-076-001`, unblocked by `NEXUS-RAT-2026-07-18-001` and generated from `NEXUS-REV-2026-07-17-020-F-001`.
+- **Reviewed Change:** `src/hosts/vscode/host-mission-workflow.ts:471` — `reviewService.startReview(...)` now constructs `missionPlanRevision: { kind: 'ExecutableMissionPlan', revisionId: missionPlanRevisionId }` explicitly, replacing the bare string. `src/kernel/review/review.aggregate.ts`, `review.contract.ts`, `review.types.ts` — `CreateReviewInput.missionPlanRevision` and `StartReviewCommand.missionPlanRevision` now require `ReviewPlanRevisionReference` only (the `| string` union removed); `normalizeReviewPlanRevisionReference` no longer accepts a bare string, only validating `kind`/`revisionId`. A wide set of test files updated to construct the typed reference explicitly (`review.aggregate.test.ts`, `review.service.test.ts`, `review.repository.test.ts`, `planning-correlation.test.ts`, `host-mission-workflow.test.ts`, `host-mission-workflow-command-registration.test.ts`, and several integration/execution/governance/knowledge test fixtures that construct `Review`/`ReviewSnapshot` values). `IMPLEMENTATION_REPORT.md` corrected accordingly.
+- **RFC Coverage:** RFC-0006 v1.1 — Engineering Assessment Model (completes the `ReviewPlanRevisionReference` migration; RFC-0006 itself not further amended by this cycle).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS (Sprint 76 fully closed, zero open findings of any category)
+
+### Executive Summary
+
+Independently verified `BT-076-001` is implemented exactly as authorized by `NEXUS-RAT-2026-07-18-001`. `host-mission-workflow.ts:471` is confirmed constructing the typed `ReviewPlanRevisionReference` explicitly — no bare string remains at this, the sole legacy call site. `CreateReviewInput`/`StartReviewCommand` are confirmed to accept `ReviewPlanRevisionReference` only; `git grep` for `ReviewPlanRevisionReference | string` returns no source-code matches (only documentation/governance references describing the removed union). `normalizeReviewPlanRevisionReference`'s `typeof reference === 'string'` inference branch is confirmed removed — the function now only validates `kind` and normalizes `revisionId`, rejecting any malformed reference via `InvalidReviewDefinitionError`. A repository-wide search for any remaining bare-string `missionPlanRevision:` construction found exactly one match, in `review.aggregate.test.ts`, which is confirmed to be an assertion against the flattened `ReviewStarted` domain-event payload shape (`review.missionPlanRevision.revisionId`, per Sprint 11's existing event-flattening behavior, unchanged) — not a `Review` construction call site, and not a violation.
+
+Independently re-ran validation beyond what `IMPLEMENTATION_REPORT.md` reported: `npx tsc --noEmit --pretty false` clean; `npm run lint` clean; `npx vitest run test/kernel/review/ test/kernel/planning/ test/hosts/vscode/ test/integration/` — 149/149 tests passing across 32 files; full repository `npx vitest run` — 669/669 tests passing across 95 of 96 files (the sole failing suite, `test/extension-host/suite/extension-host.test.ts`, fails only because the `vscode` module is unavailable outside the VS Code extension-host test runner, consistent with every prior review cycle's exclusion of this suite from standard Vitest runs — not a regression). `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are confirmed correctly updated by the Builder to "Implemented — Pending Reviewer Validation" for Sprint 76.
+
+With `BT-076-001` and `BT-076-002` both independently verified Resolved, and zero findings of any category remaining, Sprint 76 — Approved Plan Activation is fully closed. Milestone 11 Initial Capability Sequence step 7 is complete. Step 8 (Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure) remains unauthorized and requires its own future Sprint Owner scope ratification via `nexus-plan`; this review does not authorize or advance any Sprint 77 work.
+
+### Findings
+
+None. This cycle is a targeted resolution-verification pass over `BT-076-001` plus an independent repository-wide re-validation; it introduces no new capability and reopens no prior finding.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Builder Tasks verified this cycle | 1 of 1 (`BT-076-001`) |
+| Builder Tasks still open | 0 |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit` clean; `eslint` clean; targeted Vitest 149/149 (32 files); full repository Vitest 669/669 (95/96 files, extension-host VS Code suite excluded per established precedent) |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication (`ProposedMissionPlanActivated`, etc.); AI-generated planning; Adapter/provider selection; workflow orchestration; new Repository Policy authoring/versioning/selection; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77). No deferred concept was found implemented, stubbed, or referenced by this cycle's remediation.
+
+### Architectural Compliance Summary
+
+`BT-076-001`'s remediation is scoped exactly as authorized: the one Host call site migrated, the union type and silent-inference path removed from the Review contracts, and every affected test updated to construct the typed reference explicitly — with no change to `Review`'s lifecycle, `ReviewOutcome`, `Finding`, or any other RFC-0006 concept, and no change to `host-mission-workflow.ts` beyond the one authorized line. Combined with `NEXUS-REV-2026-07-18-001`'s independently verified `BT-076-002` resolution, Sprint 76's full authorized scope (RFC-0012 Activation, the typed Review migration, and the Required Activation Guarantees ratified by `NEXUS-RAT-2026-07-17-017`) is now completely and correctly delivered. `MissionPlanningService`, `MissionPlan`, `Task`, `TaskDependency`, and every Sprint 1–75 file outside this Sprint's authorized scope remain unmodified. `src/adapters` remains untouched.
+
+### Builder Task Recommendation
+
+`BT-076-001` SHALL be marked Completed by the next `nexus-sprint` cycle. Sprint 76 is fully closed with zero open findings of any category. Milestone 11 Initial Capability Sequence step 8 (Sprint 77) requires its own future Sprint Owner scope ratification via `nexus-plan`; no task is generated here.
+
+---
+
+## NEXUS-REV-2026-07-18-001 — Sprint 76 — Approved Plan Activation (BT-076-002 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 76 — Approved Plan Activation (Milestone 11, Initial Capability Sequence step 7). Follow-up cycle verifying `builder-task.md`'s remediation of `NEXUS-REV-2026-07-17-020`'s two findings, `BT-076-001` and `BT-076-002`.
+- **Reviewed Change:** `src/kernel/planning/planning-activation.service.ts` — reordered `activateExclusive` so `stagingRepository.commit()` (the real executable `MissionPlan` write) now precedes `proposedMissionPlanRepository.save(activatedProposedMissionPlan)` (the `Activated`/`Superseded` lifecycle persistence). `test/kernel/planning/planning-activation.service.test.ts` — added `FailingCommitMissionRepository` and one new test, `'leaves ProposedPlanRevision lifecycle unchanged when the executable MissionPlan commit fails'`. `IMPLEMENTATION_REPORT.md` — added a Sprint 76 "Review Remediation" subsection. No other production file changed this cycle; `src/hosts/vscode/host-mission-workflow.ts`, `review.aggregate.ts`, `review.contract.ts`, and `review.types.ts` remain exactly as they were at `NEXUS-REV-2026-07-17-020`.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (unchanged; this cycle corrects Activation's commit ordering within Sprint 76's already-authorized scope, not new capability).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged in kind — `BT-076-002` is Resolved and independently verified; `BT-076-001`, now unblocked by `NEXUS-RAT-2026-07-18-001`, has not yet been implemented, so Sprint 76's authorized scope remains incomplete)
+
+### Executive Summary
+
+Independently verified `BT-076-002`'s fix directly and correctly resolves `NEXUS-REV-2026-07-17-020-F-002`: `activateExclusive` now commits the staged executable `MissionPlan` (`stagingRepository.commit()`) before persisting the `ProposedPlanRevision`'s `Activated`/`Superseded` lifecycle transition. The new test `'leaves ProposedPlanRevision lifecycle unchanged when the executable MissionPlan commit fails'` (via a `FailingCommitMissionRepository` that throws on `saveMissionPlan`) confirms: (1) the `ProposedPlanRevision` remains `Governed`, not stranded as `Activated`, when the executable commit fails; (2) no `MissionPlan` and no events are produced; and (3) a subsequent retry for the same revision succeeds and correctly reaches `Activated` with the expected traceability — going beyond the required Acceptance Criteria by also proving recoverability, not merely non-corruption. Ran the three Sprint-76-relevant suites directly (`planning-activation.service.test.ts`, `review.aggregate.test.ts`, `planning-correlation.test.ts`): 29/29 passing. `MissionPlanningService`, `MissionPlan`, `Task`, and `TaskDependency` remain untouched, consistent with the Sprint's Architectural Boundaries.
+
+`BT-076-001` was ratified as unblocked by the Sprint Owner (`NEXUS-RAT-2026-07-18-001`, dated 2026-07-18) after this Builder pass had already completed — `git status`/diff confirm `host-mission-workflow.ts:471` still passes a bare string, and `review.aggregate.ts`/`review.contract.ts`/`review.types.ts` still retain the `ReviewPlanRevisionReference | string` union and the silent string-to-`ExecutableMissionPlan` inference branch, exactly as at `NEXUS-REV-2026-07-17-020`. `IMPLEMENTATION_REPORT.md` accurately discloses this ("`BT-076-001` remains blocked pending Sprint Owner governance ratification and was not implemented") — an accurate statement as of when it was written, now simply superseded by the ratification. This is not a new defect and not a misrepresentation; it is unimplemented, now-authorized scope. Sprint 76 cannot be certified Approved while a required, ratified Authorized Concept (`NEXUS-RAT-2026-07-18-001`'s explicit Host migration and union/fallback removal) remains entirely unimplemented.
+
+### Findings
+
+#### NEXUS-REV-2026-07-18-001-F-001 — `BT-076-001` (now unblocked) remains unimplemented (Category 1 — Implementation Defect, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-18-001` (requires the explicit `host-mission-workflow.ts` migration and removal of the `ReviewPlanRevisionReference | string` union and silent-inference branch); `builder-task.md` `BT-076-001` (Open).
+- **Evidence:** `git status --porcelain -- src/hosts` shows no change to `host-mission-workflow.ts`; `git diff -- src/kernel/review/review.aggregate.ts src/kernel/review/review.contract.ts` shows no change since `NEXUS-REV-2026-07-17-020` — the union type and `normalizeReviewPlanRevisionReference`'s `typeof reference === 'string'` branch are both still present.
+- **Impact:** Sprint 76's full authorized scope (as it now stands, incorporating `NEXUS-RAT-2026-07-18-001`) is not yet delivered. The Activation path itself is unaffected (its own `kind`-aware checks are unchanged and correct), so this is not a live correctness risk to Activation, but it is a required, ratified deliverable that is simply not yet done.
+- **Recommended Disposition:** Builder Task (already open as `BT-076-001`; no new task needed). Not a governance question — the Sprint Owner has already ratified the required change.
+- **Builder Action:** Implement `BT-076-001` exactly as specified in `builder-task.md` and `NEXUS-RAT-2026-07-18-001`.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Builder Tasks verified this cycle | 1 of 2 (`BT-076-002` Resolved; `BT-076-001` not yet attempted) |
+| Builder Tasks still open | 1 (`BT-076-001`) |
+| New findings | 1 (Category 1, Major — carried into the still-open `BT-076-001`, not a new task) |
+| Critical / Major / Minor | 0 / 1 / 0 |
+| Architectural Violations | 0 |
+| Validation | `planning-activation.service.test.ts`, `review.aggregate.test.ts`, `planning-correlation.test.ts` independently re-run: 29/29 passing. Full repository validation (`tsc`, ESLint, full Vitest suite, build, extension-host bundle) not independently re-run this cycle; relied on `IMPLEMENTATION_REPORT.md`'s reported clean run for `BT-076-002`, which this cycle's targeted re-run corroborates for the affected files. |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-020`. This cycle introduces no new capability, deferred or otherwise.
+
+### Architectural Compliance Summary
+
+`BT-076-002`'s remediation is minimal, correctly scoped, and test-verified — the executable-state commit now precedes the lifecycle-transition persistence, and the accompanying test proves both non-corruption and recoverability on failure. No Sprint 1–75 file, `MissionPlanningService`, `MissionPlan`, `Task`, or `TaskDependency` was touched. `src/hosts` and `src/adapters` remain untouched this cycle (BT-076-001's authorized Host edit has not yet been made).
+
+### Builder Task Recommendation
+
+`BT-076-002` SHALL be marked Completed by the next `nexus-sprint` cycle. `BT-076-001` remains Open (not Blocked — `NEXUS-RAT-2026-07-18-001` already authorizes it) and SHALL be carried forward unchanged; no new Builder Task is generated by this review, since the existing `BT-076-001` already covers the required scope precisely. Sprint 76 does not advance to Approved this cycle; `IMPLEMENTATION_PLAN.md` is left unchanged pending `BT-076-001`'s implementation.
+
+---
+
+## NEXUS-REV-2026-07-17-020 — Sprint 76 — Approved Plan Activation
+
+- **Reviewed Sprint:** Sprint 76 — Approved Plan Activation (Milestone 11, Initial Capability Sequence step 7). Authorized by `NEXUS-RAT-2026-07-17-017`, incorporating the typed `ReviewPlanRevisionReference` migration ratified by `NEXUS-RAT-2026-07-17-016` (RFC-0006 v1.1). First review cycle.
+- **Reviewed Change:** `src/kernel/review/{review.aggregate.ts,review.contract.ts,review.events.ts,review.types.ts}` (typed `ReviewPlanRevisionReference`); `src/kernel/planning/planning-correlation.service.ts` (`assertReviewMatchesCorrelation`/`assertReviewMatchesRevision` corrected to check `kind`); `src/kernel/planning/planning.types.ts` and `proposed-plan-revision.ts` (`Activated`/`Superseded` Proposal Lifecycle values and transitions); `src/kernel/planning/proposed-mission-plan.ts` (`activateRevision`); new `src/kernel/planning/planning-activation.service.ts` (`PlanningActivationService`, staging repository, buffering event bus); `src/kernel/common/create-kernel-services.ts` (additive Kernel registration); corresponding test suites.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (Primary, Activation); RFC-0006 v1.1 — Engineering Assessment Model (Referenced, `ReviewPlanRevisionReference`); RFC-0001, RFC-0004, RFC-0005, RFC-0008, RFC-0011 (Referenced, consumed read-only).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (one Category 3 — Specification Conflict, blocking; one Category 1 — Implementation Defect, Major)
+
+### Executive Summary
+
+`PlanningActivationService` correctly implements the great majority of RFC-0012's Activation section and `NEXUS-RAT-2026-07-17-017`'s Required Activation Guarantees: precondition re-verification (Structural Plan Validation, terminal `Approved` `GovernanceDecision`, `ReviewPlanRevisionReference` match) occurs before any write; MissionPlan/Task conversion is staged through a `StagedMissionPlanningRepository` and `BufferingEventBus` so a failure during multi-Task conversion persists no executable state and publishes no events (verified by a passing test); idempotent retry of an already-`Activated` revision is implemented; a second revision cannot activate once one has; sibling `Governed` revisions are correctly transitioned to `Superseded`; `MissionPlanningService`/`MissionPlan`/`Task`/`TaskDependency` are confirmed byte-for-byte unmodified; and full traceability metadata is preserved.
+
+Two issues prevent approval this cycle.
+
+First, the Sprint's own Authorized Concepts required migrating the one existing pre-Sprint-74 `Review` construction call site (`host-mission-workflow.ts:471`) to explicitly supply `kind: 'ExecutableMissionPlan'`, while the Sprint's own Architectural Boundaries simultaneously forbid modifying `src/hosts`. This is a genuine, self-contained Specification Conflict inside the authorization the Builder should have stopped on and reported, per IMPLEMENTATION_CONSTITUTION.md's Stop Conditions. Instead, the Builder silently resolved it by keeping `missionPlanRevision: ReviewPlanRevisionReference | string` on the public contract and adding a silent string-to-`ExecutableMissionPlan` inference path in `Review` — precisely the outcome both `NEXUS-RAT-2026-07-17-016` and `-017` named and prohibited ("legacy untyped values are not inferred silently"). `IMPLEMENTATION_REPORT.md`'s claim that legacy callers were "normalized... to `kind: 'ExecutableMissionPlan'`" does not match the code: the only legacy caller was left passing a bare string.
+
+Second, Activation's real-write ordering does not satisfy "commit all executable objects and lifecycle transitions as one exclusive operation": `proposedMissionPlanRepository.save(activatedProposedMissionPlan)` (marking the revision `Activated`/siblings `Superseded`) is a real, immediate write that completes before `stagingRepository.commit()` (the real write of the executable `MissionPlan`). A failure in the latter after the former succeeds would leave a Proposed Plan Revision permanently marked `Activated` with no backing executable state, and no retry path — `resolveIdempotentActivation` would find no matching `MissionPlan` and fail permanently. No test exercises a failure at this specific window; the existing mid-conversion-failure test injects its failure earlier, during staged `addTask` calls, before either real write occurs.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-020-F-001 — Legacy `Review` call site left unmigrated; silent string-to-`ExecutableMissionPlan` inference contradicts the ratified rule (Category 3 — Specification Conflict, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-17-016` ("legacy untyped values are not inferred silently"); `NEXUS-RAT-2026-07-17-017` (same rule, confirmed unchanged); Sprint 76 record, Authorized Concept 1 ("Migrate every existing pre-Sprint-74 `Review` construction call site... to supply `kind: 'ExecutableMissionPlan'`") vs. Architectural Boundaries ("SHALL NOT... modify... `src/hosts`"); IMPLEMENTATION_CONSTITUTION.md Stop Conditions ("conflicting RFC requirements... contradictory documentation... Implementers SHALL report the conflict rather than making assumptions").
+- **Evidence:** `src/hosts/vscode/host-mission-workflow.ts:471` still passes `missionPlanRevision: missionPlanRevisionId` (a bare string) to `reviewService.startReview(...)`, unmodified. `src/kernel/review/review.aggregate.ts`'s `normalizeReviewPlanRevisionReference` accepts a bare string and silently returns `{ kind: 'ExecutableMissionPlan', revisionId: ... }`. `CreateReviewInput`/`StartReviewCommand`/`review.aggregate.ts`'s constructor all retain `ReviewPlanRevisionReference | string`. Three test files (`host-mission-workflow.test.ts`, `host-mission-workflow-command-registration.test.ts`, `planning-correlation.test.ts`) explicitly exercise and depend on this string-coercion branch. `IMPLEMENTATION_REPORT.md` §Sprint 76 states legacy callers were "normalized... to `kind: 'ExecutableMissionPlan'`", which is inaccurate for this call site.
+- **Impact:** The two ratifications' explicit, twice-stated rule against silent inference is not satisfied for the one caller it was written to cover. The Activation path itself remains safe today (the `kind`-aware fail-closed check in `assertReviewReferenceMatches`/`assertReviewMatchesCorrelation` cannot be fooled by an inferred `ExecutableMissionPlan` reference), which keeps this from being a live correctness bug against Activation — but the conflict between the Sprint's own two requirements was never surfaced to the Sprint Owner for resolution, and the public `Review` contract now permanently retains an implicit, silently-inferring string path with no documented sunset.
+- **Recommended Disposition:** Category 3 dispositions require implementation to stop and the conflict be referred for governance resolution. Recommend the Sprint Owner choose between: (a) explicitly ratifying the silent-inference fallback as a permanent, narrow, documented exception scoped to this one call site, or (b) authorizing the one-line `src/hosts/vscode/host-mission-workflow.ts` change needed to pass `{ kind: 'ExecutableMissionPlan', revisionId: missionPlanRevisionId }` explicitly (a content edit, not an architectural redesign of the Host).
+- **Builder Action:** None until the Sprint Owner resolves the conflict; this is a Governance Decision Required item, not a Builder-correctable defect in isolation.
+
+#### NEXUS-REV-2026-07-17-020-F-002 — Activation's two real repository writes are not committed as one exclusive operation (Category 1 — Implementation Defect, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-17-017` Required Activation Guarantees ("stage the complete... conversion before commit"; "commit all executable objects and lifecycle transitions as one exclusive operation"); Sprint 76 record Acceptance Criteria ("No partial executable state... is observable under any injected mid-Activation failure").
+- **Evidence:** `src/kernel/planning/planning-activation.service.ts:177-182`: `proposedMissionPlanRepository.save(activatedProposedMissionPlan)` executes and durably persists the `Activated`/`Superseded` transitions, then `stagingRepository.commit()` performs the separate, real write of the executable `MissionPlan`. No wrapping transaction or compensating rollback exists between the two. `planning-activation.service.test.ts`'s mid-conversion-failure test injects its failure during the staged `addTask` loop (before either real write), so this specific window is untested.
+- **Impact:** A failure in `stagingRepository.commit()` after `proposedMissionPlanRepository.save()` succeeds leaves the Proposed Plan Revision permanently marked `Activated` (and its former siblings `Superseded`) with no backing executable `MissionPlan`. A retry for that same revision routes to `resolveIdempotentActivation` (via the `existingActivatedRevision` check), which finds no matching `MissionPlan` by traceability metadata and throws `PlanningCorrelationAssociationRejectedError` permanently, with no remediation path. This is not reachable through `InMemoryMissionRepository.saveMissionPlan` today (a plain `Map.set` that cannot throw), so it is latent rather than currently exploitable, but it directly contradicts an explicit, binding Required Activation Guarantee.
+- **Recommended Disposition:** Builder Task. Reorder so the executable `MissionPlan` commit (`stagingRepository.commit()`) precedes the `ProposedMissionPlan` lifecycle persistence, or introduce a single combined staging boundary covering both repositories so that either both writes succeed or neither is observable; add a test that injects a failure specifically at the `stagingRepository.commit()` step (after successful staged conversion) and confirms no lifecycle transition is persisted.
+- **Builder Action:** Fix; no governance approval required for this item alone.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 2 |
+| Critical / Major / Minor / Informational | 0 / 2 / 0 / 0 |
+| Category 1 — Implementation Defect | 1 (F-002) |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 (F-001) |
+| Category 4 — Documentation Drift | 0 (folded into F-001's evidence; `IMPLEMENTATION_REPORT.md`'s inaccurate claim is not independently dispositive) |
+| Validation reproduced | `tsc --noEmit`, ESLint, and the Sprint 76-relevant Vitest suites confirmed passing per `IMPLEMENTATION_REPORT.md`; not independently re-run beyond source review this cycle given the blocking Category 3 finding |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication (`ProposedMissionPlanActivated`, etc. — distinct from the RFC-0001 events Activation publishes via `MissionPlanningService`); AI-generated planning; Adapter/provider selection; workflow orchestration; new Repository Policy authoring/versioning/selection; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77). No deferred concept was found implemented, stubbed, or referenced.
+
+### Architectural Compliance Summary
+
+`MissionPlanningService`, `MissionPlan`, `Task`, and `TaskDependency` (Sprint 3) are confirmed byte-for-byte unmodified — Activation correctly writes exclusively through their existing public operations. No Sprint 72–75 Planning domain model, value object, service, or validation logic was modified beyond the two changes Sprint 76 explicitly authorized (`assertReviewMatchesCorrelation`/`assertReviewMatchesRevision` comparison logic; the additive `Activated`/`Superseded` lifecycle values and transitions). `src/hosts` and `src/adapters` production files are confirmed untouched. RFC-0001, RFC-0004, RFC-0005, RFC-0008, RFC-0011, RFC-0012, and the Kernel Canon are unmodified. The two findings above are the sole compliance gaps identified.
+
+### Builder Task Recommendation
+
+Recommend `nexus-sprint` generate:
+
+- One Blocked Builder Task for F-001, pending a Sprint Owner governance decision (per Category 3 disposition) choosing between ratifying the silent-inference fallback or authorizing the explicit `host-mission-workflow.ts` migration.
+- One Builder Task for F-002, correcting Activation's write ordering to a single exclusive commit boundary and adding the missing failure-injection test at the `stagingRepository.commit()` step.
+
+Sprint 76 does not advance to Approved this cycle; `IMPLEMENTATION_PLAN.md` is left unchanged pending remediation.
+
+---
+
 ## NEXUS-REV-2026-07-17-019 — Sprint 75 — Proposal Governance Integration (BT-075-003 Resolution Verification)
 
 - **Reviewed Sprint:** Sprint 75 — Proposal Governance Integration (Milestone 11, Initial Capability Sequence step 6). Follow-up cycle verifying `builder-task.md`'s Open Builder Task, `BT-075-003`, generated from `NEXUS-REV-2026-07-17-018`'s Minor finding F-001.

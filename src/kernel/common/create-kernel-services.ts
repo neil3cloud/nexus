@@ -55,6 +55,7 @@ import { InMemoryMissionRepository } from '../mission/mission.repository';
 import { MissionService } from '../mission/mission.service';
 import { InMemoryPlanningCorrelationRepository } from '../planning/planning-correlation.repository';
 import { PlanningCorrelationService } from '../planning/planning-correlation.service';
+import { PlanningActivationService } from '../planning/planning-activation.service';
 import { InMemoryProposedMissionPlanRepository } from '../planning/proposed-mission-plan.repository';
 import { PlanningService } from '../planning/planning.service';
 import { InMemoryReviewRepository } from '../review/review.repository';
@@ -230,6 +231,14 @@ export function createKernelServices(
     reviewService,
     new PlanningService(proposedMissionPlanRepository),
     planningCorrelationService,
+    new PlanningActivationService(
+      proposedMissionPlanRepository,
+      planningCorrelationRepository,
+      reviewService,
+      governanceDecisionRepository,
+      missionRepository,
+      eventBus,
+    ),
     new KnowledgeService(
       knowledgeRepository,
       reviewRepository,

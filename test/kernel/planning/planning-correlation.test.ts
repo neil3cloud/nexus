@@ -143,7 +143,10 @@ describe('PlanningCorrelation', () => {
     expect((await harness.reviewRepository.getById('review-1'))?.toSnapshot()).toMatchObject({
       id: 'review-1',
       missionId: 'mission-1',
-      missionPlanRevision: 'proposed-plan-revision-under-review',
+      missionPlanRevision: {
+        kind: 'ProposedPlanRevision',
+        revisionId: 'proposed-plan-revision-under-review',
+      },
       status: 'In Progress',
     });
   });
@@ -950,7 +953,10 @@ function reviewSnapshot(overrides: Partial<ReviewSnapshot> = {}): ReviewSnapshot
   return {
     id: 'review-1',
     missionId: 'mission-1',
-    missionPlanRevision: 'proposed-plan-revision-under-review',
+    missionPlanRevision: {
+      kind: 'ProposedPlanRevision',
+      revisionId: 'proposed-plan-revision-under-review',
+    },
     status: 'In Progress',
     reviewCriteria: [{ id: 'criterion-1', description: 'Validate proposed plan revision.' }],
     evidenceReferences: ['proposed-plan-revision-under-review'],

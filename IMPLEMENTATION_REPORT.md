@@ -1,5 +1,91 @@
 # Nexus Implementation Report
 
+## Sprint 76 — Approved Plan Activation
+
+### Implemented Slice
+
+Implemented the Milestone 11 Sprint 76 vertical slice authorized by `NEXUS-RAT-2026-07-17-017`, including the prerequisite typed Review migration authorized by `NEXUS-RAT-2026-07-17-016` and completed by `NEXUS-RAT-2026-07-18-001`.
+
+Implemented scope:
+
+- Replaced Review's revision-under-assessment representation with `ReviewPlanRevisionReference`, migrated the legacy executable MissionPlan Review caller to pass `kind: 'ExecutableMissionPlan'` explicitly, and removed silent legacy string inference.
+- Corrected Planning Correlation Review matching to require `kind: 'ProposedPlanRevision'` and the exact correlated Proposed Plan Revision id.
+- Added `Activated` and `Superseded` Proposal Lifecycle states and Activation-triggered `Governed -> Activated` / `Governed -> Superseded` transitions.
+- Added `PlanningActivationService`, registered through Kernel composition, to activate one governed, approved Proposed Plan Revision into executable RFC-0001 `MissionPlan`/`Task` state through the existing `MissionPlanningService` public operations.
+- Added in-memory staging for MissionPlanningService repository writes and event publication so failed conversion publishes no RFC-0001 events and persists no executable MissionPlan state.
+- Corrected `BT-076-002` by committing staged executable MissionPlan state before persisting the ProposedMissionPlan `Activated`/`Superseded` lifecycle transition, preventing an executable-commit failure from leaving a stale activated Planning lifecycle state.
+- Preserved Activation traceability on executable MissionPlan metadata: ProposedMissionPlanId, ProposedPlanRevisionId, ReviewPlanRevisionReference, ReviewId, GovernanceDecisionId, and PlanningCorrelationId.
+
+Out of scope and not implemented:
+
+- RFC-0012 Planning-domain Domain Event publication.
+- AI plan generation, Adapter invocation/provider selection, workflow orchestration, or Repository Policy authoring/selection.
+- Durable or distributed transaction mechanisms.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model; implemented Activation, idempotent retry, sibling supersession, single-activated-revision rejection, and executable traceability.
+
+Referenced:
+
+- RFC-0006 v1.1 — Engineering Assessment Model; implemented typed `ReviewPlanRevisionReference`.
+- RFC-0001 — Mission Model; consumed existing `MissionPlanningService.createMissionPlan` and `addTask` public operations only.
+- RFC-0011 — Engineering Governance Model; read terminal `Approved` `GovernanceDecision` only.
+- RFC-0004, RFC-0005, RFC-0008 — consumed existing identifiers/event contracts only.
+
+Deferred Concepts:
+
+- RFC-0012 Planning-domain Domain Events.
+- Autonomous Planning Integration Validation and Milestone 11 closure.
+- AI-generated planning, Adapter/provider selection, workflow participation, and Repository Policy selection/routing.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-016`, `NEXUS-RAT-2026-07-17-017`, `NEXUS-RAT-2026-07-18-001`).
+- `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0076-approved-plan-activation.md`.
+
+### Architectural Assumptions
+
+- Activation is process-local and serialized by the Activation service instance, consistent with this repository's in-memory Kernel implementation.
+- MissionPlanningService remains the only executable MissionPlan/Task creation boundary; staging only buffers its existing repository writes and event publication until conversion succeeds.
+
+### Known Limitations
+
+- This Sprint publishes no RFC-0012 Planning-domain Domain Event.
+- Activation atomicity is implemented for the in-memory, single-process repository model; durable/distributed transaction semantics remain out of scope.
+
+### Validation Summary
+
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Focused Sprint 76 validation passed: `npx vitest run test\kernel\review\review.aggregate.test.ts test\kernel\review\review.service.test.ts test\kernel\planning\planning-correlation.test.ts test\kernel\planning\planning-activation.service.test.ts test\kernel\planning\planning-domain.test.ts`.
+- Repository validation passed: `npm run validate` (TypeScript compile, ESLint, Vitest excluding extension-host tests, esbuild).
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Targeted `BT-076-002` recovery validation passed: `npx vitest run test\kernel\planning\planning-activation.service.test.ts`.
+- Targeted `BT-076-001` type validation passed: `npx tsc --noEmit --pretty false`.
+- Focused `BT-076-001` recovery validation passed: `npx vitest run test\kernel\review\review.aggregate.test.ts test\kernel\review\review.service.test.ts test\kernel\review\review.repository.test.ts test\kernel\governance\governance.service.test.ts test\kernel\planning\planning-correlation.test.ts test\hosts\vscode\host-mission-workflow.test.ts test\hosts\vscode\host-mission-workflow-command-registration.test.ts test\integration\kernel-mission-workflow.integration.test.ts test\integration\kernel-boundary-certification.integration.test.ts test\integration\kernel-failure-paths.integration.test.ts test\integration\governance-automation-integration-validation.integration.test.ts test\integration\autonomous-engineering-integration-validation.integration.test.ts`.
+
+### Deviations
+
+No architectural deviations.
+
+### Review Remediation
+
+- `BT-076-002` — Corrected Activation write ordering so the staged executable MissionPlan commit completes before the ProposedMissionPlan lifecycle save. Added a regression test that injects failure at executable MissionPlan commit and verifies no `Activated`/`Superseded` lifecycle state is observable, no executable MissionPlan or events are produced, and a later Activation retry succeeds.
+- `BT-076-001` — Migrated the authorized `host-mission-workflow.ts` Review call site to construct an explicit `ReviewPlanRevisionReference`, removed `ReviewPlanRevisionReference | string` from Review creation/start contracts, removed the silent string-to-`ExecutableMissionPlan` inference path, and updated tests and fixtures to use typed references.
+
+---
+
 ## Sprint 75 — Proposal Governance Integration
 
 ### Implemented Slice

@@ -853,7 +853,7 @@ function createRecordingCompletion(
           review: {
             id: command.reviewId,
             missionId: 'mission-sprint-26-mission',
-            missionPlanRevision: 'revision-3',
+            missionPlanRevision: { kind: 'ExecutableMissionPlan', revisionId: 'revision-3' },
             status: 'Completed',
             outcome: 'Accepted',
             reviewCriteria: [

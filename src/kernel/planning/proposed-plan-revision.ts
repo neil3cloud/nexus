@@ -180,7 +180,9 @@ function isAllowedTransition(
     (from === 'Submitted' && to === 'Withdrawn') ||
     (from === 'Under Review' && to === 'Governed') ||
     (from === 'Under Review' && to === 'Rejected') ||
-    (from === 'Governed' && to === 'Rejected')
+    (from === 'Governed' && to === 'Rejected') ||
+    (from === 'Governed' && to === 'Activated') ||
+    (from === 'Governed' && to === 'Superseded')
   );
 }
 

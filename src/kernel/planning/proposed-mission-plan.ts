@@ -13,7 +13,7 @@ import {
   StructuralPlanValidationError,
 } from './planning.errors';
 import { PlanningPolicy } from './planning-policy';
-import { ProposedMissionPlanId } from './proposed-mission-plan-id';
+import { ProposedMissionPlanId, normalizeNonEmptyString } from './proposed-mission-plan-id';
 import { ProposedPlanRevision } from './proposed-plan-revision';
 
 export class ProposedMissionPlan {
@@ -135,6 +135,40 @@ export class ProposedMissionPlan {
     return this.appendLifecycleRevision(input, 'Rejected');
   }
 
+  public activateRevision(proposedPlanRevisionId: string): ProposedMissionPlan {
+    const normalizedRevisionId = normalizeNonEmptyString(
+      proposedPlanRevisionId,
+      'ProposedPlanRevision id',
+    );
+    let activated = false;
+    const revisions = this.revisionsValue.map((revision) => {
+      const snapshot = revision.toSnapshot();
+
+      if (snapshot.id === normalizedRevisionId) {
+        activated = true;
+        return revision.transitionTo('Activated');
+      }
+
+      if (snapshot.lifecycleState === 'Governed') {
+        return revision.transitionTo('Superseded');
+      }
+
+      return revision;
+    });
+
+    if (!activated) {
+      throw new InvalidPlanningDefinitionError(
+        `ProposedPlanRevision '${normalizedRevisionId}' was not found for Activation.`,
+      );
+    }
+
+    return new ProposedMissionPlan(
+      this.proposedMissionPlanId,
+      this.missionIdValue,
+      Object.freeze(revisions),
+    );
+  }
+
   public toSnapshot(): ProposedMissionPlanSnapshot {
     const originatingRevision = this.revisionsValue[0];
 
@@ -182,7 +216,12 @@ export class ProposedMissionPlan {
   }
 
   private assertCurrentStateAllowsNewRevision(): void {
-    if (this.lifecycleState === 'Withdrawn' || this.lifecycleState === 'Rejected') {
+    if (
+      this.lifecycleState === 'Withdrawn' ||
+      this.lifecycleState === 'Rejected' ||
+      this.lifecycleState === 'Activated' ||
+      this.lifecycleState === 'Superseded'
+    ) {
       throw new InvalidProposalLifecycleTransitionError(
         `ProposedMissionPlan '${this.proposedMissionPlanId.toString()}' cannot create a new ProposedPlanRevision after ${this.lifecycleState}.`,
       );

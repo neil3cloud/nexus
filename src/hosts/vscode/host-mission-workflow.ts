@@ -468,7 +468,10 @@ export class HostMissionWorkflow {
     const review = await this.completion.reviewService.startReview({
       id: reviewId,
       missionId: input.missionId,
-      missionPlanRevision: missionPlanRevisionId,
+      missionPlanRevision: {
+        kind: 'ExecutableMissionPlan',
+        revisionId: missionPlanRevisionId,
+      },
       reviewCriteria: [
         {
           id: 'sprint-27-developer-workflow-completion',

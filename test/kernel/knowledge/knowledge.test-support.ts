@@ -77,7 +77,10 @@ export function createAcceptedReview(
   const review = Review.create({
     id,
     missionId: 'mission-1',
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'architecture', description: 'Architecture is preserved.' }],
     evidenceReferences: ['evidence-1'],
   });
@@ -93,7 +96,10 @@ export function createRejectedReview(): Review {
   const review = Review.create({
     id: 'review-1',
     missionId: 'mission-1',
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'architecture', description: 'Architecture is preserved.' }],
     evidenceReferences: ['evidence-1'],
   });
@@ -109,7 +115,10 @@ export function createPendingReview(): Review {
   return Review.create({
     id: 'review-1',
     missionId: 'mission-1',
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'architecture', description: 'Architecture is preserved.' }],
     evidenceReferences: ['evidence-1'],
   });

@@ -106,7 +106,10 @@ function createReview(
   const review = Review.create({
     id,
     missionId,
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'criteria-1', description: 'Review criteria.' }],
     evidenceReferences: ['evidence-1'],
   });
@@ -127,7 +130,10 @@ function createInProgressReview(id = 'review-1', missionId = 'mission-1'): Revie
   const review = Review.create({
     id,
     missionId,
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'criteria-1', description: 'Review criteria.' }],
     evidenceReferences: ['evidence-1'],
   });

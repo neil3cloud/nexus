@@ -434,9 +434,12 @@ export class PlanningCorrelationService extends ServiceLifecycle {
       );
     }
 
-    if (review.missionPlanRevision !== planningCorrelation.proposedPlanRevisionId) {
+    if (
+      review.missionPlanRevision.kind !== 'ProposedPlanRevision' ||
+      review.missionPlanRevision.revisionId !== planningCorrelation.proposedPlanRevisionId
+    ) {
       throw new PlanningCorrelationAssociationRejectedError(
-        `Review '${review.id}' ProposedPlanRevision '${review.missionPlanRevision}' does not match PlanningCorrelation ProposedPlanRevision '${planningCorrelation.proposedPlanRevisionId}'.`,
+        `Review '${review.id}' ProposedPlanRevision '${review.missionPlanRevision.revisionId}' does not match PlanningCorrelation ProposedPlanRevision '${planningCorrelation.proposedPlanRevisionId}'.`,
       );
     }
   }
@@ -630,14 +633,17 @@ export class PlanningCorrelationService extends ServiceLifecycle {
     return {
       ...(command.reviewId === undefined ? {} : { id: command.reviewId }),
       missionId,
-      missionPlanRevision,
+      missionPlanRevision: {
+        kind: 'ProposedPlanRevision',
+        revisionId: missionPlanRevision,
+      },
       reviewCriteria: command.reviewCriteria,
       evidenceReferences: command.evidenceReferences,
     };
   }
 
   private assertReviewMatchesRevision(
-    review: { readonly id: string; readonly missionId: string; readonly missionPlanRevision: string },
+    review: Pick<ReviewSnapshot, 'id' | 'missionId' | 'missionPlanRevision'>,
     missionId: string,
     proposedPlanRevisionId: string,
   ): void {
@@ -653,9 +659,12 @@ export class PlanningCorrelationService extends ServiceLifecycle {
       );
     }
 
-    if (review.missionPlanRevision !== proposedPlanRevisionId) {
+    if (
+      review.missionPlanRevision.kind !== 'ProposedPlanRevision' ||
+      review.missionPlanRevision.revisionId !== proposedPlanRevisionId
+    ) {
       throw new PlanningCorrelationAssociationRejectedError(
-        `Review '${review.id}' ProposedPlanRevision '${review.missionPlanRevision}' does not match PlanningCorrelation ProposedPlanRevision '${proposedPlanRevisionId}'.`,
+        `Review '${review.id}' ProposedPlanRevision '${review.missionPlanRevision.revisionId}' does not match PlanningCorrelation ProposedPlanRevision '${proposedPlanRevisionId}'.`,
       );
     }
   }
