@@ -7563,3 +7563,83 @@ RFC-0012 drafting; Planning Policy; Proposed Mission Plan; Proposed Plan Revisio
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-17-010
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-17-010
+
+## Date
+
+2026-07-17
+
+## Subject
+
+RFC-0012 — Autonomous Engineering Planning Model ratified Final (v1.0); Milestone 11 Initial Capability Sequence step 2 closed; Sprint 72 — Planning Policy and Proposed Plan Foundation authorized (Initial Capability Sequence step 3).
+
+## Originating Request
+
+Following Sprint 71's Reviewer certification (`NEXUS-REV-2026-07-17-010`, PASS, zero open findings), `nexus-plan` drafted RFC-0012 per `NEXUS-RAT-2026-07-17-009`'s authorization, presenting four scoping questions (Proposed Task modeling, Proposal Lifecycle, Review/Governance reuse, Planner Attribution) to the Sprint Owner before drafting. The Sprint Owner returned exact directed decisions for all four, incorporated into RFC-0012 v0.1. The Sprint Owner then required a 16-point consistency review before ratification. `nexus-plan`'s review found the majority of points satisfied but identified five genuine gaps: (1) "Planning Policy" was named in `NEXUS-RAT-2026-07-17-009`'s authorized ownership list but never defined or bounded in the v0.1 draft; (2) repeated Activation of an already-`Activated` revision was not specified as idempotent; (3) Activation of a conflicting revision (a second revision of the same Proposed Mission Plan) was not explicitly rejected; (4) Planning Correlation lacked an explicit Mission-identity mismatch check and a general fail-closed statement, mirroring RFC-0004 Engineering Decision Correlation; (5) Non-Goals omitted explicit exclusion of autonomous objective creation, self-approval, Task execution, and workflow orchestration. `nexus-plan` corrected all five gaps in RFC-0012 v0.2 before requesting ratification.
+
+## Governance Decision
+
+**APPROVED.** RFC-0012 — Autonomous Engineering Planning Model is ratified **Final**, Version 1.0, incorporating v0.2 in full. RFC-0012 owns Planning Policy, Proposed Mission Plan, Proposed Plan Revision, Proposed Task, Proposed Task Dependency, Planner Attribution, Proposal Lifecycle, Planning Correlation, Structural Plan Validation, Planning Diagnostics, and Activation, exactly as recorded in `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`. RFC-0001, RFC-0004, RFC-0005, RFC-0006, RFC-0008, and RFC-0011 are Referenced, consumed read-only, and are not modified by this ratification.
+
+**Binding confirmations (from the Sprint Owner's 16-point review, all satisfied in v0.2):** Proposed Mission Plan/Proposed Plan Revision hold separate identities with append-only, immutable revisions from `Submitted` onward; Review and Governance always target one exact revision via Planning Correlation; a `GovernanceDecision` for one revision cannot authorize another; `Governed` status alone does not imply `Approved`; Activation requires an exact correlated `GovernanceDecision = Approved`; Proposed Tasks are non-executable before Activation; Structural Plan Validation rejects invalid references, self-dependencies, duplicate dependencies, and cycles; Activation revalidates RFC-0001 invariants, is atomic with no partial state, is idempotent for an already-`Activated` revision, rejects conflicting/concurrent Activation, and preserves proposal-to-executable traceability; Planning Correlation fails closed on any missing or mismatched Review, Governance, Mission, revision, correlation, or Planner Attribution reference; Planning Policy cannot modify Mission objective or grant approval authority; RFC-0012 authorizes no autonomous objective creation, self-approval, Adapter selection, Task execution, workflow orchestration, or automatic recovery planning, and no silent Activation; Domain Event implementation remains deferred to future authorized Sprints.
+
+**Milestone 11 Initial Capability Sequence step 2 (RFC-0012 drafting and ratification) is CLOSED.** Step 3 — Planning Policy and Proposed Plan Foundation — is authorized below as Sprint 72.
+
+### Sprint 72 — Planning Policy and Proposed Plan Foundation (authorized)
+
+Sprint 72 SHALL implement, strictly within a new Planning domain module (e.g. `src/kernel/planning/`) and its own repository/service composition, without modifying any Sprint 1–71 production file:
+
+- Planning Policy as deterministic, read-only constraint data (RFC-0012 §Planning Policy).
+- `ProposedMissionPlan`, `ProposedPlanRevision`, `ProposedTask`, `ProposedTaskDependency` domain models (RFC-0012, unmodified from the ratified specification).
+- Planner Attribution value object exactly as specified (RFC-0012 §Planner Attribution).
+- Proposal Lifecycle foundation: the `Draft`/`Submitted`/`Withdrawn` states and their transitions only — `Under Review`, `Governed`, `Activated`, `Rejected`, and `Superseded` are explicitly deferred, since they depend on Planning Correlation, Review, and Governance integration not yet authorized.
+- Structural Plan Validation foundation: missing-reference, self-dependency, duplicate-dependency, and cycle validation for Proposed Task Dependencies, evaluated independently of RFC-0001.
+- A repository contract and in-memory implementation for Proposed Mission Plans and Revisions, following this repository's established pattern (constructor-injected contracts, snapshot persistence).
+- Unit tests for every implemented concept's construction, immutability, validation, and diagnostics.
+
+Sprint 72 SHALL NOT implement: AI plan generation; Review execution or Review integration; Governance evaluation or Planning Correlation's Review/Governance association fields; Activation or any conversion into RFC-0001 executable objects; Domain Event publication for any reserved RFC-0012 event; workflow orchestration; the `Under Review`, `Governed`, `Activated`, `Rejected`, or `Superseded` Proposal Lifecycle states or their transitions.
+
+Sprint 72 SHALL NOT modify `Mission`, `MissionPlan`, `Task`, `TaskDependency`, `Review`, `GovernanceDecision`, `EngineeringDecisionCorrelation`, `RecoveryRequirement`, any Execution Model concept, any event, any event consumer, any projection, `src/hosts`, or `src/adapters`.
+
+**Definition of Done:** all Planning Policy, Proposed Mission Plan/Revision/Task/Dependency, Planner Attribution, Draft/Submitted/Withdrawn lifecycle, and Structural Plan Validation behavior specified above is implemented and unit-tested; no Sprint 1–71 production contract, Host, or Adapter file is found to have drifted; repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build); `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized.
+
+## RFC Coverage
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (ratified Final by this ratification)
+- RFC-0001, RFC-0004, RFC-0005, RFC-0006, RFC-0008, RFC-0011 (Referenced; consumed read-only, unmodified)
+
+## Ownership Model (ratified)
+
+This ratification ratifies one new RFC Final at the Constitutional tier and authorizes one Sprint's scope at the Implementation Plan tier. It redefines no previously approved vertical slice and modifies no existing RFC.
+
+## Authorized Scope
+
+`nexus-plan` is authorized to record this ratification; mark RFC-0012 Final in its own document; synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` for Milestone 11 Initial Capability Sequence step 2 closure and step 3 opening; generate the Sprint 72 Sprint Implementation Record reproducing this ratification's full binding detail; activate Sprint 72; and prepare Builder handoff.
+
+## Deferred Concepts
+
+Governed Plan Generation; Plan Review, Governance, and Activation; Autonomous Planning Integration Validation (Initial Capability Sequence steps 4–6) — each requires its own future Sprint scope ratification, gated on Sprint 72's certification. `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` Proposal Lifecycle states, Planning Correlation's Review/Governance association, and Activation itself — deferred to those future Sprints per RFC-0012.
+
+## Related Sprint(s)
+
+- Sprint 71 — Governance Decision Applicability Correction (frozen; consumed read-only; Reviewer-certified, unblocking this cycle).
+- Sprint 72 — Planning Policy and Proposed Plan Foundation (this ratification's authorized implementation scope).
+
+## Related Review(s)
+
+None yet. Sprint 72 has not been reviewed.
+
+## Full Ratification Text
+
+> The Sprint Owner ratifies RFC-0012 — Autonomous Engineering Planning Model Final, Version 1.0, as drafted by `nexus-plan` and corrected to v0.2 following the Sprint Owner's 16-point consistency review, confirming all sixteen points are satisfied without contradiction. RFC-0012 owns Planning Policy, Proposed Mission Plan, Proposed Plan Revision, Proposed Task, Proposed Task Dependency, Planner Attribution, Proposal Lifecycle, Planning Correlation, Structural Plan Validation, Planning Diagnostics, and Activation, and modifies no existing RFC. Milestone 11 Initial Capability Sequence step 2 is closed. The Sprint Owner authorizes Sprint 72 — Planning Policy and Proposed Plan Foundation (Initial Capability Sequence step 3), strictly limited to Planning Policy, the Proposed Mission Plan/Revision/Task/Dependency models, Planner Attribution, the Draft/Submitted/Withdrawn Proposal Lifecycle foundation, and Structural Plan Validation foundation, explicitly excluding AI plan generation, Review execution, Governance evaluation, Activation, conversion into RFC-0001 executable objects, Domain Event publication, and workflow orchestration. `nexus-plan` SHALL record this ratification, synchronize `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`, generate the Sprint 72 Sprint Implementation Record, activate Sprint 72, and issue Builder handoff.
+
+## Current Status
+
+Active
+
+---

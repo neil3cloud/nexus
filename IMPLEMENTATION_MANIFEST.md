@@ -2912,7 +2912,7 @@ Notes:
 
 # Milestone 11 — Autonomous Engineering Planning Readiness
 
-Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, fully closed with zero open findings, per `NEXUS-RAT-2026-07-17-009`, Milestone 11's opening Sprint. No further Milestone 11 Sprint is yet authorized; RFC-0012 drafting and ratification — Initial Capability Sequence step 2 — is reserved for the next authorized `nexus-plan` cycle.)
+Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is Implemented — Pending Reviewer Validation.)
 
 Opened by `NEXUS-RAT-2026-07-17-009`.
 
@@ -2922,12 +2922,53 @@ Architectural Boundary (binding): Milestone 11 SHALL NOT redefine Mission, activ
 
 Initial Capability Sequence (binding, sequencing only — each future step requires its own Sprint scope ratification):
 
-1. Governance Decision Applicability Correction (Sprint 71).
-2. RFC-0012 drafting and ratification.
-3. Planning Policy and Proposed Plan Foundation.
+1. Governance Decision Applicability Correction (Sprint 71). ✅ Approved.
+2. RFC-0012 drafting and ratification. ✅ Closed by `NEXUS-RAT-2026-07-17-010`; RFC-0012 v1.0 Final.
+3. Planning Policy and Proposed Plan Foundation. Sprint 72 — Implemented — Pending Reviewer Validation.
 4. Governed Plan Generation.
 5. Plan Review, Governance, and Activation.
 6. Autonomous Planning Integration Validation.
+
+---
+
+## Sprint 72 — Planning Policy and Proposed Plan Foundation
+
+Status: Implemented — Pending Reviewer Validation
+
+RFC Coverage:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model (Planning Policy, Proposed Mission Plan/Revision/Task/Dependency, Planner Attribution, Proposal Lifecycle foundation, Structural Plan Validation)
+- RFC-0004 — Execution Model (Referenced; `RoleRegistry`/`executionRoleId`, Adapter identity consumed read-only)
+- RFC-0001 — Mission Model (Referenced; `missionId` consumed read-only)
+
+Ratification:
+
+- `NEXUS-RAT-2026-07-17-010` — ratifies RFC-0012 v1.0 Final and authorizes this Sprint's exact scope.
+
+Authorized Concepts:
+
+- Planning Policy as deterministic, read-only constraint data.
+- `ProposedMissionPlan`, `ProposedPlanRevision`, `ProposedTask`, `ProposedTaskDependency` domain models.
+- Planner Attribution value object.
+- Proposal Lifecycle foundation: `Draft`/`Submitted`/`Withdrawn` states and transitions only.
+- Structural Plan Validation: missing-reference, self-dependency, duplicate-dependency, and cycle validation.
+- A repository contract and in-memory implementation for Proposed Mission Plans and Revisions.
+- Planning Diagnostics for invalid definitions, Structural Plan Validation failures, invalid lifecycle transitions, and Planning Policy submission violations.
+
+Deferred Concepts:
+
+- `Under Review`, `Governed`, `Activated`, `Rejected`, `Superseded` Proposal Lifecycle states and transitions.
+- Planning Correlation's Review/Governance association fields.
+- Review execution, Governance evaluation, Activation, conversion into RFC-0001 executable objects.
+- Domain Event publication for any RFC-0012-reserved event.
+- Workflow orchestration.
+- Governed Plan Generation; Plan Review, Governance, and Activation; Autonomous Planning Integration Validation (Initial Capability Sequence steps 4–6).
+
+Notes:
+
+- See `knowledge/implementation/sprints/sprint-0072-planning-policy-and-proposed-plan-foundation.md` for the complete Sprint Implementation Record.
+- This sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0006, RFC-0008, RFC-0011, or the Kernel Canon.
+- Implemented in `src/kernel/planning/` with tests under `test/kernel/planning/`.
 
 ---
 

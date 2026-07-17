@@ -1,5 +1,101 @@
 # Nexus Implementation Report
 
+## Sprint 72 — Planning Policy and Proposed Plan Foundation
+
+### Implemented Slice
+
+Implemented the Milestone 11 Sprint 72 vertical slice authorized by `NEXUS-RAT-2026-07-17-010`.
+
+Implemented scope:
+
+- Added an independent Planning domain module under `src/kernel/planning/`.
+- Implemented Planning Policy as deterministic read-only proposal-shape constraint data.
+- Implemented `ProposedMissionPlan`, `ProposedPlanRevision`, `ProposedTask`, and `ProposedTaskDependency` as speculative, non-executable Planning-owned models.
+- Implemented immutable Planner Attribution for Human and Adapter planners.
+- Implemented only the authorized `Draft`, `Submitted`, and `Withdrawn` Proposal Lifecycle foundation.
+- Implemented Structural Plan Validation for missing Proposed Task references, self-dependencies, duplicate dependencies, and direct/transitive cycles.
+- Added Planning Diagnostics, domain errors, identifiers, snapshot types, `IProposedMissionPlanRepository`, and `InMemoryProposedMissionPlanRepository`.
+- Added unit tests for construction, immutability, Planner Attribution validation, lifecycle transitions, submission preconditions, Structural Plan Validation failure categories, Planning Policy submission rejection, and repository snapshot persistence.
+
+Out of scope and not implemented:
+
+- `Under Review`, `Governed`, `Activated`, `Rejected`, or `Superseded` states or transitions.
+- Planning Correlation `reviewId` / `governanceDecisionId` association behavior.
+- Review integration, Governance integration, Activation, or conversion into RFC-0001 executable `MissionPlan`, `Task`, or `TaskDependency`.
+- Domain Event publication for RFC-0012 reserved event names.
+- Workflow orchestration, AI plan generation, Adapter invocation, provider selection, Host changes, or Adapter changes.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0012 v1.0 — Autonomous Engineering Planning Model; implemented Planning Policy, Proposed Mission Plan, Proposed Plan Revision, Proposed Task, Proposed Task Dependency, Planner Attribution, Proposal Lifecycle foundation, Structural Plan Validation, and Planning Diagnostics for this Sprint's authorized states.
+
+Referenced:
+
+- RFC-0001 — Mission Model; consumed `missionId` by identity only. No RFC-0001 Mission Plan, Task, Task Dependency, Mission Planning Service, or Mission Execution Service behavior was modified.
+- RFC-0004 — Execution Model; consumed `executionRoleId`, Engineering Session identity, and Execution Session identity as immutable attribution identifiers only.
+- RFC-0008 — Kernel Adapter Contract; consumed `adapterId` as an immutable attribution identifier only.
+
+Deferred Concepts:
+
+- Proposal Lifecycle states `Under Review`, `Governed`, `Activated`, `Rejected`, and `Superseded`.
+- Planning Correlation Review/Governance association fields and behavior.
+- Review execution, Governance evaluation, Activation, executable Mission Plan conversion, Domain Event publication, workflow orchestration, Governed Plan Generation, Plan Review/Governance/Activation, and Autonomous Planning Integration Validation.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-010`).
+- `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0004-execution-model.md`.
+- `knowledge/specifications/rfc-0008-kernel-adapter-contract.md`.
+- `knowledge/implementation/sprints/sprint-0072-planning-policy-and-proposed-plan-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+
+### Architectural Assumptions
+
+- Planner Attribution identifier normalization through existing `RoleId`, `EngineeringSessionId`, `ExecutionSessionId`, and `AdapterId` value objects satisfies Sprint 72's read-only attribution requirement; full Role Registry lookup remains outside this foundation Sprint.
+- Planning Policy is limited to deterministic proposal-shape constraints and submission eligibility. It does not evaluate Governance, alter Mission Objective, or gate Activation.
+- Structural Plan Validation is intentionally implemented inside the Planning domain because Proposed Tasks are non-executable Planning-owned content and must not delegate to RFC-0001 `Task` validation.
+
+### Known Limitations
+
+- Proposed Mission Plans cannot be reviewed, governed, activated, converted to executable Mission Plans, or published as events until future Milestone 11 Sprints authorize those capabilities.
+- The repository implementation is in-memory and single-process, consistent with this Sprint's foundation scope and existing repository patterns.
+
+### Validation Summary
+
+- Repository validation passed: `npm run validate` (TypeScript compile, ESLint, Vitest excluding extension-host tests, esbuild).
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+- Targeted Planning tests passed: `npx vitest run test/kernel/planning/planning-domain.test.ts test/kernel/planning/proposed-mission-plan.repository.test.ts`.
+- Host/Adapter drift check passed: no `src/hosts` or `src/adapters` file changed.
+
+### Deviations
+
+No architectural deviations.
+
+### Corrective Builder Tasks from `NEXUS-REV-2026-07-17-011`
+
+Implemented the two Minor corrective Builder Tasks from `builder-task.md` for Sprint 72:
+
+- `BT-072-001`: removed the dead `PlanningPolicy.requireMissionId` schema surface from `PlanningPolicyInput`, `PlanningPolicySnapshot`, `PlanningPolicy.create`, and Planning Policy tests. `ProposedMissionPlan` continues to require a valid `missionId` directly, preserving Sprint 72 behavior without hidden policy fields.
+- `BT-072-002`: narrowed `PlanningDiagnosticCode` to exactly the five diagnostic codes produced by Sprint 72 (`MissingProposedTaskReference`, `SelfDependency`, `DuplicateDependency`, `DependencyCycle`, `PlanningPolicyViolation`). Invalid definition and invalid lifecycle failures continue to use their existing exception types.
+
+Corrective validation:
+
+- Targeted recovery validation passed: `npm run compile`, `npm run lint`, and `npx vitest run test/kernel/planning/planning-domain.test.ts test/kernel/planning/proposed-mission-plan.repository.test.ts`.
+- Full repository validation passed: `npm run validate`.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+
+---
+
 ## Sprint 71 — Governance Decision Applicability Correction
 
 ### Implemented Slice
