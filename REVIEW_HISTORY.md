@@ -2,6 +2,63 @@
 
 ---
 
+## NEXUS-REV-2026-07-18-005 — Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (Own Scope; Milestone 11 Closure)
+
+- **Reviewed Sprint:** Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure. This cycle reviews Sprint 77's own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`), resumed after the Planning Correlation lineage corrective work was independently certified Resolved (`NEXUS-REV-2026-07-18-004`, PASS). This cycle does not re-review the corrective work itself.
+- **Reviewed Change:** `test/integration/autonomous-planning-integration-validation.integration.test.ts` (new, 4 tests) — the complete Planning domain flow (`Draft → Submitted → Under Review → Governed → Activated → executable RFC-0001 MissionPlan/Task/TaskDependency`) driven exclusively through real Kernel-composed `PlanningService`, `PlanningCorrelationService`, `GovernanceService`, `ReviewService`, `PlanningActivationService`, and `InMemoryMissionRepository` instances (no mocked or stubbed domain collaborator; one test uses a `FailingCommitMissionRepository` subclass of the real `InMemoryMissionRepository` that fails exactly one injected write, consistent with the precedented failure-injection pattern used by Sprint 62's and Sprint 70's own integration validation tests). `IMPLEMENTATION_REPORT.md` § Sprint 77 (new section). `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` Sprint 77 and Milestone 11 status text (Builder-recorded, "Implemented — Pending Reviewer Validation"; Milestone 11 left `🟡 ACTIVE`). No Sprint 1–76 production file under `src/` was modified — confirmed by `git diff` against the prior reviewed commit (`NEXUS-REV-2026-07-18-004`) showing zero `src/` changes.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (Referenced; validates the already-implemented Planning Policy, Proposal Lifecycle, Planning Correlation, Governance integration, and Activation composition; amends no RFC text). RFC-0001, RFC-0006 v1.1, RFC-0011, RFC-0004, RFC-0005, RFC-0008 (Referenced; consumed read-only, unmodified).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS (zero findings)
+
+### Executive Summary
+
+Sprint 77's five Authorized Concepts, ratified in full by `NEXUS-RAT-2026-07-18-002`, are each independently proven by the new integration test through real Kernel composition, with no mock or stub standing in for any Planning, Review, Governance, or Mission collaborator:
+
+**1. Complete happy-path validation.** `'drives Draft to executable MissionPlan...'` drives the full chain and asserts exact proposal-to-executable traceability on the resulting `MissionPlan.metadata`: `proposedMissionPlanId`, `proposedPlanRevisionId` (the governed revision), `reviewPlanRevisionKind: 'ProposedPlanRevision'`, `reviewPlanRevisionId` (the reviewed revision), `reviewId`, `governanceDecisionId`, and `planningCorrelationId`. It also asserts the `PlanningCorrelation` carries both `reviewedProposedPlanRevisionId` and `governedProposedPlanRevisionId` correctly, the `GovernanceDecision` and `Review` reach their expected terminal states, exactly one `MissionPlan` and two `Task`s are persisted, and exactly one `MissionPlanCreated`/two `TaskCreated` RFC-0001 events are published — no RFC-0012 Planning-domain event of any kind.
+
+**2. Typed revision integrity.** The same test asserts the positive case (`reviewPlanRevisionKind`/`reviewPlanRevisionId` on the activated `MissionPlan` match the exact reviewed revision). `'fails closed when Review revision typing does not match the PlanningCorrelation'` proves the negative case: a `Review` started with `kind: 'ExecutableMissionPlan'` against a `PlanningCorrelation` expecting `kind: 'ProposedPlanRevision'` causes `evaluateGovernance` to reject with `PlanningCorrelationAssociationRejectedError`, exercising `PlanningCorrelationService.assertReviewMatchesCorrelation` exactly as the Authorized Concept requires.
+
+**3. Activation safety.** `'rejects unsafe Activation paths and preserves executable Mission state on injected failure'` proves: an injected `InMemoryMissionRepository.saveMissionPlan` failure leaves zero persisted `MissionPlan`s, zero `MissionPlanCreated`/`TaskCreated` events, and the `ProposedMissionPlan` revision unchanged at `Governed` (no partial state); activating one sibling `Governed` revision transitions the other sibling to `Superseded`; activating the now-`Superseded` sibling is rejected (`PlanningCorrelationAssociationRejectedError`). The happy-path test separately proves repeat Activation of the same revision is idempotent (`repeatedActivation.missionPlan` equals the original) and that the activated revision's content is preserved unchanged apart from its `lifecycleState`.
+
+**4. Governance protection.** `'rejects Activation when Governance is missing, non-terminal, non-Approved, or stale'` proves fail-closed rejection for a missing `GovernanceDecision`, a non-terminal (`Deferred`) decision, a terminal non-`Approved` (`Rejected`) decision, and a stale/mismatched Planning Correlation (a `GovernanceDecision` recorded against a different `reviewId` than the correlation's) — all four cases reject with `PlanningCorrelationAssociationRejectedError`.
+
+**5. Milestone closure gating.** `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` correctly record Milestone 11 as `🟡 ACTIVE` and Sprint 77 as "Implemented — Pending Reviewer Validation" throughout the reviewed change; Milestone 11 completion is not declared anywhere in the Builder's changes, correctly deferring that declaration to this Reviewer cycle.
+
+Independently re-ran the complete validation matrix: `npx tsc --noEmit --pretty false` clean; `npm run lint` clean; `npx vitest run --exclude "test/extension-host/**"` — 684/684 passing across 96/96 files, matching `IMPLEMENTATION_REPORT.md`'s claim exactly; `npm run build` (esbuild) clean; `npm run test:extension-host:build` clean.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | `tsc --noEmit` clean; ESLint clean; full repository Vitest suite 684/684 (96/96 files); `esbuild` main bundle clean; extension-host test bundle build clean |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication (e.g. `ProposedMissionPlanActivated`); AI-generated planning; Adapter invocation or provider/Adapter selection; workflow orchestration, Workflow Chain participation, Corpus Review Mode; new Repository Policy authoring, versioning, or selection/routing mechanism; any Milestone 12 (or subsequent) scope. No deferred concept was found implemented, stubbed, or referenced by the reviewed change.
+
+### Architectural Compliance Summary
+
+- **Scope:** Exactly Sprint 77's own five Authorized Concepts, unexpanded; no new domain capability, service, repository, event, or Kernel registration was introduced.
+- **Architectural Boundaries:** Zero Sprint 1–76 production files under `src/` were modified (confirmed by `git diff`); only the new integration test file was added under `test/`. `src/hosts` and `src/adapters` remain untouched.
+- **Aggregate ownership / domain boundaries:** The test drives all state transitions exclusively through existing public service operations (`PlanningService`, `PlanningCorrelationService`, `GovernanceService`, `ReviewService`, `PlanningActivationService`, `MissionPlanningService` via Activation); no aggregate internals are accessed directly, and no foreign-aggregate mutation occurs.
+- **Event compliance:** Only the existing, already-certified RFC-0001 `MissionPlanCreated`/`TaskCreated` events are observed; no RFC-0012 event is published or asserted.
+- **Terminology:** No architectural concept renamed; `reviewedProposedPlanRevisionId`/`governedProposedPlanRevisionId` (Sprint 74–76, `NEXUS-RAT-2026-07-18-003`) used exactly as previously certified.
+- **Milestone closure gating:** Correctly not self-declared by the Builder; this Reviewer cycle is the first to certify Sprint 77's own scope.
+
+### Builder Task Recommendation
+
+None. Zero findings of any category. Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure is fully closed. With all eight Initial Capability Sequence steps complete and independently Reviewer-certified (Sprints 71–77), **Milestone 11 — Autonomous Engineering Planning Readiness is now Complete.** No further Sprint is currently authorized within Milestone 11; Milestone 12 (or any subsequent scope) requires its own future `nexus-plan` cycle. `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` status text remain Builder-owned and are expected to be reconciled to "Approved"/"Complete" by the next Builder or `nexus-sprint` cycle; this review does not modify those artifacts.
+
+---
+
 ## NEXUS-REV-2026-07-18-004 — `BT-077-002`/`BT-077-003`/`BT-077-004`/`DOC-077-001` Resolution Verification (Planning Correlation Lineage Corrective Work; Sprint 77 Resumption Gate)
 
 - **Reviewed Sprint:** Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (⏸️ Paused). This cycle reviews `BT-077-002`, `BT-077-003`, `BT-077-004`, and `DOC-077-001` — the corrective Builder Tasks `nexus-sprint` generated from `NEXUS-REV-2026-07-18-003`'s four findings. Sprint 77's own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`) remain out of scope for this cycle; they were not attempted and are not reviewed here.

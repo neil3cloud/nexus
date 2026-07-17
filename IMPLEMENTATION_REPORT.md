@@ -1,5 +1,88 @@
 # Nexus Implementation Report
 
+## Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure
+
+### Implemented Slice
+
+Implemented the validation-only Sprint 77 vertical slice authorized by `NEXUS-RAT-2026-07-18-002`.
+
+Implemented scope:
+
+- Added `test/integration/autonomous-planning-integration-validation.integration.test.ts`.
+- Exercised the complete Planning domain flow through real Planning, Review, Governance, and Mission service composition: `Draft -> Submitted -> Under Review -> Governed -> Activated -> executable MissionPlan`.
+- Validated exact proposal-to-executable traceability on the resulting RFC-0001 `MissionPlan` metadata: `ProposedMissionPlanId`, `ProposedPlanRevisionId`, typed `ReviewPlanRevisionReference`, `ReviewId`, `GovernanceDecisionId`, and `PlanningCorrelationId`.
+- Validated typed revision integrity, including fail-closed rejection when a Review uses a mismatched revision kind.
+- Validated Activation safety: idempotent repeat Activation, sibling-revision rejection after successful Activation, no executable Mission state or RFC-0001 events on injected mid-Activation failure, activated revision content preservation, and sibling `Governed -> Superseded` behavior.
+- Validated Governance protection: Activation rejects missing, non-terminal, non-Approved, and stale Governance/Planning Correlation states.
+- Preserved Milestone 11 status as active pending independent Reviewer validation.
+
+Out of scope and not implemented:
+
+- No Sprint 1-76 production file, service, contract, aggregate, value object, or host/adapter surface was modified.
+- No RFC-0012 Planning-domain Domain Event publication.
+- No AI-generated planning, Adapter/provider selection, workflow orchestration, Corpus Review Mode, or Repository Policy selection/routing capability.
+- No Milestone 11 completion declaration; closure remains contingent on independent Reviewer PASS.
+
+### RFC Coverage
+
+Referenced:
+
+- RFC-0012 v1.1 — Autonomous Engineering Planning Model; validated the already-implemented Planning Policy, Proposal Lifecycle, Planning Correlation, Governance integration, and Activation composition.
+- RFC-0001 — Mission Model; validated executable `MissionPlan`, `Task`, and `TaskDependency` creation through existing Mission service boundaries.
+- RFC-0006 v1.1 — Engineering Assessment Model; validated typed `ReviewPlanRevisionReference`.
+- RFC-0011 — Engineering Governance Model; validated `GovernanceDecision` consumption.
+- RFC-0004, RFC-0005, RFC-0008 — consumed read-only and unmodified.
+
+Deferred Concepts:
+
+- RFC-0012 Planning-domain Domain Events.
+- AI-generated planning, Adapter invocation, provider/Adapter selection.
+- Workflow orchestration, Workflow Chain participation, Corpus Review Mode.
+- Any new Repository Policy authoring, versioning, or selection/routing mechanism.
+- Milestone 12 or subsequent scope.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-18-002`, `NEXUS-RAT-2026-07-18-003`).
+- `knowledge/specifications/rfc-0012-autonomous-engineering-planning-model.md`.
+- `knowledge/specifications/rfc-0001-mission-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0011-engineering-governance-model.md`.
+- `knowledge/implementation/sprints/sprint-0077-autonomous-planning-integration-validation-and-milestone-11-closure.md`.
+
+### Architectural Assumptions
+
+- Sprint 77 validates in-memory, single-process Kernel composition only, consistent with the Sprint's known limitations.
+- Governance-protection corruption cases are seeded directly into in-memory repositories only to assert existing fail-closed Activation guards; the production collaborators under test remain real services/repositories, not mocks or stubs.
+
+### Known Limitations
+
+- This Sprint does not exercise durable persistence, distributed transaction, or multi-process behavior.
+- Milestone 11 closure remains pending independent Reviewer validation.
+
+### Validation Summary
+
+- TypeScript compile passed: `npx tsc --noEmit`.
+- ESLint passed: `npm run lint -- --quiet`.
+- Targeted Sprint 77 integration test passed: `npx vitest run test\integration\autonomous-planning-integration-validation.integration.test.ts` (4 tests).
+- Repository validation passed: `npm run validate` (`npm run compile`, `npm run lint`, `npm run test`, `npm run build`).
+- Full non-extension-host Vitest suite passed: 684/684 tests across 96/96 files.
+- Extension-host bundle build passed: `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+### Sprint Status
+
+Implemented — Pending Reviewer Validation. Milestone 11 remains 🟡 ACTIVE and SHALL NOT be declared complete until an independent Reviewer PASS is recorded.
+
+---
+
 ## BT-077-001 — Planning Correlation Reviewed/Governed Revision Lineage
 
 ### Implemented Slice
