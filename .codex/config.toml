@@ -1,0 +1,10 @@
+[mcp_servers.memopilot]
+command = 'C:\Users\NeilBusa\AppData\Local\Programs\Python\Python313\python.exe'
+args = [
+    "-m",
+    "agent.mcp_server",
+]
+
+[mcp_servers.memopilot.env]
+PYTHONPATH = 'c:\Users\NeilBusa\.vscode\extensions\memopilot.memopilot-1.0.1'
+MEMOPILOT_WORKSPACE = 'c:\Projects\nexus'

@@ -4139,7 +4139,7 @@ See `knowledge/implementation/sprints/sprint-0070-autonomous-engineering-integra
 
 # Milestone 11 — Autonomous Engineering Planning Readiness
 
-Status: 🟡 ACTIVE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`, Milestone 11's opening Sprint. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` [review] (fully closed; `BT-072-001`/`BT-072-002` independently verified Resolved). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS, zero findings, fully closed). Initial Capability Sequence step 5 [Plan Review, Governance, and Activation] decomposed by `NEXUS-RAT-2026-07-17-012` into steps 5–7 [Sprints 74–76] plus renumbered step 8 [Sprint 77]. Sprint 74 — Planning Correlation and Review Entry Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-014`/`-015` (fully closed; `BT-074-001` independently verified Resolved; two Informational Observations remain non-blocking, carried forward). Sprint 75 — Proposal Governance Integration is ✅ Approved with Findings — `NEXUS-REV-2026-07-17-016` through `-019` (fully closed; originating Critical finding F-001 Resolved via `NEXUS-RAT-2026-07-17-015`/RFC-0012 v1.1, independently verified by `NEXUS-REV-2026-07-17-018`; the resulting Minor finding's `BT-075-003` independently verified Resolved by `NEXUS-REV-2026-07-17-019`; one carried-forward Informational Observation remains, non-blocking). RFC-0006 amended to v1.1 by `NEXUS-RAT-2026-07-17-016`, typing `Review`'s revision-under-assessment reference as `ReviewPlanRevisionReference` ahead of Sprint 76, completed by `NEXUS-RAT-2026-07-18-001`. Sprint 76 — Approved Plan Activation is ✅ Approved — `NEXUS-REV-2026-07-18-002` (fully closed; zero open findings of any category; `BT-076-002` independently verified Resolved by `NEXUS-REV-2026-07-18-001`, `BT-076-001` independently verified Resolved by `NEXUS-REV-2026-07-18-002`). Milestone 11 Initial Capability Sequence step 7 is complete. Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure is ✅ Approved — `NEXUS-REV-2026-07-18-005` (PASS; fully closed, zero findings of any category); its five Authorized Concepts are independently certified by the Sprint 77 integration validation test. Milestone 11 Initial Capability Sequence step 8 is complete. **Milestone 11 — Autonomous Engineering Planning Readiness is now Complete.**)
+Status: ✅ COMPLETE (Sprint 71 — Governance Decision Applicability Correction is ✅ Approved — `NEXUS-REV-2026-07-17-010`, per `NEXUS-RAT-2026-07-17-009`, Milestone 11's opening Sprint. RFC-0012 — Autonomous Engineering Planning Model ratified Final v1.0 by `NEXUS-RAT-2026-07-17-010` [ratification], closing Initial Capability Sequence step 2. Sprint 72 — Planning Policy and Proposed Plan Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-012` [review] (fully closed; `BT-072-001`/`BT-072-002` independently verified Resolved). Sprint 73 — Planning Service and Proposal Lifecycle Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-013` (PASS, zero findings, fully closed). Initial Capability Sequence step 5 [Plan Review, Governance, and Activation] decomposed by `NEXUS-RAT-2026-07-17-012` into steps 5–7 [Sprints 74–76] plus renumbered step 8 [Sprint 77]. Sprint 74 — Planning Correlation and Review Entry Foundation is ✅ Approved — `NEXUS-REV-2026-07-17-014`/`-015` (fully closed; `BT-074-001` independently verified Resolved; two Informational Observations remain non-blocking, carried forward). Sprint 75 — Proposal Governance Integration is ✅ Approved with Findings — `NEXUS-REV-2026-07-17-016` through `-019` (fully closed; originating Critical finding F-001 Resolved via `NEXUS-RAT-2026-07-17-015`/RFC-0012 v1.1, independently verified by `NEXUS-REV-2026-07-17-018`; the resulting Minor finding's `BT-075-003` independently verified Resolved by `NEXUS-REV-2026-07-17-019`; one carried-forward Informational Observation remains, non-blocking). RFC-0006 amended to v1.1 by `NEXUS-RAT-2026-07-17-016`, typing `Review`'s revision-under-assessment reference as `ReviewPlanRevisionReference` ahead of Sprint 76, completed by `NEXUS-RAT-2026-07-18-001`. Sprint 76 — Approved Plan Activation is ✅ Approved — `NEXUS-REV-2026-07-18-002` (fully closed; zero open findings of any category; `BT-076-002` independently verified Resolved by `NEXUS-REV-2026-07-18-001`, `BT-076-001` independently verified Resolved by `NEXUS-REV-2026-07-18-002`). Milestone 11 Initial Capability Sequence step 7 is complete. Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure is ✅ Approved — `NEXUS-REV-2026-07-18-005` (PASS; fully closed, zero findings of any category); its five Authorized Concepts are independently certified by the Sprint 77 integration validation test. Milestone 11 Initial Capability Sequence step 8 is complete. **Milestone 11 — Autonomous Engineering Planning Readiness is now Complete.**)
 
 Objective
 
@@ -4164,6 +4164,7 @@ Ratification
 - `NEXUS-RAT-2026-07-18-001` — authorizes the explicit `host-mission-workflow.ts` migration to the typed `ReviewPlanRevisionReference` and the removal of the silent-inference fallback, completing `NEXUS-RAT-2026-07-17-016`'s migration and resolving `NEXUS-REV-2026-07-17-020-F-001`.
 - `NEXUS-RAT-2026-07-18-002` — authorizes Sprint 77 (Autonomous Planning Integration Validation and Milestone 11 Closure), including the binding five-category validation-coverage refinement (complete happy path, typed revision integrity, Activation safety, Governance protection, Milestone closure gating).
 - `NEXUS-RAT-2026-07-18-003` — corrective ratification resolving the Planning Correlation lineage defect discovered during Sprint 77 (renames `PlanningCorrelation.proposedPlanRevisionId` to `reviewedProposedPlanRevisionId`; adds `governedProposedPlanRevisionId`); authorizes a narrow corrective scope to Sprint 74–76; pauses Sprint 77 pending independent Reviewer PASS of this correction.
+- `NEXUS-RAT-2026-07-18-004` — declares Milestone 11 Complete on the strength of `NEXUS-REV-2026-07-18-005` (PASS, zero findings) and opens Milestone 12 — Corpus Review and Implementation Readiness.
 
 Architectural Boundary (binding, from `NEXUS-RAT-2026-07-17-009`)
 
@@ -4378,3 +4379,29 @@ Builder Implementation Result
 - Introduced no new Domain Event, aggregate, lifecycle state, persistence write path, Host change, or Adapter change.
 
 See `knowledge/implementation/sprints/sprint-0071-governance-decision-applicability-correction.md` for the complete Sprint Implementation Record.
+
+---
+
+# Milestone 12 — Corpus Review and Implementation Readiness
+
+Status: 🟡 ACTIVE (opened; no Sprint yet activated)
+
+Objective
+
+Establish a deterministic, attributable, Mission-scoped capability that evaluates an exact-revision engineering Corpus against explicit authority and readiness criteria, producing structured Corpus Findings and an authoritative Corpus Readiness Result.
+
+RFC Coverage
+
+- RFC-0013 — Corpus Review Model (Draft v0.6; proposed normative owner of the Corpus Review domain, subject to separate Sprint Owner ratification)
+
+Ratification
+
+- `NEXUS-RAT-2026-07-18-004` — declares Milestone 11 Complete; opens Milestone 12 with its binding Objective and Architectural Boundary; authorizes RFC-0013's continued architectural drafting and a future final-ratification review; does not ratify RFC-0013, advance its Status/Version, authorize implementation, or activate Sprint 78.
+
+Architectural Boundary (binding, from `NEXUS-RAT-2026-07-18-004`)
+
+Milestone 12 SHALL reuse existing Nexus capabilities and SHALL NOT create a parallel execution or governance architecture. Milestone 12 MAY integrate with Mission, Evidence, Shared Reality, Execution Roles, Adapters, Review, Governance, Knowledge, and Autonomous Planning. Milestone 12 SHALL NOT introduce open-ended AI debate, provider voting, autonomous Canon or RFC amendment, autonomous Mission objective creation, self-authorized implementation, unrestricted artifact mutation, a second Review/Governance/execution model, or Haraya-specific architecture.
+
+Initial Capability Sequence
+
+Not yet established. `NEXUS-RAT-2026-07-18-004` opens Milestone 12 and defines its binding Objective and Architectural Boundary, but defines no Initial Capability Sequence. No step is authorized. RFC-0013 remains Draft v0.6, awaiting Sprint Owner final-ratification review; no Sprint 78 (or any Milestone 12 Sprint) exists. A future ratification is required to establish this Milestone's Initial Capability Sequence.

@@ -1,11 +1,11 @@
 # RFC-0011 — Engineering Governance Model
 
 **Status:** Final (Amended)
-**Version:** 1.1
+**Version:** 1.2
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
-Ratified Final by `NEXUS-RAT-2026-07-15-014`. Amended by `NEXUS-RAT-2026-07-16-004` to establish Mission-Scoped Governance Evaluation (see Mission-Scoped Governance Evaluation, below, and Amendment History). Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
+Ratified Final by `NEXUS-RAT-2026-07-15-014`. Amended by `NEXUS-RAT-2026-07-16-004` to establish Mission-Scoped Governance Evaluation (see Mission-Scoped Governance Evaluation, below, and Amendment History). Amended by `NEXUS-RAT-2026-07-18-007` to introduce the closed Governance Evaluation Input Profile model (`ReviewGovernanceEvaluationInput`, unchanged; `CorpusReadinessAcceptanceEvaluationInput`, dormant), the `CurrentProjectionApplicabilityReference` input and recording contract, the separated fail-closed classifications, and the current-applicability requirement. RFC-0003 is not amended. The Corpus-readiness profile is unusable until RFC-0013 v0.6 is authorized, the required Assessment exists, the acceptance policy including its selector is ratified, and implementation is authorized. Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
 
 ---
 
@@ -55,12 +55,17 @@ Consumes:
 - RFC-0006 — Engineering Assessment Model (Governance SHALL consume only a finalized Assessment Outcome — realized in the current implementation as `ReviewOutcome` per `NEXUS-RAT-2026-07-12-006` — and its Findings; Governance SHALL NOT reinterpret, override, or reopen a Review, and SHALL NOT be consulted before a Review reaches a terminal `ReviewStatus`).
 - RFC-0007 — Knowledge Model (Governance MAY consume ratified Repository Policy as Knowledge Scope input; Governance SHALL NOT alter Knowledge's existing acceptance criteria or Memory Lifecycle).
 - RFC-0010 — Kernel Boundaries (Governance is bound by the Kernel Boundary, Evidence Authority, and Engineering Authority sections; see Boundaries, below).
+- RFC-0006 v1.2 — Engineering Assessment Model (Assessment identity, terminal Assessment Outcome, and recorded Projection basis consumed read-only for the `CorpusReadinessAcceptanceEvaluationInput` profile).
+- RFC-0002 v1.1 — Evidence Model (transitive; the bound Evidence basis resolves to Exact Content Evidence semantics owned by RFC-0002 v1.1).
+- RFC-0003 — Shared Reality Projection Model (Projection identity, Projection Version, Projection Scope, and Projection Freshness consumed read-only; **not amended**).
+- RFC-0013 — Corpus Review Model (forward-referenced vocabulary only — Corpus Readiness Result, Corpus Review Basis).
 
 Owns:
 
 - Repository Policy
 - Policy Criterion
 - Policy Evaluation
+- Governance Evaluation Input Profiles
 - Governance Decision
 - Governance Escalation
 
@@ -70,7 +75,9 @@ Owns:
 
 Engineering Governance SHALL remain:
 
-- deterministic — equivalent inputs (Policy version, Evidence, Shared Reality, Review Outcome) SHALL always produce the equivalent Governance Decision;
+- deterministic, per input profile —
+  - for `ReviewGovernanceEvaluationInput`: equivalent Repository Policy version, Mission, finalized Review Outcome, Evidence, and Shared Reality SHALL always produce the equivalent Governance Decision;
+  - for `CorpusReadinessAcceptanceEvaluationInput`: equivalent Repository Policy version, Mission, and complete input profile instance — including an equivalent `CurrentProjectionApplicabilityReference` (selector policy and criterion identity/version, resolution result, resolved current Projection where present, freshness determination, and candidate-corpus fingerprint) — SHALL always produce the equivalent Governance Decision. Because current applicability is supplied as a recorded input rather than discovered at evaluation time, determinism does not depend on evaluation-time repository state;
 - explainable — every Governance Decision SHALL be traceable to the Repository Policy, Policy Criteria, and Evidence that produced it;
 - non-authoritative over intent — Governance SHALL NOT create, alter, or infer Mission objectives;
 - subordinate to Human Authority — Governance SHALL escalate rather than silently resolve any input it cannot deterministically evaluate;
@@ -117,6 +124,17 @@ If two or more applicable Repository Policies conflict with each other (same tie
 
 ---
 
+# Governance Evaluation Input Profiles
+
+This specification defines a closed set of Governance Evaluation Input Profiles. Exactly two profiles are authorized:
+
+- `ReviewGovernanceEvaluationInput` — the existing profile. Contains the Mission identity and the finalized RFC-0006 Review Outcome, together with the Evidence and Shared Reality inputs the applicable Policy Criteria require. Its semantics, required inputs, failure handling, and wire contract are exactly those of v1.1 and are NOT modified.
+- `CorpusReadinessAcceptanceEvaluationInput` — the new profile, defined under Corpus Readiness Acceptance Evaluation, below. DORMANT: it SHALL remain unusable until RFC-0013 Draft v0.6 is authorized, the required terminal RFC-0006 Assessment exists, a Corpus Readiness Acceptance Repository Policy including its deterministic selector is separately authored and ratified, and implementation is separately authorized.
+
+Every Policy Evaluation SHALL declare exactly one input profile. No additional, arbitrary, ad hoc, or implicitly inferred input profile is authorized. A Policy Evaluation SHALL NOT infer its profile from the shape of the supplied data, and SHALL NOT substitute one profile's inputs for another's. An unknown, undeclared, or ambiguous profile SHALL produce **Escalation Required**.
+
+---
+
 # Repository Policy
 
 A Repository Policy is an explicit, ratified, named rule expressing a condition that a finalized engineering outcome SHALL satisfy.
@@ -129,13 +147,21 @@ A Repository Policy SHALL be:
 - versioned by supersession — a Repository Policy modification SHALL create a new Repository Policy version through a new Ratification; it SHALL NOT overwrite a prior version. The prior version SHALL remain permanently preserved and remain the version of record for every Policy Evaluation and Governance Decision that cited it;
 - attributable — a Repository Policy SHALL reference the Ratification or repository law that authorized it.
 
-A Policy Criterion is one deterministic, individually evaluable condition within a Repository Policy (for example: "Review Outcome SHALL be Accepted or Accepted With Observations"; "no Finding of Severity Critical SHALL remain unresolved"). A Policy Criterion SHALL be evaluable from Evidence, Shared Reality, and/or a finalized Review Outcome alone, through an explicit deterministic predicate, without additional interpretation, inference, or unrestricted model judgment.
+A Policy Criterion is one deterministic, individually evaluable condition within a Repository Policy (for example: "Review Outcome SHALL be Accepted or Accepted With Observations"; "no Finding of Severity Critical SHALL remain unresolved"). A Policy Criterion SHALL be evaluable through an explicit deterministic predicate, without additional interpretation, inference, or unrestricted model judgment.
+
+Every Policy Criterion SHALL declare the Governance Evaluation Input Profile it evaluates against. A Policy Criterion's evaluability SHALL be judged solely against the inputs its declared profile provides. A Policy Criterion SHALL NOT be evaluated against a profile it does not declare; such an attempt SHALL produce **Escalation Required**.
+
+For the `ReviewGovernanceEvaluationInput` profile, a Policy Criterion SHALL be evaluable from Evidence, Shared Reality, and/or a finalized Review Outcome alone — unchanged from v1.1.
+
+For the `CorpusReadinessAcceptanceEvaluationInput` profile, current-applicability criteria are evaluable exactly because the `CurrentProjectionApplicabilityReference` is a supplied field of that profile; no criterion SHALL reach outside its profile to discover a current Projection.
 
 ---
 
 # Policy Evaluation
 
-Policy Evaluation is the deterministic act of evaluating one specific, identified Repository Policy version's Policy Criteria against a specific finalized engineering outcome (a completed Review, at minimum), for exactly one Mission (see Mission-Scoped Governance Evaluation, below).
+Policy Evaluation is the deterministic act of evaluating one specific, identified Repository Policy version's Policy Criteria against exactly one declared Governance Evaluation Input Profile instance, for exactly one Mission (see Mission-Scoped Governance Evaluation, below).
+
+The v1.1 formulation — "against a specific finalized engineering outcome (a completed Review, at minimum)" — is retained, scoped to the `ReviewGovernanceEvaluationInput` profile.
 
 Policy Evaluation SHALL:
 
@@ -146,7 +172,9 @@ Policy Evaluation SHALL:
 - produce the same result for the same (Mission identity, Repository Policy version, Evidence, Shared Reality, Review Outcome, applicable Ratifications) input every time (Canon 9);
 - record which Policy Criteria were satisfied, which were violated, and which could not be deterministically evaluated.
 
-If any Policy Criterion cannot be deterministically evaluated from the available Evidence, Shared Reality, and Review Outcome — including because the required input does not yet exist, is stale, or is ambiguous — Policy Evaluation SHALL NOT guess and SHALL NOT default to satisfied. It SHALL produce a Governance Escalation (or, if the missing input is a precondition rather than an ambiguity, a **Deferred** Governance Decision; see Governance Decision, below) for that criterion.
+For the `ReviewGovernanceEvaluationInput` profile: if any Policy Criterion cannot be deterministically evaluated from the available Evidence, Shared Reality, and Review Outcome — including because the required input does not yet exist, is stale, or is ambiguous — Policy Evaluation SHALL NOT guess and SHALL NOT default to satisfied. It SHALL produce a Governance Escalation (or, if the missing input is a precondition rather than an ambiguity, a **Deferred** Governance Decision; see Governance Decision, below) for that criterion.
+
+For the `CorpusReadinessAcceptanceEvaluationInput` profile: if any Policy Criterion cannot be deterministically evaluated from that profile's own bound fields — including because a required field is absent, internally inconsistent, or ambiguous — Policy Evaluation SHALL NOT guess and SHALL NOT default to satisfied. It SHALL resolve to **Deferred** or **Escalation Required** exactly as specified under Failure and Conflict Handling, below.
 
 ---
 
@@ -184,6 +212,12 @@ When the referenced Review is missing or unresolvable:
 
 This preserves this specification's existing Failure and Conflict Handling guarantee that a missing or unresolvable Review SHALL deterministically produce `Escalation Required`, never an unhandled failure.
 
+Every rule in this section above applies to the `ReviewGovernanceEvaluationInput` profile, unchanged from v1.1.
+
+## Corpus-Readiness Profile Mission Equality
+
+For the `CorpusReadinessAcceptanceEvaluationInput` profile, the profile's Mission identity, the referenced Assessment's Mission identity, the referenced Corpus Readiness Result's Mission identity, the historical bound Projection's Mission, and the `CurrentProjectionApplicabilityReference.missionId` SHALL all be equal. Any mismatch SHALL produce **Escalation Required**.
+
 ## Domain Event Publication
 
 A `GovernanceDecisionRecorded` Domain Event (or equivalently named Policy Event; see Dependencies, above) SHALL obtain its `missionId`/Mission Attribution exclusively from the Mission identity already stored on the persisted `GovernanceDecision`.
@@ -194,15 +228,82 @@ No implementation SHALL omit Mission attribution from a Governance Domain Event,
 
 ---
 
+# Corpus Readiness Acceptance Evaluation
+
+This section defines the `CorpusReadinessAcceptanceEvaluationInput` profile and its acceptance semantics. It is DORMANT per Governance Evaluation Input Profiles, above.
+
+## CorpusReadinessAcceptanceEvaluationInput
+
+An exact, immutable, read-only `CorpusReadinessAcceptanceEvaluationInput` SHALL contain exactly:
+
+- Mission identity;
+- Corpus Review Basis fingerprint;
+- RFC-0006 Assessment identity;
+- terminal RFC-0006 Assessment Outcome;
+- RFC-0013 Corpus Readiness Result identity;
+- Corpus Readiness classification;
+- the **historical bound Projection**: exact RFC-0003 Projection identity and Projection Version constituting the Result's Evidence / Shared Reality basis. This SHALL equal the Projection recorded on the referenced Assessment (RFC-0006 v1.2), the Projection bound into the referenced Corpus Review Basis (RFC-0013 v0.6), and the Projection recorded on the referenced Corpus Readiness Result (RFC-0013 v0.6);
+- a `CurrentProjectionApplicabilityReference` (below);
+- Corpus Readiness Acceptance Repository Policy identity and version.
+
+Governance SHALL consume the exact RFC-0013 Corpus Readiness Result. It SHALL NOT recompute, reinterpret, or infer the readiness classification from the Assessment Outcome. The completed RFC-0006 Assessment is one bound component of this profile, not the sole finalized-engineering-outcome input.
+
+## CurrentProjectionApplicabilityReference
+
+An immutable `CurrentProjectionApplicabilityReference` SHALL contain exactly:
+
+- `missionId` — the Mission for which selection was performed;
+- `projectionScopeReference` — the exact Projection Scope fingerprint, or the complete canonical Projection Scope identity, used for selection;
+- `currentProjectionIdentity` — the resolved current RFC-0003 Projection identity. Present exactly when `resolutionResult` is `Resolved`; absent otherwise;
+- `currentProjectionVersion` — the resolved current RFC-0003 Projection Version. Present exactly when `resolutionResult` is `Resolved`; absent otherwise;
+- `selectorPolicyIdentity` and `selectorPolicyVersion` — the exact Repository Policy identity and version whose deterministic selector resolved the current Projection;
+- `selectorCriterionIdentity` and `selectorCriterionVersion` — the exact selector criterion identity and version within that policy;
+- `resolutionResult` — exactly one of `Resolved | TemporarilyAbsent | Unresolvable | Ambiguous`;
+- `freshnessDetermination` — the RFC-0003 freshness determination for that exact resolved Projection under the evaluation's current candidate corpus. Present exactly when `resolutionResult` is `Resolved`; absent otherwise. This determination is consumed read-only; this specification does not redefine RFC-0003 freshness;
+- `candidateCorpusFingerprint` — the immutable evaluation-state or candidate-corpus fingerprint against which freshness and current applicability were evaluated.
+
+This reference is a recorded input, not a computation performed by this specification. This specification defines what SHALL be supplied and recorded; the Corpus Readiness Acceptance Repository Policy owns the selector that produces it.
+
+## Acceptance Semantics
+
+Authoritative downstream applicability of a Corpus Readiness Result SHALL require an applicable, terminal, **Approved** Governance Decision produced by Policy Evaluation of the exact ratified Corpus Readiness Acceptance Repository Policy version over a `CorpusReadinessAcceptanceEvaluationInput`, for exactly one Mission.
+
+### Current Projection Applicability Selection
+
+The following ten rules govern selection and its consequences. Selection itself is owned by the separately ratified Corpus Readiness Acceptance Repository Policy; this specification owns the input and recording contract only.
+
+1. The Corpus Readiness Acceptance Repository Policy SHALL define a deterministic selector over exactly one Mission and exactly one Projection Scope.
+2. The selector SHALL resolve zero or one current Projection. It SHALL NEVER silently choose among multiple candidates.
+3. The selected current Projection and the historical Basis-bound Projection SHALL remain distinct recorded references. Neither may substitute for, overwrite, or mutate the other.
+4. **Approved** is eligible only when ALL hold: selection resolves exactly one current Projection (`resolutionResult == Resolved`); that Projection is fresh under RFC-0003 (`freshnessDetermination` indicates fresh); its Mission and Projection Scope match the input's `missionId` and `projectionScopeReference`; its identity and version equal the historical Result's bound Projection; and every other Corpus-readiness acceptance condition is satisfied.
+5. If the selector returns `TemporarilyAbsent` and a Projection is expected through normal engineering progression, the Decision SHALL be **Deferred**.
+6. If the selector resolves a fresh current Projection whose identity or version differs from the Result's bound Projection, the Decision SHALL be **Deferred**, identifying that a fresh Corpus Review Basis and a new Corpus Review are required.
+7. If the historical bound Projection is stale relative to the resolved current Projection or the candidate corpus, the Decision SHALL be **Deferred**, identifying that a fresh Corpus Review Basis and a new Corpus Review are required.
+8. If selection is `Unresolvable` or `Ambiguous`, or produces a Mission or Projection Scope conflict, duplicate candidates, unsupported selector semantics, or identity/version inconsistency, the Decision SHALL be **Escalation Required**.
+9. No condition above may produce **Approved** through defaulting, recency guessing, maximum-version guessing, or implicit repository lookup.
+10. Every Governance Decision produced under this profile SHALL record: the historical bound Projection identity and version; the resolved current Projection identity and version, when present; the selector policy and criterion identity and version; the candidate-corpus / evaluation-state fingerprint; and the resolution result together with the freshness determination.
+
+**Historical validity is not current applicability.** A Corpus Readiness Result is historically valid for its exact immutable Basis; historical validity does not establish current applicability, which is determined only through the rules above.
+
+## External Authoritative Applicability and Recording
+
+Governance SHALL record the applicable terminal Governance Decision together with its exact bound `CorpusReadinessAcceptanceEvaluationInput`, including the complete `CurrentProjectionApplicabilityReference` and every element required by rule 10 above. Authoritative downstream applicability is determined externally by consumers resolving that Governance Decision.
+
+Governance SHALL NOT mutate the RFC-0013 Corpus Readiness Result; SHALL NOT rebase, refresh, or substitute its historical bound Projection; and SHALL NOT overwrite the historical bound Projection with the resolved current Projection, or the reverse. The two references remain distinct and independently recorded. RFC-0013 stores no `authoritativeStatus`.
+
+---
+
 # Governance Decision
 
-A Governance Decision is the immutable, attributable outcome of applying one identified Repository Policy version's Policy Evaluation to one finalized engineering outcome.
+A Governance Decision is the immutable, attributable outcome of applying one identified Repository Policy version's Policy Evaluation to exactly one Governance Evaluation Input Profile instance.
 
 A Governance Decision SHALL be exactly one of the following four mutually exclusive values:
 
 ## Approved
 
-- **Required inputs:** the applicable Repository Policy version; a finalized (`ReviewStatus: Completed`) Review Outcome; all Evidence referenced by the Policy's Criteria.
+- **Required inputs, per profile:**
+  - `ReviewGovernanceEvaluationInput` — the applicable Repository Policy version; a finalized (`ReviewStatus: Completed`) Review Outcome; all Evidence referenced by the Policy's Criteria. Unchanged from v1.1.
+  - `CorpusReadinessAcceptanceEvaluationInput` — the applicable Corpus Readiness Acceptance Repository Policy version; a complete profile instance whose referenced RFC-0006 Assessment is terminal AND whose `CurrentProjectionApplicabilityReference` satisfies every condition of Current Projection Applicability Selection rule 4.
 - **Precondition:** every applicable Policy Criterion was deterministically evaluated and satisfied.
 - **Meaning:** the finalized engineering outcome satisfies the applicable Repository Policy as evaluated.
 - **Permitted downstream effect:** the Governance Decision MAY be consumed by a downstream Kernel capability (in a future Sprint) as one input toward an already-existing gate (for example, a future Knowledge capture precondition); it is a recorded fact, not a command.
@@ -304,7 +405,34 @@ Engineering Governance SHALL fail closed. The following conditions SHALL NEVER p
 | Referenced Review is unresolvable | Escalation Required (the `GovernanceDecision` SHALL retain the evaluation request's Mission identity; see Mission-Scoped Governance Evaluation, above) |
 | Resolved Review's Mission identity does not match the evaluation request's Mission identity | Escalation Required |
 
-Deferred is used exactly when the obstruction is the temporary absence of a required input that is expected to eventually exist through normal engineering progression. Escalation Required is used exactly when the obstruction is an ambiguity, conflict, or unsupported condition that will not resolve through normal engineering progression and instead requires a governance action (Ratification or Sprint Owner decision).
+Every row above applies to the `ReviewGovernanceEvaluationInput` profile. The following rows apply to the `CorpusReadinessAcceptanceEvaluationInput` profile:
+
+| Condition (`CorpusReadinessAcceptanceEvaluationInput` profile) | Resulting Governance Decision |
+| --- | --- |
+| Referenced RFC-0006 Assessment temporarily missing, expected through normal engineering progression | Deferred |
+| Referenced RFC-0006 Assessment exists but is non-terminal | Deferred |
+| Historical bound RFC-0003 Projection temporarily absent, expected through normal engineering progression | Deferred |
+| `CurrentProjectionApplicabilityReference.resolutionResult` is `TemporarilyAbsent` and a Projection is expected through normal engineering progression | Deferred |
+| Selection resolves exactly one fresh current Projection whose identity or version differs from the Result's historical bound Projection — a fresh Basis and new Corpus Review are required | Deferred |
+| Historical bound Projection stale relative to the resolved current Projection or candidate corpus, while uniquely resolvable and reproducible with identical Mission and Projection Scope — a fresh Basis and new Corpus Review are required | Deferred |
+| Referenced RFC-0006 Assessment unresolvable, ambiguous, duplicated, conflicting, or identity-mismatched | Escalation Required |
+| Historical bound RFC-0003 Projection missing without expectation, unresolvable, non-reproducible, ambiguous, or conflicting | Escalation Required |
+| Historical bound Projection identity or version mismatch across Basis, Assessment, Result, and input; or Mission or Projection Scope differs from Basis-bound values | Escalation Required |
+| `CurrentProjectionApplicabilityReference.resolutionResult` is `Unresolvable` or `Ambiguous` | Escalation Required |
+| Selection produced a Mission or Projection Scope conflict, duplicate candidates, unsupported selector semantics, or identity/version inconsistency | Escalation Required |
+| `CurrentProjectionApplicabilityReference` absent, incomplete, or internally inconsistent (for example, `Resolved` without `currentProjectionIdentity`, `currentProjectionVersion`, or `freshnessDetermination`; or a non-`Resolved` result carrying any of them) | Escalation Required |
+| Corpus Review Basis fingerprint mismatch | Escalation Required |
+| Corpus Readiness Result identity or classification mismatch | Escalation Required |
+| Mission identity not equal across input profile, referenced Assessment, referenced Corpus Readiness Result, historical bound Projection, and `CurrentProjectionApplicabilityReference` | Escalation Required |
+| Corpus Readiness Acceptance Repository Policy version mismatch, referenced policy version does not exist, or recorded selector policy identity/version does not match the acceptance policy under evaluation | Escalation Required |
+
+The following row applies to both profiles:
+
+| Condition (any profile) | Resulting Governance Decision |
+| --- | --- |
+| Undeclared, unknown, or ambiguous Governance Evaluation Input Profile | Escalation Required |
+
+Deferred is used exactly when the obstruction is the temporary absence of a required input that is expected to eventually exist through normal engineering progression — including, for the Corpus-readiness profile, a historical bound Projection that is stale but exactly resolvable, whose resolution is a new Corpus Review against a fresh Basis. Escalation Required is used exactly when the obstruction is an ambiguity, conflict, mismatch, non-reproducibility, or unsupported condition that will not resolve through normal engineering progression and instead requires a governance action (Ratification or Sprint Owner decision). No condition in either profile produces Approved.
 
 ---
 
@@ -316,11 +444,16 @@ Every Policy Evaluation and every Governance Decision SHALL identify:
 - the evaluated Repository Policy and its specific version;
 - the applicable Policy Criteria considered;
 - the consumed Evidence references;
-- the consumed Review reference and its finalized Outcome;
+- the consumed Review reference and its finalized Outcome (`ReviewGovernanceEvaluationInput` profile);
 - any Ratifications applied during evaluation;
 - which Policy Criteria were satisfied;
 - which Policy Criteria were violated;
-- the Governance Escalation reason, when the Decision is Escalation Required.
+- the Governance Escalation reason, when the Decision is Escalation Required;
+- the declared Governance Evaluation Input Profile and the exact bound fields of that profile instance.
+
+For the `CorpusReadinessAcceptanceEvaluationInput` profile, this means additionally identifying the Mission, Corpus Review Basis fingerprint, RFC-0006 Assessment identity and terminal Outcome, Corpus Readiness Result identity and classification, the historical bound Projection identity and version, the complete `CurrentProjectionApplicabilityReference` (selector policy and criterion identity/version, resolution result, resolved current Projection where present, freshness determination, Projection Scope reference, and candidate-corpus fingerprint), and the acceptance policy identity and version.
+
+A Deferred Decision arising from Current Projection Applicability Selection rules 5, 6, or 7 SHALL identify that a fresh Corpus Review Basis and a new Corpus Review are required.
 
 Hidden reasoning SHALL NOT influence a Governance Decision, consistent with Canon 10.
 
@@ -352,7 +485,15 @@ An implementation conforms to RFC-0011 only if it:
 - consumes Evidence, Shared Reality, and Review Outcomes only through their existing, unmodified public contracts, and only after a Review reaches a terminal `ReviewStatus`;
 - does not mutate Mission, Review, Knowledge, Execution, or repository-governance state as a side effect of producing a Governance Decision;
 - preserves the Sprint Owner as final engineering authority, including for RFC amendment, Ratification creation, architectural approval, repository mutation, and Sprint activation;
-- preserves full attribution and explainability for every Governance Decision and Escalation.
+- preserves full attribution and explainability for every Governance Decision and Escalation;
+- declares exactly one Governance Evaluation Input Profile per Policy Evaluation, from the closed authorized set, never inferring a profile from data shape and never substituting one profile's inputs for another's;
+- preserves `ReviewGovernanceEvaluationInput` semantics, required inputs, failure handling, and wire contract exactly as in v1.1;
+- applies per-profile determinism, per-profile required inputs, and per-profile failure classification as specified;
+- for the `CorpusReadinessAcceptanceEvaluationInput` profile, supplies and records a complete `CurrentProjectionApplicabilityReference`, and produces `Approved` only when every condition of Current Projection Applicability Selection rule 4 holds;
+- never produces `Approved` through defaulting, recency guessing, maximum-version guessing, or implicit repository lookup;
+- consumes the exact RFC-0013 Corpus Readiness Result without recomputing, reinterpreting, or inferring its readiness classification;
+- never mutates the RFC-0013 Corpus Readiness Result, and never rebases, refreshes, substitutes, or overwrites either the historical bound Projection or the resolved current Projection with the other;
+- records, for every Corpus-readiness Governance Decision, the historical bound Projection identity and version, the resolved current Projection identity and version when present, the selector policy and criterion identity and version, the candidate-corpus fingerprint, and the resolution and freshness results.
 
 ---
 
@@ -370,3 +511,4 @@ This specification does not itself authorize implementation. Implementation of a
 - v0.2 (2026-07-15) — Revised per Sprint Owner pre-ratification review. Renamed the fourth Governance Decision value from `Blocked` to `Deferred` to eliminate a terminology collision with RFC-0004's existing `Blocked` Task Execution State. Added Authority Hierarchy, per-value Decision Semantics (required inputs/preconditions/meaning/permitted effect/prohibited side effects/human-confirmation requirement), explicit Failure and Conflict Handling table, expanded Boundaries enumerating prohibited autonomous actions (Mission creation, Mission objective modification, RFC amendment, Ratification creation, architectural approval, repository mutation, Sprint activation), and explicit alignment with RFC-0005's reserved "Policy Events" category.
 - v1.0 (2026-07-15) — Ratified Final by `NEXUS-RAT-2026-07-15-014`, without further textual change from v0.2.
 - v1.1 (2026-07-16) — Amended by `NEXUS-RAT-2026-07-16-004` to add Mission-Scoped Governance Evaluation as a new binding section: every governance evaluation SHALL receive an explicit, mandatory Mission identity independent of Review resolution; every `GovernanceDecision` retains that Mission identity; a resolved Review's Mission identity SHALL match the evaluation request's Mission identity (mismatch → `Escalation Required`); a missing or unresolvable Review continues to produce `Escalation Required`, retaining the evaluation request's Mission identity, never an unhandled exception; Domain Event publication obtains Mission identity exclusively from the persisted `GovernanceDecision`, satisfying RFC-0005's unconditional Event Attribution requirement structurally, without casts or omitted required fields. This amendment withdraws no other Sprint 52–55 authorized concept and does not modify RFC-0005. Originates from `NEXUS-REV-2026-07-16-004-F-001` (Category 3, Specification Conflict) and its Recovery Review history (`NEXUS-REV-2026-07-16-003`, `-004`, `-005`).
+- v1.2 (2026-07-18) — Amended by `NEXUS-RAT-2026-07-18-007`. Introduces a closed Governance Evaluation Input Profile model comprising exactly two profiles: `ReviewGovernanceEvaluationInput`, whose semantics, required inputs, failure handling, and wire contract are exactly those of v1.1 and are **not modified**; and `CorpusReadinessAcceptanceEvaluationInput`, carrying the Mission, Corpus Review Basis fingerprint, RFC-0006 Assessment identity and terminal Outcome, RFC-0013 Corpus Readiness Result identity and classification, the historical bound RFC-0003 Projection identity and version, an immutable `CurrentProjectionApplicabilityReference`, and the Corpus Readiness Acceptance Repository Policy identity and version. The `CurrentProjectionApplicabilityReference` supplies the Mission, Projection Scope reference, resolved current Projection identity and version when resolved, selector policy and criterion identity and version, a resolution result (`Resolved | TemporarilyAbsent | Unresolvable | Ambiguous`), the RFC-0003 freshness determination when resolved, and the candidate-corpus fingerprint — making current-applicability comparison possible from the closed profile alone, since a Policy Criterion may evaluate only inputs its declared profile supplies. Selection itself is owned by the separately ratified Corpus Readiness Acceptance Repository Policy; this specification defines only the input and recording contract. Dependencies, Design Goals and determinism, Repository Policy and Policy Criterion evaluability, Policy Evaluation, Mission-Scoped Governance Evaluation, the Governance Decision definition and per-value required inputs, Failure and Conflict Handling, Explainability, and Conformance are each reconciled to the profile model, with every Review-profile rule preserved exactly. Fail-closed classifications are separated by nature: temporary absence, non-terminality, and stale-but-exactly-resolvable historical Projections resolve to `Deferred`; ambiguity, conflict, mismatch, non-reproducibility, and unresolvable identity resolve to `Escalation Required`; no condition resolves to `Approved`. **RFC-0003 is not amended**; Projection, Projection Version, Projection Scope, and Projection Freshness remain RFC-0003-owned and are consumed, not redefined. No new Governance Decision value, Escalation category, or Policy Evaluation mechanism is introduced. Specification text only; the Corpus-readiness profile remains **dormant and unusable** until RFC-0013 v0.6 is authorized, the required Assessment exists, the acceptance policy including its selector is separately ratified, and implementation is separately authorized.

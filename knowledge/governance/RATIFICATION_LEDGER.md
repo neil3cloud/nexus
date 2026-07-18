@@ -8542,3 +8542,1442 @@ None yet; this corrective scope has not yet been Reviewer-certified.
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-18-004
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-18-004
+
+## Date
+
+2026-07-18
+
+## Subject
+
+Declares Milestone 11 — Autonomous Engineering Planning Readiness complete, on the strength of `NEXUS-REV-2026-07-18-005` (PASS; zero findings; all eight Initial Capability Sequence steps independently Reviewer-certified). Opens Milestone 12 — Corpus Review and Implementation Readiness with a binding Objective and Architectural Boundary. Authorizes continued architectural drafting and a future final-ratification review cycle for RFC-0013 — Corpus Review Model. Corrects RFC-0013's drafting-authorization citation, which named this Ratification before it existed.
+
+## Originating Request
+
+`nexus-plan`'s repository analysis found Milestone 11 fully closed (`NEXUS-REV-2026-07-18-005`, PASS, zero findings; no open Builder Tasks) and, separately, an uncommitted working-tree draft of `knowledge/specifications/rfc-0013-corpus-review-model.md` (v0.1 through v0.4) whose preamble claimed it was "authorized for drafting by `NEXUS-RAT-2026-07-18-004`, which declared Milestone 11 Complete and opened Milestone 12," while no such Ratification existed anywhere in `RATIFICATION_LEDGER.md`. The draft had, in fact, been produced ahead of any Sprint Owner ratification. `nexus-plan` reported this as a governance ambiguity (a stale/fabricated authority citation) rather than silently proceeding to plan Milestone 12 on an uncertified premise. The Sprint Owner reviewed the draft's substantive v0.4 architecture, approved opening Milestone 12 to legitimize its continuation, and directed that the chronology be corrected rather than backdated — this Ratification did not exist when RFC-0013 v0.1–v0.4 were drafted, and the repository record SHALL say so.
+
+## Governance Decision
+
+**APPROVED — MILESTONE 11 CLOSURE AND MILESTONE 12 OPENING, WITH MANDATORY CITATION CORRECTION.**
+
+### Milestone 11 Closure (binding)
+
+Milestone 11 — Autonomous Engineering Planning Readiness is declared **Complete**, effective on `NEXUS-REV-2026-07-18-005`'s PASS disposition (zero findings; Sprints 71 through 77, all eight Initial Capability Sequence steps, independently Reviewer-certified). No further Sprint is authorized within Milestone 11.
+
+### Milestone 12 — Corpus Review and Implementation Readiness (binding)
+
+**Title:** Corpus Review and Implementation Readiness.
+
+**Binding Objective:** Establish a deterministic, attributable, Mission-scoped capability that evaluates an exact-revision engineering Corpus against explicit authority and readiness criteria, producing structured Corpus Findings and an authoritative Corpus Readiness Result.
+
+**Architectural Boundary (binding):** Milestone 12 SHALL reuse existing Nexus capabilities and SHALL NOT create a parallel execution or governance architecture.
+
+Milestone 12 MAY integrate with: Mission; Evidence; Shared Reality; Execution Roles; Adapters; Review; Governance; Knowledge; Autonomous Planning.
+
+Milestone 12 SHALL NOT introduce: open-ended AI debate; provider voting; autonomous Canon or RFC amendment; autonomous Mission objective creation; self-authorized implementation; unrestricted artifact mutation; a second Review, Governance, or execution model; Haraya-specific architecture.
+
+RFC-0013 remains the proposed normative owner of the Corpus Review domain, subject to separate Sprint Owner ratification of RFC-0013 itself.
+
+### RFC-0013 Drafting Authorization (binding)
+
+This Ratification authorizes continued architectural drafting of RFC-0013 and its eventual final-ratification review. This Ratification does **not** itself ratify RFC-0013, does not advance its Status beyond `Draft`, and does not authorize implementation of any capability RFC-0013 describes. A separate implementation governance record, ratified on its own authority, remains required before any RFC-0013 capability is built. Sprint 78 is **not** activated by this Ratification.
+
+### RFC-0013 Citation Correction (binding)
+
+The RFC-0013 preamble SHALL be corrected to remove any wording claiming this Ratification existed before the draft. RFC-0013 originated as an unratified working draft during Milestone 11 closure preparation; this Ratification is what subsequently opened Milestone 12 and authorized RFC-0013's continued drafting. The corrected preamble SHALL preserve chronology: it SHALL NOT state or imply that `NEXUS-RAT-2026-07-18-004` existed before v0.1 was drafted. RFC-0013 SHALL remain `Status: Draft`, `Version: 0.4` after this correction — this Ratification does not advance either field.
+
+### Repository State Synchronization (binding)
+
+`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` SHALL be synchronized, documentation-only, to record: Sprint 77 — Approved/Complete; Milestone 11 — Complete; Milestone 12 — Open (no Sprint yet activated); no Current implementation Sprint; RFC-0013 remaining Draft; Sprint 78 remaining unplanned and inactive. No source-code change is authorized by this Ratification.
+
+## RFC Coverage
+
+- RFC-0013 — Corpus Review Model (Referenced; this Ratification authorizes continued drafting only — it does not ratify RFC-0013, amend its normative text, or advance its Status or Version)
+- RFC-0001 through RFC-0012 (Unmodified; Milestone 12's Architectural Boundary permits future integration with several of them, each requiring its own separate authorization)
+
+## Ownership Model (ratified)
+
+This Ratification is a governance/milestone-sequencing action. It creates no aggregate, service, event, or Kernel registration, and modifies no `src/` file. It does not reinterpret any Milestone 1–11 concept, RFC, or prior Ratification.
+
+## Authorized Scope
+
+Authorizes: (1) recording Milestone 11 as Complete; (2) opening Milestone 12 with the binding Objective and Architectural Boundary above; (3) RFC-0013's continued architectural drafting toward a future final-ratification review; (4) the RFC-0013 preamble citation correction described above; (5) documentation-only synchronization of `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md`. Does not authorize: RFC-0013 Final ratification; any Sprint 78 Implementation Record or activation; any source-code change; any implementation of any Corpus Review capability.
+
+`nexus-plan` is authorized to perform the RFC-0013 preamble correction and the three-document synchronization directly, as documentation-only actions, without a separate Builder Task.
+
+## Deferred Concepts
+
+All RFC-0013 capability implementation; Sprint 78 (or any Milestone 12 Sprint) scope and activation; RFC-0013 Final ratification; any Milestone 12 integration with Mission, Evidence, Shared Reality, Execution Roles, Adapters, Review, Governance, Knowledge, or Autonomous Planning.
+
+## Related Sprint(s)
+
+- Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (✅ Approved, `NEXUS-REV-2026-07-18-005`; this Ratification records Milestone 11's resulting closure).
+- No Sprint is activated within Milestone 12 by this Ratification.
+
+## Related Review(s)
+
+- `NEXUS-REV-2026-07-18-005` — Sprint 77 PASS, zero findings; the basis for this Ratification's Milestone 11 closure declaration.
+
+## Full Ratification Text
+
+> Milestone 11 — Autonomous Engineering Planning Readiness is declared Complete, on the strength of `NEXUS-REV-2026-07-18-005`'s PASS disposition covering all eight Initial Capability Sequence steps. Milestone 12 — Corpus Review and Implementation Readiness is opened, with the binding Objective "establish a deterministic, attributable, Mission-scoped capability that evaluates an exact-revision engineering Corpus against explicit authority and readiness criteria, producing structured Corpus Findings and an authoritative Corpus Readiness Result," and the binding Architectural Boundary that Milestone 12 SHALL reuse existing Nexus capabilities and SHALL NOT create a parallel execution or governance architecture, MAY integrate with Mission, Evidence, Shared Reality, Execution Roles, Adapters, Review, Governance, Knowledge, and Autonomous Planning, and SHALL NOT introduce open-ended AI debate, provider voting, autonomous Canon or RFC amendment, autonomous Mission objective creation, self-authorized implementation, unrestricted artifact mutation, a second Review/Governance/execution model, or Haraya-specific architecture. This Ratification authorizes RFC-0013's continued architectural drafting and a future final-ratification review; it does not itself ratify RFC-0013, advance its Status or Version, or authorize implementation of any kind, and it does not activate Sprint 78. RFC-0013's preamble SHALL be corrected to state accurately that it originated as an unratified working draft during Milestone 11 closure preparation, and that this Ratification is what subsequently opened Milestone 12 and authorized its continued drafting — this Ratification did not exist before the draft, and no repository artifact SHALL state or imply otherwise. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` SHALL be synchronized, documentation-only, to reflect Milestone 11 Complete, Milestone 12 Open, Sprint 77 Approved, no Current Sprint, RFC-0013 remaining Draft, and Sprint 78 remaining unplanned.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-18-005
+
+## Ratification Identifier
+NEXUS-RAT-2026-07-18-005
+
+## Date
+2026-07-18
+
+## Subject
+Amends RFC-0002 (Final v1.0 → v1.1): adds an implementation-independent Exact Content Evidence contract —
+Evidence Type, content-representation classification (SnapshotContent / DerivedContent), an immutable
+representedContentReference structurally identifying the engineering artifact or content an Evidence version
+represents, contentDigestAlgorithm (initially SHA-256 only), contentDigest (64 lowercase hexadecimal
+characters), deterministic derivation-source semantics, and fail-closed mismatch/ambiguity handling. Additive
+and backward-compatible: Evidence not consumed as Exact Content Evidence is unaffected. Specification text
+only. First in dependency order; prerequisite to NEXUS-RAT-2026-07-18-006, -007, and -008.
+
+## Originating Request
+Pre-ratification review of the Corpus Review integration found that RFC-0013 was assuming Evidence semantics
+RFC-0002 v1.0 does not define: there is no normative Evidence content payload, no Snapshot Evidence subtype,
+no canonical payload byte representation, no cryptographic content digest, and no defined relationship
+between an Evidence version and the exact represented artifact bytes. The implementation's `EvidenceHash`
+(src/kernel/evidence/evidence-hash.ts) validates only a non-empty string — no algorithm, no hex-length
+constraint, no artifact binding — and does not amend the normative RFC. Subsequent review further established
+that EvidenceId + EvidenceVersion identifies an Evidence instance and version but does NOT structurally
+identify the engineering artifact or exact content the Evidence represents; artifact identity SHALL NOT be
+encoded implicitly inside EvidenceId, and SHALL NOT rely only on free-form Provenance. RFC-0013 SHALL NOT
+invent or redefine these semantics; RFC-0002 must own them.
+
+## Governance Decision
+APPROVED — RFC-0002 v1.0 → v1.1, SPECIFICATION TEXT ONLY, ADDITIVE AND BACKWARD-COMPATIBLE.
+
+### Effectiveness Model (binding)
+  - Ratification dependency order: this record is first; -006, -007, and -008 depend on it.
+  - Architectural effectiveness: the Exact Content Evidence contract is normative specification upon
+    ratification.
+  - Backward compatibility: Exact Content Evidence is an OPTIONAL Evidence capability. Evidence not consumed
+    as Exact Content Evidence remains fully conformant under v1.0 semantics; no existing Evidence instance,
+    provenance record, relationship, or lifecycle stage is invalidated.
+  - Implementation activation: none. All RFC-0002 v1.1 changes are specification only; implementation
+    (including any reconciliation of the existing `EvidenceHash` value object) remains deferred and
+    separately authorized.
+
+### Amendment E1 — Evidence Type (binding)
+RFC-0002 SHALL define Evidence Type as an explicit, immutable classification of what an Evidence instance
+represents. Every Evidence Type SHALL possess an exact identity and an exact version. For Exact Content
+Evidence, the Evidence Type identity and version SHALL define the canonical byte representation of the
+represented content — the deterministic rule by which represented content is reduced to an exact octet
+sequence. Evidence Type identity and version SHALL be recorded immutably on every Exact Content Evidence
+instance.
+
+### Amendment E2 — Content Representation Classification (binding)
+Every Exact Content Evidence instance SHALL declare an immutable content-representation classification:
+  - SnapshotContent — the Evidence version directly represents the exact content of an engineering artifact;
+  - DerivedContent — the Evidence version represents content derived from one or more Snapshot Evidence
+    instances.
+The classification SHALL NOT be inferred.
+
+### Amendment E3 — Represented Content Reference (binding)
+Every Exact Content Evidence instance SHALL carry an immutable `representedContentReference` that
+structurally identifies what the Evidence represents, containing exactly:
+  - `contentOwner` — the owning domain or artifact namespace;
+  - `contentType` — the type of the represented artifact or content;
+  - `contentId` — a stable identity of the represented artifact or content, independent of revision;
+  - `contentRevision` — the exact revision of that represented artifact or content;
+  - `evidenceTypeIdentity` and `evidenceTypeVersion` — the Evidence Type (E1) defining the canonical byte
+    representation.
+Artifact identity SHALL NOT be encoded implicitly inside EvidenceId, and SHALL NOT be established by
+free-form Provenance alone. The `representedContentReference` SHALL be immutable for the lifetime of the
+Evidence version. Construction SHALL fail closed when any component is absent, empty, mutable, ambiguous, or
+unresolvable.
+
+### Amendment E4 — Exact Content Digest (binding)
+Every Exact Content Evidence instance SHALL record:
+  - `contentDigestAlgorithm` — an explicit algorithm identifier, initially restricted to the single value
+    SHA-256. No other value is authorized by this amendment; additional algorithms require their own future
+    RFC-0002 amendment.
+  - `contentDigest` — the digest of the exact canonical content bytes under `contentDigestAlgorithm`,
+    represented as exactly 64 lowercase hexadecimal characters.
+Both fields SHALL be immutable. Construction SHALL fail closed when either is absent, empty, malformed, or
+uses an unauthorized algorithm identifier.
+
+### Amendment E5 — SnapshotContent Requirements (binding)
+For SnapshotContent Evidence:
+  - the `representedContentReference` SHALL identify exactly one artifact/content revision — never a range,
+    a mutable label, a collection, or an unresolved selector;
+  - `contentDigest` SHALL be SHA-256 over the exact canonical bytes of that represented revision, per the
+    Evidence Type's canonical byte representation (E1);
+  - immutable Evidence Provenance SHALL identify how those exact bytes were acquired and verified —
+    originating source, acquisition method, acquisition timestamp, producing actor, producing system, and
+    verification status — in sufficient detail to reproduce both the acquisition and the digest verification;
+  - the `representedContentReference`, the Evidence identity and version, and the `contentDigest` SHALL all
+    remain immutable and mutually consistent;
+  - any mismatch or ambiguity among represented content, Evidence version, and digest SHALL fail closed.
+Confidence classification SHALL be recorded per existing RFC-0002 semantics, unmodified.
+
+### Amendment E6 — DerivedContent Requirements (binding)
+For DerivedContent Evidence:
+  - it SHALL declare an immutable, non-empty, deterministically ordered source Evidence reference set;
+  - every source reference SHALL identify an exact EvidenceId and exact EvidenceVersion;
+  - every derivation path used to reach a conclusion treated as authoritative SHALL terminate in valid
+    SnapshotContent Evidence;
+  - the derivation SHALL explicitly identify which Snapshot source, or which deterministic source
+    combination, establishes the represented-content binding;
+  - a multi-source derivation is valid only when its combination and ordering semantics are explicit and
+    deterministic; an implicit, order-dependent, or unspecified combination SHALL fail closed;
+  - source paths that are missing, cyclic, ambiguous, stale, or unresolved SHALL fail closed;
+  - DerivedContent Evidence SHALL NOT replace, override, or substitute for its source SnapshotContent
+    Evidence's exact-content identity (`representedContentReference`, Evidence identity and version,
+    `contentDigestAlgorithm`, `contentDigest`).
+Derivation SHALL use RFC-0002's existing `derives-from` relationship semantics, unmodified.
+
+### Amendment E7 — Immutability, Versioning, and Fail-Closed Handling (binding)
+Exact Content Evidence SHALL inherit RFC-0002's existing immutability and append-only versioning semantics,
+unmodified: corrections produce new versions; historical versions remain preserved and addressable. A change
+to represented content SHALL produce a new Evidence version with its own `representedContentReference` and
+`contentDigest`; a `contentDigest` SHALL NEVER be recomputed in place. Resolution SHALL fail closed — never
+guess, default, or silently resolve — on: a digest mismatch; a missing, malformed, or unauthorized algorithm
+identifier; a missing, ambiguous, or unresolvable `representedContentReference`; missing or ambiguous
+Snapshot Evidence; an invalid, absent, cyclic, or ambiguous derivation path or source set; a superseded or
+non-active Evidence version consumed as though current; or content whose canonical byte representation
+cannot be established under its declared Evidence Type.
+
+### Amendment E8 — Ownership (binding)
+RFC-0002 exclusively owns Evidence Type, content-representation classification, `representedContentReference`
+and every component of it, `contentDigestAlgorithm`, `contentDigest`, canonical byte representation,
+derivation-source set semantics, and the Evidence-version-to-represented-content relationship. Other
+specifications MAY consume these read-only and MAY require equality against their own recorded values, but
+SHALL NOT redefine, recompute, or substitute for them.
+
+## RFC Coverage
+- RFC-0002 v1.1 (Amended by this ratification, specification text only)
+- RFC-0001, RFC-0003 (Referenced; existing RFC-0002 relationships preserved; unmodified)
+- RFC-0006, RFC-0011, RFC-0013 (Downstream consumers; not modified by this ratification)
+
+## Ownership Model (ratified)
+RFC-0002 remains sole owner of Evidence and gains exclusive ownership of represented-content and exact-content
+Evidence semantics: Evidence Type and its canonical byte representation, content-representation
+classification, `representedContentReference` (contentOwner, contentType, contentId, contentRevision, Evidence
+Type identity/version), `contentDigestAlgorithm`, `contentDigest`, and deterministic derivation-source
+semantics. This amendment adds capability within RFC-0002's own domain; it redefines no concept owned by any
+other specification and invalidates no existing Evidence instance.
+
+## Authorized Scope
+Authorizes the RFC-0002 v1.1 amendment text/diff below. Does NOT authorize implementation (including any
+`EvidenceHash` reconciliation), any Sprint, any Initial Capability Sequence, additional digest algorithms, or
+RFC-0006/RFC-0011/RFC-0013 changes.
+
+## Deferred Concepts
+All RFC-0002 implementation; `EvidenceHash` reconciliation; additional `contentDigestAlgorithm` values;
+RFC-0006, RFC-0011, and RFC-0013 changes.
+
+## Related Sprint(s) / Related Review(s)
+None. No Sprint exists within Milestone 12.
+
+## Full Ratification Text
+> RFC-0002 is amended to v1.1 with an additive, implementation-independent Exact Content Evidence contract:
+> an Evidence Type with exact identity and version defining canonical byte representation; an immutable
+> content-representation classification (SnapshotContent / DerivedContent); an immutable
+> representedContentReference (contentOwner, contentType, stable contentId, exact contentRevision, and
+> Evidence Type identity/version) that structurally identifies the represented artifact or content, so that
+> artifact identity is never encoded implicitly inside EvidenceId nor established by free-form Provenance
+> alone; an explicit contentDigestAlgorithm restricted initially to SHA-256; an immutable contentDigest of
+> exactly 64 lowercase hexadecimal characters over the exact canonical content bytes; SnapshotContent
+> requirements binding exactly one represented revision to the Evidence identity, version, and digest with
+> Provenance sufficient to reproduce acquisition and digest verification; DerivedContent requirements
+> declaring an immutable, non-empty, deterministically ordered source Evidence reference set whose
+> authoritative paths terminate in valid SnapshotContent Evidence, explicitly identifying which source or
+> deterministic source combination establishes the represented-content binding, without replacing the source's
+> exact-content identity; inherited append-only versioning under which a digest is never recomputed in place;
+> and comprehensive fail-closed mismatch and ambiguity handling. RFC-0002 exclusively owns represented-content
+> and exact-content Evidence semantics; consumers may require equality but may not redefine them. Exact
+> Content Evidence is optional and backward-compatible; specification text only, no implementation, no Sprint,
+> no Initial Capability Sequence.
+
+## Current Status
+Active
+
+---
+
+# NEXUS-RAT-2026-07-18-006
+
+## Ratification Identifier
+NEXUS-RAT-2026-07-18-006
+
+## Date
+2026-07-18
+
+## Subject
+Amends RFC-0006 (Final v1.1 → v1.2): a generalized, discriminated AssessmentSubjectReference preserving the
+existing wire discriminants byte-for-byte; an exact AssessmentCriterion / Assessment Criteria Set
+identity-version-fingerprint model with a complete immutable criterion-reference contract, a closed
+declarative applicability vocabulary, and a canonical fingerprint protocol; a Corpus-scoped Assessment
+Coverage model over element-scoped and subject-wide criteria; a closed Corpus-scoped Finding affected-target
+model; Evidence-expectation enforcement consuming RFC-0002 v1.1 Exact Content Evidence; a Corpus-scoped
+recorded RFC-0003 Projection basis with snapshot-preserving completion semantics; and conditional Execution
+attribution. Specification text only. The CorpusReviewBasis extension is DORMANT until
+NEXUS-RAT-2026-07-18-008. Depends on NEXUS-RAT-2026-07-18-005 (RFC-0002 v1.1). No implementation, no Sprint
+activation, no Initial Capability Sequence.
+
+## Originating Request
+RFC-0013 must not re-create RFC-0006 assessment, criteria, coverage, Findings, or attribution. RFC-0006
+requires a generalized subject reference and an exact, deterministic criteria + applicability + coverage +
+Finding-target + Evidence-expectation model to receive a Corpus Review Basis as an assessable subject, without
+altering existing Mission-Plan-Revision assessment behavior, while forward-referencing a CorpusReviewBasis
+whose corrected semantics are authorized by NEXUS-RAT-2026-07-18-008 and consuming exact-content and
+represented-content Evidence semantics owned by RFC-0002 v1.1. Pre-ratification review established four gaps
+this amendment closes: RFC-0006 v1.1 records no RFC-0003 Projection identity or version on the Assessment
+Session, leaving "the Projection basis bound to the Assessment" without a normative referent; a Finding arising
+from a subject-wide criterion has no defined affected-target under the existing "identify affected artifacts"
+clause; an earlier draft proposed a changed wire discriminator, which would have broken the
+backward-compatible alias it claimed to preserve; and an earlier draft caused an Assessment to fail closed on
+Projection staleness, which would have made a long-running Corpus Review permanently uncompletable rather than
+completable as an exact historical snapshot.
+
+## Governance Decision
+APPROVED — RFC-0006 v1.1 → v1.2, SPECIFICATION TEXT ONLY, WITH A DORMANT CORPUSREVIEWBASIS EXTENSION.
+
+### Effectiveness Model (binding)
+  - Ratification dependency order: depends on -005 (RFC-0002 v1.1); prerequisite to -007 and -008.
+  - Forward-referenced vocabulary: CorpusReviewBasis is a vocabulary term whose corrected RFC-0013 semantics
+    are authorized by -008; this record references it without defining RFC-0013's domain.
+  - Architectural effectiveness: the CorpusReviewBasis Assessment-subject variant, the Assessment Criteria
+    Set model, the applicability vocabulary's SubjectWide variant, Corpus-scoped Assessment Coverage, the
+    Corpus-scoped Finding affected-target model, and the Corpus-scoped recorded Projection basis SHALL remain
+    DORMANT and unusable until -008 authorizes RFC-0013 Draft v0.6. No Assessment Session may use
+    kind: CorpusReviewBasis on this record's authority alone.
+  - Implementation activation: none. All changes, including Conditional Execution Attribution, are normative
+    specification only; implementation is deferred and separately authorized.
+ExecutableMissionPlan / ProposedPlanRevision behavior is not dormant and is unchanged.
+
+### Amendment A1 — Generalized Assessment Subject (binding)
+The Assessment Session subject SHALL be an explicit, discriminated AssessmentSubjectReference. Exactly three
+discriminants are authorized, using exactly these wire values:
+  - `kind: ExecutableMissionPlan` — an RFC-0001 executable Mission Plan revision (revisionId). This is the
+    existing v1.1 discriminator value, retained unchanged.
+  - `kind: ProposedPlanRevision` — an RFC-0012 Proposed Plan Revision prior to Activation (revisionId). This
+    is the existing v1.1 discriminator value, retained unchanged.
+  - `kind: CorpusReviewBasis` — an RFC-0013 Corpus Review Basis (basisFingerprint), an opaque, discriminated
+    identity; RFC-0006 does not interpret RFC-0013's domain beyond it; DORMANT per the Effectiveness Model.
+
+A human-readable description MAY refer to the first variant as an "executable Mission Plan revision"; the
+discriminator value SHALL remain exactly `ExecutableMissionPlan`. No discriminator value defined by RFC-0006
+v1.1 is renamed, replaced, or re-encoded by this amendment.
+
+ReviewPlanRevisionReference is RETAINED as a deprecated, backward-compatible narrow alias of
+AssessmentSubjectReference, restricted to exactly the `ExecutableMissionPlan` and `ProposedPlanRevision`
+discriminants. Precisely:
+  - the two existing discriminator values and their wire representation remain byte-for-byte unchanged;
+  - existing Plan-Revision subject construction sites remain valid without modification;
+  - Corpus-scoped Assessment Coverage (A3) does not apply to Plan-Revision assessments;
+  - the Corpus-scoped Finding affected-target model (A9) does not apply to Plan-Revision assessments;
+  - the Corpus-scoped recorded Projection basis (A8) does not apply to Plan-Revision assessments;
+  - Conditional Execution Attribution (A4) is a normative RFC-0006 change applying to all profiles, whose
+    implementation remains deferred and requires separate authorization.
+
+### Amendment A2 — Assessment Criteria Identity and Assessment Criteria Set (binding)
+An AssessmentCriterion SHALL possess: AssessmentCriterionId; EITHER an inline criterion definition OR an exact
+immutable criterion reference (A2.1); an Assessment Criterion Applicability declaration (A2.3); sorted
+supporting authority references; required Evidence expectations; a required verification-status threshold; a
+required confidence threshold.
+An Assessment Criteria Set SHALL be an immutable, non-empty, order-irrelevant collection of AssessmentCriteria
+with an exact identity, an exact version, and a deterministic fingerprint (A6).
+An authority-bearing artifact reference is NOT itself an AssessmentCriterion. For a CorpusReviewBasis subject,
+the Assessment's Criteria Set identity, version, and fingerprint SHALL equal those bound into the submitted
+Basis, failing closed on mismatch. RFC-0013 references an Assessment Criteria Set but SHALL NOT own or derive
+Assessment Criteria.
+
+#### A2.1 — Exact Immutable Criterion Reference (binding)
+An exact immutable criterion reference SHALL identify, completely:
+  - the owning specification or governed artifact type;
+  - the criterion identity within that owner;
+  - the exact owner/artifact identity;
+  - the exact owner/artifact version;
+  - the exact criterion content fingerprint;
+  - sorted supporting authority references.
+The Assessment Criteria Set fingerprint SHALL incorporate this complete canonical reference tuple. Resolution
+SHALL fail closed on a reference that is missing, mutable, unversioned, ambiguous, superseded without an
+explicit applicability declaration, or fingerprint-mismatched.
+
+#### A2.2 — Inline Criterion Definition Canonicalization (binding)
+For an inline criterion definition, the exact bytes included in the fingerprint SHALL be produced by, in
+order: (1) Unicode Normalization Form C (NFC); (2) line-ending normalization to LF (U+000A); (3) removal of
+leading and trailing whitespace of the complete definition, with all internal whitespace preserved exactly;
+(4) UTF-8 encoding. No other normalization SHALL be applied. Two inline definitions producing identical bytes
+under this procedure are the same definition for every fingerprint purpose.
+
+#### A2.3 — Assessment Criterion Applicability (binding)
+Assessment Criterion Applicability SHALL be a closed, declarative, non-executable selection declaration. It
+SHALL contain no executable predicate, expression language, callback, script, provider prompt, or
+unrestricted policy logic of any kind. Exactly four variants are authorized:
+
+  - `AllSubjectElements` — element-scoped. Selects every Assessment Subject Element of the subject. Carries no
+    additional field.
+  - `SubjectElementsOfKind` — element-scoped. Carries exactly one `canonicalKind`, an exact immutable
+    canonical kind identifier (for a CorpusReviewBasis subject, an RFC-0013 Canonical Artifact Kind Key).
+    Selects every Subject Element whose canonical kind equals it.
+  - `ExactSubjectElementSet` — element-scoped. Carries a non-empty, duplicate-free set of exact immutable
+    Subject Element references, sorted ascending by reference identity. Selects exactly those elements.
+  - `SubjectWide` — subject-scoped. Selects the Assessment Subject as a whole rather than any individual
+    Subject Element. For a CorpusReviewBasis subject, it evaluates the Corpus Review Basis as a whole. Carries
+    no additional field.
+
+Selection semantics SHALL be deterministic: identical applicability declarations over an identical Subject
+Element set SHALL always select the identical set. Canonical representation for fingerprinting is defined in
+A6.
+
+Applicability construction and resolution SHALL fail closed on: an unknown or unauthorized variant; a missing
+required field; a duplicate reference within `ExactSubjectElementSet`; an empty `ExactSubjectElementSet`; a
+Subject Element reference that does not resolve within the subject; a `canonicalKind` that does not resolve to
+a kind the subject recognizes; or any ambiguous selection.
+
+### Amendment A3 — Corpus-Scoped Assessment Coverage (binding, narrow)
+ONLY WHEN AssessmentSubjectReference.kind == CorpusReviewBasis, an Assessment Session SHALL own an immutable
+Assessment Coverage record whose universe is exactly the union of:
+
+  (a) the complete Cartesian product of every Corpus Artifact Reference in the referenced Basis's Scope ×
+      every element-scoped AssessmentCriterion in the bound Assessment Criteria Set (that is, every criterion
+      whose applicability variant is AllSubjectElements, SubjectElementsOfKind, or ExactSubjectElementSet);
+      and
+  (b) exactly one pair per subject-scoped AssessmentCriterion: (the Corpus Review Basis as a whole, that
+      criterion), for every criterion whose applicability variant is SubjectWide.
+
+A subject-scoped criterion SHALL NOT appear in (a), and SHALL NOT be forced into a pair with any individual
+Corpus Artifact Reference. An element-scoped criterion SHALL NOT appear in (b). A single cross-artifact
+condition SHALL therefore be dispositioned exactly once, and a Finding arising from it SHALL NOT be duplicated
+across artifacts.
+
+Each pair in the coverage universe SHALL receive exactly one immutable disposition: Satisfied;
+FindingProduced; NotApplicable; UnableToEvaluate.
+  - NotApplicable is valid only when the criterion's applicability declaration (A2.3) does not select that
+    pair's Subject Element — that is, only for pairs in (a) whose element the criterion does not select. It
+    SHALL carry an attributable explanation and the exact applicability declaration relied upon. A pair the
+    criterion's applicability declaration selects SHALL NOT be marked NotApplicable. Pairs in (b) are selected
+    by construction and SHALL NOT be marked NotApplicable.
+  - FindingProduced SHALL link a Finding whose affected-target variant matches the pair's scope, per A9: a
+    pair in (a) SHALL link a Finding declaring SubjectElementTarget; a pair in (b) SHALL link a Finding
+    declaring AssessmentSubjectTarget.
+  - UnableToEvaluate SHALL carry an attributable reason and SHALL prevent Accepted or Accepted With
+    Observations.
+Coverage is complete only when every pair in the coverage universe carries exactly one valid disposition. A
+terminal Assessment Outcome SHALL fail closed until coverage is complete.
+
+This section SHALL NOT apply to ExecutableMissionPlan or ProposedPlanRevision assessments; any future
+universal-coverage requirement SHALL require its own separate migration analysis and ratification.
+
+### Amendment A4 — Conditional Execution Attribution (binding)
+Supersedes the v1.0 unconditional Execution Session field. Direct Human assessment: Human actor identity; no
+Execution Session, none fabricated. Provider-produced assessment: producing Provider/system identity, RFC-0004
+Execution Role, and actual RFC-0004 Execution Session. RFC-0004 Engineering Session only when it participated.
+RFC-0008 Adapter recorded only as transport/invocation attribution, never as evaluator origin. Applies
+consistently across every RFC-0006 clause referencing Assessment attribution, for all three subject kinds.
+Normative change; implementation deferred and separately authorized.
+
+### Amendment A5 — Evidence Expectation Enforcement (binding, Corpus-scoped)
+This amendment applies only to Assessment Coverage dispositions, which exist only for CorpusReviewBasis
+subjects (A3). For a Satisfied or FindingProduced disposition, the supporting Consumed Evidence SHALL:
+  - identify exact EvidenceId and EvidenceVersion;
+  - belong to the exact Active Evidence Set of the RFC-0003 Projection recorded on the Assessment Session per
+    A8;
+  - apply to the exact Assessment Subject Element (for pairs in A3(a)), or to the Assessment Subject as a
+    whole (for pairs in A3(b)), established through the RFC-0002 v1.1 representedContentReference — never
+    through implicit EvidenceId encoding or free-form Provenance alone;
+  - satisfy the AssessmentCriterion's required Evidence expectations;
+  - satisfy the required verification-status threshold;
+  - satisfy the required confidence threshold;
+  - where the criterion requires exact-content Evidence, resolve to RFC-0002 v1.1 Exact Content Evidence whose
+    representedContentReference, content-representation classification, contentDigestAlgorithm, and
+    contentDigest are consumed READ-ONLY and match the Subject Element's recorded represented content and
+    digest; where that Evidence is DerivedContent, its deterministic source set SHALL resolve unambiguously to
+    valid SnapshotContent Evidence per RFC-0002 v1.1.
+Missing, ambiguous, conflicting, insufficient-confidence, insufficient-verification, cross-Mission,
+cross-element, represented-content-mismatched, digest-mismatched, unresolved-derivation, or
+expectation-mismatched Evidence SHALL NOT satisfy the criterion. When the required evaluation cannot be
+established, the disposition SHALL be UnableToEvaluate, never Satisfied.
+
+Evidence membership is evaluated against the exact bound Projection recorded per A8, including when that
+Projection has become stale after Basis construction (A8, Snapshot-Preserving Completion). Staleness of the
+bound Projection SHALL NOT, by itself, disqualify Evidence that remains resolvable and a member of that exact
+Projection's Active Evidence Set.
+
+### Amendment A6 — Assessment Criteria Set Fingerprint Protocol (binding)
+Per criterion, the fingerprint SHALL include, in this canonical field order:
+  1. AssessmentCriterionId;
+  2. the inline criterion definition canonical bytes (A2.2) OR the complete canonical exact immutable
+     criterion reference tuple (A2.1);
+  3. the canonical applicability form (below);
+  4. sorted supporting authority references;
+  5. required Evidence expectations;
+  6. verification threshold;
+  7. confidence threshold.
+
+The canonical applicability form SHALL be:
+  - `AllSubjectElements` → the literal token `AllSubjectElements`;
+  - `SubjectElementsOfKind` → the token `SubjectElementsOfKind` followed by the exact `canonicalKind`;
+  - `ExactSubjectElementSet` → the token `ExactSubjectElementSet` followed by the element references sorted
+    ascending by reference identity, each length-framed;
+  - `SubjectWide` → the literal token `SubjectWide`.
+The applicability declaration participates in the fingerprint completely; no component is omitted.
+
+Protocol: UTF-8 encoding; unambiguous length framing of every field and every collection element; criteria
+sorted ascending by AssessmentCriterionId; SHA-256; lowercase hexadecimal output. AssessmentCriterionId is
+included as a stable authored identity; system-generated record identifiers and all timestamps are excluded.
+Equivalent Criteria Sets (identical criteria by identity and content, including identical applicability
+declarations) SHALL produce identical fingerprints regardless of insertion order.
+
+### Amendment A7 — Terminology and Conformance Reconciliation (binding)
+Every RFC-0006 clause assuming a Mission Plan Revision (Engineering Assessment inputs, Assessment Session,
+subject and Outcome attribution, Explainability, Determinism, Conformance, Amendment History) SHALL be
+generalized to AssessmentSubjectReference, without changing any existing discriminator value.
+
+Determinism SHALL be stated per subject kind. For ExecutableMissionPlan and ProposedPlanRevision, the v1.0
+tuple is retained unchanged. For CorpusReviewBasis, determinism SHALL be defined over the exact Mission, Basis
+fingerprint, Assessment Criteria Set fingerprint, recorded RFC-0003 Projection identity and Projection
+Version, and produced artifacts/Findings — and SHALL NOT require a Mission Plan. Determinism SHALL be
+evaluated against the exact bound Projection version, not against whichever Projection is currently fresh;
+re-evaluating the same Assessment inputs against the same bound Projection version SHALL always produce the
+same Assessment Outcome, irrespective of elapsed time or subsequent Projection versions.
+
+The existing requirement that every Finding "identify affected artifacts" SHALL be read as target-aware per
+A9: satisfied exactly as in v1.0/v1.1 for ExecutableMissionPlan and ProposedPlanRevision assessments, and
+satisfied by exactly one declared affected-target variant for CorpusReviewBasis assessments.
+
+### Amendment A8 — Recorded Projection Basis and Snapshot-Preserving Completion (binding, Corpus-scoped)
+
+**Recording.** An Assessment Session whose AssessmentSubjectReference.kind is CorpusReviewBasis SHALL record
+the exact RFC-0003 Projection identity and Projection Version constituting its Evidence basis, consumed
+read-only and unmodified. That recorded Projection SHALL equal the RFC-0003 Projection identity and Projection
+Version bound into the referenced Corpus Review Basis, failing closed on inequality. This recorded basis is
+the normative referent for every clause in this specification that refers to "the Projection basis bound to
+the Assessment", and is the value a consuming specification compares against.
+
+**Freshness at Basis construction.** The bound Projection SHALL have been fresh under RFC-0003's freshness
+rules at the time the referenced Corpus Review Basis was constructed. RFC-0013 owns that construction-time
+requirement; RFC-0006 consumes the resulting bound Projection.
+
+**Snapshot-Preserving Completion.** An Assessment MAY reach a terminal Assessment Outcome against its exact
+bound Projection after that Projection has become stale under RFC-0003's freshness rules, provided ALL of the
+following hold:
+  - the exact bound Projection version remains uniquely resolvable and reproducible;
+  - its Mission and Projection Scope remain identical to the values bound into the Corpus Review Basis;
+  - every referenced EvidenceId and EvidenceVersion remains resolvable;
+  - the Assessment records exactly that same Projection identity and version;
+  - no identity, version, Mission, scope, Evidence-membership, or fingerprint mismatch exists.
+Staleness of the bound Projection SHALL NOT, by itself, prevent an Assessment from reaching a terminal
+Outcome. Such an Assessment is a historically valid exact-snapshot evaluation of its immutable Basis; it does
+not assert current applicability, which is determined externally (RFC-0011).
+
+**Fail-closed conditions.** Assessment SHALL fail closed when the recorded Projection is missing,
+unresolvable, non-reproducible, ambiguous, conflicting, Mission-incompatible with the Assessment's Mission
+identity, scope-mismatched relative to the Basis-bound Projection Scope, or unequal to the Basis-bound
+Projection identity or version; or when any referenced EvidenceId or EvidenceVersion is no longer resolvable.
+Staleness alone is NOT a fail-closed condition.
+
+**Scope.** This requirement SHALL NOT apply to ExecutableMissionPlan or ProposedPlanRevision assessments.
+RFC-0006 v1.1 states no normative requirement for exact Projection identity or version on any Assessment
+Session, and this Corpus-specific amendment SHALL NOT incidentally expand the existing Plan-Revision
+Assessment contract. Any future universal Projection-recording requirement SHALL require its own separate
+migration analysis and ratification.
+
+RFC-0006 does not redefine Projection, Projection Version, Projection Scope, Projection Freshness, or the
+Active Evidence Set, all of which remain owned by RFC-0003.
+
+### Amendment A9 — Finding Affected-Target Model (binding, Corpus-scoped)
+For an Assessment whose AssessmentSubjectReference.kind is CorpusReviewBasis, every Assessment Finding SHALL
+declare exactly one affected-target variant from a closed set of two:
+
+  - `SubjectElementTarget` — carries a non-empty, duplicate-free, deterministically sorted set of exact Corpus
+    Artifact References, each resolving within the referenced Basis's Scope.
+  - `AssessmentSubjectTarget` — carries exactly one exact CorpusReviewBasis fingerprint, equal to the
+    Assessment's own subject Basis fingerprint.
+
+Rules:
+  - A Finding arising from an element-scoped coverage pair (A3(a)) SHALL declare `SubjectElementTarget` and
+    identify the exact selected element or elements it concerns.
+  - A Finding arising from a SubjectWide coverage pair (A3(b)) SHALL declare exactly one
+    `AssessmentSubjectTarget` containing the exact CorpusReviewBasis fingerprint.
+  - A SubjectWide Finding MAY additionally enumerate affected Corpus Artifact References for explanation only.
+    That optional enumeration SHALL NOT replace, weaken, or substitute for the required
+    `AssessmentSubjectTarget`, and SHALL NOT be treated as a `SubjectElementTarget`.
+  - Zero-target Findings are prohibited.
+  - Targets SHALL be immutable, attributable, and deterministic.
+
+Construction and resolution SHALL fail closed on: a missing target; more than one declared target variant on a
+single Finding; an empty `SubjectElementTarget`; a duplicate reference within a `SubjectElementTarget`; a
+reference that does not resolve within the referenced Basis's Scope; a cross-Basis reference; an
+`AssessmentSubjectTarget` whose fingerprint does not equal the Assessment's subject Basis fingerprint; or a
+target variant that does not match the originating coverage pair's scope.
+
+Existing Finding behavior, fields, and structure for ExecutableMissionPlan and ProposedPlanRevision
+assessments remain unchanged; this model applies only to CorpusReviewBasis assessments. RFC-0006 retains
+exclusive ownership of Finding structure and affected targets. A consuming specification MAY reference an
+RFC-0006 Finding by identity but SHALL NOT duplicate or redefine its target structure.
+
+## RFC Coverage
+- RFC-0006 v1.2 (Amended by this ratification, specification text only)
+- RFC-0002 v1.1 (Referenced; prerequisite; Exact Content Evidence and representedContentReference consumed
+  read-only)
+- RFC-0001 (Referenced; existing dependency; owner of the executable Mission Plan revision; unmodified)
+- RFC-0003 (Referenced; existing dependency; Projection, Projection Version, Projection Scope, Projection
+  Freshness, and Active Evidence Set consumed read-only; unmodified)
+- RFC-0004 (Referenced; existing dependency; Execution Role / Engineering Session / Execution Session;
+  unmodified)
+- RFC-0005 — Domain Event Model (Referenced; existing RFC-0006 dependency; unmodified and not removed)
+- RFC-0008 (Referenced; Adapter transport/invocation attribution; unmodified)
+- RFC-0012 — Autonomous Engineering Planning Model (Referenced; owner of ProposedPlanRevision; consumed
+  read-only; unmodified and not removed)
+- RFC-0013 (Forward-referenced vocabulary only — CorpusReviewBasis; DORMANT until -008)
+
+## Ownership Model (ratified)
+RFC-0006 remains sole owner of Engineering Assessment, Assessment Session, Assessment Criteria, Assessment
+Criterion Applicability, Assessment Criteria Set, Assessment Coverage, Assessment Finding, Finding
+affected-target structure, and Assessment Outcome. This amendment adds AssessmentSubjectReference, the criteria
+and applicability models and their fingerprint, Corpus-scoped Coverage, the Corpus-scoped Finding
+affected-target model, Evidence-expectation enforcement, and the Corpus-scoped recorded Projection basis with
+snapshot-preserving completion, within RFC-0006's own domain. It redefines no concept owned by RFC-0001,
+RFC-0002, RFC-0003, RFC-0004, RFC-0005, RFC-0008, or RFC-0012 — in particular, Projection Freshness remains
+owned by RFC-0003 and is consumed, not redefined — and does not define RFC-0013's domain.
+
+## Authorized Scope
+Authorizes the RFC-0006 v1.2 amendment text/diff. Does NOT authorize implementation, any Sprint, any Initial
+Capability Sequence, RFC-0011 or RFC-0013 changes, the Corpus Readiness Acceptance Repository Policy, or any
+runtime use of the dormant CorpusReviewBasis extension.
+
+## Deferred Concepts
+All RFC-0006 implementation; universal (non-Corpus) coverage; universal Projection recording; runtime use of
+CorpusReviewBasis; RFC-0011 and RFC-0013 changes.
+
+## Related Sprint(s) / Related Review(s)
+None. No Sprint exists within Milestone 12.
+
+## Full Ratification Text
+> RFC-0006 is amended to v1.2 with a generalized, discriminated AssessmentSubjectReference whose three
+> discriminants are exactly ExecutableMissionPlan, ProposedPlanRevision, and CorpusReviewBasis — the two
+> existing discriminator values and their wire representation remaining byte-for-byte unchanged, with
+> ReviewPlanRevisionReference retained as a deprecated backward-compatible narrow alias over exactly those two;
+> an exact AssessmentCriterion / non-empty Assessment Criteria Set identity-version-fingerprint model with a
+> complete immutable criterion-reference contract, explicit inline-definition canonicalization (NFC, LF,
+> outer-trim, UTF-8), and a closed four-variant declarative applicability vocabulary (AllSubjectElements,
+> SubjectElementsOfKind, ExactSubjectElementSet, SubjectWide) containing no executable logic and fingerprinted
+> completely under a canonical SHA-256 protocol; a Corpus-scoped Assessment Coverage universe formed as the
+> union of the element-scoped Cartesian product and exactly one subject-wide pair per SubjectWide criterion, so
+> a cross-artifact condition is dispositioned once and never duplicated across artifacts; a closed Corpus-scoped
+> Finding affected-target model in which an element-scoped Finding declares a SubjectElementTarget naming the
+> exact elements it concerns and a subject-wide Finding declares exactly one AssessmentSubjectTarget carrying
+> the exact CorpusReviewBasis fingerprint, optional explanatory artifact enumeration never substituting for
+> that required target, zero-target Findings prohibited, and the existing "identify affected artifacts" clause
+> read as target-aware without weakening the Plan-Revision path; Evidence-expectation enforcement consuming
+> RFC-0002 v1.1 Exact Content Evidence and representedContentReference read-only with deterministic
+> derived-source resolution; conditional Execution attribution; and a Corpus-scoped recorded exact RFC-0003
+> Projection identity and Projection Version that SHALL equal the Projection bound into the referenced Corpus
+> Review Basis, which SHALL have been fresh at Basis construction, and against which an Assessment MAY reach a
+> terminal Outcome even after that Projection becomes stale, provided the exact version remains uniquely
+> resolvable and reproducible, Mission and Projection Scope remain identical to the Basis-bound values, every
+> referenced Evidence remains resolvable, the Assessment records exactly that Projection, and no identity,
+> version, Mission, scope, Evidence-membership, or fingerprint mismatch exists — staleness alone never being a
+> fail-closed condition, while missing, unresolvable, non-reproducible, ambiguous, conflicting, cross-Mission,
+> scope-mismatched, or version-mismatched Projections always are. Determinism for a CorpusReviewBasis subject
+> is evaluated against the exact bound Projection version rather than whichever Projection is currently fresh.
+> All specification text only. The CorpusReviewBasis variant, criteria model, SubjectWide applicability,
+> Corpus-scoped Coverage, the Finding affected-target model, and the recorded Projection basis remain dormant
+> until NEXUS-RAT-2026-07-18-008 authorizes RFC-0013 Draft v0.6. Corpus-scoped Coverage, the Finding
+> affected-target model, and Projection recording do not apply to Plan-Revision assessments; Conditional
+> Execution Attribution is a normative change whose implementation is deferred. Projection Freshness remains
+> owned by RFC-0003 and is consumed, not redefined. RFC-0005 and RFC-0012 dependencies are preserved
+> unmodified. No implementation, no Sprint, no Initial Capability Sequence.
+
+## Current Status
+Active
+
+---
+
+# NEXUS-RAT-2026-07-18-007
+
+## Ratification Identifier
+NEXUS-RAT-2026-07-18-007
+
+## Date
+2026-07-18
+
+## Subject
+Amends RFC-0011 (Final (Amended) v1.1 → v1.2): introduces a closed Governance Evaluation Input Profile model —
+ReviewGovernanceEvaluationInput (existing behavior, unchanged) and CorpusReadinessAcceptanceEvaluationInput
+(new, dormant) — and reconciles every affected RFC-0011 clause so that no clause continues to assume a
+finalized Review is the only evaluable input. Defines an immutable CurrentProjectionApplicabilityReference
+carrying the complete, closed input contract a separately ratified Corpus Readiness Acceptance Repository
+Policy requires to perform deterministic current-Projection selection, so that current-applicability
+comparison is possible from the closed profile alone. Defines the bound conditions under which a terminal
+Approved GovernanceDecision confers authoritative downstream applicability of an RFC-0013 Corpus Readiness
+Result, with fail-closed classifications separated so that temporary absence, non-terminality, and
+historical-Projection staleness resolve to Deferred while ambiguity, conflict, mismatch, non-reproducibility,
+and unresolvable identity resolve to Escalation Required. Specification text only. RFC-0003 is not amended.
+Depends on NEXUS-RAT-2026-07-18-006 (RFC-0006 v1.2) and transitively on NEXUS-RAT-2026-07-18-005 (RFC-0002
+v1.1). The Corpus-readiness profile is UNUSABLE until the Effectiveness Model's preconditions hold. No
+implementation, no Sprint, no Initial Capability Sequence.
+
+## Originating Request
+Authoritative downstream applicability of a Corpus Readiness Result must be owned by RFC-0011, not RFC-0013,
+and conferred only by a bound, non-arbitrary Approved GovernanceDecision that consumes the exact RFC-0013
+Result — never by RFC-0013 self-declaration and never by RFC-0011 recomputing readiness from the Assessment
+Outcome. Pre-ratification review established that adding such an input while leaving RFC-0011's existing
+normative text intact would produce a specification conflict, since RFC-0011 v1.1 defines Policy Criterion
+evaluability, Policy Evaluation, the Governance Decision, Approved's required inputs, Determinism,
+Explainability, Dependencies, and Conformance in Review-specific terms. Further review found that an earlier
+draft combined conditions with different required outcomes into single failure-handling rows; that the
+snapshot-preserving Projection lifecycle adopted for long-running Corpus Reviews requires RFC-0011 to
+distinguish a stale-but-exact historical Projection from an ambiguous or unresolvable one; and — decisively —
+that the closed CorpusReadinessAcceptanceEvaluationInput supplied only the historical Basis-bound Projection,
+while the current-applicability requirement demanded comparison against a "currently applicable Projection"
+the profile never carried. Because Policy Criteria may evaluate only inputs supplied by their declared
+profile, the future Repository Policy could not have performed that comparison deterministically. This
+amendment closes that gap by defining the exact input and recording contract the policy-controlled selection
+requires, without authoring the policy, implementing selection, or amending RFC-0003.
+
+## Governance Decision
+APPROVED — RFC-0011 v1.1 → v1.2, SPECIFICATION TEXT ONLY, CORPUS PROFILE DORMANT UNTIL PRECONDITIONS HOLD.
+
+### Effectiveness Model (binding)
+  - Ratification dependency order: depends on -006 (and transitively -005); prerequisite to -008.
+  - Forward-referenced vocabulary: Corpus Readiness Result and Corpus Review Basis are vocabulary terms whose
+    corrected RFC-0013 semantics are authorized by -008.
+  - Architectural effectiveness: the input-profile model, both profiles, and the
+    CurrentProjectionApplicabilityReference contract are normative specification upon ratification. The
+    ReviewGovernanceEvaluationInput profile is immediately effective and behaviourally identical to RFC-0011
+    v1.1.
+  - Implementation/runtime activation: the CorpusReadinessAcceptanceEvaluationInput profile SHALL remain
+    UNUSABLE until ALL hold: (1) -008 authorizes RFC-0013 Draft v0.6; (2) the required terminal RFC-0006
+    Assessment exists; (3) a Corpus Readiness Acceptance Repository Policy — including its deterministic
+    current-Projection selector — is separately authored and ratified under RFC-0011's existing Repository
+    Policy process; and (4) implementation is separately authorized.
+
+### Amendment B1 — Governance Evaluation Input Profiles (binding)
+RFC-0011 SHALL define a closed set of Governance Evaluation Input Profiles. Exactly two profiles are
+authorized:
+
+  - `ReviewGovernanceEvaluationInput` — the existing profile. Contains the Mission identity and the finalized
+    RFC-0006 Review Outcome, together with the Evidence and Shared Reality inputs the applicable Policy
+    Criteria require. Its semantics, required inputs, failure handling, and wire contract are exactly those of
+    RFC-0011 v1.1 and are NOT modified by this amendment.
+  - `CorpusReadinessAcceptanceEvaluationInput` — the new profile, defined in B2. DORMANT per the Effectiveness
+    Model.
+
+Every Policy Evaluation SHALL declare exactly one input profile. No additional, arbitrary, ad hoc, or
+implicitly inferred input profile is authorized. A Policy Evaluation SHALL NOT infer its profile from the
+shape of the supplied data, and SHALL NOT substitute one profile's inputs for another's. An unknown,
+undeclared, or ambiguous profile SHALL produce Escalation Required.
+
+### Amendment B2 — CorpusReadinessAcceptanceEvaluationInput (binding)
+RFC-0011 SHALL define an exact, immutable, read-only CorpusReadinessAcceptanceEvaluationInput containing
+exactly:
+  - Mission identity;
+  - Corpus Review Basis fingerprint;
+  - RFC-0006 Assessment identity;
+  - terminal RFC-0006 Assessment Outcome;
+  - RFC-0013 Corpus Readiness Result identity;
+  - Corpus Readiness classification;
+  - the **historical bound Projection**: exact RFC-0003 Projection identity and Projection Version
+    constituting the Result's Evidence / Shared Reality basis. This SHALL equal the Projection recorded on the
+    referenced Assessment (RFC-0006 v1.2 A8), the Projection bound into the referenced Corpus Review Basis
+    (RFC-0013 v0.6 C5), and the Projection recorded on the referenced Corpus Readiness Result (RFC-0013 v0.6
+    C7);
+  - a `CurrentProjectionApplicabilityReference` (B2.1);
+  - Corpus Readiness Acceptance Repository Policy identity and version.
+
+RFC-0011 SHALL consume the exact RFC-0013 Corpus Readiness Result. It SHALL NOT recompute, reinterpret, or
+infer the readiness classification from the Assessment Outcome. The completed RFC-0006 Assessment is one bound
+component of this profile, not the sole finalized-engineering-outcome input.
+
+#### B2.1 — CurrentProjectionApplicabilityReference (binding)
+An immutable `CurrentProjectionApplicabilityReference` SHALL contain exactly:
+  - `missionId` — the Mission for which selection was performed;
+  - `projectionScopeReference` — the exact Projection Scope fingerprint, or the complete canonical Projection
+    Scope identity, used for selection;
+  - `currentProjectionIdentity` — the resolved current RFC-0003 Projection identity. Present exactly when
+    `resolutionResult` is `Resolved`; absent otherwise;
+  - `currentProjectionVersion` — the resolved current RFC-0003 Projection Version. Present exactly when
+    `resolutionResult` is `Resolved`; absent otherwise;
+  - `selectorPolicyIdentity` and `selectorPolicyVersion` — the exact Repository Policy identity and version
+    whose deterministic selector resolved the current Projection;
+  - `selectorCriterionIdentity` and `selectorCriterionVersion` — the exact selector criterion identity and
+    version within that policy;
+  - `resolutionResult` — exactly one of `Resolved | TemporarilyAbsent | Unresolvable | Ambiguous`;
+  - `freshnessDetermination` — the RFC-0003 freshness determination for that exact resolved Projection under
+    the evaluation's current candidate corpus. Present exactly when `resolutionResult` is `Resolved`; absent
+    otherwise. RFC-0011 consumes this determination read-only and does not redefine RFC-0003 freshness;
+  - `candidateCorpusFingerprint` — the immutable evaluation-state or candidate-corpus fingerprint against
+    which freshness and current applicability were evaluated.
+
+This reference is a recorded input, not a computation performed by RFC-0011. RFC-0011 defines what SHALL be
+supplied and recorded; the Corpus Readiness Acceptance Repository Policy owns the selector that produces it.
+
+### Amendment B3 — Corpus Readiness Acceptance Evaluation (binding)
+Authoritative downstream applicability of a Corpus Readiness Result SHALL require an applicable, terminal,
+Approved GovernanceDecision produced by Policy Evaluation of the exact ratified Corpus Readiness Acceptance
+Repository Policy version over a CorpusReadinessAcceptanceEvaluationInput (B2), for exactly one Mission.
+
+**Current Projection Applicability Selection (binding).** The following ten rules govern selection and its
+consequences. Selection itself is owned by the separately ratified Corpus Readiness Acceptance Repository
+Policy; RFC-0011 owns the input and recording contract only.
+
+  1. The Corpus Readiness Acceptance Repository Policy SHALL define a deterministic selector over exactly one
+     Mission and exactly one Projection Scope.
+  2. The selector SHALL resolve zero or one current Projection. It SHALL NEVER silently choose among multiple
+     candidates.
+  3. The selected current Projection and the historical Basis-bound Projection SHALL remain distinct recorded
+     references. Neither may substitute for, overwrite, or mutate the other.
+  4. `Approved` is eligible only when ALL hold: selection resolves exactly one current Projection
+     (`resolutionResult == Resolved`); that Projection is fresh under RFC-0003 (`freshnessDetermination`
+     indicates fresh); its Mission and Projection Scope match the input's `missionId` and
+     `projectionScopeReference`; its identity and version equal the historical Result's bound Projection; and
+     every other Corpus-readiness acceptance condition is satisfied.
+  5. If the selector returns `TemporarilyAbsent` and a Projection is expected through normal engineering
+     progression, the Decision SHALL be `Deferred`.
+  6. If the selector resolves a fresh current Projection whose identity or version differs from the Result's
+     bound Projection, the Decision SHALL be `Deferred`, identifying that a fresh Corpus Review Basis and a
+     new Corpus Review are required.
+  7. If the historical bound Projection is stale relative to the resolved current Projection or the candidate
+     corpus, the Decision SHALL be `Deferred`, identifying that a fresh Corpus Review Basis and a new Corpus
+     Review are required.
+  8. If selection is `Unresolvable` or `Ambiguous`, or produces a Mission or Projection Scope conflict,
+     duplicate candidates, unsupported selector semantics, or identity/version inconsistency, the Decision
+     SHALL be `Escalation Required`.
+  9. No condition above may produce `Approved` through defaulting, recency guessing, maximum-version guessing,
+     or implicit repository lookup.
+ 10. Every GovernanceDecision produced under this profile SHALL record: the historical bound Projection
+     identity and version; the resolved current Projection identity and version, when present; the selector
+     policy and criterion identity and version; the candidate-corpus / evaluation-state fingerprint; and the
+     resolution result together with the freshness determination.
+
+**Historical validity is not current applicability.** A Corpus Readiness Result is historically valid for its
+exact immutable Basis; historical validity does not establish current applicability, which is determined only
+through the rules above.
+
+### Amendment B4 — Clause Reconciliation (binding)
+The following RFC-0011 clauses SHALL be reconciled to the input-profile model. In every case the
+Review-profile behavior is preserved exactly as in v1.1; only the profile-scoping is made explicit.
+
+  1. **Dependencies.** Add RFC-0006 v1.2 (Assessment identity, terminal Assessment Outcome, and recorded
+     Projection basis, consumed read-only), RFC-0002 v1.1 (transitive; the Evidence basis resolves to Exact
+     Content Evidence semantics), RFC-0003 (Projection identity, Projection Version, Projection Scope, and
+     Projection Freshness, consumed read-only and NOT amended), and RFC-0013 as forward-referenced vocabulary
+     only. Existing dependencies are retained unmodified.
+  2. **Design Goals / deterministic input tuple.** Determinism SHALL be defined per profile. For
+     `ReviewGovernanceEvaluationInput`: equivalent Repository Policy version, Mission, finalized Review
+     Outcome, Evidence, and Shared Reality SHALL produce an equivalent Governance Decision — unchanged from
+     v1.1. For `CorpusReadinessAcceptanceEvaluationInput`: equivalent Repository Policy version, Mission, and
+     complete input profile instance — including an equivalent `CurrentProjectionApplicabilityReference`
+     (selector policy and criterion identity/version, resolution result, resolved current Projection where
+     present, freshness determination, and candidate-corpus fingerprint) — SHALL produce an equivalent
+     Governance Decision. Because current applicability is supplied as a recorded input rather than
+     discovered at evaluation time, determinism does not depend on evaluation-time repository state.
+  3. **Repository Policy and Policy Criterion evaluability.** Every Policy Criterion SHALL declare the input
+     profile it evaluates against. A Policy Criterion's evaluability SHALL be judged solely against the inputs
+     its declared profile provides. A Policy Criterion SHALL NOT be evaluated against a profile it does not
+     declare; such an attempt SHALL produce Escalation Required. The v1.1 statement that criteria are
+     evaluable from Evidence, Shared Reality, and the Review Outcome is retained, scoped to the
+     `ReviewGovernanceEvaluationInput` profile. For the `CorpusReadinessAcceptanceEvaluationInput` profile,
+     current-applicability criteria are evaluable exactly because the `CurrentProjectionApplicabilityReference`
+     is a supplied field of that profile; no criterion SHALL reach outside its profile to discover a current
+     Projection.
+  4. **Policy Evaluation.** Policy Evaluation is the deterministic act of evaluating one specific, identified
+     Repository Policy version's Policy Criteria against exactly one declared Governance Evaluation Input
+     Profile instance, for exactly one Mission. The v1.1 phrase "a completed Review, at minimum" is scoped to
+     the `ReviewGovernanceEvaluationInput` profile.
+  5. **Mission-Scoped Governance Evaluation.** Every governance evaluation SHALL receive an explicit,
+     mandatory Mission identity independent of input resolution, and every GovernanceDecision SHALL retain it
+     — unchanged from v1.1, and applicable to both profiles. For `ReviewGovernanceEvaluationInput`, the
+     resolved Review's Mission identity SHALL equal the request's Mission identity; a mismatch SHALL produce
+     Escalation Required — unchanged. For `CorpusReadinessAcceptanceEvaluationInput`, the profile's Mission
+     identity, the referenced Assessment's Mission identity, the referenced Corpus Readiness Result's Mission
+     identity, the historical bound Projection's Mission, and the
+     `CurrentProjectionApplicabilityReference.missionId` SHALL all be equal; any mismatch SHALL produce
+     Escalation Required.
+  6. **Governance Decision definition and per-value required inputs.** A Governance Decision is the immutable,
+     attributable outcome of applying one identified Repository Policy version's Policy Evaluation to exactly
+     one Governance Evaluation Input Profile instance. Approved's required inputs SHALL be: for
+     `ReviewGovernanceEvaluationInput`, a finalized Review — unchanged from v1.1; for
+     `CorpusReadinessAcceptanceEvaluationInput`, a complete profile instance whose referenced RFC-0006
+     Assessment is terminal AND whose `CurrentProjectionApplicabilityReference` satisfies every condition of
+     B3 rule 4. Rejected's required inputs are identical to Approved's for the same profile. Deferred and
+     Escalation Required retain their v1.1 semantics for both profiles. No new Governance Decision value is
+     introduced.
+  7. **Failure and Conflict Handling.** The v1.1 table rows concerning a missing, unresolvable, non-terminal,
+     or Mission-mismatched Review apply to the `ReviewGovernanceEvaluationInput` profile only. Separated rows
+     for the `CorpusReadinessAcceptanceEvaluationInput` profile are added per B5. No row of either profile
+     produces Approved.
+  8. **Explainability.** Every Governance Decision SHALL additionally identify the declared input profile and
+     the exact bound fields of that profile instance. For `CorpusReadinessAcceptanceEvaluationInput` this
+     means the Mission, Basis fingerprint, Assessment identity and terminal Outcome, Corpus Readiness Result
+     identity and classification, the historical bound Projection identity and version, the complete
+     `CurrentProjectionApplicabilityReference` (selector policy and criterion identity/version, resolution
+     result, resolved current Projection where present, freshness determination, Projection Scope reference,
+     and candidate-corpus fingerprint), and the acceptance policy identity and version — per B3 rule 10. A
+     Deferred Decision arising from B3 rules 5, 6, or 7 SHALL identify that a fresh Corpus Review Basis and a
+     new Corpus Review are required.
+  9. **Conformance.** Add conformance requirements for the closed profile model, per-profile determinism,
+     per-profile required inputs, per-profile separated failure classifications, the
+     CurrentProjectionApplicabilityReference contract and its complete recording, the B3 rule-4 Approved
+     eligibility conditions, the prohibition on defaulting or guessing (B3 rule 9), exact consumption of the
+     RFC-0013 Result without recomputation, and non-mutation of the RFC-0013 Result and of either Projection
+     reference.
+ 10. **Amendment History.** Record this amendment as v1.2, stating explicitly that no existing Review-profile
+     behavior, required input, failure rule, or wire contract is modified, and that RFC-0003 is not amended.
+
+### Amendment B5 — Separated Fail-Closed Classifications (binding)
+For the `CorpusReadinessAcceptanceEvaluationInput` profile, failure conditions SHALL be classified by their
+nature, not grouped. The governing principle is: temporary absence, non-terminality, and historical-Projection
+staleness that remains exactly resolvable resolve to **Deferred**; ambiguity, conflict, mismatch,
+non-reproducibility, unsupported conditions, and unresolvable identity resolve to **Escalation Required**; no
+condition resolves to Approved.
+
+Deferred:
+  - the referenced RFC-0006 Assessment is temporarily missing and is expected to exist through normal
+    engineering progression;
+  - the referenced RFC-0006 Assessment exists but is non-terminal;
+  - the historical bound RFC-0003 Projection is temporarily absent and is expected to become available through
+    normal engineering progression;
+  - `CurrentProjectionApplicabilityReference.resolutionResult` is `TemporarilyAbsent` and a Projection is
+    expected through normal engineering progression (B3 rule 5);
+  - selection resolves exactly one fresh current Projection whose identity or version differs from the
+    Result's historical bound Projection (B3 rule 6). The Decision SHALL identify that a fresh Corpus Review
+    Basis and a new Corpus Review are required;
+  - the historical bound Projection is stale relative to the resolved current Projection or the candidate
+    corpus, while remaining uniquely resolvable and reproducible with identical Mission and Projection Scope
+    (B3 rule 7). The Decision SHALL identify that a fresh Corpus Review Basis and a new Corpus Review are
+    required.
+None of these conditions SHALL be treated as an error, and none SHALL produce Approved.
+
+Escalation Required:
+  - the referenced RFC-0006 Assessment is unresolvable, ambiguous, duplicated, conflicting, or
+    identity-mismatched;
+  - the historical bound RFC-0003 Projection is missing without expectation of availability, unresolvable,
+    non-reproducible, ambiguous, or conflicting;
+  - the historical bound Projection's identity or version does not match across the Basis, the Assessment, the
+    Result, and this input; or its Mission or Projection Scope differs from the Basis-bound values;
+  - `CurrentProjectionApplicabilityReference.resolutionResult` is `Unresolvable` or `Ambiguous` (B3 rule 8);
+  - selection produced a Mission or Projection Scope conflict, duplicate candidates, unsupported selector
+    semantics, or an identity/version inconsistency (B3 rule 8);
+  - the `CurrentProjectionApplicabilityReference` is absent, incomplete, or internally inconsistent — for
+    example, `resolutionResult == Resolved` without a `currentProjectionIdentity`, `currentProjectionVersion`,
+    or `freshnessDetermination`; or a non-`Resolved` result carrying any of them;
+  - the Corpus Review Basis fingerprint does not match;
+  - the Corpus Readiness Result identity or classification does not match;
+  - the Corpus Readiness Acceptance Repository Policy version does not match, or the referenced policy version
+    does not exist; or the recorded `selectorPolicyIdentity`/`selectorPolicyVersion` does not match the
+    acceptance policy under evaluation;
+  - Mission identity is not equal across the input profile, the referenced Assessment, the referenced Corpus
+    Readiness Result, the historical bound Projection, and the CurrentProjectionApplicabilityReference;
+  - the Governance Evaluation Input Profile is undeclared, unknown, or ambiguous.
+
+No new GovernanceDecision value, Escalation category, or Policy Evaluation mechanism is introduced.
+
+### Amendment B6 — External Authoritative Applicability and Recording (binding)
+RFC-0011 SHALL record the applicable terminal GovernanceDecision together with its exact bound
+CorpusReadinessAcceptanceEvaluationInput, including the complete `CurrentProjectionApplicabilityReference` and
+every element required by B3 rule 10. Authoritative downstream applicability is determined externally by
+consumers resolving that GovernanceDecision.
+
+RFC-0011 SHALL NOT mutate the RFC-0013 Corpus Readiness Result; SHALL NOT rebase, refresh, or substitute its
+historical bound Projection; and SHALL NOT overwrite the historical bound Projection with the resolved current
+Projection, or the reverse. The two references remain distinct and independently recorded. RFC-0013 SHALL
+store no authoritativeStatus.
+
+## RFC Coverage
+- RFC-0011 v1.2 (Amended by this ratification, specification text only)
+- RFC-0006 v1.2 (Referenced; prerequisite; Assessment identity, terminal Assessment Outcome, and recorded
+  Projection basis consumed read-only)
+- RFC-0002 v1.1 (Referenced; transitive prerequisite; the bound Evidence basis resolves to Exact Content
+  Evidence semantics owned by RFC-0002 v1.1; consumed read-only)
+- RFC-0003 (Referenced; Projection identity, Projection Version, Projection Scope, and Projection Freshness
+  consumed read-only; **NOT amended by this ratification**)
+- RFC-0001 (Referenced; Mission identity; unmodified)
+- RFC-0005 (Referenced; existing dependency for Governance Domain Event publication; unmodified)
+- RFC-0013 (Forward-referenced vocabulary only — Corpus Readiness Result, Corpus Review Basis)
+
+## Ownership Model (ratified)
+RFC-0011 remains sole owner of Repository Policy, Policy Evaluation, Governance Evaluation Input Profiles,
+GovernanceDecision, and Escalation. This amendment adds the closed profile model, the
+CorpusReadinessAcceptanceEvaluationInput, the CurrentProjectionApplicabilityReference input and recording
+contract, separated fail-closed classifications, the current-applicability requirement, and a bound
+acceptance-evaluation case within RFC-0011's own domain.
+
+Selection of the currently applicable Projection is owned by the separately ratified Corpus Readiness
+Acceptance Repository Policy — a governed artifact under RFC-0011's existing Repository Policy process — not
+by RFC-0011's normative text and not by RFC-0013. RFC-0011 defines only what SHALL be supplied and recorded.
+Projection, Projection Version, Projection Scope, and Projection Freshness remain owned by RFC-0003 and are
+consumed, not redefined; RFC-0003 is not amended. This amendment grants RFC-0013 no Governance authority,
+mutates no RFC-0013 Result, rebases no Projection, and redefines no other RFC's concept.
+
+## Authorized Scope
+Authorizes the RFC-0011 v1.2 amendment text/diff. Does NOT authorize implementation, any Sprint, any Initial
+Capability Sequence, the Corpus Readiness Acceptance Repository Policy's authoring or ratification (including
+its selector), any RFC-0003 amendment, RFC-0013 changes, or any runtime evaluation under the Corpus-readiness
+profile before the Effectiveness Model's preconditions hold.
+
+## Deferred Concepts
+Corpus Readiness Acceptance Repository Policy authoring/ratification, including the deterministic
+current-Projection selector; all RFC-0011 implementation; RFC-0013 changes; any runtime Corpus-readiness
+acceptance evaluation.
+
+## Related Sprint(s) / Related Review(s)
+None.
+
+## Full Ratification Text
+> RFC-0011 is amended to v1.2 to introduce a closed Governance Evaluation Input Profile model comprising
+> exactly two profiles — ReviewGovernanceEvaluationInput, whose semantics, required inputs, failure handling,
+> and wire contract are exactly those of v1.1 and are not modified, and
+> CorpusReadinessAcceptanceEvaluationInput, an exact, immutable, read-only profile carrying the Mission,
+> Corpus Review Basis fingerprint, RFC-0006 Assessment identity and terminal Outcome, RFC-0013 Corpus Readiness
+> Result identity and classification, the historical bound RFC-0003 Projection identity and version equal
+> across the Assessment, the Basis, and the Result, an immutable CurrentProjectionApplicabilityReference, and
+> the Corpus Readiness Acceptance Repository Policy identity and version. The
+> CurrentProjectionApplicabilityReference carries exactly the Mission, the exact Projection Scope reference
+> used for selection, the resolved current Projection identity and version when resolved, the selector policy
+> and selector criterion identity and version, a resolution result of Resolved, TemporarilyAbsent,
+> Unresolvable, or Ambiguous, the RFC-0003 freshness determination for the resolved Projection under the
+> evaluation's candidate corpus when resolved, and the immutable candidate-corpus fingerprint against which
+> freshness and current applicability were evaluated — making current-applicability comparison possible from
+> the closed profile alone, since a Policy Criterion may evaluate only inputs its declared profile supplies.
+> Selection itself is governed by the separately ratified Corpus Readiness Acceptance Repository Policy, which
+> SHALL define a deterministic selector over exactly one Mission and one Projection Scope resolving zero or one
+> current Projection and never silently choosing among candidates; the selected current Projection and the
+> historical bound Projection remain distinct recorded references, neither substituting for nor mutating the
+> other. Approved is eligible only when selection resolves exactly one current Projection that is fresh under
+> RFC-0003, whose Mission and Projection Scope match, and whose identity and version equal the historical
+> Result's bound Projection, with every other acceptance condition satisfied; a TemporarilyAbsent selection
+> expected through normal progression, a resolved fresh current Projection differing from the bound Projection,
+> and a bound Projection stale relative to the resolved current Projection or candidate corpus each produce
+> Deferred identifying that a fresh Basis and new Corpus Review are required; an Unresolvable or Ambiguous
+> selection, a Mission or scope conflict, duplicate candidates, unsupported selector semantics, an
+> identity/version inconsistency, or an absent, incomplete, or internally inconsistent
+> CurrentProjectionApplicabilityReference each produce Escalation Required; and no condition may produce
+> Approved through defaulting, recency guessing, maximum-version guessing, or implicit repository lookup. Every
+> such GovernanceDecision SHALL record the historical bound Projection identity and version, the resolved
+> current Projection identity and version when present, the selector policy and criterion identity and version,
+> the candidate-corpus fingerprint, and the resolution and freshness results. Dependencies, Design Goals and
+> determinism, Repository Policy and Policy Criterion evaluability, Policy Evaluation, Mission-Scoped
+> Governance Evaluation, the Governance Decision definition and per-value required inputs, Failure and Conflict
+> Handling, Explainability, Conformance, and Amendment History are each reconciled to the profile model, with
+> every Review-profile rule preserved exactly. RFC-0011 consumes the exact RFC-0013 Result and never recomputes
+> its classification, never mutates it, and never rebases, refreshes, substitutes, or overwrites either
+> Projection reference; authoritative downstream applicability is conferred only by a terminal Approved
+> GovernanceDecision from the exact ratified acceptance policy version and is determined externally by
+> consumers resolving that Decision, with RFC-0013 storing no authoritativeStatus. Projection, Projection
+> Version, Projection Scope, and Projection Freshness remain owned by RFC-0003, which is not amended. No new
+> GovernanceDecision value or evaluation mechanism is introduced. Specification text only; this amendment
+> defines the closed input and recording contract the acceptance policy requires, and does not author that
+> policy, implement selection, or amend RFC-0003. The Corpus-readiness profile remains unusable until RFC-0013
+> v0.6 is authorized, the required Assessment exists, the acceptance policy including its selector is
+> separately ratified, and implementation is separately authorized.
+
+## Current Status
+Active
+
+---
+
+# NEXUS-RAT-2026-07-18-008
+
+## Ratification Identifier
+NEXUS-RAT-2026-07-18-008
+
+## Date
+2026-07-18
+
+## Subject
+Authorizes RFC-0013 Draft v0.6 as the corrected successor to the unratified v0.5 intermediate Draft. Ownership
+is relocated to RFC-0002 v1.1 (Evidence, represented-content and exact-content semantics), RFC-0003 (Projection,
+Projection Freshness, and Active Evidence Set), RFC-0006 v1.2 (assessment, criteria, applicability, coverage,
+Findings, Finding targets, attribution), and RFC-0011 v1.2 (acceptance, including current-Projection
+applicability). RFC-0013 retains only Corpus identity, Scope, Purpose, Contract declaration (including a
+mandatory Assessment Criteria Set reference), a Corpus Review Basis binding the exact RFC-0003 Projection,
+fingerprints, Evidence-anchored artifact binding, a typed CorpusFindingReference, an exact immutable
+sixteen-field Corpus Readiness Result schema, a snapshot-preserving Projection lifecycle, and a pure
+deterministic readiness classification. Preserves Milestone 12's binding term "structured Corpus Findings"
+through an ownership-preserving contextual designation, without recreating RFC-0006 Finding ownership.
+Drafting only. Activates the normative cross-RFC vocabulary relationship for architectural drafting; authorizes
+no runtime use and no implementation; ratifies no RFC as Final; activates no Sprint 78; establishes no
+Milestone 12 Initial Capability Sequence. Depends on NEXUS-RAT-2026-07-18-005, -006, and -007.
+
+## Originating Request
+Milestone 12's binding Objective (NEXUS-RAT-2026-07-18-004) requires the capability to produce "structured
+Corpus Findings and an authoritative Corpus Readiness Result." RFC-0013 v0.4 and v0.5 each failed a
+pre-ratification review: both re-created RFC-0006 Review and RFC-0011 Governance inside RFC-0013 under new
+names, and a subsequent corrected draft retired Corpus Finding entirely, leaving the Objective's "structured
+Corpus Findings" term unsatisfied. Further review established that the Corpus Readiness Result's contents were
+specified only as an incomplete list with a "sufficient binding" clause and a "set or fingerprint" alternative,
+neither of which lets a governance consumer establish the complete Finding set deterministically; that the
+Corpus Review Basis omitted the exact RFC-0003 Projection that establishes Active Evidence applicability; and
+that binding an immutable Projection into an immutable Basis left undefined what happens when that Projection
+later goes stale during a long-running Corpus Review. This record preserves both Objective terms without a
+second Finding model, specifies an exact Result schema, binds the exact Projection into the Basis, and adopts a
+snapshot-preserving Projection lifecycle whose downstream current-applicability determination is owned by
+RFC-0011 v1.2. RFC-0013 v0.5 was never ratified and is an intermediate Draft. The previously proposed
+identifiers NEXUS-RAT-2026-07-18-005 (RFC-0006), -006 (RFC-0011), and -007 (RFC-0013) had no authority and were
+never appended; identifiers were reassigned in final dependency order.
+
+## Governance Decision
+APPROVED — RFC-0013 DRAFT v0.6, DRAFTING ONLY.
+
+### Effectiveness Model (binding)
+  - Ratification dependency order: depends on -005, -006, and -007; ratifiable last.
+  - Forward-referenced vocabulary: -006 and -007 forward-reference CorpusReviewBasis and Corpus Readiness
+    Result; this record authorizes RFC-0013's corrected definitions of them.
+  - Architectural effectiveness: activates the normative cross-RFC vocabulary relationship
+    (RFC-0013 ↔ RFC-0002 v1.1 / RFC-0003 / RFC-0006 v1.2 / RFC-0011 v1.2) for architectural drafting only;
+    -006's and -007's dormant extensions become architecturally coherent as specification.
+  - Implementation/runtime activation: none. No runtime use and no implementation of any RFC is authorized by
+    this record.
+
+### Draft Version Lineage (binding)
+RFC-0013 v0.5 is recognized as an unratified intermediate Draft, superseded before Sprint Owner sign-off. Its
+corrected successor is authorized as Draft v0.6. No version beyond v0.6 and no Final status is authorized by
+this record.
+
+### C1 — Ownership Relocation (binding)
+RFC-0013 SHALL retire CorpusReviewCriterion, the Corpus Finding type and its taxonomy (severity, category,
+resolution authority), Coverage and Coverage Disposition, Evaluator Identity, CompletionAuthorizationReference,
+and any stored authoritativeStatus. Assessment, criteria, applicability, coverage, Findings, Finding
+affected-targets, and attribution are owned by RFC-0006 v1.2; Evidence, represented content, and exact-content
+semantics by RFC-0002 v1.1; Projection, Projection Freshness, and Active Evidence Set by RFC-0003; policy
+evaluation, acceptance, and current-Projection applicability determination by RFC-0011 v1.2.
+
+### C2 — Corpus Finding as a Contextual Designation (binding)
+A Corpus Finding is the contextual designation of an RFC-0006 Assessment Finding produced by an Assessment
+whose AssessmentSubjectReference.kind is CorpusReviewBasis and whose Basis fingerprint matches the owning
+Corpus Review exactly.
+
+This designation is contextual and ownership-preserving only. RFC-0013 SHALL NOT define a second Finding
+model. RFC-0006 remains the exclusive owner of Finding identity, Finding structure, severity, intent/category,
+Evidence references, affected targets (RFC-0006 v1.2 A9: SubjectElementTarget and AssessmentSubjectTarget),
+criterion references, attribution, and lifecycle. RFC-0013 SHALL NOT duplicate, mirror, or redefine the Finding
+target structure.
+
+RFC-0013 owns only:
+  - CorpusFindingReference — an immutable, typed reference identifying the exact RFC-0006 Assessment identity
+    and the exact RFC-0006 Assessment Finding identity, and nothing further;
+  - the binding rule that every referenced Finding belongs to the exact bound Assessment and the exact
+    CorpusReviewBasis;
+  - inclusion of the complete, sorted set of CorpusFindingReference values, together with its deterministic
+    fingerprint, in the Corpus Readiness Result (C7).
+
+RFC-0013 SHALL fail closed on: a missing Finding reference; a duplicate Finding reference; an unresolved
+Finding reference; a Finding from another Assessment; a Finding from another Mission; a Finding from another
+Corpus Review Basis; an Evidence mismatch; a criterion mismatch; or a Finding reference set incomplete relative
+to the exact terminal Assessment.
+
+Milestone-objective conformance: NEXUS-RAT-2026-07-18-004's binding term "structured Corpus Findings" is
+satisfied by RFC-0006 Assessment Findings under this designation — structured, Evidence-referenced,
+criterion-linked, target-scoped (element-scoped or subject-wide per RFC-0006 v1.2 A9), and attributable by
+RFC-0006's own contract — enumerated completely and verifiably in the Corpus Readiness Result. No RFC-0006
+Finding ownership is transferred to RFC-0013.
+
+### C3 — Exact Evidence-Anchored Artifact Binding (binding)
+Each Corpus Artifact Reference SHALL retain artifactId, Canonical Artifact Kind Key, contentDigest, EvidenceId,
+and EvidenceVersion, and SHALL additionally record the RFC-0002 v1.1 representedContentReference of the
+anchored Evidence.
+
+The representedContentReference, content-representation classification, contentDigestAlgorithm, contentDigest,
+canonical byte representation, and derivation-source semantics are owned by RFC-0002 v1.1 and consumed
+READ-ONLY. RFC-0013 SHALL NOT define, recompute, or substitute for them.
+
+RFC-0013 SHALL require that: its recorded contentDigest equal the RFC-0002 v1.1 contentDigest of the anchored
+Exact Content Evidence; and the anchored Evidence's representedContentReference identify the exact Corpus
+artifact and revision the Corpus Artifact Reference declares.
+
+RFC-0013 SHALL fail closed on: digest or algorithm mismatch; a representedContentReference that is missing,
+unresolvable, ambiguous, or identifying different content than declared; missing or ambiguous SnapshotContent
+Evidence; an invalid, absent, cyclic, ambiguous, or unresolved derivation source set for DerivedContent
+Evidence; Evidence that is no longer resolvable; or Evidence whose canonical byte representation cannot be
+established under its declared Evidence Type.
+
+### C4 — Active Evidence Applicability via RFC-0003 (binding)
+RFC-0013 SHALL NOT determine which Evidence version is active or authoritative. Evidence applicability SHALL
+be established by consuming, read-only, the exact RFC-0003 Projection bound into the Corpus Review Basis (C5):
+its exact Projection identity and Projection Version; its Active Evidence Set (Projection Scope); Mission and
+scope compatibility; and EvidenceId + EvidenceVersion membership in that Active Evidence Set. The Projection
+consumed here SHALL be exactly the Projection identity and version bound into the Basis; no other Projection
+SHALL be consulted, and no substitution, refresh, or rebasing SHALL occur (C10).
+
+RFC-0013 SHALL fail closed on a missing, unresolvable, non-reproducible, ambiguous, conflicting, or
+Mission-mismatched Projection; on a Projection identity or version unequal to the Basis-bound Projection; on a
+Projection Scope unequal to the Basis-bound scope; or on non-membership of any referenced Evidence.
+
+Staleness of the bound Projection under RFC-0003's freshness rules SHALL NOT, by itself, be a fail-closed
+condition after the Corpus Review has been opened; see C10.
+
+### C5 — Corpus Review Basis: Criteria Set and Projection Binding (binding)
+Every Corpus Review Contract SHALL reference exactly one immutable, non-empty RFC-0006 Assessment Criteria Set
+by identity, version, and deterministic fingerprint. RFC-0013 references this Criteria Set but SHALL NOT own or
+derive its criteria, its applicability declarations, or its Finding-target semantics.
+
+Every Corpus Review Basis SHALL additionally bind the exact RFC-0003 Projection identity and Projection Version
+that establishes Active Evidence applicability for the Corpus Review. That Projection SHALL be fresh under
+RFC-0003's freshness rules at the moment the Basis is constructed and the Corpus Review is opened (C10.1);
+construction SHALL fail closed if it is not.
+
+The Corpus Review Basis Fingerprint SHALL bind, exactly, these nine components:
+  1. Mission;
+  2. Purpose;
+  3. Scope fingerprint;
+  4. Contract authority-reference fingerprint;
+  5. Assessment Criteria Set identity;
+  6. Assessment Criteria Set version;
+  7. Assessment Criteria Set fingerprint;
+  8. RFC-0003 Projection identity;
+  9. RFC-0003 Projection Version.
+
+Once constructed, these nine components are immutable. Because the Human Completion Attestation attests to the
+Basis fingerprint (C8), it thereby attests to the exact Projection as well as to Mission, Purpose, Scope,
+Contract authorities, and Criteria Set.
+
+Construction SHALL fail closed when the referenced Assessment Criteria Set is missing, empty, unresolved,
+stale, ambiguous, or fingerprint-mismatched; or when the referenced RFC-0003 Projection is missing,
+unresolvable, non-reproducible, ambiguous, not fresh under RFC-0003's freshness rules, cross-Mission,
+identity-mismatched, or version-mismatched.
+
+### C6 — Assessment Binding (binding)
+A Corpus Readiness Result SHALL be computed only after RFC-0013 verifies that a referenced RFC-0006 Assessment
+is (a) terminal, and (b) bound to this exact Corpus Review Basis — including equality of Assessment Criteria
+Set identity, version, and fingerprint, and equality of the RFC-0003 Projection identity and Projection Version
+recorded on that Assessment (RFC-0006 v1.2 A8) with the Projection bound into the Basis (C5). Verification
+SHALL compare against the exact Basis-bound Projection and SHALL NOT accept an Assessment recorded against any
+other Projection version, fresher or otherwise. RFC-0013 SHALL NOT own, compute, or recompute Assessment
+Coverage, Assessment Findings, Finding targets, or the Assessment Outcome.
+
+### C7 — Corpus Readiness Result Schema and Pure Outcome Mapping (binding)
+
+**Classification derivation.** The readiness classification SHALL be derived only through the following pure
+four-way mapping over the terminal RFC-0006 Assessment Outcome, and SHALL NEVER be independently supplied,
+defaulted, or overridden by any actor:
+  - Accepted → Ready;
+  - Accepted With Observations → ReadyWithObservations;
+  - Action Required → NotReady;
+  - Rejected → NotReady.
+RFC-0013 computes no EscalationRequired and exercises no independent judgment.
+
+**Schema.** A Corpus Readiness Result is an immutable record containing exactly the following sixteen
+individually named, directly stored fields:
+   1. `corpusReadinessResultId` — the Result's own identity.
+   2. `corpusReviewId` — the owning Corpus Review identity.
+   3. `missionId` — the Mission identity.
+   4. `corpusReviewBasisFingerprint` — the exact Basis fingerprint (C5).
+   5. `assessmentId` — the exact RFC-0006 Assessment identity.
+   6. `assessmentOutcome` — the terminal RFC-0006 Assessment Outcome.
+   7. `readinessClassification` — one of `Ready | ReadyWithObservations | NotReady`, derived only per the pure
+      mapping above.
+   8. `assessmentCriteriaSetIdentity` — the exact RFC-0006 Assessment Criteria Set identity.
+   9. `assessmentCriteriaSetVersion` — the exact Assessment Criteria Set version.
+  10. `assessmentCriteriaSetFingerprint` — the exact Assessment Criteria Set fingerprint.
+  11. `corpusFindingReferences` — the complete set of CorpusFindingReference values, sorted ascending by
+      (assessmentId, assessmentFindingId), duplicate-free. Stored in full; the set SHALL NOT be omitted in
+      favour of its fingerprint.
+  12. `corpusFindingReferenceSetFingerprint` — the deterministic fingerprint of field 11, computed via
+      RFC-0013's Canonical Fingerprint Protocol over the sorted, length-framed
+      (assessmentId, assessmentFindingId) tuples. Stored in addition to field 11, as an integrity check.
+  13. `projectionIdentity` — the exact RFC-0003 Projection identity bound into the Basis.
+  14. `projectionVersion` — the exact RFC-0003 Projection Version bound into the Basis.
+  15. `humanCompletionAttestationId` — the identity of the Human Completion Attestation that closed the Corpus
+      Review's structural lifecycle (C8).
+  16. `completionTimestamp` — the moment the Corpus Review reached Completed.
+
+No field is resolved indirectly. Every field above is directly stored on the Result, so that a governance
+consumer can establish the complete Finding set and the full computation basis without traversing another
+aggregate.
+
+**Historical validity.** A Corpus Readiness Result is a historically valid evaluation of exactly the immutable
+Basis identified by field 4, computed against exactly the Projection identified by fields 13 and 14. It records
+no assertion of current applicability, and RFC-0013 SHALL NOT represent it as current. Current applicability is
+determined externally by RFC-0011 v1.2 through its CurrentProjectionApplicabilityReference and the separately
+ratified Corpus Readiness Acceptance Repository Policy's deterministic selector (C9, C10.5–C10.8).
+
+**Projection equality (five-way, binding).** Fields 13 and 14 SHALL be exactly equal to all of: the Projection
+bound into the Corpus Review Basis (C5 components 8 and 9); the Projection consumed for Active Evidence
+applicability (C4); the Projection recorded on the referenced RFC-0006 Assessment (RFC-0006 v1.2 A8); and the
+**historical bound Projection** carried in RFC-0011's CorpusReadinessAcceptanceEvaluationInput (RFC-0011 v1.2
+B2). Any inequality among these five SHALL fail closed. The resolved current Projection carried in RFC-0011's
+CurrentProjectionApplicabilityReference (RFC-0011 v1.2 B2.1) is a distinct reference and is NOT part of this
+equality; RFC-0013 neither stores nor computes it.
+
+**Equality checks required by RFC-0011 acceptance.** When a Corpus Readiness Result is supplied within an
+RFC-0011 v1.2 CorpusReadinessAcceptanceEvaluationInput, the following SHALL hold exactly, and any inequality
+SHALL fail closed under RFC-0011's separated Failure and Conflict Handling: the input's Mission identity equals
+field 3 and the referenced Assessment's Mission identity; the input's Corpus Review Basis fingerprint equals
+field 4; the input's RFC-0006 Assessment identity equals field 5; the input's terminal Assessment Outcome
+equals field 6; the input's Corpus Readiness Result identity equals field 1; the input's Corpus Readiness
+classification equals field 7; and the input's historical bound Projection identity and version equal fields 13
+and 14 respectively.
+
+**Fail-closed construction.** Construction of a Corpus Readiness Result SHALL fail closed on: any missing
+field; a `readinessClassification` that does not equal the pure mapping of field 6; a
+`corpusFindingReferenceSetFingerprint` that does not equal the recomputed fingerprint of field 11; a duplicate
+or unresolved entry in field 11; a field-11 set incomplete relative to the exact terminal Assessment's Findings;
+any CorpusFindingReference whose Assessment identity does not equal field 5; a Criteria Set triple (fields 8–10)
+not equal to the Basis-bound triple; a Projection identity or version (fields 13–14) failing the five-way
+equality above; or a missing or unresolvable Human Completion Attestation.
+
+### C8 — Narrow Human Completion Attestation (binding)
+Human-only. Human Completion Attestation closes RFC-0013's structural lifecycle only. It SHALL attest to the
+exact Corpus Review Basis fingerprint (C5), thereby attesting to the exact Mission, Purpose, Scope, Contract
+authorities, Assessment Criteria Set, and RFC-0003 Projection. It SHALL require an exact terminal RFC-0006
+Assessment for the same Corpus Review Basis, and it permits RFC-0013 to compute its readiness classification.
+
+An Attestation MAY be recorded after the bound Projection has become stale, provided the Snapshot-Preserving
+Completion conditions of C10.4 hold. Staleness of the bound Projection SHALL NOT, by itself, prevent
+Attestation or completion.
+
+Human Completion Attestation SHALL NOT: prove coverage independently; accept Evidence; approve or override the
+RFC-0006 Assessment Outcome; confer authoritative status; assert current applicability; or replace RFC-0011
+Governance acceptance.
+
+### C9 — No Stored Authoritative Status (binding)
+RFC-0013 SHALL store and mutate no authoritativeStatus. Authoritative downstream applicability is external,
+established by an applicable terminal Approved GovernanceDecision recorded under RFC-0011 v1.2 — which
+requires, among other conditions, that the separately ratified Corpus Readiness Acceptance Repository Policy's
+deterministic selector resolve exactly one fresh current Projection equal to this Result's bound Projection —
+and resolved by consumers. RFC-0011 SHALL NOT mutate the RFC-0013 Corpus Readiness Result.
+
+### C10 — Projection Snapshot Lifecycle (binding)
+RFC-0013 SHALL adopt a snapshot-preserving Projection lifecycle. The following ten rules are binding.
+
+  1. **Freshness at construction.** The RFC-0003 Projection SHALL be fresh under RFC-0003's freshness rules
+     when the Corpus Review Basis is constructed and the Corpus Review is opened.
+  2. **Immutable binding.** The exact Projection identity and Projection Version are thereafter immutable
+     components of the Corpus Review Basis and its fingerprint (C5 components 8 and 9).
+  3. **No implicit invalidation.** A later Projection version, or the later staleness of the bound Projection,
+     SHALL NOT mutate, rebase, invalidate, or silently replace the existing Corpus Review Basis.
+  4. **Snapshot-preserving completion.** An already-open Corpus Review MAY complete against its exact bound
+     Projection after that Projection becomes stale, provided ALL of:
+       - the exact bound Projection version remains uniquely resolvable and reproducible;
+       - its Mission and Projection Scope remain identical to the values bound into the Basis;
+       - every referenced EvidenceId and EvidenceVersion remains resolvable;
+       - the RFC-0006 Assessment records exactly that same Projection identity and version;
+       - no identity, version, Mission, scope, Evidence-membership, or fingerprint mismatch exists.
+  5. **Historical validity only.** Completion under C10.4 produces a historically valid Corpus Readiness Result
+     for exactly that immutable Basis. It does not imply, assert, or establish current applicability.
+  6. **No stale Approved.** RFC-0011 SHALL NOT produce an Approved GovernanceDecision conferring authoritative
+     downstream applicability when the Result's bound Projection is stale relative to the current candidate
+     corpus or the currently applicable Projection, as determined through RFC-0011 v1.2's
+     CurrentProjectionApplicabilityReference and the acceptance policy's deterministic selector (RFC-0011 v1.2
+     B2.1, B3 rules 4 and 7).
+  7. **Stale-but-resolvable at acceptance.** A stale-but-resolvable historical Projection at RFC-0011
+     acceptance evaluation SHALL produce Deferred, identifying that a fresh Corpus Review Basis and a new
+     Corpus Review are required for current applicability (RFC-0011 v1.2 B3 rules 6 and 7, B5).
+  8. **Ambiguity is escalation, not deferral.** A missing, unresolvable, ambiguous, conflicting, cross-Mission,
+     identity-mismatched, version-mismatched, or non-reproducible Projection — including an `Unresolvable` or
+     `Ambiguous` current-Projection selection result — SHALL produce Escalation Required, not Deferred
+     (RFC-0011 v1.2 B3 rule 8, B5).
+  9. **New Projection version requires a new Corpus Review.** To obtain readiness for a newer Projection
+     version, the system SHALL create a new Corpus Review with: a new Corpus Review identity; a new immutable
+     Basis; a Basis fingerprint binding the new Projection identity and version; a new RFC-0006 Assessment; a
+     new Human Completion Attestation; and a new Corpus Readiness Result.
+ 10. **No rebasing mechanism.** RFC-0013 SHALL define no rebasing, refresh-in-place, Projection substitution,
+     reopening, or mutation mechanism for an existing Corpus Review.
+
+In summary: a new Projection version requires a new Corpus Review for current or authoritative downstream
+applicability, but it does not prevent an existing open review from completing as a historical exact-snapshot
+evaluation.
+
+## RFC Coverage
+- RFC-0013 v0.6 (Draft authorized by this ratification; NOT ratified Final)
+- RFC-0002 v1.1 (Referenced; prerequisite; Evidence, representedContentReference, and exact-content semantics
+  consumed read-only)
+- RFC-0006 v1.2 (Referenced; prerequisite; Assessment, criteria, applicability, coverage, Findings, Finding
+  targets, and recorded Projection basis consumed read-only)
+- RFC-0011 v1.2 (Referenced; prerequisite; acceptance and current-Projection applicability consumed read-only)
+- RFC-0003 (Referenced; Projection identity, Projection Version, Projection Scope, Projection Freshness, and
+  Active Evidence Set consumed read-only; unmodified)
+- RFC-0001 (Referenced; Mission identity consumed read-only; unmodified)
+- RFC-0004, RFC-0008 (Referenced; attribution/invocation dependencies only; unmodified)
+
+## Ownership Model (ratified)
+RFC-0013 owns only: Corpus Review identity, Corpus Review Scope, Corpus Review Purpose, Corpus Review Contract
+declaration (including the mandatory Assessment Criteria Set reference), the Corpus Review Basis and its
+nine-component fingerprint (including the bound RFC-0003 Projection identity and version), the Projection
+Snapshot Lifecycle for its own Corpus Review (C10), the Canonical Fingerprint Protocol, Corpus artifact
+identity and Canonical Artifact Kind Key, Evidence-anchored artifact binding (consuming RFC-0002 v1.1
+read-only), CorpusFindingReference and its deterministic set fingerprint, the sixteen-field Corpus Readiness
+Result schema (C7), Human Completion Attestation as structural lifecycle closure, and the pure deterministic
+Corpus Readiness classification. Projection, Projection Version, Projection Scope, and Projection Freshness
+remain owned by RFC-0003 and are consumed, not redefined; current-Projection selection and current-applicability
+determination are owned by RFC-0011 v1.2 and its separately ratified acceptance policy, not by RFC-0013. C10
+governs only how RFC-0013's own aggregate binds and preserves a Projection reference. RFC-0013 redefines no
+concept owned by RFC-0001, RFC-0002, RFC-0003, RFC-0004, RFC-0006, RFC-0008, or RFC-0011, and duplicates no
+RFC-0006 Finding target structure.
+
+## Authorized Scope
+Authorizes RFC-0013 v0.6 drafting exactly as specified by C1 through C10 and the change specification below.
+Does NOT authorize: RFC-0013 Final ratification; the Corpus Readiness Acceptance Repository Policy or its
+selector; any implementation of any RFC; any runtime use of the cross-RFC vocabulary relationship; Sprint 78 or
+any Milestone 12 Sprint; or any Milestone 12 Initial Capability Sequence.
+
+## Deferred Concepts
+All RFC-0013 implementation; the Corpus Readiness Acceptance Repository Policy and its deterministic selector;
+every Milestone 12 Sprint; Final RFC-0013 status; runtime use of the cross-RFC vocabulary relationship; any
+RFC-0013 Domain Event publication; AI-generated corpus evaluation; Adapter or provider invocation; workflow
+orchestration; any Corpus Review rebasing, refresh, or reopening mechanism.
+
+## Related Sprint(s) / Related Review(s)
+None. No Sprint exists within Milestone 12. No Review has been performed against RFC-0013 v0.6.
+
+## Full Ratification Text
+> RFC-0013 v0.5 is an unratified intermediate Draft; its corrected successor is authorized as Draft v0.6,
+> owning only Corpus identity, Scope, Purpose, Contract declaration (referencing exactly one mandatory,
+> non-empty RFC-0006 Assessment Criteria Set by identity, version, and fingerprint), a Corpus Review Basis
+> whose nine-component fingerprint binds Mission, Purpose, Scope fingerprint, Contract authority-reference
+> fingerprint, the Criteria Set identity, version, and fingerprint, and the exact RFC-0003 Projection identity
+> and Projection Version — that Projection being required to be fresh under RFC-0003's freshness rules at Basis
+> construction and immutable thereafter — Evidence-anchored artifact binding consuming RFC-0002 v1.1
+> representedContentReference and exact-content semantics read-only with mandatory digest and
+> represented-content equality, Active Evidence applicability consumed read-only from exactly the Basis-bound
+> RFC-0003 Projection with no substitution or refresh, a typed CorpusFindingReference carrying only the exact
+> Assessment and Finding identities under which a Corpus Finding is the contextual designation of an RFC-0006
+> Assessment Finding from the exact bound Assessment and Basis without duplicating RFC-0006's Finding target
+> structure, an exact immutable Corpus Readiness Result schema of sixteen individually named, directly stored
+> fields with the classification derived only through the pure four-way Assessment-Outcome mapping, the complete
+> Finding set always stored rather than replaced by its fingerprint, five-way equality of the historical bound
+> Projection across the Basis, Active Evidence applicability, the RFC-0006 Assessment record, the Result, and
+> RFC-0011's acceptance input — the resolved current Projection in RFC-0011's
+> CurrentProjectionApplicabilityReference being a distinct reference RFC-0013 neither stores nor computes — and
+> comprehensive fail-closed construction, and a snapshot-preserving Projection lifecycle under which a later
+> Projection version or later staleness never mutates, rebases, invalidates, or silently replaces an existing
+> Basis, an already-open Corpus Review may complete against its exact bound Projection after that Projection
+> becomes stale provided the version remains uniquely resolvable and reproducible with identical Mission and
+> Projection Scope, all referenced Evidence remains resolvable, the Assessment records exactly that Projection,
+> and no mismatch exists — such completion producing a historically valid Result for that immutable Basis
+> without implying current applicability — while RFC-0011 never produces Approved for a stale bound Projection,
+> a stale-but-resolvable Projection or a resolved fresh current Projection differing from the bound Projection
+> at acceptance produces Deferred identifying that a fresh Basis and new Corpus Review are required, an
+> Unresolvable or Ambiguous current-Projection selection or any missing, unresolvable, ambiguous, conflicting,
+> cross-Mission, identity-mismatched, version-mismatched, or non-reproducible Projection produces Escalation
+> Required, readiness for a newer Projection version requires an entirely new Corpus Review with new identity,
+> Basis, Assessment, Attestation, and Result, and RFC-0013 defines no rebasing, refresh-in-place, substitution,
+> reopening, or mutation mechanism. Human Completion Attestation attests to the Basis fingerprint and thereby to
+> the exact Projection, may be recorded after staleness under the snapshot-preserving conditions, closes only
+> the structural lifecycle, asserts no current applicability, and confers no authoritative status; no
+> authoritativeStatus is stored. RFC-0006 remains the exclusive owner of Finding structure, severity,
+> intent/category, Evidence references, affected targets, criterion references, attribution, and lifecycle;
+> Milestone 12's binding "structured Corpus Findings" term is thereby preserved without recreating RFC-0006
+> Finding ownership. Projection, Projection Version, Projection Scope, and Projection Freshness remain owned by
+> RFC-0003; current-Projection selection and current-applicability determination are owned by RFC-0011 v1.2 and
+> its separately ratified acceptance policy. This ratification activates the normative cross-RFC vocabulary
+> relationship for architectural drafting only; it authorizes no runtime use and no implementation, ratifies no
+> RFC as Final, activates no Sprint, and establishes no Initial Capability Sequence.
+
+## Current Status
+Active
+
+---

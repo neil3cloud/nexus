@@ -14,14 +14,14 @@ Implemented scope:
 - Validated typed revision integrity, including fail-closed rejection when a Review uses a mismatched revision kind.
 - Validated Activation safety: idempotent repeat Activation, sibling-revision rejection after successful Activation, no executable Mission state or RFC-0001 events on injected mid-Activation failure, activated revision content preservation, and sibling `Governed -> Superseded` behavior.
 - Validated Governance protection: Activation rejects missing, non-terminal, non-Approved, and stale Governance/Planning Correlation states.
-- Preserved Milestone 11 status as active pending independent Reviewer validation.
+- Milestone 11 status subsequently reconciled to Complete, per `NEXUS-REV-2026-07-18-005` (PASS) and `NEXUS-RAT-2026-07-18-004`.
 
 Out of scope and not implemented:
 
 - No Sprint 1-76 production file, service, contract, aggregate, value object, or host/adapter surface was modified.
 - No RFC-0012 Planning-domain Domain Event publication.
 - No AI-generated planning, Adapter/provider selection, workflow orchestration, Corpus Review Mode, or Repository Policy selection/routing capability.
-- No Milestone 11 completion declaration; closure remains contingent on independent Reviewer PASS.
+- Milestone 11 completion was declared by the independent Reviewer cycle (`NEXUS-REV-2026-07-18-005`, PASS, zero findings), not by this Builder submission.
 
 ### RFC Coverage
 
@@ -62,7 +62,7 @@ Deferred Concepts:
 ### Known Limitations
 
 - This Sprint does not exercise durable persistence, distributed transaction, or multi-process behavior.
-- Milestone 11 closure remains pending independent Reviewer validation.
+- Milestone 11 closure was subsequently certified by `NEXUS-REV-2026-07-18-005` (PASS, zero findings) and declared Complete by `NEXUS-RAT-2026-07-18-004`, which also opened Milestone 12 — Corpus Review and Implementation Readiness.
 
 ### Validation Summary
 
@@ -79,7 +79,7 @@ No architectural deviations.
 
 ### Sprint Status
 
-Implemented — Pending Reviewer Validation. Milestone 11 remains 🟡 ACTIVE and SHALL NOT be declared complete until an independent Reviewer PASS is recorded.
+✅ Approved — `NEXUS-REV-2026-07-18-005` (PASS; fully closed, zero findings of any category). Milestone 11 — Autonomous Engineering Planning Readiness is now Complete, declared by `NEXUS-RAT-2026-07-18-004`, which also opened Milestone 12 — Corpus Review and Implementation Readiness. No Sprint is yet activated within Milestone 12.
 
 ---
 

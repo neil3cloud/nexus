@@ -1,4 +1,5 @@
 <!-- MemoPilot managed block: start -->
+
 # MemoPilot Retrieval-First Instructions
 
 Workspace: nexus
@@ -8,17 +9,19 @@ Detected frameworks: none detected
 Use MemoPilot as the primary source of workspace context before answering codebase questions.
 
 Required tool order for codebase questions:
+
 1. Call `memopilot-search` first to assemble bounded workspace context.
 2. Call `memopilot-symbols` when you need exact or partial symbol lookup.
 3. Call `memopilot-memory` when you need project facts, conventions, or prior decisions.
 4. Call `memopilot-profile` when framework, language, or workspace-wide policy is relevant.
 
 Behavioral rules:
+
 - Prefer MemoPilot-retrieved context over broad repository guessing.
 - Do not assume MemoPilot applies patches or owns file mutation in default mode.
 - If MemoPilot context is insufficient, say what is missing instead of inventing details.
-<!-- MemoPilot managed block: end -->
-  <!-- Nexus managed block: start -->
+  <!-- MemoPilot managed block: end -->
+    <!-- Nexus managed block: start -->
 
 # Nexus Reviewer Instructions
 
@@ -386,3 +389,76 @@ Validate the requested vertical slice against the published architecture.
 Nothing more.
 
 <!-- Nexus managed block: end -->
+
+<!-- User-managed response-format instructions: start -->
+
+# Copy-Ready Confirmation Format
+
+When presenting any proposed Ratification, RFC amendment, milestone or Sprint plan,
+implementation plan, implementation scope, corrective governance action, or Builder
+handoff for user confirmation, the response SHALL be provided as copy-ready Markdown.
+
+## Required Format
+
+1. Begin with a short disposition stating whether the proposal is:
+   - ready for confirmation;
+   - ready with identified conditions;
+   - blocked pending a decision; or
+   - not ready.
+2. Provide the complete proposal inside a fenced `markdown` code block so the user can
+   copy it directly into Codex, ChatGPT, another reviewer, or a repository artifact.
+3. The Markdown block SHALL be self-contained. It SHALL include all context needed by a
+   new reviewer without relying on earlier conversation turns, screenshots, or hidden
+   analysis.
+4. When multiple independently governed artifacts are proposed, provide a separately
+   labeled Markdown block for each artifact and state their dependency/application order.
+5. End with one explicit confirmation request identifying exactly what approval would
+   authorize and what would remain deferred.
+
+## Required Proposal Content
+
+Where applicable, the copy-ready Markdown SHALL include:
+
+- proposed identifier, title, date, status, and version;
+- objective and governing authority;
+- RFC coverage and ownership boundaries;
+- exact authorized scope;
+- exact deferred and prohibited scope;
+- dependencies and required ordering;
+- exact proposed normative or planning text;
+- implementation and Sprint activation status;
+- files that would be changed after approval;
+- validation, review, and stop conditions;
+- the precise decision requested from the user.
+
+## Copyability Rules
+
+- Do not replace required text with summaries, ellipses, or statements such as
+  "as described above."
+- Do not provide only a rendered table, screenshot-oriented response, or prose spread
+  across multiple messages when a complete confirmation artifact is requested.
+- Do not omit previously supplied text because it was delivered in an earlier turn. If
+  the user asks again, reprint the complete current proposal in copy-ready form.
+- Do not use ANSI formatting, HTML-only layout, or UI-dependent formatting.
+- Use stable Markdown headings, lists, tables, blockquotes, and code blocks.
+- If the proposal itself contains fenced code blocks, use a longer outer fence so the
+  complete Markdown remains valid and copyable.
+- Clearly label all content as `PROPOSED`, `UNAPPLIED`, or `NOT YET RATIFIED` until the
+  user explicitly authorizes application.
+- Never imply that confirmation, ratification, file mutation, implementation, commit,
+  Sprint creation, or Sprint activation occurred when only a proposal was requested.
+
+## Confirmation Boundary
+
+Before applying a proposed Ratification or implementation-planning change, summarize in
+plain language:
+
+- what the user's approval will change;
+- which files will be modified;
+- whether any Final RFC will be amended;
+- whether implementation or Sprint activation will be authorized; and
+- what remains separately deferred.
+
+Then wait for explicit user confirmation when the proposal requires it.
+
+<!-- User-managed response-format instructions: end -->
