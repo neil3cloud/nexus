@@ -11,15 +11,30 @@ import type { KernelLogger } from '../../src/kernel/common/kernel-logger';
 import { KernelError } from '../../src/kernel/common/kernel-error';
 import { createKernelServices } from '../../src/kernel/common/create-kernel-services';
 import { EvidenceService } from '../../src/kernel/evidence/evidence.service';
+import { AssignmentPolicyService } from '../../src/kernel/execution/assignment-policy.service';
+import { EngineeringRoleProfileService } from '../../src/kernel/execution/engineering-role-profile.service';
+import { EngineeringDecisionCorrelationService } from '../../src/kernel/execution/engineering-decision-correlation.service';
+import { EngineeringSessionService } from '../../src/kernel/execution/engineering-session.service';
+import { EngineeringSessionStateProjectionService } from '../../src/kernel/execution/engineering-session-state-projection.service';
+import { ExecutionSessionService } from '../../src/kernel/execution/execution-session.service';
 import { ExecutionStrategyReferenceError } from '../../src/kernel/execution/execution-strategy.errors';
 import { ExecutionStrategyService } from '../../src/kernel/execution/execution-strategy.service';
 import { ExecutionService } from '../../src/kernel/execution/execution.service';
+import { MissionEngineeringOrchestrationService } from '../../src/kernel/execution/mission-engineering-orchestration.service';
+import { RecoveryRequirementService } from '../../src/kernel/execution/recovery-requirement.service';
 import { RoleService } from '../../src/kernel/execution/role.service';
+import { WorkflowChainService } from '../../src/kernel/execution/workflow-chain.service';
 import { Kernel } from '../../src/kernel/kernel';
+import { GovernanceService } from '../../src/kernel/governance/governance.service';
+import { GovernanceStateProjectionService } from '../../src/kernel/governance/governance-state-projection.service';
+import { RatificationAttributionValidationService } from '../../src/kernel/governance/ratification-attribution-validation';
+import { RepositoryPolicyService } from '../../src/kernel/governance/repository-policy.service';
+import { GovernanceGatedMissionCompletionCoordinator } from '../../src/kernel/mission/governance-gated-mission-completion.coordinator';
 import { KnowledgeService } from '../../src/kernel/knowledge/knowledge.service';
 import { MissionExecutionService } from '../../src/kernel/mission/mission-execution.service';
 import { MissionPlanningService } from '../../src/kernel/mission/mission-planning.service';
 import { MissionService } from '../../src/kernel/mission/mission.service';
+import { PlanningService } from '../../src/kernel/planning/planning.service';
 import { ReviewService } from '../../src/kernel/review/review.service';
 import { ProjectionService } from '../../src/kernel/shared-reality/projection.service';
 
@@ -40,12 +55,27 @@ interface KernelHarness {
   readonly missionService: MissionService;
   readonly planningService: MissionPlanningService;
   readonly missionExecutionService: MissionExecutionService;
+  readonly governanceGatedMissionCompletionCoordinator: GovernanceGatedMissionCompletionCoordinator;
   readonly evidenceService: EvidenceService;
   readonly projectionService: ProjectionService;
   readonly roleService: RoleService;
+  readonly engineeringRoleProfileService: EngineeringRoleProfileService;
+  readonly engineeringSessionService: EngineeringSessionService;
+  readonly engineeringSessionStateProjectionService: EngineeringSessionStateProjectionService;
+  readonly missionEngineeringOrchestrationService: MissionEngineeringOrchestrationService;
+  readonly recoveryRequirementService: RecoveryRequirementService;
+  readonly engineeringDecisionCorrelationService: EngineeringDecisionCorrelationService;
+  readonly executionSessionService: ExecutionSessionService;
+  readonly workflowChainService: WorkflowChainService;
+  readonly assignmentPolicyService: AssignmentPolicyService;
+  readonly repositoryPolicyService: RepositoryPolicyService;
+  readonly governanceService: GovernanceService;
+  readonly governanceStateProjectionService: GovernanceStateProjectionService;
+  readonly ratificationAttributionValidationService: RatificationAttributionValidationService;
   readonly executionStrategyService: ExecutionStrategyService;
   readonly executionService: ExecutionService;
   readonly reviewService: ReviewService;
+  readonly proposedPlanningService: PlanningService;
   readonly knowledgeService: KnowledgeService;
   readonly logger: TestLogger;
 }
@@ -55,12 +85,31 @@ const expectedKernelServiceNames = [
   'MissionService',
   'MissionPlanningService',
   'MissionExecutionService',
+  'GovernanceGatedMissionCompletionCoordinator',
   'EvidenceService',
   'ProjectionService',
   'RoleService',
+  'EngineeringRoleProfileService',
+  'EngineeringSessionService',
+  'EngineeringSessionStateProjectionService',
+  'GovernanceGatedWorkflowAdvancementConsumer',
+  'MissionEngineeringOrchestrationService',
+  'RecoveryRequirementService',
+  'EngineeringDecisionCorrelationService',
+  'RecoveryRequirementGovernanceDecisionConsumer',
+  'ExecutionSessionService',
+  'WorkflowChainService',
+  'AssignmentPolicyService',
+  'RepositoryPolicyService',
+  'GovernanceService',
+  'GovernanceStateProjectionService',
+  'RatificationAttributionValidationService',
   'ExecutionStrategyService',
   'ExecutionService',
   'ReviewService',
+  'PlanningService',
+  'PlanningCorrelationService',
+  'PlanningActivationService',
   'KnowledgeService',
 ] as const;
 
@@ -76,6 +125,22 @@ describe('RFC-0010 Kernel boundary certification', () => {
         status: 'ready',
       })),
     });
+    expect(typeof harness.engineeringSessionService.advanceWorkflowAfterReview).toBe('function');
+    expect(typeof harness.engineeringSessionService.advanceWorkflowAfterGovernanceDecision).toBe(
+      'function',
+    );
+    expect(typeof harness.engineeringSessionService.executeCurrentWorkflowStep).toBe('function');
+    expect(typeof harness.engineeringSessionService.createCheckpoint).toBe('function');
+    expect(typeof harness.engineeringSessionService.recoverFromCheckpoint).toBe('function');
+    expect(typeof harness.engineeringSessionService.enumerateActiveEngineeringSessions).toBe('function');
+    expect(
+      typeof harness.missionEngineeringOrchestrationService.associateEngineeringSessionWithMission,
+    ).toBe('function');
+    expect(typeof harness.missionEngineeringOrchestrationService.recordEngineeringSessionHandoff).toBe(
+      'function',
+    );
+    expect(typeof harness.recoveryRequirementService.resolveRecoveryRequirement).toBe('function');
+    expect(typeof harness.recoveryRequirementService.withdrawRecoveryRequirement).toBe('function');
     expect(harness.logger.errors).toEqual([]);
   });
 
@@ -84,7 +149,39 @@ describe('RFC-0010 Kernel boundary certification', () => {
     const workflow = await completeBoundaryWorkflow(harness, 'success');
 
     const roles = await harness.roleService.enumerateRoles();
-    expect(roles.map((role) => role.id.toString())).toEqual(['builder', 'reviewer']);
+    const profiles = await harness.engineeringRoleProfileService.enumerate();
+
+    expect(roles.map((role) => role.id.toString())).toEqual([
+      'builder',
+      'documentation-reviewer',
+      'reviewer',
+    ]);
+    expect(profiles.map((profile) => profile.roleId.toString())).toEqual([
+      'builder',
+      'documentation-reviewer',
+      'reviewer',
+    ]);
+    expect((await harness.engineeringRoleProfileService.getById('builder')).toSnapshot()).toEqual({
+      roleId: 'builder',
+      workflowPresentationLabel: 'Builder Workflow',
+      completionPresentationLabel: 'Builder workflow',
+      includeAssignedRoleInPresentation: true,
+    });
+    expect(await harness.engineeringSessionService.enumerateEngineeringSessions()).toEqual([]);
+    expect(await harness.executionSessionService.enumerateExecutionSessions()).toEqual([]);
+    expect(await harness.workflowChainService.enumerateWorkflowChains()).toEqual([]);
+    expect(await harness.assignmentPolicyService.enumerateAssignmentPolicies()).toEqual([]);
+    expect(await harness.repositoryPolicyService.enumerateCurrentRepositoryPolicies()).toEqual([]);
+    expect(harness.governanceService.serviceName).toBe('GovernanceService');
+    expect(harness.governanceStateProjectionService.serviceName).toBe(
+      'GovernanceStateProjectionService',
+    );
+    expect(harness.governanceGatedMissionCompletionCoordinator.serviceName).toBe(
+      'GovernanceGatedMissionCompletionCoordinator',
+    );
+    expect(harness.engineeringSessionStateProjectionService.serviceName).toBe(
+      'EngineeringSessionStateProjectionService',
+    );
 
     const assignment = await harness.roleService.assignRole({
       taskId: workflow.firstTaskId,
@@ -115,6 +212,75 @@ describe('RFC-0010 Kernel boundary certification', () => {
     });
 
     expect(harness.executionService.serviceName).toBe('ExecutionService');
+    expect(harness.logger.errors).toEqual([]);
+  });
+
+  it('certifies composed multi-agent orchestration without mutating EngineeringSession state', async () => {
+    const harness = await createHarness();
+
+    await harness.missionService.createMission({
+      id: 'mission-sprint-51-boundary',
+      objective: 'Certify Sprint 51 multi-agent orchestration composition.',
+    });
+    await harness.workflowChainService.createWorkflowChain({
+      id: 'workflow-chain-sprint-51-boundary',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+    const builderSession = await harness.engineeringSessionService.createEngineeringSession({
+      id: 'engineering-session-sprint-51-builder',
+      engineeringRuntimeContextReference: 'runtime-context-sprint-51-builder',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-sprint-51-boundary',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder'],
+      workflowState: 'active',
+    });
+    const reviewerSession = await harness.engineeringSessionService.createEngineeringSession({
+      id: 'engineering-session-sprint-51-reviewer',
+      engineeringRuntimeContextReference: 'runtime-context-sprint-51-reviewer',
+      activeEngineeringWorkflowReference: 'reviewer-workflow',
+      workflowChainId: 'workflow-chain-sprint-51-boundary',
+      currentWorkflowStepId: '1',
+      participatingRoleIds: ['reviewer'],
+      workflowState: 'active',
+    });
+
+    await harness.missionEngineeringOrchestrationService.associateEngineeringSessionWithMission({
+      missionId: 'mission-sprint-51-boundary',
+      engineeringSessionId: builderSession.id,
+    });
+    const group =
+      await harness.missionEngineeringOrchestrationService.associateEngineeringSessionWithMission({
+        missionId: 'mission-sprint-51-boundary',
+        engineeringSessionId: reviewerSession.id,
+      });
+    const handoff =
+      await harness.missionEngineeringOrchestrationService.recordEngineeringSessionHandoff({
+        handoffId: 'handoff-sprint-51-boundary',
+        missionId: 'mission-sprint-51-boundary',
+        sourceEngineeringSessionId: builderSession.id,
+        sourceRoleId: 'builder',
+        targetEngineeringSessionId: reviewerSession.id,
+        targetRoleId: 'reviewer',
+      });
+
+    expect(group.engineeringSessionIds).toEqual([
+      'engineering-session-sprint-51-builder',
+      'engineering-session-sprint-51-reviewer',
+    ]);
+    expect(handoff).toMatchObject({
+      id: 'handoff-sprint-51-boundary',
+      missionId: 'mission-sprint-51-boundary',
+      sourceEngineeringSessionId: builderSession.id,
+      targetEngineeringSessionId: reviewerSession.id,
+      status: 'Recorded',
+    });
+    await expect(
+      harness.engineeringSessionService.getEngineeringSession(builderSession.id),
+    ).resolves.toEqual(builderSession);
+    await expect(
+      harness.engineeringSessionService.getEngineeringSession(reviewerSession.id),
+    ).resolves.toEqual(reviewerSession);
     expect(harness.logger.errors).toEqual([]);
   });
 
@@ -178,22 +344,27 @@ describe('RFC-0010 Kernel boundary certification', () => {
     expect(harness.logger.errors).toEqual([]);
   });
 
-  it('certifies Kernel source dependencies do not cross into Host, UI, infrastructure, or adapter implementations', () => {
-    const kernelRoot = resolve(process.cwd(), 'src', 'kernel');
-    const violations = collectSourceFiles(kernelRoot)
-      .flatMap((filePath) => collectRelativeImports(filePath)
-        .map((specifier) => ({
-          filePath,
-          specifier,
-          resolvedPath: resolve(dirname(filePath), specifier),
-        })))
-      .filter((dependency) => !isWithinDirectory(dependency.resolvedPath, kernelRoot))
-      .map((dependency) =>
-        `${toProjectPath(dependency.filePath)} imports '${dependency.specifier}' -> ${toProjectPath(dependency.resolvedPath)}`,
-      );
+  it(
+    'certifies Kernel source dependencies do not cross into Host, UI, infrastructure, or adapter implementations',
+    () => {
+      const kernelRoot = resolve(process.cwd(), 'src', 'kernel');
+      const violations = collectSourceFiles(kernelRoot)
+        .flatMap((filePath) =>
+          collectRelativeImports(filePath).map((specifier) => ({
+            filePath,
+            specifier,
+            resolvedPath: resolve(dirname(filePath), specifier),
+          })),
+        )
+        .filter((dependency) => !isWithinDirectory(dependency.resolvedPath, kernelRoot))
+        .map((dependency) =>
+          `${toProjectPath(dependency.filePath)} imports '${dependency.specifier}' -> ${toProjectPath(dependency.resolvedPath)}`,
+        );
 
-    expect(violations).toEqual([]);
-  });
+      expect(violations).toEqual([]);
+    },
+    10_000,
+  );
 });
 
 async function createHarness(): Promise<KernelHarness> {
@@ -230,6 +401,12 @@ async function createHarness(): Promise<KernelHarness> {
       'MissionExecutionService',
       (service): service is MissionExecutionService => service instanceof MissionExecutionService,
     ),
+    governanceGatedMissionCompletionCoordinator: requireService(
+      services,
+      'GovernanceGatedMissionCompletionCoordinator',
+      (service): service is GovernanceGatedMissionCompletionCoordinator =>
+        service instanceof GovernanceGatedMissionCompletionCoordinator,
+    ),
     evidenceService: requireService(
       services,
       'EvidenceService',
@@ -245,6 +422,77 @@ async function createHarness(): Promise<KernelHarness> {
       'RoleService',
       (service): service is RoleService => service instanceof RoleService,
     ),
+    engineeringRoleProfileService: requireService(
+      services,
+      'EngineeringRoleProfileService',
+      (service): service is EngineeringRoleProfileService =>
+        service instanceof EngineeringRoleProfileService,
+    ),
+    engineeringSessionService: requireService(
+      services,
+      'EngineeringSessionService',
+      (service): service is EngineeringSessionService => service instanceof EngineeringSessionService,
+    ),
+    engineeringSessionStateProjectionService: requireService(
+      services,
+      'EngineeringSessionStateProjectionService',
+      (service): service is EngineeringSessionStateProjectionService =>
+        service instanceof EngineeringSessionStateProjectionService,
+    ),
+    missionEngineeringOrchestrationService: requireService(
+      services,
+      'MissionEngineeringOrchestrationService',
+      (service): service is MissionEngineeringOrchestrationService =>
+        service instanceof MissionEngineeringOrchestrationService,
+    ),
+    recoveryRequirementService: requireService(
+      services,
+      'RecoveryRequirementService',
+      (service): service is RecoveryRequirementService => service instanceof RecoveryRequirementService,
+    ),
+    engineeringDecisionCorrelationService: requireService(
+      services,
+      'EngineeringDecisionCorrelationService',
+      (service): service is EngineeringDecisionCorrelationService =>
+        service instanceof EngineeringDecisionCorrelationService,
+    ),
+    executionSessionService: requireService(
+      services,
+      'ExecutionSessionService',
+      (service): service is ExecutionSessionService => service instanceof ExecutionSessionService,
+    ),
+    workflowChainService: requireService(
+      services,
+      'WorkflowChainService',
+      (service): service is WorkflowChainService => service instanceof WorkflowChainService,
+    ),
+    assignmentPolicyService: requireService(
+      services,
+      'AssignmentPolicyService',
+      (service): service is AssignmentPolicyService => service instanceof AssignmentPolicyService,
+    ),
+    repositoryPolicyService: requireService(
+      services,
+      'RepositoryPolicyService',
+      (service): service is RepositoryPolicyService => service instanceof RepositoryPolicyService,
+    ),
+    governanceService: requireService(
+      services,
+      'GovernanceService',
+      (service): service is GovernanceService => service instanceof GovernanceService,
+    ),
+    governanceStateProjectionService: requireService(
+      services,
+      'GovernanceStateProjectionService',
+      (service): service is GovernanceStateProjectionService =>
+        service instanceof GovernanceStateProjectionService,
+    ),
+    ratificationAttributionValidationService: requireService(
+      services,
+      'RatificationAttributionValidationService',
+      (service): service is RatificationAttributionValidationService =>
+        service instanceof RatificationAttributionValidationService,
+    ),
     executionStrategyService: requireService(
       services,
       'ExecutionStrategyService',
@@ -259,6 +507,11 @@ async function createHarness(): Promise<KernelHarness> {
       services,
       'ReviewService',
       (service): service is ReviewService => service instanceof ReviewService,
+    ),
+    proposedPlanningService: requireService(
+      services,
+      'PlanningService',
+      (service): service is PlanningService => service instanceof PlanningService,
     ),
     knowledgeService: requireService(
       services,
@@ -320,7 +573,10 @@ async function completeBoundaryWorkflow(
   const review = await harness.reviewService.startReview({
     id: reviewId,
     missionId: workflow.missionId,
-    missionPlanRevision: `revision-${workflow.readyRevisionNumber}`,
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: `revision-${workflow.readyRevisionNumber}`,
+    },
     reviewCriteria: [
       {
         id: 'sprint-18-boundary-certification',
@@ -336,7 +592,7 @@ async function completeBoundaryWorkflow(
   const knowledge = await harness.knowledgeService.captureKnowledge({
     id: knowledgeId,
     missionId: workflow.missionId,
-    missionPlanRevisionId: review.missionPlanRevision,
+    missionPlanRevisionId: review.missionPlanRevision.revisionId,
     summary: 'Sprint 18 certified the composed Kernel boundary.',
     scope: 'Repository',
     supportingEvidenceIds: [evidenceId],

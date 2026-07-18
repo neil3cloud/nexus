@@ -1,9 +1,11 @@
 # RFC-0006 — Engineering Assessment Model
 
 **Status:** Final
-**Version:** 1.0
+**Version:** 1.1
 **Authority:** Normative
 **Normative Language:** RFC 2119
+
+Amended to v1.1 by `NEXUS-RAT-2026-07-17-016`, correcting the Assessment Session's Mission Plan Revision record from an untyped opaque reference to an explicit, discriminated `ReviewPlanRevisionReference`.
 
 ---
 
@@ -129,6 +131,13 @@ Each Assessment Session SHALL record:
 - Assessment Outcome
 
 Assessment Sessions SHALL remain immutable.
+
+The Mission Plan Revision record SHALL be an explicit, discriminated reference — a `ReviewPlanRevisionReference` — identifying which domain owns the revision under Assessment:
+
+- `kind: ExecutableMissionPlan` — an RFC-0001 executable Mission Plan revision.
+- `kind: ProposedPlanRevision` — an RFC-0012 Proposed Plan Revision, prior to Activation.
+
+An opaque, undiscriminated revision reference SHALL NOT be used. This specification does not otherwise define either referenced domain's revision semantics; RFC-0001 and RFC-0012 remain the sole owners of their respective revision concepts.
 
 ---
 
@@ -370,5 +379,13 @@ A Kernel implementation conforms to RFC-0006 only if it:
 - preserves attribution
 - produces evidence-supported Findings
 - prevents undocumented preferences from influencing engineering decisions
+- represents the Assessment Session's Mission Plan Revision as an explicit, discriminated `ReviewPlanRevisionReference`, never as an opaque, undiscriminated reference
 
 Failure to satisfy these guarantees constitutes non-conformance with this specification.
+
+---
+
+# Amendment History
+
+- v1.0 — Final.
+- v1.1 — Amended by `NEXUS-RAT-2026-07-17-016`. Originates from `NEXUS-REV-2026-07-17-014-F-002` and `NEXUS-REV-2026-07-17-016-F-003` (Category 6, Observation): the implementation-layer `Review` model's revision-under-assessment field was an untyped, opaque string, ambiguously reused to reference either an RFC-0001 executable Mission Plan revision or an RFC-0012 Proposed Plan Revision, flagged as a risk to Sprint 76 (Approved Plan Activation), which treats this exact correlation as a precondition for an irreversible conversion into executable state. Corrects the Assessment Session's Mission Plan Revision record to an explicit, discriminated `ReviewPlanRevisionReference` (`kind: ExecutableMissionPlan | ProposedPlanRevision`, `revisionId`). No other RFC-0006 concept, lifecycle, or outcome is amended.

@@ -2,7 +2,11 @@ import { randomUUID } from 'node:crypto';
 
 import type { EventBusContract } from '../common/event-bus-contract';
 import { ServiceLifecycle } from '../common/service-lifecycle';
+import type { IEngineeringDecisionCorrelationRepository } from '../execution/engineering-decision-correlation.repository';
+import type { IRecoveryRequirementRepository } from '../execution/recovery-requirement.repository';
+import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
 import { Mission } from './mission.aggregate';
+import { assertGovernanceGatedMissionCompletionEligible } from './mission-completion-eligibility';
 import type { TaskExecutionRequest, MissionExecutionRequest } from './mission-execution.types';
 import { MissionId } from './mission-id';
 import { MissionPlan } from './mission-plan.aggregate';
@@ -22,6 +26,18 @@ export class MissionExecutionService extends ServiceLifecycle {
     private readonly eventBus: EventBusContract,
     private readonly createIdentity: () => string = randomUUID,
     private readonly createTimestamp: () => string = () => new Date().toISOString(),
+    private readonly governanceDecisionRepository?: Pick<
+      IGovernanceDecisionRepository,
+      'enumerate'
+    >,
+    private readonly engineeringDecisionCorrelationRepository?: Pick<
+      IEngineeringDecisionCorrelationRepository,
+      'enumerate'
+    >,
+    private readonly recoveryRequirementRepository?: Pick<
+      IRecoveryRequirementRepository,
+      'enumerate'
+    >,
   ) {
     super('MissionExecutionService');
   }
@@ -41,6 +57,8 @@ export class MissionExecutionService extends ServiceLifecycle {
   public async completeMission(request: MissionExecutionRequest): Promise<Mission> {
     const { mission, missionPlan } = await this.loadExecutionAggregates(request.missionId);
 
+    mission.assertCompletionPermitted(missionPlan.tasks);
+    await this.assertGovernanceGatedCompletionPermitted(mission.id.toString());
     mission.complete(this.createEventMetadata(), missionPlan.tasks);
 
     await this.repository.save(mission);
@@ -124,6 +142,34 @@ export class MissionExecutionService extends ServiceLifecycle {
     }
 
     return { mission, missionPlan };
+  }
+
+  private async assertGovernanceGatedCompletionPermitted(missionId: string): Promise<void> {
+    if (this.governanceDecisionRepository === undefined) {
+      return;
+    }
+
+    const applicableGovernanceDecisions = (await this.governanceDecisionRepository.enumerate())
+      .map((governanceDecision) => governanceDecision.toSnapshot())
+      .filter((governanceDecision) => governanceDecision.missionId === missionId);
+    const engineeringDecisionCorrelations =
+      this.engineeringDecisionCorrelationRepository === undefined
+        ? []
+        : (await this.engineeringDecisionCorrelationRepository.enumerate()).map(
+            (correlation) => correlation.toSnapshot(),
+          );
+    const recoveryRequirements =
+      this.recoveryRequirementRepository === undefined
+        ? []
+        : (await this.recoveryRequirementRepository.enumerate()).map((requirement) =>
+            requirement.toSnapshot(),
+          );
+
+    assertGovernanceGatedMissionCompletionEligible({
+      governanceDecisions: applicableGovernanceDecisions,
+      engineeringDecisionCorrelations,
+      recoveryRequirements,
+    });
   }
 
   private createEventMetadata(): DomainEventMetadata {

@@ -596,6 +596,68 @@ Execution Strategy
 
 ---
 
+## EngineeringSessionWorkflowAdvanced
+
+Producer
+
+EngineeringSessionService
+
+Consumers
+
+- EngineeringSessionStateProjectionService
+
+Payload
+
+- Engineering Session Identifier
+- Previous Workflow Step Identifier
+- New Workflow Step Identifier
+- Advancement Strategy
+
+---
+
+## RecoveryRequirementCreated
+
+Producer
+
+RecoveryRequirementGovernanceDecisionConsumer
+
+Payload
+
+- Recovery Requirement Identifier
+- Engineering Session Identifier
+- Workflow Step Identifier
+- Governance Decision Identifier
+
+---
+
+## RecoveryRequirementResolved
+
+Producer
+
+RecoveryRequirementService
+
+Payload
+
+- Recovery Requirement Identifier
+- Governance Decision Identifier
+- Accepted Outcome Reference
+
+---
+
+## RecoveryRequirementWithdrawn
+
+Producer
+
+RecoveryRequirementService
+
+Payload
+
+- Recovery Requirement Identifier
+- Governance Decision Identifier
+- Authoritative Decision Reference
+
+---
+
 # Adapter Events
 
 ## AdapterRegistered

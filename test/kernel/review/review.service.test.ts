@@ -8,6 +8,7 @@ import {
   ReviewEventPublisherUnavailableError,
   ReviewNotFoundError,
 } from '../../../src/kernel/review/review.errors';
+import type { StartReviewCommand } from '../../../src/kernel/review/review.contract';
 import { InMemoryReviewRepository } from '../../../src/kernel/review/review.repository';
 import { ReviewService } from '../../../src/kernel/review/review.service';
 
@@ -33,11 +34,14 @@ function sequence(values: readonly string[]): () => string {
   };
 }
 
-function startReviewCommand(id = 'review-1') {
+function startReviewCommand(id = 'review-1'): StartReviewCommand {
   return {
     id,
     missionId: 'mission-1',
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'architecture', description: 'Architecture criteria.' }],
     evidenceReferences: ['evidence-1'],
   };
@@ -89,7 +93,10 @@ describe('ReviewService', () => {
 
     const review = await service.startReview({
       missionId: 'mission-1',
-      missionPlanRevision: 'revision-1',
+      missionPlanRevision: {
+        kind: 'ExecutableMissionPlan',
+        revisionId: 'revision-1',
+      },
       reviewCriteria: [{ id: 'tests', description: 'Tests exist.' }],
       evidenceReferences: ['evidence-1'],
     });

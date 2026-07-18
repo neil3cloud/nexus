@@ -17,7 +17,10 @@ function createReview(reviewId: string): Review {
   const review = Review.create({
     id: reviewId,
     missionId: `mission-${reviewId}`,
-    missionPlanRevision: 'revision-1',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [{ id: 'architecture', description: 'Architecture criteria.' }],
     evidenceReferences: ['evidence-1'],
   });

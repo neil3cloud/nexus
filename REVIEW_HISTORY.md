@@ -2,6 +2,5377 @@
 
 ---
 
+## NEXUS-REV-2026-07-18-005 — Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (Own Scope; Milestone 11 Closure)
+
+- **Reviewed Sprint:** Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure. This cycle reviews Sprint 77's own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`), resumed after the Planning Correlation lineage corrective work was independently certified Resolved (`NEXUS-REV-2026-07-18-004`, PASS). This cycle does not re-review the corrective work itself.
+- **Reviewed Change:** `test/integration/autonomous-planning-integration-validation.integration.test.ts` (new, 4 tests) — the complete Planning domain flow (`Draft → Submitted → Under Review → Governed → Activated → executable RFC-0001 MissionPlan/Task/TaskDependency`) driven exclusively through real Kernel-composed `PlanningService`, `PlanningCorrelationService`, `GovernanceService`, `ReviewService`, `PlanningActivationService`, and `InMemoryMissionRepository` instances (no mocked or stubbed domain collaborator; one test uses a `FailingCommitMissionRepository` subclass of the real `InMemoryMissionRepository` that fails exactly one injected write, consistent with the precedented failure-injection pattern used by Sprint 62's and Sprint 70's own integration validation tests). `IMPLEMENTATION_REPORT.md` § Sprint 77 (new section). `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` Sprint 77 and Milestone 11 status text (Builder-recorded, "Implemented — Pending Reviewer Validation"; Milestone 11 left `🟡 ACTIVE`). No Sprint 1–76 production file under `src/` was modified — confirmed by `git diff` against the prior reviewed commit (`NEXUS-REV-2026-07-18-004`) showing zero `src/` changes.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (Referenced; validates the already-implemented Planning Policy, Proposal Lifecycle, Planning Correlation, Governance integration, and Activation composition; amends no RFC text). RFC-0001, RFC-0006 v1.1, RFC-0011, RFC-0004, RFC-0005, RFC-0008 (Referenced; consumed read-only, unmodified).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS (zero findings)
+
+### Executive Summary
+
+Sprint 77's five Authorized Concepts, ratified in full by `NEXUS-RAT-2026-07-18-002`, are each independently proven by the new integration test through real Kernel composition, with no mock or stub standing in for any Planning, Review, Governance, or Mission collaborator:
+
+**1. Complete happy-path validation.** `'drives Draft to executable MissionPlan...'` drives the full chain and asserts exact proposal-to-executable traceability on the resulting `MissionPlan.metadata`: `proposedMissionPlanId`, `proposedPlanRevisionId` (the governed revision), `reviewPlanRevisionKind: 'ProposedPlanRevision'`, `reviewPlanRevisionId` (the reviewed revision), `reviewId`, `governanceDecisionId`, and `planningCorrelationId`. It also asserts the `PlanningCorrelation` carries both `reviewedProposedPlanRevisionId` and `governedProposedPlanRevisionId` correctly, the `GovernanceDecision` and `Review` reach their expected terminal states, exactly one `MissionPlan` and two `Task`s are persisted, and exactly one `MissionPlanCreated`/two `TaskCreated` RFC-0001 events are published — no RFC-0012 Planning-domain event of any kind.
+
+**2. Typed revision integrity.** The same test asserts the positive case (`reviewPlanRevisionKind`/`reviewPlanRevisionId` on the activated `MissionPlan` match the exact reviewed revision). `'fails closed when Review revision typing does not match the PlanningCorrelation'` proves the negative case: a `Review` started with `kind: 'ExecutableMissionPlan'` against a `PlanningCorrelation` expecting `kind: 'ProposedPlanRevision'` causes `evaluateGovernance` to reject with `PlanningCorrelationAssociationRejectedError`, exercising `PlanningCorrelationService.assertReviewMatchesCorrelation` exactly as the Authorized Concept requires.
+
+**3. Activation safety.** `'rejects unsafe Activation paths and preserves executable Mission state on injected failure'` proves: an injected `InMemoryMissionRepository.saveMissionPlan` failure leaves zero persisted `MissionPlan`s, zero `MissionPlanCreated`/`TaskCreated` events, and the `ProposedMissionPlan` revision unchanged at `Governed` (no partial state); activating one sibling `Governed` revision transitions the other sibling to `Superseded`; activating the now-`Superseded` sibling is rejected (`PlanningCorrelationAssociationRejectedError`). The happy-path test separately proves repeat Activation of the same revision is idempotent (`repeatedActivation.missionPlan` equals the original) and that the activated revision's content is preserved unchanged apart from its `lifecycleState`.
+
+**4. Governance protection.** `'rejects Activation when Governance is missing, non-terminal, non-Approved, or stale'` proves fail-closed rejection for a missing `GovernanceDecision`, a non-terminal (`Deferred`) decision, a terminal non-`Approved` (`Rejected`) decision, and a stale/mismatched Planning Correlation (a `GovernanceDecision` recorded against a different `reviewId` than the correlation's) — all four cases reject with `PlanningCorrelationAssociationRejectedError`.
+
+**5. Milestone closure gating.** `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` correctly record Milestone 11 as `🟡 ACTIVE` and Sprint 77 as "Implemented — Pending Reviewer Validation" throughout the reviewed change; Milestone 11 completion is not declared anywhere in the Builder's changes, correctly deferring that declaration to this Reviewer cycle.
+
+Independently re-ran the complete validation matrix: `npx tsc --noEmit --pretty false` clean; `npm run lint` clean; `npx vitest run --exclude "test/extension-host/**"` — 684/684 passing across 96/96 files, matching `IMPLEMENTATION_REPORT.md`'s claim exactly; `npm run build` (esbuild) clean; `npm run test:extension-host:build` clean.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | `tsc --noEmit` clean; ESLint clean; full repository Vitest suite 684/684 (96/96 files); `esbuild` main bundle clean; extension-host test bundle build clean |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication (e.g. `ProposedMissionPlanActivated`); AI-generated planning; Adapter invocation or provider/Adapter selection; workflow orchestration, Workflow Chain participation, Corpus Review Mode; new Repository Policy authoring, versioning, or selection/routing mechanism; any Milestone 12 (or subsequent) scope. No deferred concept was found implemented, stubbed, or referenced by the reviewed change.
+
+### Architectural Compliance Summary
+
+- **Scope:** Exactly Sprint 77's own five Authorized Concepts, unexpanded; no new domain capability, service, repository, event, or Kernel registration was introduced.
+- **Architectural Boundaries:** Zero Sprint 1–76 production files under `src/` were modified (confirmed by `git diff`); only the new integration test file was added under `test/`. `src/hosts` and `src/adapters` remain untouched.
+- **Aggregate ownership / domain boundaries:** The test drives all state transitions exclusively through existing public service operations (`PlanningService`, `PlanningCorrelationService`, `GovernanceService`, `ReviewService`, `PlanningActivationService`, `MissionPlanningService` via Activation); no aggregate internals are accessed directly, and no foreign-aggregate mutation occurs.
+- **Event compliance:** Only the existing, already-certified RFC-0001 `MissionPlanCreated`/`TaskCreated` events are observed; no RFC-0012 event is published or asserted.
+- **Terminology:** No architectural concept renamed; `reviewedProposedPlanRevisionId`/`governedProposedPlanRevisionId` (Sprint 74–76, `NEXUS-RAT-2026-07-18-003`) used exactly as previously certified.
+- **Milestone closure gating:** Correctly not self-declared by the Builder; this Reviewer cycle is the first to certify Sprint 77's own scope.
+
+### Builder Task Recommendation
+
+None. Zero findings of any category. Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure is fully closed. With all eight Initial Capability Sequence steps complete and independently Reviewer-certified (Sprints 71–77), **Milestone 11 — Autonomous Engineering Planning Readiness is now Complete.** No further Sprint is currently authorized within Milestone 11; Milestone 12 (or any subsequent scope) requires its own future `nexus-plan` cycle. `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` status text remain Builder-owned and are expected to be reconciled to "Approved"/"Complete" by the next Builder or `nexus-sprint` cycle; this review does not modify those artifacts.
+
+---
+
+## NEXUS-REV-2026-07-18-004 — `BT-077-002`/`BT-077-003`/`BT-077-004`/`DOC-077-001` Resolution Verification (Planning Correlation Lineage Corrective Work; Sprint 77 Resumption Gate)
+
+- **Reviewed Sprint:** Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (⏸️ Paused). This cycle reviews `BT-077-002`, `BT-077-003`, `BT-077-004`, and `DOC-077-001` — the corrective Builder Tasks `nexus-sprint` generated from `NEXUS-REV-2026-07-18-003`'s four findings. Sprint 77's own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`) remain out of scope for this cycle; they were not attempted and are not reviewed here.
+- **Reviewed Change:** `src/kernel/planning/planning-correlation.service.ts` — `evaluateGovernance`'s Governed-revision commit now flows through a new `commitEvaluatedProposedMissionPlanAndPlanningCorrelation`, which persists the `Governed` `ProposedMissionPlan` first and, on any failure persisting the `PlanningCorrelation`'s `governedProposedPlanRevisionId`, compensates by re-saving the pre-transition `ProposedMissionPlan` (restoring `Under Review`) before re-throwing. `test/kernel/planning/planning-correlation.test.ts` — new `FailingPlanningCorrelationRepository` and `LineageMismatchProposedMissionPlanRepository` fixtures; four new tests (`'rolls back the Governed revision when PlanningCorrelation governed lineage persistence fails'`; `'activates a revision governed by the real PlanningCorrelationService evaluation chain'`; `'rejects cross-Mission lineage at the Governance evaluation checkpoint'`; `'rejects cross-proposal lineage at the Governance evaluation checkpoint'`). `test/kernel/planning/planning-activation.service.test.ts` — two new tests (`'rejects cross-Mission lineage at the Activation checkpoint'`; `'rejects cross-proposal lineage at the Activation checkpoint'`). `IMPLEMENTATION_REPORT.md` § `BT-077-001` — Review Remediation subsection and Validation Summary corrected to record the full four-gate validation matrix. No change to `planning-activation.service.ts`, `planning-correlation.ts`, `planning-correlation.repository.ts`, or `planning.types.ts` beyond what `NEXUS-REV-2026-07-18-003` already reviewed and found correct.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (Referenced; completes the correction to already-ratified guarantees; no RFC text amended).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS (all four originating findings independently verified Resolved; zero new findings)
+
+### Executive Summary
+
+**F-001 (Governance-transition atomicity) — Resolved.** `commitEvaluatedProposedMissionPlanAndPlanningCorrelation` (`planning-correlation.service.ts`) wraps the `PlanningCorrelation` persistence step in a `try`/`catch`: if it fails after the `ProposedMissionPlan` (`Governed` revision) save has already succeeded, the method compensates by re-saving the original pre-transition `ProposedMissionPlan` (restoring `Under Review`) before re-throwing the original error. The new test `'rolls back the Governed revision when PlanningCorrelation governed lineage persistence fails'` independently confirms: after an injected `PlanningCorrelation` save failure, the `ProposedMissionPlan` is back to `Under Review` (revisions `['Draft', 'Submitted', 'Under Review']`, no `Governed` revision persisted) and the correlation carries neither `governanceDecisionId` nor `governedProposedPlanRevisionId` — no orphaned `Governed` revision is observable under any injected failure. This is a compensating-transaction pattern rather than a single-write commit, but it fully satisfies the ratification's binding invariant ("SHALL NOT retain a Governed revision without an updated Planning Correlation"); combined with the existing `'does not record terminal PlanningCorrelation lineage when Governed revision persistence fails'` test (which covers the other write-ordering direction, `ProposedMissionPlan` save failing first), both failure directions of the two-write sequence are now proven safe.
+
+**F-002 (real end-to-end chain coverage) — Resolved.** The new test `'activates a revision governed by the real PlanningCorrelationService evaluation chain'` drives a `ProposedMissionPlan` through a real `PlanningCorrelationService.evaluateGovernance(...)` call to `Governed`, reads `governanceResult.planningCorrelation.governedProposedPlanRevisionId` directly from that call's real output (not a hand-constructed fixture), and passes it to a real `PlanningActivationService.activate(...)` call, asserting the full chain succeeds and produces the expected executable `MissionPlan` with correct traceability. This is precisely the coverage gap `NEXUS-REV-2026-07-18-003-F-002` identified and directly proves the fix resolves Sprint 77's original Builder Stop Condition end-to-end.
+
+**F-003 (cross-Mission/cross-proposal coverage) — Resolved.** Four new tests (two in `planning-correlation.test.ts` via `LineageMismatchProposedMissionPlanRepository`, exercising `assertGovernedRevisionLineage`'s Governance-evaluation checkpoint; two in `planning-activation.service.test.ts`, exercising `hasDirectReviewedToGovernedLineage`/`assertGovernanceDecisionMatchesCorrelation`'s Activation checkpoint) independently confirm fail-closed rejection (`PlanningCorrelationAssociationRejectedError`) of both a cross-Mission and a cross-`ProposedMissionPlan` lineage mismatch, at both checkpoints.
+
+**F-004 (documentation) — Resolved.** `IMPLEMENTATION_REPORT.md` § `BT-077-001` Validation Summary now records `tsc --noEmit`, `npm run lint`, `npm run validate` (compile/lint/test/build composite), the full non-extension-host Vitest suite with pass counts, and the extension-host bundle build — all four gates the ratification's Definition of Done requires.
+
+Independently re-ran the complete validation matrix this cycle: `npx tsc --noEmit --pretty false` clean; `npm run lint` clean; `npx vitest run --exclude "test/extension-host/**"` — 680/680 passing across 95/95 files (6 more than `NEXUS-REV-2026-07-18-003`'s 674, matching this cycle's 6 new tests); `npx vitest run test/kernel/planning/planning-correlation.test.ts test/kernel/planning/planning-activation.service.test.ts` — 31/31 passing, matching `IMPLEMENTATION_REPORT.md`'s claim exactly; `npm run build` (esbuild) clean; `npm run test:extension-host:build` clean. All results match `IMPLEMENTATION_REPORT.md`'s claims exactly.
+
+### Findings
+
+None. All four originating findings (`NEXUS-REV-2026-07-18-003-F-001` through `-F-004`) are independently verified Resolved; this cycle introduces no new finding.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings verified Resolved this cycle | 4 of 4 (`F-001` through `F-004`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | `tsc --noEmit` clean; ESLint clean; targeted Planning suite 31/31 (2 files); full repository Vitest suite 680/680 (95/95 non-extension-host files); `esbuild` main bundle clean; extension-host test bundle build clean |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-18-003`. This cycle introduces no new capability, deferred or otherwise. Sprint 77's own five Authorized Concepts (happy-path integration test, typed revision integrity, Activation safety, Governance protection, Milestone closure) remain correctly unimplemented and unapproximated. Milestone 11 is not declared complete anywhere in the reviewed changes.
+
+### Architectural Compliance Summary
+
+The corrective work is confined exactly to `planning-correlation.service.ts` and its direct tests, consistent with `NEXUS-RAT-2026-07-18-003`'s authorized scope and `NEXUS-REV-2026-07-18-003`'s findings. No Sprint 1–76 file outside this exact target was touched this cycle (confirmed: `planning-activation.service.ts`, `planning-correlation.ts`, `planning-correlation.repository.ts`, `planning.types.ts` are byte-for-byte unchanged since `NEXUS-REV-2026-07-18-003`, which already reviewed and found them correct). `src/hosts` and `src/adapters` remain untouched. The "each lifecycle transition mints a new `ProposedPlanRevision`" design remains correctly preserved.
+
+### Builder Task Recommendation
+
+`BT-077-002`, `BT-077-003`, `BT-077-004`, and `DOC-077-001` SHALL be marked Completed by the next `nexus-sprint` cycle; `BT-077-001` remains Superseded (not reopened) per `nexus-sprint`'s prior translation. With all four corrective tasks Resolved and zero findings of any category remaining, the Planning Correlation lineage defect that produced Sprint 77's original Builder Stop Condition is fully closed. Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure SHALL transition from ⏸️ Paused back to 🔵 Current Sprint: its own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`) may now resume, unexpanded and exactly as originally scoped. This review does not itself constitute review of Sprint 77's own scope — that scope has not yet been attempted and remains a separate, future review cycle once the Builder resumes it. Milestone 11 closure remains contingent on that future cycle's independent Reviewer PASS.
+
+---
+
+## NEXUS-REV-2026-07-18-003 — `BT-077-001` — Planning Correlation Reviewed/Governed Revision Lineage (Corrective Task under Sprint 77)
+
+- **Reviewed Sprint:** Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (⏸️ Paused). This cycle reviews `BT-077-001`, the corrective Builder Task authorized by `NEXUS-RAT-2026-07-18-003` to resolve the Planning Correlation lineage defect that produced Sprint 77's Builder Stop Condition. Sprint 77's own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`) remain paused and are not in scope for this cycle.
+- **Reviewed Change:** `src/kernel/planning/planning-correlation.ts` — renames `proposedPlanRevisionId` to `reviewedProposedPlanRevisionId`; adds `governedProposedPlanRevisionId` and `associateGovernedProposedPlanRevision(...)` (idempotent on identical value, throws `InvalidPlanningCorrelationDefinitionError` on reassignment); `normalizeSnapshot` migrates legacy `proposedPlanRevisionId` snapshots to `reviewedProposedPlanRevisionId` without inferring `governedProposedPlanRevisionId`. `src/kernel/planning/planning.types.ts` — `PlanningCorrelationSnapshot` field split. `src/kernel/planning/planning-correlation.repository.ts` — separate `findByReviewedProposedPlanRevision`/`findByGovernedProposedPlanRevision` indexes; `assertAppendOnlyAssociations` rejects `governedProposedPlanRevisionId` reassignment. `src/kernel/planning/planning-correlation.service.ts` — `evaluateGovernance` now derives `governedProposedPlanRevisionId` from the minted `Governed` revision, validates direct reviewed-to-governed lineage (`assertGovernedRevisionLineage`) before persisting it, restructured into `preparePlanningCorrelationGovernanceDecision`/`persistPreparedPlanningCorrelationGovernanceDecision`. `src/kernel/planning/planning-activation.service.ts` — `requirePlanningCorrelation` resolves exclusively via `findByGovernedProposedPlanRevision`, re-validates reviewed-to-governed lineage (`hasDirectReviewedToGovernedLineage`) and adds `assertGovernanceDecisionMatchesCorrelation`. Test files `planning-correlation.test.ts`/`planning-activation.service.test.ts` updated accordingly, including one new failure-injection test and four new Activation rejection tests.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (Referenced; corrects the Planning Correlation/Governance/Activation implementation to actually satisfy already-ratified guarantees; no RFC text amended).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (two Category 1 — Implementation Defect findings, Major, both directly contradicting binding rules of `NEXUS-RAT-2026-07-18-003`)
+
+### Executive Summary
+
+`BT-077-001` correctly implements the field split, the required Invariants checked at Governance-evaluation time (`assertGovernedRevisionLineage`) and at Activation time (`hasDirectReviewedToGovernedLineage`, `assertGovernanceDecisionMatchesCorrelation`), the Persistence Rules (idempotent single assignment via `associateGovernedProposedPlanRevision`, rejection of reassignment via `assertAppendOnlyAssociations`), and the Migration Rules (legacy `proposedPlanRevisionId` renamed only, `governedProposedPlanRevisionId` never inferred). Full independent re-validation confirms `tsc --noEmit` clean, `npm run lint` (ESLint) clean, the full repository Vitest suite passing (674/674 across 95/95 non-extension-host files — 5 more than `NEXUS-REV-2026-07-18-002`'s 669, matching the 5 new tests this task adds), and `npm run build` (esbuild) clean — all four validation gates the ratification's Definition of Done requires, though `IMPLEMENTATION_REPORT.md`'s own Validation Summary documents only `tsc` and two targeted test files (see F-003 below).
+
+Two issues block approval. First, `NEXUS-RAT-2026-07-18-003`'s Governance Transition Ordering explicitly requires committing "the `GovernanceDecision`, Governed revision, and correlation update as one atomic operation," and its Persistence Rules explicitly prohibit retaining "a Governed revision without an updated Planning Correlation." The implementation instead performs two independent, non-transactional writes in sequence — `proposedMissionPlanRepository.save(evaluatedProposedMissionPlan)` (persisting the `Governed` revision) at `planning-correlation.service.ts:314`, immediately followed by `persistPreparedPlanningCorrelationGovernanceDecision(...)` (persisting `governedProposedPlanRevisionId` on the correlation) at `:317`. A failure in the second write after the first succeeds produces exactly the prohibited state, and — because `evaluateGovernance` treats `Governed` as an idempotent terminal state (`isIdempotentGovernanceState`, `:222`, `:816-818`) that short-circuits to a no-op read on retry — there is no path to ever repair it. This is not reachable through today's `InMemoryPlanningCorrelationRepository.save()` (which cannot throw once a correlation is registered and its `governedProposedPlanRevisionId` is being set for the first time), so it is latent rather than currently exploitable — the same standing this Reviewer gave `NEXUS-REV-2026-07-17-020-F-002` (Sprint 76's analogous ordering defect, also Major), which is directly on point here. The one failure-injection test the Builder added (`'does not record terminal PlanningCorrelation lineage when Governed revision persistence fails'`) exercises only the first write failing; no test exercises the second write failing after the first succeeds — the exact direction where the orphan actually occurs.
+
+Second, the ratification's Required Test Coverage binding list includes "the real `evaluateGovernance → activateExclusive` chain succeeds through Kernel composition." No test added by `BT-077-001` satisfies this: every Activation test in `planning-activation.service.test.ts` still constructs its `PlanningCorrelation` fixture directly via `.associateGovernedProposedPlanRevision(...)` rather than deriving `governedProposedPlanRevisionId` from an actual `PlanningCorrelationService.evaluateGovernance(...)` call, and no test in `planning-correlation.test.ts` chains into `PlanningActivationService.activate(...)` afterward. This is precisely the class of fixture shortcut this Reviewer's root-cause trace (recorded in `NEXUS-RAT-2026-07-18-003`'s Originating Request) identified as the reason Sprint 74–76's own test suites never caught the original defect — `BT-077-001`'s new tests prove the pieces are individually correct but do not prove the fix resolves the originating end-to-end failure mode.
+
+### Findings
+
+#### NEXUS-REV-2026-07-18-003-F-001 — Governance transition's Governed-revision write and Planning Correlation update are not committed as one atomic operation (Category 1 — Implementation Defect, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-18-003` Governance Transition Ordering, step 7 ("Commit the `GovernanceDecision`, Governed revision, and correlation update as one atomic operation"); Planning Correlation Persistence Rules ("The repository SHALL NOT retain... a Governed revision without an updated Planning Correlation").
+- **Evidence:** `planning-correlation.service.ts:307-320`: `preparePlanningCorrelationGovernanceDecision(...)` computes the correlation update in memory only (no write); `proposedMissionPlanRepository.save(evaluatedProposedMissionPlan)` at `:314` performs the real write persisting the `Governed` revision; `persistPreparedPlanningCorrelationGovernanceDecision(preparedPlanningCorrelation)` at `:317` performs the second, independent real write persisting `governedProposedPlanRevisionId`. No wrapping transaction, staging repository, or compensating rollback exists between the two, unlike the staging pattern Sprint 76 (`PlanningActivationService`) already established in this same domain for an analogous atomicity requirement. `isIdempotentGovernanceState('Governed')` returns `true` (`:816-818`), so `evaluateGovernance`'s early-return branch (`:222-229`) makes any retry after a stranded state a silent no-op rather than a repair path.
+- **Impact:** A failure in the second write after the first succeeds permanently strands the `Governed` `ProposedPlanRevision` with no `PlanningCorrelation` pointing to it and no retry path — `PlanningActivationService` can never resolve that revision's correlation, and Activation permanently fails closed for that revision. Not reachable via today's `InMemoryPlanningCorrelationRepository` (whose `save()` cannot throw under this exact call pattern), so latent rather than currently exploitable — the same class and severity this Reviewer assigned to the directly analogous `NEXUS-REV-2026-07-17-020-F-002` in Sprint 76.
+- **Recommended Disposition:** Builder Task. Reorder or stage so the `Governed` revision commit and the `PlanningCorrelation` update are not independently observable — either persist `governedProposedPlanRevisionId` before/atomically-with the `ProposedMissionPlan` save (with a compensating path if the plan save subsequently fails), or introduce a staging boundary covering both repositories comparable to Sprint 76's Activation pattern. Add a test that injects a failure specifically at the `PlanningCorrelation` persistence step, after the `ProposedMissionPlan` save has already succeeded, and confirms no `Governed` revision is left unreferenced by any correlation.
+- **Builder Action:** Fix; no governance approval required — `NEXUS-RAT-2026-07-18-003` already authorizes this exact scope.
+
+#### NEXUS-REV-2026-07-18-003-F-002 — Required Test Coverage item "the real `evaluateGovernance → activateExclusive` chain succeeds through Kernel composition" is not implemented (Category 1 — Implementation Defect / Acceptance Criteria, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-18-003` Required Test Coverage (binding); `BT-077-001` Acceptance Criteria ("Every Required Test Coverage item in `NEXUS-RAT-2026-07-18-003` is implemented and passing").
+- **Evidence:** `test/kernel/planning/planning-activation.service.test.ts`'s `createActivationHarness` (`:320-355` region) constructs each `PlanningCorrelation` directly and calls `.associateGovernedProposedPlanRevision(revisionId)` on it as a fixture step — it never calls `PlanningCorrelationService.evaluateGovernance(...)`. `test/kernel/planning/planning-correlation.test.ts`'s governance tests call `evaluateGovernance` but never proceed to construct a `PlanningActivationService` and call `.activate(...)` against the resulting correlation. No test in either file, or elsewhere in the repository, chains both real service calls together.
+- **Impact:** This is exactly the fixture-shortcut pattern this Reviewer's root-cause trace identified as the reason Sprint 74–76's own unit tests never caught the original lineage defect (recorded verbatim in `NEXUS-RAT-2026-07-18-003`'s Originating Request). `BT-077-001`'s new tests prove `evaluateGovernance`'s correlation update and `PlanningActivationService`'s resolution logic are each individually correct against hand-built fixtures, but do not prove the two compose correctly when driven together — the specific property whose absence produced Sprint 77's Builder Stop Condition in the first place.
+- **Recommended Disposition:** Builder Task. Add at least one test (unit- or service-level; full Kernel/Host composition remains Sprint 77's own deferred scope, not `BT-077-001`'s) that drives a `ProposedMissionPlan` through a real `PlanningCorrelationService.evaluateGovernance(...)` call to `Governed`, then passes the resulting `governedProposedPlanRevisionId` to a real `PlanningActivationService.activate(...)` call and asserts it succeeds — with no intermediate fixture reconstructing the correlation's governed lineage by hand.
+- **Builder Action:** Fix; no governance approval required.
+
+#### NEXUS-REV-2026-07-18-003-F-003 — Required Test Coverage items "cross-Mission lineage is rejected" and "cross-proposal lineage is rejected" have no dedicated test (Category 1 — Implementation Defect / Test Coverage, Minor)
+
+- **Authority:** `NEXUS-RAT-2026-07-18-003` Required Test Coverage (binding).
+- **Evidence:** `assertGovernedRevisionLineage` (`planning-correlation.service.ts`) and `assertGovernanceDecisionMatchesCorrelation`/`hasDirectReviewedToGovernedLineage` (`planning-activation.service.ts`) each check Mission-identity and `ProposedMissionPlanId` consistency between the correlation and the revision, and the logic reviewed is correct — but no test in either updated test file constructs a cross-Mission or cross-proposal scenario to exercise these specific branches. `grep` for "cross-Mission"/"cross-proposal" across the affected test files returns no matches.
+- **Impact:** Low — under the real call path, the compared values are always derived from the same in-memory `ProposedMissionPlan`/`PlanningCorrelation` pair, so these branches are currently unreachable in production, similar in kind to prior carried-forward Observations about unreachable defensive checks elsewhere in this repository. The gap is only that a binding, explicitly enumerated Required Test Coverage item is unaddressed.
+- **Recommended Disposition:** Builder Task (Minor; may be bundled with F-001/F-002's remediation). Add direct unit tests constructing a cross-Mission and a cross-proposal lineage mismatch and asserting fail-closed rejection at both the Governance-evaluation and Activation checkpoints.
+- **Builder Action:** Fix; no governance approval required.
+
+#### NEXUS-REV-2026-07-18-003-F-004 — `IMPLEMENTATION_REPORT.md`'s Validation Summary understates the validation actually required and actually performed (Category 4 — Documentation Drift, Minor)
+
+- **Authority:** `NEXUS-RAT-2026-07-18-003` Definition of Done ("repository-wide validation passes (TypeScript compile, ESLint, Vitest, esbuild, extension-host bundle build)").
+- **Evidence:** `IMPLEMENTATION_REPORT.md` § `BT-077-001` Validation Summary lists only `npx tsc --noEmit` and a two-file targeted Vitest run. Independently re-run this cycle: `npm run lint` (ESLint) — clean; `npx vitest run --exclude "test/extension-host/**"` — 674/674 tests passing across 95/95 files; `npm run build` (esbuild) — clean. All four gates in fact pass; the report simply does not document three of them.
+- **Impact:** None to correctness — independently confirmed all required validation actually passes. Documentation-only gap.
+- **Recommended Disposition:** Documentation Task. Update `IMPLEMENTATION_REPORT.md` § `BT-077-001` Validation Summary to record the full validation matrix (`tsc`, ESLint, full Vitest suite with pass counts, esbuild).
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 4 |
+| Critical / Major / Minor / Informational | 0 / 2 / 2 / 0 |
+| Category 1 — Implementation Defect | 3 (F-001, F-002, F-003) |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 1 (F-004) |
+| Validation reproduced | `npx tsc --noEmit --pretty false` clean; `npm run lint` clean; `npx vitest run --exclude "test/extension-host/**"` — 674/674 passing, 95/95 files; `npm run build` (esbuild) clean |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication; AI-generated planning; Adapter/provider selection; workflow orchestration; Corpus Review Mode implementation; new Repository Policy authoring/versioning/selection; Sprint 77's own five Authorized Concepts (happy-path integration test, typed revision integrity, Activation safety, Governance protection, Milestone closure) — none implemented or approximated by `BT-077-001`, correctly left paused. Milestone 11 is not declared complete anywhere in the reviewed changes.
+
+### Architectural Compliance Summary
+
+`BT-077-001`'s corrective scope is confined exactly as `NEXUS-RAT-2026-07-18-003` authorized: `planning-correlation.ts`, `planning.types.ts`, `planning-correlation.repository.ts`, `planning-correlation.service.ts`, `planning-activation.service.ts`, and their direct tests. No Sprint 1–73 file, `src/hosts`, or `src/adapters` file was touched. The "each lifecycle transition mints a new `ProposedPlanRevision`" design (`NEXUS-REV-2026-07-17-011` Observation) is correctly preserved unmodified, as required. `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` correctly show Sprint 77 `⏸️ Paused` throughout, with no premature Milestone 11 closure declared.
+
+### Builder Task Recommendation
+
+`BT-077-001` is **not** Resolved. `nexus-sprint` SHALL generate follow-up corrective Builder Task(s) from findings F-001 through F-003 (Category 1, two Major and one Minor) and a Documentation Task from F-004 (Category 4, Minor). Sprint 77 remains `⏸️ Paused`; its own five Authorized Concepts SHALL NOT be resumed or expanded until this corrective work is re-reviewed and receives an independent PASS or PASS WITH FINDINGS with zero unresolved Major findings.
+
+---
+
+## NEXUS-REV-2026-07-18-002 — Sprint 76 — Approved Plan Activation (BT-076-001 Resolution Verification; Sprint Closure)
+
+- **Reviewed Sprint:** Sprint 76 — Approved Plan Activation (Milestone 11, Initial Capability Sequence step 7). Follow-up cycle verifying `builder-task.md`'s last remaining Open Builder Task, `BT-076-001`, unblocked by `NEXUS-RAT-2026-07-18-001` and generated from `NEXUS-REV-2026-07-17-020-F-001`.
+- **Reviewed Change:** `src/hosts/vscode/host-mission-workflow.ts:471` — `reviewService.startReview(...)` now constructs `missionPlanRevision: { kind: 'ExecutableMissionPlan', revisionId: missionPlanRevisionId }` explicitly, replacing the bare string. `src/kernel/review/review.aggregate.ts`, `review.contract.ts`, `review.types.ts` — `CreateReviewInput.missionPlanRevision` and `StartReviewCommand.missionPlanRevision` now require `ReviewPlanRevisionReference` only (the `| string` union removed); `normalizeReviewPlanRevisionReference` no longer accepts a bare string, only validating `kind`/`revisionId`. A wide set of test files updated to construct the typed reference explicitly (`review.aggregate.test.ts`, `review.service.test.ts`, `review.repository.test.ts`, `planning-correlation.test.ts`, `host-mission-workflow.test.ts`, `host-mission-workflow-command-registration.test.ts`, and several integration/execution/governance/knowledge test fixtures that construct `Review`/`ReviewSnapshot` values). `IMPLEMENTATION_REPORT.md` corrected accordingly.
+- **RFC Coverage:** RFC-0006 v1.1 — Engineering Assessment Model (completes the `ReviewPlanRevisionReference` migration; RFC-0006 itself not further amended by this cycle).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS (Sprint 76 fully closed, zero open findings of any category)
+
+### Executive Summary
+
+Independently verified `BT-076-001` is implemented exactly as authorized by `NEXUS-RAT-2026-07-18-001`. `host-mission-workflow.ts:471` is confirmed constructing the typed `ReviewPlanRevisionReference` explicitly — no bare string remains at this, the sole legacy call site. `CreateReviewInput`/`StartReviewCommand` are confirmed to accept `ReviewPlanRevisionReference` only; `git grep` for `ReviewPlanRevisionReference | string` returns no source-code matches (only documentation/governance references describing the removed union). `normalizeReviewPlanRevisionReference`'s `typeof reference === 'string'` inference branch is confirmed removed — the function now only validates `kind` and normalizes `revisionId`, rejecting any malformed reference via `InvalidReviewDefinitionError`. A repository-wide search for any remaining bare-string `missionPlanRevision:` construction found exactly one match, in `review.aggregate.test.ts`, which is confirmed to be an assertion against the flattened `ReviewStarted` domain-event payload shape (`review.missionPlanRevision.revisionId`, per Sprint 11's existing event-flattening behavior, unchanged) — not a `Review` construction call site, and not a violation.
+
+Independently re-ran validation beyond what `IMPLEMENTATION_REPORT.md` reported: `npx tsc --noEmit --pretty false` clean; `npm run lint` clean; `npx vitest run test/kernel/review/ test/kernel/planning/ test/hosts/vscode/ test/integration/` — 149/149 tests passing across 32 files; full repository `npx vitest run` — 669/669 tests passing across 95 of 96 files (the sole failing suite, `test/extension-host/suite/extension-host.test.ts`, fails only because the `vscode` module is unavailable outside the VS Code extension-host test runner, consistent with every prior review cycle's exclusion of this suite from standard Vitest runs — not a regression). `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are confirmed correctly updated by the Builder to "Implemented — Pending Reviewer Validation" for Sprint 76.
+
+With `BT-076-001` and `BT-076-002` both independently verified Resolved, and zero findings of any category remaining, Sprint 76 — Approved Plan Activation is fully closed. Milestone 11 Initial Capability Sequence step 7 is complete. Step 8 (Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure) remains unauthorized and requires its own future Sprint Owner scope ratification via `nexus-plan`; this review does not authorize or advance any Sprint 77 work.
+
+### Findings
+
+None. This cycle is a targeted resolution-verification pass over `BT-076-001` plus an independent repository-wide re-validation; it introduces no new capability and reopens no prior finding.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Builder Tasks verified this cycle | 1 of 1 (`BT-076-001`) |
+| Builder Tasks still open | 0 |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit` clean; `eslint` clean; targeted Vitest 149/149 (32 files); full repository Vitest 669/669 (95/96 files, extension-host VS Code suite excluded per established precedent) |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication (`ProposedMissionPlanActivated`, etc.); AI-generated planning; Adapter/provider selection; workflow orchestration; new Repository Policy authoring/versioning/selection; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77). No deferred concept was found implemented, stubbed, or referenced by this cycle's remediation.
+
+### Architectural Compliance Summary
+
+`BT-076-001`'s remediation is scoped exactly as authorized: the one Host call site migrated, the union type and silent-inference path removed from the Review contracts, and every affected test updated to construct the typed reference explicitly — with no change to `Review`'s lifecycle, `ReviewOutcome`, `Finding`, or any other RFC-0006 concept, and no change to `host-mission-workflow.ts` beyond the one authorized line. Combined with `NEXUS-REV-2026-07-18-001`'s independently verified `BT-076-002` resolution, Sprint 76's full authorized scope (RFC-0012 Activation, the typed Review migration, and the Required Activation Guarantees ratified by `NEXUS-RAT-2026-07-17-017`) is now completely and correctly delivered. `MissionPlanningService`, `MissionPlan`, `Task`, `TaskDependency`, and every Sprint 1–75 file outside this Sprint's authorized scope remain unmodified. `src/adapters` remains untouched.
+
+### Builder Task Recommendation
+
+`BT-076-001` SHALL be marked Completed by the next `nexus-sprint` cycle. Sprint 76 is fully closed with zero open findings of any category. Milestone 11 Initial Capability Sequence step 8 (Sprint 77) requires its own future Sprint Owner scope ratification via `nexus-plan`; no task is generated here.
+
+---
+
+## NEXUS-REV-2026-07-18-001 — Sprint 76 — Approved Plan Activation (BT-076-002 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 76 — Approved Plan Activation (Milestone 11, Initial Capability Sequence step 7). Follow-up cycle verifying `builder-task.md`'s remediation of `NEXUS-REV-2026-07-17-020`'s two findings, `BT-076-001` and `BT-076-002`.
+- **Reviewed Change:** `src/kernel/planning/planning-activation.service.ts` — reordered `activateExclusive` so `stagingRepository.commit()` (the real executable `MissionPlan` write) now precedes `proposedMissionPlanRepository.save(activatedProposedMissionPlan)` (the `Activated`/`Superseded` lifecycle persistence). `test/kernel/planning/planning-activation.service.test.ts` — added `FailingCommitMissionRepository` and one new test, `'leaves ProposedPlanRevision lifecycle unchanged when the executable MissionPlan commit fails'`. `IMPLEMENTATION_REPORT.md` — added a Sprint 76 "Review Remediation" subsection. No other production file changed this cycle; `src/hosts/vscode/host-mission-workflow.ts`, `review.aggregate.ts`, `review.contract.ts`, and `review.types.ts` remain exactly as they were at `NEXUS-REV-2026-07-17-020`.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (unchanged; this cycle corrects Activation's commit ordering within Sprint 76's already-authorized scope, not new capability).
+- **Review Date:** 2026-07-18
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged in kind — `BT-076-002` is Resolved and independently verified; `BT-076-001`, now unblocked by `NEXUS-RAT-2026-07-18-001`, has not yet been implemented, so Sprint 76's authorized scope remains incomplete)
+
+### Executive Summary
+
+Independently verified `BT-076-002`'s fix directly and correctly resolves `NEXUS-REV-2026-07-17-020-F-002`: `activateExclusive` now commits the staged executable `MissionPlan` (`stagingRepository.commit()`) before persisting the `ProposedPlanRevision`'s `Activated`/`Superseded` lifecycle transition. The new test `'leaves ProposedPlanRevision lifecycle unchanged when the executable MissionPlan commit fails'` (via a `FailingCommitMissionRepository` that throws on `saveMissionPlan`) confirms: (1) the `ProposedPlanRevision` remains `Governed`, not stranded as `Activated`, when the executable commit fails; (2) no `MissionPlan` and no events are produced; and (3) a subsequent retry for the same revision succeeds and correctly reaches `Activated` with the expected traceability — going beyond the required Acceptance Criteria by also proving recoverability, not merely non-corruption. Ran the three Sprint-76-relevant suites directly (`planning-activation.service.test.ts`, `review.aggregate.test.ts`, `planning-correlation.test.ts`): 29/29 passing. `MissionPlanningService`, `MissionPlan`, `Task`, and `TaskDependency` remain untouched, consistent with the Sprint's Architectural Boundaries.
+
+`BT-076-001` was ratified as unblocked by the Sprint Owner (`NEXUS-RAT-2026-07-18-001`, dated 2026-07-18) after this Builder pass had already completed — `git status`/diff confirm `host-mission-workflow.ts:471` still passes a bare string, and `review.aggregate.ts`/`review.contract.ts`/`review.types.ts` still retain the `ReviewPlanRevisionReference | string` union and the silent string-to-`ExecutableMissionPlan` inference branch, exactly as at `NEXUS-REV-2026-07-17-020`. `IMPLEMENTATION_REPORT.md` accurately discloses this ("`BT-076-001` remains blocked pending Sprint Owner governance ratification and was not implemented") — an accurate statement as of when it was written, now simply superseded by the ratification. This is not a new defect and not a misrepresentation; it is unimplemented, now-authorized scope. Sprint 76 cannot be certified Approved while a required, ratified Authorized Concept (`NEXUS-RAT-2026-07-18-001`'s explicit Host migration and union/fallback removal) remains entirely unimplemented.
+
+### Findings
+
+#### NEXUS-REV-2026-07-18-001-F-001 — `BT-076-001` (now unblocked) remains unimplemented (Category 1 — Implementation Defect, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-18-001` (requires the explicit `host-mission-workflow.ts` migration and removal of the `ReviewPlanRevisionReference | string` union and silent-inference branch); `builder-task.md` `BT-076-001` (Open).
+- **Evidence:** `git status --porcelain -- src/hosts` shows no change to `host-mission-workflow.ts`; `git diff -- src/kernel/review/review.aggregate.ts src/kernel/review/review.contract.ts` shows no change since `NEXUS-REV-2026-07-17-020` — the union type and `normalizeReviewPlanRevisionReference`'s `typeof reference === 'string'` branch are both still present.
+- **Impact:** Sprint 76's full authorized scope (as it now stands, incorporating `NEXUS-RAT-2026-07-18-001`) is not yet delivered. The Activation path itself is unaffected (its own `kind`-aware checks are unchanged and correct), so this is not a live correctness risk to Activation, but it is a required, ratified deliverable that is simply not yet done.
+- **Recommended Disposition:** Builder Task (already open as `BT-076-001`; no new task needed). Not a governance question — the Sprint Owner has already ratified the required change.
+- **Builder Action:** Implement `BT-076-001` exactly as specified in `builder-task.md` and `NEXUS-RAT-2026-07-18-001`.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Builder Tasks verified this cycle | 1 of 2 (`BT-076-002` Resolved; `BT-076-001` not yet attempted) |
+| Builder Tasks still open | 1 (`BT-076-001`) |
+| New findings | 1 (Category 1, Major — carried into the still-open `BT-076-001`, not a new task) |
+| Critical / Major / Minor | 0 / 1 / 0 |
+| Architectural Violations | 0 |
+| Validation | `planning-activation.service.test.ts`, `review.aggregate.test.ts`, `planning-correlation.test.ts` independently re-run: 29/29 passing. Full repository validation (`tsc`, ESLint, full Vitest suite, build, extension-host bundle) not independently re-run this cycle; relied on `IMPLEMENTATION_REPORT.md`'s reported clean run for `BT-076-002`, which this cycle's targeted re-run corroborates for the affected files. |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-020`. This cycle introduces no new capability, deferred or otherwise.
+
+### Architectural Compliance Summary
+
+`BT-076-002`'s remediation is minimal, correctly scoped, and test-verified — the executable-state commit now precedes the lifecycle-transition persistence, and the accompanying test proves both non-corruption and recoverability on failure. No Sprint 1–75 file, `MissionPlanningService`, `MissionPlan`, `Task`, or `TaskDependency` was touched. `src/hosts` and `src/adapters` remain untouched this cycle (BT-076-001's authorized Host edit has not yet been made).
+
+### Builder Task Recommendation
+
+`BT-076-002` SHALL be marked Completed by the next `nexus-sprint` cycle. `BT-076-001` remains Open (not Blocked — `NEXUS-RAT-2026-07-18-001` already authorizes it) and SHALL be carried forward unchanged; no new Builder Task is generated by this review, since the existing `BT-076-001` already covers the required scope precisely. Sprint 76 does not advance to Approved this cycle; `IMPLEMENTATION_PLAN.md` is left unchanged pending `BT-076-001`'s implementation.
+
+---
+
+## NEXUS-REV-2026-07-17-020 — Sprint 76 — Approved Plan Activation
+
+- **Reviewed Sprint:** Sprint 76 — Approved Plan Activation (Milestone 11, Initial Capability Sequence step 7). Authorized by `NEXUS-RAT-2026-07-17-017`, incorporating the typed `ReviewPlanRevisionReference` migration ratified by `NEXUS-RAT-2026-07-17-016` (RFC-0006 v1.1). First review cycle.
+- **Reviewed Change:** `src/kernel/review/{review.aggregate.ts,review.contract.ts,review.events.ts,review.types.ts}` (typed `ReviewPlanRevisionReference`); `src/kernel/planning/planning-correlation.service.ts` (`assertReviewMatchesCorrelation`/`assertReviewMatchesRevision` corrected to check `kind`); `src/kernel/planning/planning.types.ts` and `proposed-plan-revision.ts` (`Activated`/`Superseded` Proposal Lifecycle values and transitions); `src/kernel/planning/proposed-mission-plan.ts` (`activateRevision`); new `src/kernel/planning/planning-activation.service.ts` (`PlanningActivationService`, staging repository, buffering event bus); `src/kernel/common/create-kernel-services.ts` (additive Kernel registration); corresponding test suites.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (Primary, Activation); RFC-0006 v1.1 — Engineering Assessment Model (Referenced, `ReviewPlanRevisionReference`); RFC-0001, RFC-0004, RFC-0005, RFC-0008, RFC-0011 (Referenced, consumed read-only).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (one Category 3 — Specification Conflict, blocking; one Category 1 — Implementation Defect, Major)
+
+### Executive Summary
+
+`PlanningActivationService` correctly implements the great majority of RFC-0012's Activation section and `NEXUS-RAT-2026-07-17-017`'s Required Activation Guarantees: precondition re-verification (Structural Plan Validation, terminal `Approved` `GovernanceDecision`, `ReviewPlanRevisionReference` match) occurs before any write; MissionPlan/Task conversion is staged through a `StagedMissionPlanningRepository` and `BufferingEventBus` so a failure during multi-Task conversion persists no executable state and publishes no events (verified by a passing test); idempotent retry of an already-`Activated` revision is implemented; a second revision cannot activate once one has; sibling `Governed` revisions are correctly transitioned to `Superseded`; `MissionPlanningService`/`MissionPlan`/`Task`/`TaskDependency` are confirmed byte-for-byte unmodified; and full traceability metadata is preserved.
+
+Two issues prevent approval this cycle.
+
+First, the Sprint's own Authorized Concepts required migrating the one existing pre-Sprint-74 `Review` construction call site (`host-mission-workflow.ts:471`) to explicitly supply `kind: 'ExecutableMissionPlan'`, while the Sprint's own Architectural Boundaries simultaneously forbid modifying `src/hosts`. This is a genuine, self-contained Specification Conflict inside the authorization the Builder should have stopped on and reported, per IMPLEMENTATION_CONSTITUTION.md's Stop Conditions. Instead, the Builder silently resolved it by keeping `missionPlanRevision: ReviewPlanRevisionReference | string` on the public contract and adding a silent string-to-`ExecutableMissionPlan` inference path in `Review` — precisely the outcome both `NEXUS-RAT-2026-07-17-016` and `-017` named and prohibited ("legacy untyped values are not inferred silently"). `IMPLEMENTATION_REPORT.md`'s claim that legacy callers were "normalized... to `kind: 'ExecutableMissionPlan'`" does not match the code: the only legacy caller was left passing a bare string.
+
+Second, Activation's real-write ordering does not satisfy "commit all executable objects and lifecycle transitions as one exclusive operation": `proposedMissionPlanRepository.save(activatedProposedMissionPlan)` (marking the revision `Activated`/siblings `Superseded`) is a real, immediate write that completes before `stagingRepository.commit()` (the real write of the executable `MissionPlan`). A failure in the latter after the former succeeds would leave a Proposed Plan Revision permanently marked `Activated` with no backing executable state, and no retry path — `resolveIdempotentActivation` would find no matching `MissionPlan` and fail permanently. No test exercises a failure at this specific window; the existing mid-conversion-failure test injects its failure earlier, during staged `addTask` calls, before either real write occurs.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-020-F-001 — Legacy `Review` call site left unmigrated; silent string-to-`ExecutableMissionPlan` inference contradicts the ratified rule (Category 3 — Specification Conflict, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-17-016` ("legacy untyped values are not inferred silently"); `NEXUS-RAT-2026-07-17-017` (same rule, confirmed unchanged); Sprint 76 record, Authorized Concept 1 ("Migrate every existing pre-Sprint-74 `Review` construction call site... to supply `kind: 'ExecutableMissionPlan'`") vs. Architectural Boundaries ("SHALL NOT... modify... `src/hosts`"); IMPLEMENTATION_CONSTITUTION.md Stop Conditions ("conflicting RFC requirements... contradictory documentation... Implementers SHALL report the conflict rather than making assumptions").
+- **Evidence:** `src/hosts/vscode/host-mission-workflow.ts:471` still passes `missionPlanRevision: missionPlanRevisionId` (a bare string) to `reviewService.startReview(...)`, unmodified. `src/kernel/review/review.aggregate.ts`'s `normalizeReviewPlanRevisionReference` accepts a bare string and silently returns `{ kind: 'ExecutableMissionPlan', revisionId: ... }`. `CreateReviewInput`/`StartReviewCommand`/`review.aggregate.ts`'s constructor all retain `ReviewPlanRevisionReference | string`. Three test files (`host-mission-workflow.test.ts`, `host-mission-workflow-command-registration.test.ts`, `planning-correlation.test.ts`) explicitly exercise and depend on this string-coercion branch. `IMPLEMENTATION_REPORT.md` §Sprint 76 states legacy callers were "normalized... to `kind: 'ExecutableMissionPlan'`", which is inaccurate for this call site.
+- **Impact:** The two ratifications' explicit, twice-stated rule against silent inference is not satisfied for the one caller it was written to cover. The Activation path itself remains safe today (the `kind`-aware fail-closed check in `assertReviewReferenceMatches`/`assertReviewMatchesCorrelation` cannot be fooled by an inferred `ExecutableMissionPlan` reference), which keeps this from being a live correctness bug against Activation — but the conflict between the Sprint's own two requirements was never surfaced to the Sprint Owner for resolution, and the public `Review` contract now permanently retains an implicit, silently-inferring string path with no documented sunset.
+- **Recommended Disposition:** Category 3 dispositions require implementation to stop and the conflict be referred for governance resolution. Recommend the Sprint Owner choose between: (a) explicitly ratifying the silent-inference fallback as a permanent, narrow, documented exception scoped to this one call site, or (b) authorizing the one-line `src/hosts/vscode/host-mission-workflow.ts` change needed to pass `{ kind: 'ExecutableMissionPlan', revisionId: missionPlanRevisionId }` explicitly (a content edit, not an architectural redesign of the Host).
+- **Builder Action:** None until the Sprint Owner resolves the conflict; this is a Governance Decision Required item, not a Builder-correctable defect in isolation.
+
+#### NEXUS-REV-2026-07-17-020-F-002 — Activation's two real repository writes are not committed as one exclusive operation (Category 1 — Implementation Defect, Major)
+
+- **Authority:** `NEXUS-RAT-2026-07-17-017` Required Activation Guarantees ("stage the complete... conversion before commit"; "commit all executable objects and lifecycle transitions as one exclusive operation"); Sprint 76 record Acceptance Criteria ("No partial executable state... is observable under any injected mid-Activation failure").
+- **Evidence:** `src/kernel/planning/planning-activation.service.ts:177-182`: `proposedMissionPlanRepository.save(activatedProposedMissionPlan)` executes and durably persists the `Activated`/`Superseded` transitions, then `stagingRepository.commit()` performs the separate, real write of the executable `MissionPlan`. No wrapping transaction or compensating rollback exists between the two. `planning-activation.service.test.ts`'s mid-conversion-failure test injects its failure during the staged `addTask` loop (before either real write), so this specific window is untested.
+- **Impact:** A failure in `stagingRepository.commit()` after `proposedMissionPlanRepository.save()` succeeds leaves the Proposed Plan Revision permanently marked `Activated` (and its former siblings `Superseded`) with no backing executable `MissionPlan`. A retry for that same revision routes to `resolveIdempotentActivation` (via the `existingActivatedRevision` check), which finds no matching `MissionPlan` by traceability metadata and throws `PlanningCorrelationAssociationRejectedError` permanently, with no remediation path. This is not reachable through `InMemoryMissionRepository.saveMissionPlan` today (a plain `Map.set` that cannot throw), so it is latent rather than currently exploitable, but it directly contradicts an explicit, binding Required Activation Guarantee.
+- **Recommended Disposition:** Builder Task. Reorder so the executable `MissionPlan` commit (`stagingRepository.commit()`) precedes the `ProposedMissionPlan` lifecycle persistence, or introduce a single combined staging boundary covering both repositories so that either both writes succeed or neither is observable; add a test that injects a failure specifically at the `stagingRepository.commit()` step (after successful staged conversion) and confirms no lifecycle transition is persisted.
+- **Builder Action:** Fix; no governance approval required for this item alone.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 2 |
+| Critical / Major / Minor / Informational | 0 / 2 / 0 / 0 |
+| Category 1 — Implementation Defect | 1 (F-002) |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 (F-001) |
+| Category 4 — Documentation Drift | 0 (folded into F-001's evidence; `IMPLEMENTATION_REPORT.md`'s inaccurate claim is not independently dispositive) |
+| Validation reproduced | `tsc --noEmit`, ESLint, and the Sprint 76-relevant Vitest suites confirmed passing per `IMPLEMENTATION_REPORT.md`; not independently re-run beyond source review this cycle given the blocking Category 3 finding |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0012 Planning-domain Domain Event publication (`ProposedMissionPlanActivated`, etc. — distinct from the RFC-0001 events Activation publishes via `MissionPlanningService`); AI-generated planning; Adapter/provider selection; workflow orchestration; new Repository Policy authoring/versioning/selection; Autonomous Planning Integration Validation and Milestone 11 closure (Sprint 77). No deferred concept was found implemented, stubbed, or referenced.
+
+### Architectural Compliance Summary
+
+`MissionPlanningService`, `MissionPlan`, `Task`, and `TaskDependency` (Sprint 3) are confirmed byte-for-byte unmodified — Activation correctly writes exclusively through their existing public operations. No Sprint 72–75 Planning domain model, value object, service, or validation logic was modified beyond the two changes Sprint 76 explicitly authorized (`assertReviewMatchesCorrelation`/`assertReviewMatchesRevision` comparison logic; the additive `Activated`/`Superseded` lifecycle values and transitions). `src/hosts` and `src/adapters` production files are confirmed untouched. RFC-0001, RFC-0004, RFC-0005, RFC-0008, RFC-0011, RFC-0012, and the Kernel Canon are unmodified. The two findings above are the sole compliance gaps identified.
+
+### Builder Task Recommendation
+
+Recommend `nexus-sprint` generate:
+
+- One Blocked Builder Task for F-001, pending a Sprint Owner governance decision (per Category 3 disposition) choosing between ratifying the silent-inference fallback or authorizing the explicit `host-mission-workflow.ts` migration.
+- One Builder Task for F-002, correcting Activation's write ordering to a single exclusive commit boundary and adding the missing failure-injection test at the `stagingRepository.commit()` step.
+
+Sprint 76 does not advance to Approved this cycle; `IMPLEMENTATION_PLAN.md` is left unchanged pending remediation.
+
+---
+
+## NEXUS-REV-2026-07-17-019 — Sprint 75 — Proposal Governance Integration (BT-075-003 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 75 — Proposal Governance Integration (Milestone 11, Initial Capability Sequence step 6). Follow-up cycle verifying `builder-task.md`'s Open Builder Task, `BT-075-003`, generated from `NEXUS-REV-2026-07-17-018`'s Minor finding F-001.
+- **Reviewed Change:** `test/kernel/planning/planning-correlation.test.ts` — one new test case, `'rejects superseding a terminal GovernanceDecision recorded before the revision transition commits'`, directly reproducing the non-atomic-write edge case: manually seeding a `PlanningCorrelation` whose recorded `governanceDecisionId` already references a terminal (`Approved`) `GovernanceDecision` while the associated `ProposedPlanRevision` remains `Under Review`, then asserting that `evaluateGovernance` attempting to record a different `governanceDecisionId` is rejected with `PlanningCorrelationAssociationRejectedError`, and that the correlation's `governanceDecisionId` remains unchanged. No other file changed.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (unchanged; this cycle adds test coverage within Sprint 75's already-approved scope, not new capability).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS (Sprint 75 fully closed, zero open findings of any category)
+
+### Executive Summary
+
+Independently verified the new test precisely reproduces the scenario `BT-075-003` required and exercises exactly the previously-untested branch: it registers a terminal `Approved` `GovernanceDecision` directly against the shared `governanceDecisionRepository`, manually associates it onto the `PlanningCorrelation` (bypassing `evaluateGovernance`, reproducing the non-atomic-write window where the correlation's `GovernanceDecision` reference is saved but the corresponding `ProposedPlanRevision` transition never committed), then calls `evaluateGovernance` with a different, newly-registered `Rejected` decision and confirms rejection via `PlanningCorrelationAssociationRejectedError`, with the correlation's `governanceDecisionId` provably unchanged afterward. This is exactly the `assertExistingGovernanceDecisionCanBeSuperseded` terminal-outcome branch identified as untested by `NEXUS-REV-2026-07-17-018-F-001`.
+
+Confirmed no production source file changed (`git status --porcelain -- src test` limited to the one test file) and no pre-existing test was modified or removed. Re-executed the full validation pipeline: `tsc --noEmit`, ESLint, the full test suite (664/664 tests, 94 files, up from 663/94 at `NEXUS-REV-2026-07-17-018`, consistent with exactly one new test), `npm run build`, and `npm run test:extension-host:build`, all clean. `git status --porcelain -- src/kernel/review src/kernel/governance src/hosts src/adapters` returned empty, confirming zero drift outside the Planning test suite.
+
+`BT-075-003` is Resolved. This closes the last open item from Sprint 75's review history. Sprint 75 remains **Approved with Findings** (`NEXUS-REV-2026-07-17-018`) with zero open findings of any blocking or non-blocking category remaining — `NEXUS-REV-2026-07-17-016-F-003` (Informational Observation) is the only item still carried forward, non-blocking, for Sprint 76 planning awareness.
+
+### Findings
+
+No new findings. This cycle is a targeted resolution-verification pass over `BT-075-003` only, per `nexus-sprint`'s `builder-task.md`.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Builder Tasks verified this cycle | 1 of 1 (`BT-075-003`) |
+| Builder Tasks still open | 0 |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — compile, lint, Vitest 664/664 (94 files), build, extension-host bundle build |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-018`. This cycle introduces no new capability, deferred or otherwise.
+
+### Architectural Compliance Summary
+
+`BT-075-003`'s remediation is minimal, additive, and test-only — compliant with its Acceptance Criteria. No production behavior changed. Sprint 75's full implementation (Sprint 72 foundation through the `NEXUS-RAT-2026-07-17-015` correction) remains conformant to RFC-0012 v1.1 and RFC-0011.
+
+### Builder Task Recommendation
+
+None generated by this document. `BT-075-003` is Resolved and SHALL be marked Completed by the next `nexus-sprint` cycle. Sprint 75 is fully closed with zero open findings of any blocking category (`NEXUS-REV-2026-07-17-016-F-003` remains a non-blocking Observation, carried forward for Sprint 76 awareness). Milestone 11 Initial Capability Sequence step 7 (Approved Plan Activation, Sprint 76) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-17-018 — Sprint 75 — Proposal Governance Integration (BT-075-001 Corrective Implementation Verification)
+
+- **Reviewed Sprint:** Sprint 75 — Proposal Governance Integration (Milestone 11, Initial Capability Sequence step 6). Corrective cycle verifying `builder-task.md`'s Open Builder Task, `BT-075-001`, generated from `NEXUS-RAT-2026-07-17-015`'s ratified resolution of `NEXUS-REV-2026-07-17-016-F-001` (Category 2, Critical).
+- **Reviewed Change:** `src/kernel/planning/planning-correlation.service.ts`, `src/kernel/planning/planning-correlation.ts`, `src/kernel/planning/planning-correlation.repository.ts`, `src/kernel/common/create-kernel-services.ts`, `test/kernel/planning/planning-correlation.test.ts`. `planning.types.ts`, `proposed-mission-plan.ts`, and `proposed-plan-revision.ts` are byte-for-byte unchanged from `NEXUS-REV-2026-07-17-016`/`-017` — confirming `BT-075-001`'s instruction that no new Proposal Lifecycle state or transition would be introduced.
+- **RFC Coverage:** RFC-0012 v1.1 — Autonomous Engineering Planning Model (implements the v1.1 amendment's `Deferred`/`Escalation Required` handling, ratified by `NEXUS-RAT-2026-07-17-015`); RFC-0011 — Engineering Governance Model (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+`BT-075-001` is correctly and completely implemented. `PlanningCorrelationService.evaluateGovernance` now distinguishes all four `GovernanceDecisionValue` outcomes: `Approved` transitions the revision to `Governed` (unchanged); a `Rejected` `GovernanceDecision` or a non-eligible Review outcome transitions the revision to `Rejected` (unchanged); `Deferred` and `Escalation Required` now return early, immediately after recording the `GovernanceDecision` reference on the `PlanningCorrelation`, without invoking any `ProposedMissionPlan`/`ProposedPlanRevision` transition method — the revision correctly remains `Under Review`. No new Proposal Lifecycle state, value, or transition method was introduced anywhere in `src/kernel/planning/`, confirmed by the complete absence of diffs in `planning.types.ts`, `proposed-mission-plan.ts`, and `proposed-plan-revision.ts`.
+
+The corrective `governanceDecisionId` supersession model is implemented precisely as `NEXUS-RAT-2026-07-17-015` specified: `PlanningCorrelation` gains a new `supersedeGovernanceDecision` method (additive; the original `associateGovernanceDecision`'s first-association behavior is unchanged), and `PlanningCorrelationService.savePlanningCorrelationGovernanceDecision` resolves the *previously recorded* `GovernanceDecision`'s outcome (via the pre-existing, unmodified `IGovernanceDecisionRepository`) before permitting supersession — rejecting with `PlanningCorrelationAssociationRejectedError` if that prior outcome was already `Approved` or `Rejected`. The repository layer (`InMemoryPlanningCorrelationRepository.saveWithSupersededGovernanceDecision` / `assertAppendOnlyAssociations`) enforces the same rule as a second, independent guard. Four new tests exercise `Deferred`, `Escalation Required`, supersession-to-`Governed`, and supersession-to-`Rejected` end-to-end, all passing.
+
+Full validation independently re-executed and clean: `tsc --noEmit`, ESLint, the full test suite (663/663 tests, 94 files, up from 659/94 at `NEXUS-REV-2026-07-17-017`, consistent with exactly four new tests), `npm run build`, and `npm run test:extension-host:build`. `git status --porcelain -- src test` confirms drift limited to the five files above; `src/kernel/review/`, `src/kernel/governance/`, `src/hosts`, and `src/adapters` are confirmed byte-for-byte untouched.
+
+One new Minor finding: the terminal-outcome rejection branch inside `assertExistingGovernanceDecisionCanBeSuperseded` — reachable when a prior `evaluateGovernance` call persisted a terminal `GovernanceDecision` reference on the `PlanningCorrelation` but failed before completing the corresponding `ProposedPlanRevision` transition (the two saves are not atomic), and a retry then attempts to record a different `GovernanceDecision` — is not exercised by any test. This is a real, reachable defensive branch (not dead code), consistent with this repository's disclosed non-atomic save-then-transition pattern (Sprint 11 Notes), but it ships untested. Non-blocking.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-018-F-001 — `assertExistingGovernanceDecisionCanBeSuperseded`'s terminal-outcome rejection branch is untested
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Testing ("Tests SHALL validate: aggregate behavior... state transitions"); `NEXUS-RAT-2026-07-17-015` ("`governanceDecisionId` SHALL be immutable only once the referenced `GovernanceDecision` outcome is `Approved` or `Rejected`").
+- **Summary:** `planning-correlation.service.ts`'s `assertExistingGovernanceDecisionCanBeSuperseded` resolves the currently-recorded `governanceDecisionId`'s `GovernanceDecision` via `governanceDecisionRepository.getById` and throws `PlanningCorrelationAssociationRejectedError` if `isTerminalGovernanceDecisionValue` is true (`Approved` or `Rejected`). This branch is reachable — the `PlanningCorrelation` save (recording the `GovernanceDecision` reference) and the `ProposedPlanRevision` transition are two separate, non-atomic writes in `evaluateGovernance`; a failure between them followed by a retry with a different `GovernanceDecision` would exercise it — but no test constructs this scenario.
+- **Evidence:** `grep -n "assertExistingGovernanceDecisionCanBeSuperseded" test/kernel/planning/*.test.ts` returns no matches.
+- **Impact:** Low — the logic is a straightforward repository lookup plus one boolean check, and the four new tests thoroughly cover the primary (atomic-success) paths for both non-terminal outcomes and their supersession. The gap is specifically the defensive branch protecting the non-atomic-write edge case.
+- **Required Disposition:** Builder Task — add a direct unit test that seeds a `PlanningCorrelation` whose recorded `governanceDecisionId` already references a terminal (`Approved` or `Rejected`) `GovernanceDecision` (via direct repository/harness construction, bypassing the normal `evaluateGovernance` idempotent-early-return path if necessary) and asserts that attempting to record a different `governanceDecisionId` is rejected with `PlanningCorrelationAssociationRejectedError`.
+- **Builder Action:** Fix (test coverage only; no production defect — the logic is correct as written).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001) |
+| Informational | 0 (F-003 from `NEXUS-REV-2026-07-17-016` carried forward, untouched) |
+| Architectural Violations | 0 (the originating Critical finding, `NEXUS-REV-2026-07-17-016-F-001`, is Resolved) |
+| Validation | PASS — compile, lint, Vitest 663/663 (94 files), build, extension-host bundle build |
+
+### Deferred Concept Validation
+
+- Activation, the `Superseded` transition, Domain Event publication, Repository Policy authoring/versioning/selection, AI-generated planning, Adapter invocation, and workflow orchestration all remain correctly absent — no new import, state, or call path introduces any of them.
+- No Sprint 1–74 production contract, Host, or Adapter file was found to have drifted.
+- Review and Governance domains (`src/kernel/review/`, `src/kernel/governance/`) are confirmed byte-for-byte untouched.
+- `planning.types.ts` (Proposal Lifecycle enum), `proposed-mission-plan.ts`, and `proposed-plan-revision.ts` are confirmed byte-for-byte unchanged since `NEXUS-REV-2026-07-17-017` — no new Proposal Lifecycle state was introduced, exactly as `NEXUS-RAT-2026-07-17-015` requires.
+
+### Architectural Compliance Summary
+
+- **RFC-0011 conformance:** **Now compliant.** `Deferred` and `Escalation Required` `GovernanceDecision` outcomes no longer transition the revision to `Rejected`; they are recorded and leave the revision `Under Review`, consistent with RFC-0011's prohibitions and RFC-0012 v1.1.
+- **RFC-0012 v1.1 conformance:** Compliant. `Approved` → `Governed`; `Rejected` (Review-ineligible or `GovernanceDecision`-`Rejected`) → `Rejected`; `Deferred`/`Escalation Required` → remain `Under Review`, not eligible for Activation, no Governance completion implied; `governanceDecisionId` supersession correctly scoped to non-terminal prior outcomes only.
+- **Additive extension discipline:** `PlanningCorrelation.supersedeGovernanceDecision` and the repository's `saveWithSupersededGovernanceDecision`/`allowGovernanceDecisionSupersession` parameter are new, additive members; the pre-existing `associateGovernanceDecision` first-association behavior, `associateRepositoryPolicy`, and every Sprint 72–74 domain method are unchanged.
+- **Contract boundaries:** `IGovernanceDecisionRepository` (RFC-0011, Sprint 52–56) is consumed through its existing, unmodified public contract via the same shared Kernel-composed instance already used by `GovernanceService`.
+- **Determinism / idempotency:** Repeated evaluation of an already-`Governed`/already-`Rejected` revision is unchanged and still correctly rejected; supersession of a non-terminal (`Deferred`/`Escalation Required`) decision is correctly permitted and tested.
+- **Validation:** `tsc --noEmit`, ESLint, full Vitest suite (663/663, 94 files), `npm run build`, and `npm run test:extension-host:build` all independently re-executed and passing.
+
+### Builder Task Recommendation
+
+Generate a Builder Task via `nexus-sprint` for F-001 (test-coverage only, Minor, non-blocking). No other findings from this cycle or carried forward (`NEXUS-REV-2026-07-17-016-F-003`) require action. Sprint 75 satisfies the approval criteria: implemented concepts conform to RFC-0012 v1.1 and RFC-0011, deferred concepts remain correctly excluded, tests pass, and no Critical or Major findings remain. Recommend the Sprint Owner mark Sprint 75 **Approved with Findings**. Milestone 11 Initial Capability Sequence step 7 (Approved Plan Activation, Sprint 76) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-17-017 — Sprint 75 — Proposal Governance Integration (BT-075-002 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 75 — Proposal Governance Integration (Milestone 11, Initial Capability Sequence step 6). Follow-up cycle verifying `builder-task.md`'s Open Builder Task, `BT-075-002`, generated from `NEXUS-REV-2026-07-17-016`'s Minor finding F-002.
+- **Reviewed Change:** `test/kernel/planning/planning-domain.test.ts` — two new test cases: `ProposedMissionPlan` rejects new `ProposedPlanRevision` creation (via `appendRevision`) when the current revision is `Withdrawn`, and when it is `Rejected`, both asserting `InvalidProposalLifecycleTransitionError` with the exact diagnostic message. No other file changed.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (unchanged; this cycle adds test coverage within Sprint 75's already-implemented scope, not new capability).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged — `BT-075-001`, originating from Critical finding `NEXUS-REV-2026-07-17-016-F-001`, remains open and blocking)
+
+### Executive Summary
+
+Independently verified `git diff -- test/kernel/planning/planning-domain.test.ts` contains exactly the two test cases `BT-075-002` required: a direct construction of a `Withdrawn` `ProposedMissionPlan` asserting `appendRevision` throws `InvalidProposalLifecycleTransitionError` with the message "...cannot create a new ProposedPlanRevision after Withdrawn.", and the equivalent for a `Rejected` current revision with the message "...cannot create a new ProposedPlanRevision after Rejected.". Confirmed no production source file changed (`git status --porcelain -- src test` limited to the one test file) and no pre-existing test was modified or removed. Re-executed the full validation pipeline: `tsc --noEmit`, ESLint, the full test suite (659/659 tests, 94 files, up from 657/94 at `NEXUS-REV-2026-07-17-016`, consistent with exactly two new tests), `npm run build`, and `npm run test:extension-host:build`, all clean.
+
+`BT-075-002` is Resolved. However, `BT-075-001` (Critical, Category 2 — Architectural Violation, originating from `NEXUS-REV-2026-07-17-016-F-001`) remains explicitly Blocked pending Sprint Owner ratification of a Proposal Lifecycle representation for `Deferred` and `Escalation Required` `GovernanceDecision` outcomes. Confirmed by re-inspection that `planning-correlation.service.ts`'s `evaluateGovernance` still contains the unmodified `governanceDecision.value === 'Approved' ? markCurrentRevisionGoverned(...) : rejectCurrentRevision(...)` binary branch, and `grep -rn "Deferred\|Escalation Required" test/kernel/planning/ src/kernel/planning/` returns no matches — the Builder correctly took no implementation action on the blocked task, per `builder-task.md`'s instruction. `IMPLEMENTATION_REPORT.md`'s Sprint 75 section confirms this explicitly under "Review Remediation."
+
+Because the originating Critical finding is unresolved, Sprint 75's Overall Disposition remains **FAIL**. This cycle closes `BT-075-002` only; it does not change Sprint 75's Rejected status.
+
+### Findings
+
+No new findings. This cycle is a targeted resolution-verification pass over `BT-075-002` only, per Sprint Owner instruction (`nexus-sprint`'s `builder-task.md`). `NEXUS-REV-2026-07-17-016-F-001` (Critical) and `-F-003` (Informational Observation) are untouched by this change and remain carried forward exactly as recorded.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Builder Tasks verified this cycle | 1 of 1 (`BT-075-002`) |
+| Builder Tasks still open/blocked | 1 (`BT-075-001`, Blocked, Critical, unresolved) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 (this cycle); 1 / 0 / 0 carried forward from `NEXUS-REV-2026-07-17-016` |
+| Architectural Violations | 0 new; 1 carried forward, unresolved (`F-001`) |
+| Validation | PASS — compile, lint, Vitest 659/659 (94 files), build, extension-host bundle build |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-016`. This cycle introduces no new capability, deferred or otherwise.
+
+### Architectural Compliance Summary
+
+`BT-075-002`'s remediation is minimal, additive, and test-only — compliant with its Acceptance Criteria. Sprint 75's RFC-0011 non-conformance (`F-001`) is unchanged and still present; the Sprint remains non-compliant as a whole until `BT-075-001` is resolved.
+
+### Builder Task Recommendation
+
+None generated by this document. `BT-075-002` is Resolved and SHALL be marked Completed by the next `nexus-sprint` cycle. `BT-075-001` remains Blocked; no further Builder action is possible until a Sprint Owner Ratification defines the required Proposal Lifecycle representation. Recommend routing that decision through a future `nexus-plan` cycle. Sprint 75 remains **Rejected** and does not advance `IMPLEMENTATION_PLAN.md`.
+
+---
+
+## NEXUS-REV-2026-07-17-016 — Sprint 75 — Proposal Governance Integration
+
+- **Reviewed Sprint:** Sprint 75 — Proposal Governance Integration (Milestone 11, Initial Capability Sequence step 6).
+- **Reviewed Vertical Slice:** `PlanningCorrelation` extension with explicit Repository Policy attribution and `governanceDecisionId`; terminal RFC-0006 Review outcome consumption; RFC-0011 `GovernanceServiceContract.evaluateGovernancePolicy` invocation; `Under Review → Governed`, `Under Review → Rejected`, and `Governed → Rejected` Proposal Lifecycle transitions.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (Partial); RFC-0011 — Engineering Governance Model (Referenced, consumed read-only); RFC-0006 — Engineering Assessment Model (Referenced, consumed read-only); RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced, consumed read-only).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Sprint 75's structural implementation is faithful to its authorized scope: the `PlanningCorrelation`/`ProposedPlanRevision` extension is additive and byte-for-byte preserves Sprint 72–74 behavior; Review and Governance domains are untouched; Kernel composition wiring is minimal and additive; and the full repository validation pipeline passes (`tsc --noEmit`, ESLint, 657/657 tests across 94 files, `npm run build`, `npm run test:extension-host:build`, all independently re-executed clean). `git status --porcelain -- src test` confirms drift is limited to the Sprint-75-authorized file set plus the one additive Kernel-composition edit, with zero Host/Adapter drift.
+
+However, `PlanningCorrelationService.evaluateGovernance` contains a Critical RFC-0011 conformance defect: it resolves the Proposed Plan Revision's outcome as a binary `governanceDecision.value === 'Approved' ? Governed : Rejected`, which silently and irreversibly routes both `Deferred` and `Escalation Required` `GovernanceDecision` values into the terminal `Rejected` Proposal Lifecycle state. RFC-0011 explicitly prohibits both: a `Deferred` decision "SHALL NOT be treated as, or reported as, either Approved or Rejected by any consumer," and an `Escalation Required` decision "SHALL NOT default to Approved or Rejected under any circumstance." `Escalation Required` exists specifically to preserve Canon 12 (Human Authority) when repository law does not deterministically resolve a case; this implementation defeats that guarantee for the Planning domain by silently terminating the Proposal instead of escalating. Neither `Deferred` nor `Escalation Required` is exercised anywhere in the test suite, so this conformance gap shipped untested. This finding is dispositive: the Sprint is not approved.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-016-F-001 — `Deferred` and `Escalation Required` `GovernanceDecision` values are silently treated as `Rejected`
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** RFC-0011 — Engineering Governance Model, § Governance Decision — Deferred ("Prohibited side effects: SHALL NOT be treated as, or reported as, either Approved or Rejected by any consumer") and § Governance Decision — Escalation Required ("Prohibited side effects: SHALL NOT default to Approved or Rejected under any circumstance"); RFC-0011 § Governance Escalation ("Escalation is not a failure mode to be minimized away — it is the mechanism by which Canon 12 (Human Authority) is preserved").
+- **Summary:** `src/kernel/planning/planning-correlation.service.ts`, `evaluateGovernance` (final branch): `const evaluatedProposedMissionPlan = governanceDecision.value === 'Approved' ? proposedMissionPlan.markCurrentRevisionGoverned(command) : proposedMissionPlan.rejectCurrentRevision(command);`. `GovernanceDecisionValue` (`src/kernel/governance/governance.types.ts`) has four values — `Approved`, `Rejected`, `Deferred`, `Escalation Required` — and this binary check collapses the latter three into the same terminal `Rejected` Proposal Lifecycle outcome. Per RFC-0012, `Rejected` is a terminal state.
+- **Evidence:** `governance.types.ts` line 11-16 (`governanceDecisionValues`); `planning-correlation.service.ts` `evaluateGovernance`'s final ternary; `grep -rn "Deferred\|Escalation Required" test/kernel/planning/` returns no matches — neither value is exercised by any test.
+- **Impact:** A `Deferred` `GovernanceDecision` (produced when required Evidence or a finalized Review Outcome is not yet available) is supposed to "resolve automatically into a new Policy Evaluation once its missing input becomes available" (RFC-0011); this implementation instead permanently terminates the Proposed Plan Revision as `Rejected`, destroying the ability to re-evaluate once the missing input appears. An `Escalation Required` `GovernanceDecision` (produced when repository law does not deterministically resolve the case, requiring Sprint Owner resolution per RFC-0011 § Governance Escalation) is silently closed out as an ordinary `Rejected` outcome with no human involvement, defeating Canon 12 (Human Authority) for the entire Planning domain's Governance gate.
+- **Required Disposition:** Builder Task — `evaluateGovernance` SHALL distinguish all three non-`Approved` `GovernanceDecisionValue` values. `Rejected` alone may transition the Proposed Plan Revision to `Rejected`. `Deferred` and `Escalation Required` require a Sprint-Owner-ratified representation (for example: leaving the current revision at `Under Review` pending re-evaluation for `Deferred`, and a Planning-domain-appropriate escalation representation for `Escalation Required`) — Category 5, Governance Decision Required, since RFC-0012 does not currently define a Proposal Lifecycle state or transition for either condition and none may be introduced without ratification.
+- **Builder Action:** Stop; await Sprint Owner ratification defining how `Deferred` and `Escalation Required` `GovernanceDecision` values are represented in the Proposal Lifecycle, then fix.
+
+#### NEXUS-REV-2026-07-17-016-F-002 — Extended `assertCurrentStateAllowsNewRevision` `Rejected` branch is untested
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Testing ("Tests SHALL validate: aggregate behavior... state transitions").
+- **Summary:** `proposed-mission-plan.ts`'s `assertCurrentStateAllowsNewRevision` was extended from `this.lifecycleState === 'Withdrawn'` to `this.lifecycleState === 'Withdrawn' || this.lifecycleState === 'Rejected'`. This is a necessary and correctly in-scope consequence of introducing the terminal `Rejected` state (a terminal state must block new revisions, mirroring `Withdrawn`), but no test exercises either branch of this guard — not the pre-existing `Withdrawn` case and not the new `Rejected` case.
+- **Evidence:** `grep -rn "cannot create a new ProposedPlanRevision" test/kernel/planning/` returns no matches.
+- **Impact:** Low — the logic is a straightforward one-line OR extension and validation passes, but a modified guard shipping with zero direct coverage is the same category of gap `NEXUS-REV-2026-07-17-014-F-001` identified for Sprint 74's `Under Review` extension.
+- **Required Disposition:** Builder Task — add direct unit tests asserting `InvalidProposalLifecycleTransitionError` when attempting a new revision from both `Withdrawn` and `Rejected` current-revision states.
+- **Builder Action:** Fix (test coverage only; no production defect).
+
+#### NEXUS-REV-2026-07-17-016-F-003 — `Review.missionPlanRevision`'s dual semantics (Sprint 74 F-002) is now load-bearing for a fail-closed Mission/revision-match check
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-REV-2026-07-17-014-F-002` (carried-forward Observation).
+- **Summary:** `assertReviewMatchesCorrelation` compares `review.missionPlanRevision !== planningCorrelation.proposedPlanRevisionId` to fail closed on a Review/correlation mismatch. Sprint 74 already observed that `Review.missionPlanRevision` carries dual semantics (executable Mission Plan revision reference for ordinary Reviews, vs. a `ProposedPlanRevisionId` for Planning-initiated Reviews) and recommended reconciling this "before Sprint 76 (Activation)." Sprint 75 now makes that same loosely-typed, dual-semantics field load-bearing for a correctness-critical fail-closed check, increasing the cost of leaving it unreconciled.
+- **Impact:** None yet — the field is not normatively constrained by RFC-0006, and the check is correct for how the field is actually populated by `PlanningCorrelationService`. Reconciling this before Sprint 76 (Activation), as Sprint 74's Reviewer already recommended, becomes more important now that a second Planning Sprint depends on the same ambiguity.
+- **Required Disposition:** No action required this Sprint; carried forward with elevated priority for Sprint 76 planning.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 3 |
+| Critical | 1 (F-001) |
+| Major | 0 |
+| Minor | 1 (F-002) |
+| Informational | 1 (F-003) |
+| Architectural Violations | 1 (F-001) |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- Activation, conversion into RFC-0001 executable objects, the `Superseded` transition, Domain Event publication, Repository Policy authoring/versioning/selection, AI-generated planning, Adapter invocation, and workflow orchestration all remain correctly absent — confirmed by import inspection (no Governance-module authoring imports, no RFC-0001 executable-object conversion, no event-bus publication call, no Adapter/provider-selection reference).
+- No Sprint 1–74 production contract, Host, or Adapter file was found to have drifted beyond the one ratification-authorized `PlanningCorrelation`/`ProposedPlanRevision` extension and the one additive Kernel-composition registration.
+- Review and Governance domains (`src/kernel/review/`, `src/kernel/governance/`) are confirmed byte-for-byte untouched (`git diff` empty for both directories).
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership / additive extension:** `PlanningCorrelation` and `ProposedPlanRevision` extensions are additive; every existing Sprint 72–74 field, method signature, validation rule, and diagnostic is unchanged, except the one flagged, in-scope `assertCurrentStateAllowsNewRevision` extension (F-002). Compliant with `NEXUS-RAT-2026-07-17-014`.
+- **Contract boundaries:** `GovernanceServiceContract.evaluateGovernancePolicy`, `ReviewServiceContract.queryReviewResult`, and `IRepositoryPolicyRepository` are all consumed through their existing, unmodified public contracts. Compliant.
+- **RFC-0011 conformance:** **Not compliant.** See F-001 — the Planning domain's Governance-outcome handling does not conform to RFC-0011's `Deferred`/`Escalation Required` semantics.
+- **Fail-closed diagnostics:** Repository Policy attribution (missing/superseded/cross-policy re-evaluation), Mission-identity mismatch, non-terminal Review outcome, and GovernanceDecision/Review/Mission mismatch are all implemented and tested. Compliant.
+- **Determinism / idempotency:** Repeated evaluation of an already-`Governed`/already-`Rejected` revision is idempotent and tested. Compliant.
+- **Validation:** `tsc --noEmit`, ESLint, full Vitest suite (657/657, 94 files), `npm run build`, and `npm run test:extension-host:build` all independently re-executed and passing.
+
+### Builder Task Recommendation
+
+Generate a Builder Task via `nexus-sprint` for F-002 (test-coverage only). F-001 requires Sprint Owner governance resolution before any further Builder implementation on this path — it is not a Builder Task in the ordinary sense, since RFC-0012 does not currently define how `Deferred` or `Escalation Required` should be represented in the Proposal Lifecycle, and no Ratification may introduce that representation without Sprint Owner decision. F-003 requires no action this Sprint; recommend it inform Sprint 76 scoping. Sprint 75 is **Rejected**; `IMPLEMENTATION_PLAN.md` is left unchanged and Sprint 75 does not advance. Remediation SHALL proceed through `nexus-sprint`.
+
+---
+
+## NEXUS-REV-2026-07-17-015 — Sprint 74 — Planning Correlation and Review Entry Foundation (BT-074-001 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 74 — Planning Correlation and Review Entry Foundation (Milestone 11, Initial Capability Sequence step 5). Follow-up cycle verifying `builder-task.md`'s one Open Builder Task, `BT-074-001`, generated from `NEXUS-REV-2026-07-17-014`'s Minor finding F-001.
+- **Reviewed Change:** `test/kernel/planning/planning-domain.test.ts` — three new test cases: `ProposedMissionPlan.markCurrentRevisionUnderReview` success from a `Submitted` current revision, and rejection (`InvalidProposalLifecycleTransitionError`) from `Draft` and from `Withdrawn`, all invoked directly at the aggregate level (bypassing `PlanningCorrelationService`). No other file changed.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (unchanged; this cycle adds test coverage within Sprint 74's already-approved scope, not new capability).
+- **Review Date:** 2026-07-17
+- **Ratification:** `NEXUS-RAT-2026-07-17-012` (Sprint 74 scope), `NEXUS-RAT-2026-07-17-013` (additive `Under Review` lifecycle-extension authorization) — both unchanged and consumed read-only by this cycle.
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0074-planning-correlation-and-review-entry-foundation.md`
+
+### Executive Summary
+
+Independently verified `BT-074-001`'s resolution of `NEXUS-REV-2026-07-17-014-F-001`. `git diff -- test/kernel/planning/planning-domain.test.ts` shows exactly the three test cases `BT-074-001` required, added after the pre-existing `'rejects an Under Review... '`-adjacent test block, with no modification to any pre-existing test in the file. Each new test exercises `ProposedMissionPlan.markCurrentRevisionUnderReview` directly — not through `PlanningCorrelationService` — closing the coverage gap F-001 identified: the first test constructs a `Draft` plan, transitions it through `submitCurrentRevision` to `Submitted`, then calls `markCurrentRevisionUnderReview` and asserts the resulting `lifecycleState` is `'Under Review'` and the revision history is `['Draft', 'Submitted', 'Under Review']`; the second test calls `markCurrentRevisionUnderReview` directly on a freshly-created (`Draft`) `ProposedMissionPlan` and asserts it throws `InvalidProposalLifecycleTransitionError`; the third test transitions a plan through `Submitted → Withdrawn` and asserts calling `markCurrentRevisionUnderReview` on the `Withdrawn` plan also throws `InvalidProposalLifecycleTransitionError`. All three exercise the exact `isAllowedTransition` boundary `NEXUS-RAT-2026-07-17-013` authorized and bounded ("reachable only from `Submitted`, rejected from `Draft` or `Withdrawn`").
+
+Confirmed via `git status --porcelain -- src test` that drift is limited to exactly this one test file — `BT-074-001`'s Acceptance Criteria required no production source change, and none occurred. Confirmed via `git diff --stat` that `src/kernel/planning/proposed-mission-plan.ts` and `proposed-plan-revision.ts` are byte-for-byte identical to their state at `NEXUS-REV-2026-07-17-014` (same additive diff, unchanged since). Confirmed no existing test in `planning-domain.test.ts`, `planning.service.test.ts`, or `planning-correlation.test.ts` was modified or removed.
+
+Independently re-executed the full validation pipeline: `npm run validate` (`tsc --noEmit`, ESLint, Vitest — **652/652 tests passing, 94 files**, up from 649/94 at `NEXUS-REV-2026-07-17-014`, consistent with exactly three new tests in the same file) and `npm run build`, both clean; `npm run test:extension-host:build` clean. `git status --porcelain -- src/hosts src/adapters` is empty. `IMPLEMENTATION_REPORT.md`'s new "Review Remediation" subsection under Sprint 74 accurately records `BT-074-001`'s resolution and correctly states no production source was modified.
+
+### Overall Disposition
+
+**PASS.**
+
+`BT-074-001` is resolved exactly as scoped. No new findings. `NEXUS-REV-2026-07-17-014-F-002` and `F-003` (Category 6 Observations) are untouched by this cycle and remain carried forward for future Sprint awareness — no Builder Task associated with either.
+
+### Findings
+
+None. Zero Category 1 (Implementation Defect), Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings. No new Category 6 (Observation) recorded in this cycle.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- Unchanged from `NEXUS-REV-2026-07-17-014`: terminal Review outcome consumption; `Governed`/`Activated`/`Rejected`/`Superseded` states; `GovernanceDecision` correlation; Activation; Domain Event publication for the Planning domain; AI-generated planning; workflow orchestration — all confirmed still absent.
+
+### Architectural Compliance Summary
+
+- **Approved Vertical Slice Immutability:** confirmed Sprint 72/73's frozen transitions, method signatures, validation, and diagnostics remain unmodified; the one additive `Under Review` extension authorized by `NEXUS-RAT-2026-07-17-013` is unchanged since `NEXUS-REV-2026-07-17-014` and is now directly, independently tested at the aggregate level.
+- **Test coverage:** the exact gap identified by F-001 is closed — `ProposedMissionPlan.markCurrentRevisionUnderReview`/`ProposedPlanRevision.transitionTo('Under Review')` now have direct, isolated coverage for success from `Submitted` and rejection from `Draft` and `Withdrawn`, independent of `PlanningCorrelationService`'s own separate guard. Full repository suite: 652/652 passing, 94 files (independently re-executed).
+- **Scope discipline:** `BT-074-001`'s Required Changes and Acceptance Criteria were followed exactly — test-only change, no production source modified, no existing test altered.
+- **Documentation:** `IMPLEMENTATION_REPORT.md`'s Sprint 74 "Review Remediation" subsection accurately reflects the resolution.
+
+### Builder Task Recommendation
+
+None. `BT-074-001` is resolved and should be marked Completed. No further Builder action arises from this cycle. Sprint 74 remains Approved with Findings (its Final Disposition already recorded F-002/F-003 as Observations requiring no action); `builder-task.md` should be updated to reflect `BT-074-001` as Completed, with zero remaining Open Builder Tasks.
+
+---
+
+## NEXUS-REV-2026-07-17-014 — Sprint 74 — Planning Correlation and Review Entry Foundation
+
+- **Reviewed Sprint:** Sprint 74 — Planning Correlation and Review Entry Foundation (Milestone 11, Initial Capability Sequence step 5, refined from "Plan Review, Governance, and Activation").
+- **Reviewed Change:** New `src/kernel/planning/planning-correlation.ts`, `planning-correlation-id.ts`, `planning-correlation.repository.ts`, `planning-correlation.service.ts`, and `test/kernel/planning/planning-correlation.test.ts`; additive changes to `src/kernel/planning/planning.errors.ts` (four new error classes), `planning.types.ts` (`Under Review` lifecycle value, `PlanningCorrelationSnapshot`), `proposed-mission-plan.ts` (`markCurrentRevisionUnderReview`), `proposed-plan-revision.ts` (`Submitted → Under Review` added to `isAllowedTransition`), and `src/kernel/common/create-kernel-services.ts` (additive `PlanningCorrelationService` Kernel composition registration); additive allowlist updates to `test/integration/kernel-boundary-certification.integration.test.ts`, `test/integration/autonomous-engineering-integration-validation.integration.test.ts`, and `test/integration/governance-automation-integration-validation.integration.test.ts`.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; Planning Correlation and the `Submitted → Under Review` transition, unmodified). RFC-0006 (Referenced; `Review` consumed read-only through its existing public contract). RFC-0001, RFC-0004, RFC-0005, RFC-0008 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Ratification:** `NEXUS-RAT-2026-07-17-012` (Sprint 74 scope authorization) and `NEXUS-RAT-2026-07-17-013` (additive `Under Review` lifecycle-extension correction).
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0074-planning-correlation-and-review-entry-foundation.md`
+
+### Executive Summary
+
+Independently verified Sprint 74's implementation against `NEXUS-RAT-2026-07-17-012`'s authorized scope as corrected by `NEXUS-RAT-2026-07-17-013`. `PlanningCorrelation` is a new, immutable value type correlating `missionId`, `ProposedMissionPlanId`, the exact `ProposedPlanRevisionId`, Planner Attribution, an optional `reviewId` (appended exactly once via `associateReview`), and causation/correlation identifiers; `InMemoryPlanningCorrelationRepository` enforces append-only association (`assertAppendOnlyAssociations` rejects changing an already-set `reviewId`) and immutable creation fields (`assertImmutableCreationFields`), with lookup by id, by Review, and by exact revision key.
+
+`PlanningCorrelationService.enterReview` orchestrates the `Submitted → Under Review` transition: it resolves the exact `ProposedMissionPlan` (by id, or uniquely by Mission when unambiguous — rejecting zero or multiple matches), asserts the current revision is exactly the requested `Submitted` revision (rejecting missing, non-current, or non-`Submitted` revisions), invokes the new `ProposedMissionPlan.markCurrentRevisionUnderReview` (delegating to the existing, unmodified `appendLifecycleRevision` helper), initiates an RFC-0006 `Review` through `ReviewService.startReview`'s existing public contract, verifies the returned `Review`'s `missionId` and `missionPlanRevision` match the Planning Correlation's own Mission and revision (rejecting cross-Mission or cross-revision Review references), rejects a Review already associated with a different `PlanningCorrelation`, and persists the correlation and the transitioned `ProposedMissionPlan` only after both succeed. Idempotency is implemented at the top of `enterReview`: an already-`Under Review` current revision short-circuits to the existing persisted `PlanningCorrelation`/`Review` reference rather than re-transitioning or re-registering.
+
+Confirmed the additive lifecycle extension authorized by `NEXUS-RAT-2026-07-17-013` is minimal and precisely bounded: `planning.types.ts`'s `proposalLifecycleStates` gained exactly one new value (`'Under Review'`), and `proposed-plan-revision.ts`'s `isAllowedTransition` gained exactly one new allowed pair (`Submitted → Under Review`); the existing `Draft → Submitted`, `Draft → Withdrawn`, and `Submitted → Withdrawn` pairs, the shared `transitionTo` guard, and every other Sprint 72/73 method, signature, and validation rule are byte-for-byte unchanged (confirmed by diff inspection — no other line in either file changed). `ProposedMissionPlan.markCurrentRevisionUnderReview` is a new one-line method delegating to the existing, unmodified `appendLifecycleRevision` private helper, mirroring `withdrawCurrentRevision`'s existing shape exactly.
+
+Confirmed by import inspection across all new/changed Planning files that no Deferred Concept is present: no `ReviewOutcome` field is read or branched on anywhere in `planning-correlation.service.ts`; no `Governed`/`Activated`/`Rejected`/`Superseded` lifecycle value exists in `planning.types.ts`; no import from `src/kernel/governance/`; no import from `src/kernel/mission/mission-planning.service` or `mission-execution.service`; no `EventBusContract` import in any Planning file (no Planning-domain Domain Event publication); no Adapter dispatch or Workflow Chain/Step reference; and `git status --porcelain -- src/hosts src/adapters` is empty.
+
+Independently re-executed the full validation pipeline: `npm run validate` (`tsc --noEmit`, ESLint, Vitest — **649/649 tests passing, 94 files**, up from 643/93 at Sprint 73's close, consistent with exactly one new test file and six new tests), and `npm run build`, both clean; `npm run test:extension-host:build` clean. `git status --porcelain -- src test` confirms drift limited to exactly the file set listed above — zero Sprint 1–73 production/test drift beyond the two authorized additive edits (`create-kernel-services.ts`, and the one ratified `ProposedPlanRevision`/`ProposedMissionPlan` lifecycle extension), and zero `src/hosts`/`src/adapters` drift. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized and mutually consistent with the Sprint 74 record and both ratifications.
+
+### Overall Disposition
+
+**PASS WITH FINDINGS.**
+
+One Minor, non-blocking Category 1 finding (missing direct unit coverage for the newly authorized aggregate-level lifecycle extension). Two Category 6 Observations. Zero Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-014-F-001 — No direct unit test exercises `ProposedPlanRevision`'s new `Submitted → Under Review` transition or its rejection from `Draft`/`Withdrawn` at the aggregate level
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Testing ("Tests SHALL validate: aggregate behavior... state transitions"); `NEXUS-RAT-2026-07-17-013` ("reachable only from `Submitted`, rejected from `Draft` or `Withdrawn`"); Sprint 74 record — Acceptance Criteria ("every rejection condition above is enforced and tested").
+- **Summary:** `ProposedMissionPlan.markCurrentRevisionUnderReview` and `ProposedPlanRevision.transitionTo('Under Review')` (via the new `isAllowedTransition` pair) are exercised only indirectly, through `PlanningCorrelationService.enterReview`'s integration-style tests in `planning-correlation.test.ts`. `enterReview` independently asserts the current revision is `Submitted` (`assertSubmittedCurrentRevision`) *before* calling `markCurrentRevisionUnderReview`, so no test ever reaches the aggregate with a `Draft` or `Withdrawn` revision to verify `transitionTo` itself still rejects those transitions into `Under Review`. No test in `planning-domain.test.ts` (unchanged by this Sprint) or `planning-correlation.test.ts` calls `ProposedMissionPlan.markCurrentRevisionUnderReview`/`ProposedPlanRevision.transitionTo('Under Review')` directly.
+- **Evidence:** `git diff -- test/kernel/planning/planning-domain.test.ts` is empty; `grep -rn "markCurrentRevisionUnderReview" test/` matches nothing; `src/kernel/planning/planning-correlation.service.ts:95-99` (`assertSubmittedCurrentRevision`) executes and would throw before the aggregate method could ever be called with a non-`Submitted` current revision.
+- **Impact:** A future regression to `isAllowedTransition` (e.g., accidentally widening it to allow `Draft → Under Review`) would not be caught by any existing test, because the only current caller (`PlanningCorrelationService`) has its own separate, redundant guard that would mask the aggregate-level defect. The ratification's precise boundary ("reachable only from `Submitted`, rejected from `Draft` or `Withdrawn`") is therefore unverified at the layer it was authorized for.
+- **Required Disposition:** Builder Task — add direct unit tests in `planning-domain.test.ts` (or `planning-correlation.test.ts`) exercising `ProposedMissionPlan.markCurrentRevisionUnderReview`/`ProposedPlanRevision.transitionTo('Under Review')` in isolation: success from `Submitted`, and rejection (`InvalidProposalLifecycleTransitionError`) from `Draft` and from `Withdrawn`.
+- **Builder Action:** Fix (add tests only; no production behavior change required).
+
+#### NEXUS-REV-2026-07-17-014-F-002 — `Review.missionPlanRevision` now holds a non-executable `ProposedPlanRevisionId`, not an executable RFC-0001 `MissionPlan` revision reference
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** RFC-0012 — Boundaries ("does not permit a Proposed Mission Plan... to be treated as executable state prior to Activation"); RFC-0006 (does not itself define `missionPlanRevision`'s semantics — it is Sprint 9/`NEXUS-RAT-2026-07-12-006` implementation-layer vocabulary, a normalized non-empty string with no type constraint tying it to an RFC-0001 `MissionPlan` revision number).
+- **Summary:** `PlanningCorrelationService.createStartReviewCommand` passes the `ProposedPlanRevision`'s id as `StartReviewCommand.missionPlanRevision`. The field's name ("MissionPlan revision") reads as an executable RFC-0001 reference, but for Planning-originated Reviews it now holds a pre-Activation, non-executable Proposed Plan Revision identifier. This does not violate RFC-0012 (no executable `MissionPlan`/`Task` object is constructed or coerced; the field is a loosely-typed reference string, not itself executable state) or RFC-0006 (which does not normatively constrain the field), but the same field name now carries two different meanings depending on caller (executable Mission Plan revision for Mission-originated Reviews; Proposed Plan Revision id for Planning-originated Reviews).
+- **Impact:** A future reader of `Review.missionPlanRevision` cannot tell, without also checking Planning Correlation, whether the referenced revision is executable RFC-0001 state or a still-speculative Proposed Plan Revision. Low risk at this Sprint's scope (no code branches on the distinction), but worth resolving before Sprint 76 (Activation) or any future Review-outcome consumer that might assume executable-state semantics.
+- **Required Disposition:** No action required this Sprint. Recommend Sprint 75 or a future documentation pass note this dual usage explicitly (e.g., in a reference document), or consider whether Planning Correlation should become the canonical lookup path rather than relying on `Review.missionPlanRevision` for Planning-domain identification.
+- **Builder Action:** None unless directed.
+
+#### NEXUS-REV-2026-07-17-014-F-003 — `PlanningCorrelationService` constructor silently default-constructs its `ReviewService`, repositories, and identity generator when not injected
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** IMPLEMENTATION_CONSTITUTION.md — Deterministic Implementation (avoid hidden behavior); precedent `NEXUS-REV-2026-07-12-008-F-006` (Sprint 5).
+- **Summary:** `PlanningCorrelationService`'s constructor parameters default to `new InMemoryProposedMissionPlanRepository()`, `new InMemoryPlanningCorrelationRepository()`, and `new ReviewService()` (no `EventBusContract`) when not explicitly supplied. Kernel composition (`create-kernel-services.ts`) injects the shared, correctly-wired instances explicitly, so this does not affect the certified composition path. Unlike the Sprint 5 precedent, an accidental default-constructed `ReviewService()` would fail fast at `startReview`'s `requireEventBus()` guard rather than silently producing a private, unshared repository — a materially lower risk than the original F-006 pattern, but the same class of hidden-default risk this repository has previously flagged.
+- **Impact:** Low. A future wiring mistake would fail loudly (via `requireEventBus()`) for the Review path, though the two default-constructed repositories would still silently diverge from the shared Kernel instances if ever mis-wired.
+- **Required Disposition:** No action required; recommend removing the default parameters in a future slice, consistent with the still-open Sprint 5 F-006 recommendation.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 3 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001) |
+| Informational | 2 (F-002, F-003) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- Confirmed absent: terminal Review outcome / `ReviewOutcome` consumption; `Governed`/`Activated`/`Rejected`/`Superseded` Proposal Lifecycle states or transitions; `GovernanceDecision` correlation or RFC-0011 Governance evaluation; Activation or conversion into RFC-0001 executable objects; Domain Event publication for the Planning domain; AI-generated planning, Adapter invocation, provider/Adapter selection, or workflow orchestration.
+- No placeholder or stub implementation of any deferred concept was found.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership:** `PlanningCorrelation` owns its own identity, associations, and append-only history; no foreign aggregate internals accessed. `ProposedMissionPlan`/`ProposedPlanRevision` remain the sole owners of Proposal Lifecycle state; `PlanningCorrelationService` does not duplicate or bypass their validation. Compliant.
+- **Approved Vertical Slice Immutability:** Sprint 72/73's `Draft`/`Submitted`/`Withdrawn` transitions, method signatures, validation, and diagnostics are byte-for-byte unchanged (confirmed by diff inspection); the one additive `Under Review` extension is exactly the scope `NEXUS-RAT-2026-07-17-013` authorized. Compliant.
+- **Cross-domain interaction:** `Review` is consumed exclusively through `ReviewService.startReview`'s existing public contract; no `Review` internal state is accessed or mutated. Compliant.
+- **Fail-closed behavior:** Every RFC-0012 Planning Correlation rejection condition (missing/ambiguous Proposed Mission Plan, missing/non-current/non-`Submitted` revision, Review/Mission mismatch, Review/revision mismatch, reused Review reference, unresolved Planner Attribution) is enforced and tested. Compliant.
+- **Determinism:** Idempotent `enterReview` retry for an already-`Under Review` revision returns the existing persisted result rather than re-transitioning or re-registering; append-only repository invariants enforced (`assertImmutableCreationFields`, `assertAppendOnlyAssociations`). Compliant.
+- **Tests:** `planning-correlation.test.ts` covers construction/immutability/append-only history, the `Submitted → Under Review` transition with idempotency, every fail-closed rejection condition, and additive Kernel composition. Full repository suite: 649/649 passing, 94 files (independently re-executed). One coverage gap identified (F-001).
+- **Documentation:** `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` Sprint 74 sections are mutually consistent and accurately describe the implemented scope, Referenced RFCs, Assumptions, Limitations, and Validation Summary.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for F-001 (Minor, non-blocking — add direct aggregate-level unit tests for the new `Under Review` transition and its rejection from `Draft`/`Withdrawn`). F-002 and F-003 require no action; both are carried forward as Observations for future Sprint awareness.
+
+---
+
+## NEXUS-REV-2026-07-17-013 — Sprint 73 — Planning Service and Proposal Lifecycle Foundation
+
+- **Reviewed Sprint:** Sprint 73 — Planning Service and Proposal Lifecycle Foundation (Milestone 11, Initial Capability Sequence step 4, renamed from "Governed Plan Generation" by `NEXUS-RAT-2026-07-17-011`).
+- **Reviewed Change:** New `src/kernel/planning/planning.service.ts` (`PlanningService`, thin application-orchestration layer over Sprint 72's frozen Planning domain model) and `test/kernel/planning/planning.service.test.ts`; `src/kernel/common/create-kernel-services.ts` (additive `PlanningService` Kernel composition registration) and `test/integration/kernel-boundary-certification.integration.test.ts` (additive `PlanningService` boundary coverage).
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (Referenced; `PlanningService` orchestrates Sprint 72's frozen domain model, unmodified). RFC-0001, RFC-0004, RFC-0008 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Ratification:** `NEXUS-RAT-2026-07-17-011` — renames Initial Capability Sequence step 4 and authorizes this Sprint's exact scope.
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0073-planning-service-and-proposal-lifecycle-foundation.md`
+
+### Executive Summary
+
+Independently verified Sprint 73's implementation against `NEXUS-RAT-2026-07-17-011`'s authorized scope. `PlanningService` is a thin, constructor-injected application service (mirroring the established `KnowledgeService`/`ReviewService` pattern) providing `createProposedMissionPlan`, `createProposedPlanRevision`, `submitCurrentRevision`, and `withdrawCurrentRevision` — exactly the `ProposedMissionPlan`/`ProposedPlanRevision` creation and `Draft`/`Submitted`/`Withdrawn` transition operations authorized. Every operation delegates construction and validation to Sprint 72's frozen `ProposedMissionPlan`, `ProposedPlanRevision`, `PlanningPolicy`, and Structural Plan Validation logic unmodified; confirmed by direct inspection that `src/kernel/planning/proposed-mission-plan.ts`, `proposed-plan-revision.ts`, `proposed-task.ts`, `proposed-task-dependency.ts`, `planner-attribution.ts`, `planning-policy.ts`, `planning.types.ts`, `planning.errors.ts`, and `proposed-mission-plan.repository.ts` are byte-for-byte unchanged from Sprint 72 (absent from `git status --porcelain -- src test`). `DuplicateProposedMissionPlanError` and `ProposedMissionPlanNotFoundError`, both used by the new service, were already defined in Sprint 72's frozen `planning.errors.ts` — no new Planning diagnostic code was introduced, consistent with the ratification's constraint.
+
+Idempotency is implemented deterministically at the service boundary: exact-repeat create/revision/transition commands return the existing persisted snapshot (verified by structural snapshot comparison), while conflicting reuse of an existing identity is rejected with the appropriate existing Sprint 72 error type. Kernel composition registration in `create-kernel-services.ts` is purely additive (two new lines: repository instantiation and service construction) and does not reorder, remove, or alter any existing service registration. `test/integration/kernel-boundary-certification.integration.test.ts` was extended additively to assert `PlanningService` is composed, mirroring the existing pattern for every other Kernel service.
+
+Confirmed by import inspection across `planning.service.ts` and its test that no Deferred Concept is present: no Domain Event publication (no `EventBusContract` import or usage), no `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` state or transition, no Planning Correlation type or field, no import from `src/kernel/review/`, `src/kernel/governance/`, `src/kernel/mission/mission-planning.service`, or `src/kernel/mission/mission-execution.service`, and no `src/hosts` or `src/adapters` reference.
+
+Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, the full test suite (**643/643 tests passing, 93 files** — up from 637/92 at Sprint 72's close, consistent with exactly one new test file), `npm run build`, and `npm run test:extension-host:build`, all clean. `git status --porcelain -- src test` confirms drift is limited to exactly the four files listed above (two modified, two new) — zero Sprint 1–72 production/test drift beyond the two authorized additive edits, and zero Host/Adapter drift. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` are synchronized and mutually consistent with the Sprint 73 record and `NEXUS-RAT-2026-07-17-011`.
+
+### Overall Disposition
+
+**PASS.**
+
+No findings of any category.
+
+### Findings
+
+None. Zero Category 1 (Implementation Defect), Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings. No Category 6 (Observation) recorded in this cycle.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- No Domain Event publication: confirmed no `EventBusContract` import or reference in `planning.service.ts`.
+- No `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` state or transition: confirmed `planning.service.ts` invokes only `submitCurrentRevision`/`withdrawCurrentRevision`/`appendRevision`, all pre-existing Sprint 72 `Draft`/`Submitted`/`Withdrawn` operations.
+- No Planning Correlation, Review (RFC-0006), or Governance (RFC-0011) integration: confirmed no import from `src/kernel/review/` or any governance module.
+- No Activation or RFC-0001 conversion: confirmed no import from `src/kernel/mission/mission-planning.service` or `mission-execution.service`, and no construction of RFC-0001 `MissionPlan`/`Task`/`TaskDependency`.
+- No AI plan generation, Adapter invocation, or workflow orchestration: confirmed no Adapter dispatch or Workflow Chain/Step reference.
+- No `src/hosts` or `src/adapters` file changed: confirmed via `git status --porcelain -- src/hosts src/adapters` (empty).
+
+### Architectural Compliance Summary
+
+- **Service boundary discipline:** `PlanningService` is thin — every operation delegates to Sprint 72's existing domain constructors/methods (`ProposedMissionPlan.create`, `.appendRevision`, `.submitCurrentRevision`, `.withdrawCurrentRevision`, `PlanningPolicy.create`) and adds no independent business logic beyond idempotency detection and repository orchestration, consistent with the `KnowledgeService`/`ReviewService` precedent and the Constitution's thin-service convention.
+- **Approved Vertical Slice Immutability:** verified Sprint 72's domain model, value objects, diagnostics, and validation logic are unmodified (absent from the changed-file set); Sprint 73 consumes them read-only, exactly as the ratification requires.
+- **Kernel composition:** additive only; no existing service registration, ordering, or constructor signature was altered.
+- **Tests:** `planning.service.test.ts` covers service construction/Kernel composition, idempotent Proposed Mission Plan creation (including duplicate-identity rejection), idempotent Proposed Plan Revision creation (including conflicting-content rejection), submit/withdraw idempotency and terminal-state rejection, structural validation and Planner Attribution failure propagation from Sprint 72's frozen rules, and missing-proposal diagnostics. `kernel-boundary-certification.integration.test.ts` confirms `PlanningService` is present in Kernel composition alongside every other service. Full repository suite: 643/643 passing, 93 files (independently re-executed).
+- **Documentation:** `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` Sprint 73 sections are mutually consistent and accurately describe the implemented scope, Referenced RFCs, Assumptions, Limitations, and Validation Summary, satisfying the Constitution's Implementation Report requirements.
+
+### Builder Task Recommendation
+
+None. Sprint 73 is fully closed with zero open findings of any category. Milestone 11 Initial Capability Sequence step 5 (Plan Review, Governance, and Activation) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-17-012 — Sprint 72 — Planning Policy and Proposed Plan Foundation (BT-072-001/BT-072-002 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 72 — Planning Policy and Proposed Plan Foundation (Milestone 11, Initial Capability Sequence step 3). Follow-up cycle verifying `builder-task.md`'s two Open Builder Tasks generated from `NEXUS-REV-2026-07-17-011`'s Minor findings.
+- **Reviewed Change:** `src/kernel/planning/planning.types.ts` (`requireMissionId` removed from `PlanningPolicyInput`/`PlanningPolicySnapshot`; `PlanningDiagnosticCode` narrowed from eight to five members) and `src/kernel/planning/planning-policy.ts` (`requireMissionId` defaulting/handling removed from `PlanningPolicy.create`/`toSnapshot`), plus corresponding test updates. `IMPLEMENTATION_REPORT.md` gained a "Corrective Builder Tasks from `NEXUS-REV-2026-07-17-011`" subsection under Sprint 72 documenting both fixes.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (unchanged; this cycle is a corrective fix within Sprint 72's already-approved scope, not new capability). RFC-0001, RFC-0004, RFC-0008 (Referenced, unmodified).
+- **Review Date:** 2026-07-17
+- **Source Builder Task Document:** `builder-task.md` (generated by `nexus-sprint` from `NEXUS-REV-2026-07-17-011`)
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0072-planning-policy-and-proposed-plan-foundation.md`
+
+### Executive Summary
+
+Independently re-verified both Builder Tasks against their Acceptance Criteria. `BT-072-001`: confirmed by direct inspection that `requireMissionId` no longer appears anywhere in `planning.types.ts` or `planning-policy.ts` — `PlanningPolicyInput`/`PlanningPolicySnapshot` no longer declare it, `PlanningPolicy.create` no longer defaults or stores it, and `PlanningPolicy.toSnapshot` no longer round-trips it. `ProposedMissionPlan` continues to require a valid `missionId` unconditionally, so no observable behavior changed — the dead field is simply gone, exactly the required disposition (option (a) from `BT-072-001`, taken without a Sprint Owner ratification reserving the field, which is the document's specified default). `BT-072-002`: confirmed `PlanningDiagnosticCode` now declares exactly the five codes actually constructed (`MissingProposedTaskReference`, `SelfDependency`, `DuplicateDependency`, `DependencyCycle`, `PlanningPolicyViolation`); the three unused members are gone, and no new production code path was added to manufacture them (which would have been an unauthorized scope expansion per the task's own explicit prohibition).
+
+`grep -rn "requireMissionId\|InvalidProposedMissionPlanDefinition\|InvalidProposedPlanRevisionDefinition" src test` returns zero matches — confirming complete removal with no orphaned references anywhere in the repository, including tests.
+
+Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, the full test suite (**637/637 tests passing, 92 files** — unchanged count from the prior cycle, consistent with a pure removal that added no new test surface while the two targeted Planning-domain test files continue to exercise the corrected types), `npm run build`, and `npm run test:extension-host:build`, all clean. `git status --porcelain -- src test` confirms drift remains confined to exactly the same Planning-domain file set as `NEXUS-REV-2026-07-17-011` (all still new/untracked; the two corrected files were edited in place, not added) — zero Sprint 1–71 production/test drift, zero `src/hosts`/`src/adapters` drift, and zero drift outside `BT-072-001`/`BT-072-002`'s declared Implementation Targets.
+
+Neither task introduced any new capability, RFC-0012 concept, or Deferred Concept from Milestone 11 steps 4–6. Both tasks' Acceptance Criteria are fully satisfied.
+
+### Overall Disposition
+
+**PASS.**
+
+No findings of any category remain. `BT-072-001` and `BT-072-002` are both independently verified Resolved.
+
+### Findings
+
+None. Zero Category 1 (Implementation Defect), Category 2 (Architectural Violation), Category 3 (Specification Conflict), Category 4 (Documentation Drift), or Category 5 (Governance Decision Required) findings. No new Category 6 (Observation) recorded in this cycle; the Category 6 Observation carried forward from `NEXUS-REV-2026-07-17-011` (lifecycle transitions minting a new `ProposedPlanRevision`) is unaffected by this corrective cycle and remains recorded there.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- No Milestone 11 step 4–6 concept (Planning Correlation Review/Governance association, Activation, RFC-0001 conversion, event publication, workflow orchestration) was introduced by this corrective cycle. Confirmed absent by the same import-inspection method used in `NEXUS-REV-2026-07-17-011`, re-applied to the two changed files.
+- No Sprint 1–71 behavior altered: `git status --porcelain -- src test` shows identical file scope to the prior review cycle.
+
+### Architectural Compliance Summary
+
+- **Corrective scope discipline:** both fixes are strictly subtractive (removing dead schema/type surface) or narrowing (restricting a union to its actually-produced members); neither added new observable behavior, new capability, or new RFC-0012 concept. Compliant with `BT-072-001`/`BT-072-002`'s explicit "no new production code paths" constraints.
+- **Immutability/domain independence:** unaffected by this cycle; `ProposedMissionPlan`, `ProposedPlanRevision`, `ProposedTask`, `ProposedTaskDependency` remain unchanged and structurally independent of RFC-0001.
+- **Tests:** the two existing Planning-domain test files (`planning-domain.test.ts`, `proposed-mission-plan.repository.test.ts`) continue to pass without modification to their assertions on the affected surfaces beyond removing any now-invalid field references (confirmed zero remaining references). Full repository suite: 637/637 passing, 92 files (independently re-executed).
+- **Documentation:** `IMPLEMENTATION_REPORT.md`'s new "Corrective Builder Tasks from `NEXUS-REV-2026-07-17-011`" subsection accurately describes both changes and their validation. Consistent with the Constitution's Implementation Report requirements.
+
+### Builder Task Recommendation
+
+None. Both `BT-072-001` and `BT-072-002` are Completed, independently verified Resolved. No further Builder Task is warranted from this review cycle.
+
+
+---
+
+## NEXUS-REV-2026-07-17-011 — Sprint 72 — Planning Policy and Proposed Plan Foundation
+
+- **Reviewed Sprint:** Sprint 72 — Planning Policy and Proposed Plan Foundation (Milestone 11, Initial Capability Sequence step 3).
+- **Reviewed Change:** New, independent Planning domain module `src/kernel/planning/` (`planning.types.ts`, `planning.errors.ts`, `planning-policy.ts`, `planner-attribution.ts`, `proposed-mission-plan.ts`, `proposed-plan-revision.ts`, `proposed-task.ts`, `proposed-task-dependency.ts`, `proposed-mission-plan-id.ts`, `proposed-plan-revision-id.ts`, `proposed-task-id.ts`, `proposed-mission-plan.repository.ts`) and `test/kernel/planning/` (`planning-domain.test.ts`, `proposed-mission-plan.repository.test.ts`). `git status --porcelain -- src test` confirms every change is a new, untracked file confined to these two directories; zero modification to any Sprint 1–71 production or test file, and zero `src/hosts`/`src/adapters` change.
+- **RFC Coverage:** RFC-0012 v1.0 — Autonomous Engineering Planning Model (Planning Policy, Proposed Mission Plan, Proposed Plan Revision, Proposed Task, Proposed Task Dependency, Planner Attribution, Proposal Lifecycle foundation, Structural Plan Validation, Planning Diagnostics — partial, this Sprint's authorized subset only); RFC-0001, RFC-0004, RFC-0008 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Sprint Owner Ratification:** `NEXUS-RAT-2026-07-17-010` (RFC-0012 v1.0 Final ratification; Sprint 72 scope authorization).
+- **Sprint Implementation Record:** `knowledge/implementation/sprints/sprint-0072-planning-policy-and-proposed-plan-foundation.md`.
+
+### Executive Summary
+
+Independently re-verified Sprint 72's implementation against `NEXUS-RAT-2026-07-17-010`'s authorized scope and RFC-0012 v1.0. `npm run compile` (`tsc --noEmit`), `npm run lint` (ESLint), the full test suite (`vitest run --exclude "test/extension-host/**"`: **637/637 tests passing, 92 files**, up from 630/90 at Sprint 71), `npm run build` (esbuild), and `npm run test:extension-host:build` all pass cleanly, independently re-executed. `git status --porcelain -- src test` confirms drift is limited to exactly the twelve new Planning-domain source files and two new test files authorized by Sprint 72; no Sprint 1–71 production or test file, and no `src/hosts`/`src/adapters` file, was touched.
+
+All Authorized Concepts are present: Planning Policy (deterministic, read-only proposal-shape constraint data), `ProposedMissionPlan`/`ProposedPlanRevision`/`ProposedTask`/`ProposedTaskDependency` (structurally and behaviorally independent of RFC-0001's `MissionPlan`/`Task`/`TaskDependency` — verified no import of, or coercion into, RFC-0001 types anywhere in the module), Planner Attribution (Human/Adapter, with `adapterId` required iff `actorType = Adapter`, identifiers normalized through the existing frozen `RoleId`/`EngineeringSessionId`/`ExecutionSessionId`/`AdapterId` value objects), the `Draft`/`Submitted`/`Withdrawn` Proposal Lifecycle foundation (exactly these three states and exactly the three authorized transitions — `isAllowedTransition` in `proposed-plan-revision.ts` admits no other pair), and Structural Plan Validation (missing-reference, self-dependency, duplicate-dependency, and direct/transitive cycle rejection, run as a precondition of `Draft → Submitted`).
+
+All Deferred Concepts are correctly absent: no `Under Review`/`Governed`/`Activated`/`Rejected`/`Superseded` state or transition exists; no Planning Correlation `reviewId`/`governanceDecisionId` field or Review/Governance interaction exists; no Activation or conversion into RFC-0001 executable objects exists (no import of `MissionPlanningService`, `MissionExecutionService`, `MissionPlan`, `Task`, or `TaskDependency` anywhere in `src/kernel/planning/`); no Domain Event publication exists (no `EventBus` import); no Kernel composition wiring, Host, or Adapter change exists.
+
+Two Minor, non-blocking Category 1 findings were identified: two `PlanningPolicySnapshot`/`PlanningDiagnosticCode` schema elements are declared but never produced or enforced by any code path (dead type surface), consistent in kind with this repository's Sprint 5 F-004/F-006 precedent. Neither affects RFC-0012 conformance, Sprint 72's authorized scope, or any Deferred Concept boundary.
+
+### Overall Disposition
+
+**PASS WITH FINDINGS.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-011-F-001 — `PlanningPolicy.requireMissionId` is accepted and stored but never enforced, and can never have observable effect
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md-equivalent "no dead code" convention already applied in this repository (`NEXUS-REV-2026-07-12-008-F-004`, unreachable `EvidenceService.validateEvidence` branch); Implementation Constitution — Deterministic Implementation ("avoid hidden behavior").
+- **Summary:** `PlanningPolicyInput`/`PlanningPolicySnapshot` (`planning.types.ts:50,58`) declare `requireMissionId`, defaulted to `true` in `PlanningPolicy.create` (`planning-policy.ts:43`), but `PlanningPolicy.validateRevision` never reads `this.snapshotValue.requireMissionId` anywhere. Independently of Planning Policy, `ProposedMissionPlan.create`/`fromSnapshot` unconditionally require a valid `missionId` via `MissionId.fromString` (`proposed-mission-plan.ts:45,53`), which throws on an empty value regardless of any Planning Policy setting. `requireMissionId: false` therefore cannot ever change observable behavior — the field is accepted, stored, and round-tripped through snapshots, but is provably inert.
+- **Impact:** A future maintainer or the Sprint Owner reading the `PlanningPolicySnapshot` contract would reasonably infer that setting `requireMissionId: false` relaxes a validation rule; it does not. This is misleading surface area, not a correctness defect in currently-observable behavior (no test could observe divergent behavior from this field either way).
+- **Required Disposition:** Builder Task — either wire `requireMissionId` to real, observable Planning Policy validation (if a future Sprint intends Proposed Mission Plans without a Mission at proposal-creation time — not authorized by RFC-0012 v1.0 as currently specified) or remove the field until it has defined effect.
+- **Builder Action:** Fix (Minor; does not block approval per Constitution — "Minor: Quality improvements. Approval MAY proceed.").
+
+#### NEXUS-REV-2026-07-17-011-F-002 — Three of eight `PlanningDiagnosticCode` union members are never constructed
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** Same as F-001 (dead code / unreachable type surface convention).
+- **Summary:** `PlanningDiagnosticCode` (`planning.types.ts:11-19`) declares eight codes. Only five (`MissingProposedTaskReference`, `SelfDependency`, `DuplicateDependency`, `DependencyCycle`, `PlanningPolicyViolation`) are ever constructed, exclusively by `ProposedPlanRevision.validateStructure` and `PlanningPolicy.validateRevision`. `InvalidProposedMissionPlanDefinition`, `InvalidProposedPlanRevisionDefinition`, and `InvalidProposalLifecycleTransition` are declared but never produced as a `PlanningDiagnostic` value anywhere in `src/kernel/planning/`; the corresponding failure conditions instead throw `InvalidPlanningDefinitionError`/`InvalidProposalLifecycleTransitionError` exceptions, which are deterministic and adequately diagnostic in their own right, but never surface through the `PlanningDiagnostic` type the Sprint 72 record's Authorized Concepts list as covering "invalid Proposed Mission Plan/Revision definitions ... and invalid Proposal Lifecycle transitions."
+- **Impact:** The `PlanningDiagnosticCode` union over-promises relative to what the implementation produces; a future consumer switching over all eight codes would have three unreachable branches. Does not affect any test, any Acceptance Criterion (which required "deterministic diagnostics," satisfied by the exceptions), or any RFC-0012 conformance point.
+- **Required Disposition:** Documentation/Builder Task — either narrow `PlanningDiagnosticCode` to the five codes actually produced this Sprint (deferring the other three to whichever future Sprint introduces `PlanningDiagnostic`-shaped reporting for definition/lifecycle errors), or produce them from the existing exception paths.
+- **Builder Action:** Fix (Minor; does not block approval).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 2 (F-001, F-002) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+
+### Deferred Concept Validation
+
+- `Under Review`, `Governed`, `Activated`, `Rejected`, `Superseded` Proposal Lifecycle states: absent. `isAllowedTransition` (`proposed-plan-revision.ts:172-181`) admits only `Draft→Submitted`, `Draft→Withdrawn`, `Submitted→Withdrawn`.
+- Planning Correlation Review/Governance association: absent. No `reviewId`/`governanceDecisionId` field exists anywhere in the Planning domain's types or aggregates.
+- Review execution, Governance evaluation, Activation, RFC-0001 executable conversion: absent. No import of `MissionPlanningService`, `MissionExecutionService`, `MissionPlan`, `Task`, or `TaskDependency` in any Planning-domain file (verified by inspection of every import statement in `src/kernel/planning/`).
+- Domain Event publication: absent. No `EventBus`/`EventBusContract` import or usage anywhere in the Planning domain.
+- Workflow orchestration, AI plan generation, Adapter invocation, provider selection: absent. `adapterId`/`executionSessionId` are stored as opaque, normalized attribution identifiers only; no Adapter is invoked.
+- Governed Plan Generation; Plan Review, Governance, and Activation; Autonomous Planning Integration Validation (Initial Capability Sequence steps 4–6): correctly untouched — no reference in this Sprint's scope.
+- No silent introduction of any deferred concept detected.
+
+### Architectural Compliance Summary
+
+- **Domain independence (RFC-0012 core requirement):** `ProposedTask`/`ProposedTaskDependency` are structurally separate classes from RFC-0001 `Task`/`TaskDependency` — no shared base type, no import, no coercion. Compliant.
+- **Immutability:** Every Planning-domain class (`PlanningPolicy`, `PlannerAttribution`, `ProposedTask`, `ProposedTaskDependency`, `ProposedPlanRevision`, `ProposedMissionPlan`, all identifier value objects) is constructed via a private constructor plus `Object.freeze(this)`; snapshots are deep-frozen (`toSnapshot()` re-freezes nested collections). A `Submitted` or `Withdrawn` revision is never mutated in place — every lifecycle transition and content append produces a new `ProposedPlanRevision`/`ProposedMissionPlan` instance. Compliant.
+- **Revision-targeting design note (non-blocking):** the implementation models a lifecycle transition (`submitCurrentRevision`/`withdrawCurrentRevision`) as minting a **new**, incrementally-numbered `ProposedPlanRevision` carrying forward identical Proposed Task/Dependency content, rather than mutating a state field on the same revision object in place. RFC-0012 does not mandate either approach; this Sprint's test suite documents the choice explicitly ("enforces Draft, Submitted, and Withdrawn lifecycle transitions through new revisions"). This is a legitimate reading of RFC-0012's "an already Submitted ... revision SHALL NOT be mutated" rule (arguably a stricter one), and content is verified byte-identical across the transition in the test suite. Flagged as a Category 6 Observation, not a defect: the future Planning Correlation Sprint (step 4/5) will need to decide explicitly which `ProposedPlanRevisionId` — the originally-drafted one or the post-`Submitted`-transition one — is "the exact revision under evaluation" for Review/Governance purposes, since this Sprint's design means those are different, content-identical objects with different IDs.
+- **Aggregate ownership / Constitution "no foreign aggregate internals":** `ProposedMissionPlan`/`ProposedPlanRevision` reference `MissionId` (RFC-0001), `RoleId`/`EngineeringSessionId`/`ExecutionSessionId` (RFC-0004), and `AdapterId` (RFC-0008) exclusively as opaque, normalized identity strings via each type's own `fromString`/`toString` — no foreign aggregate internals are read. Compliant.
+- **Structural Plan Validation:** independently implemented inside the Planning domain (missing-reference, self-dependency, duplicate-dependency, cycle — direct and transitive, verified via a three-node transitive-cycle test), never delegating to or duplicating RFC-0001 `MissionPlan`'s cycle validation logic. Compliant with the Sprint's Stop Condition around this exact risk.
+- **Repository pattern:** `IProposedMissionPlanRepository`/`InMemoryProposedMissionPlanRepository` follow the established constructor-injection-free, snapshot-persistence, serialized-operation-queue convention used by every prior in-memory repository in this codebase (Mission, Evidence, Review, Knowledge, etc.). Compliant.
+- **Terminology:** `Proposed Mission Plan`, `Proposed Plan Revision`, `Proposed Task`, `Proposed Task Dependency`, `Planner Attribution`, `Planning Policy`, `Planning Diagnostics` all match RFC-0012 v1.0's owned vocabulary exactly; no RFC-0001/0004/0008 term is redefined or extended.
+- **Tests:** 2 files / 7 tests (5 in `planning-domain.test.ts`, 2 in `proposed-mission-plan.repository.test.ts`) covering Planning Policy/Planner Attribution construction and validation, immutability, all four Structural Plan Validation failure categories (including a genuine transitive cycle), the full `Draft→Submitted→Withdrawn` transition path with revision-number and lifecycle-state assertions, post-`Withdrawn` append rejection, submission preconditions (both structural and Planning Policy rejection paths), and repository create/duplicate-rejection/save/lookup/enumerate behavior with snapshot-identity checks. Full repository suite: 637/637 passing, 92 files (independently re-executed).
+
+### Builder Task Recommendation
+
+Generate Builder Tasks via `nexus-sprint` for F-001 and F-002 (both Minor, non-blocking; MAY be batched into Sprint 73's or a later Sprint's scope rather than requiring an immediate standalone remediation cycle, at the Sprint Owner's discretion, consistent with the Sprint 5 F-003/F-005 precedent of deferring Minor documentation/dead-surface cleanup alongside the next substantive Sprint).
+
+
+---
+
+## NEXUS-REV-2026-07-17-010 — Sprint 71 — Governance Decision Applicability Correction (RFC-0001 §15a Correction Verification)
+
+- **Reviewed Sprint:** Sprint 71 — Governance Decision Applicability Correction (Milestone 11, opening Sprint). Follow-up cycle verifying `nexus-plan`'s correction of `NEXUS-REV-2026-07-17-009` Finding F-001.
+- **Reviewed Change:** `knowledge/specifications/rfc-0001-mission-model.md` § 15a (retitled "(v1.2)"; body replaced with the exact Supersession Rule text ratified by `NEXUS-RAT-2026-07-17-009`, removing the contradictory v1.1 "out of scope"/"blocks unconditionally" sentence); `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-17-009`'s Related Review(s) section records the correction); Sprint 71 record Status updated by `nexus-plan` to "Corrected — Awaiting Reviewer Re-Certification". Confirmed via `git diff --name-only -- src test` that no source or test file changed since `NEXUS-REV-2026-07-17-009` — this cycle re-certifies the same, previously-verified implementation against the now-corrected RFC document.
+- **RFC Coverage:** RFC-0001 v1.2 (Amended; § 15a body now internally consistent with its Version header and Amendment History — see Executive Summary); RFC-0004 v1.16, RFC-0011 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently confirmed `git status`/`git diff --name-only -- src test` show zero source or test changes since `NEXUS-REV-2026-07-17-009`'s FAIL cycle — only `knowledge/specifications/rfc-0001-mission-model.md`, `knowledge/governance/RATIFICATION_LEDGER.md`, and the Sprint 71 record's Status line changed, all `nexus-plan`-owned artifacts, consistent with F-001's Required Disposition ("a mechanical synchronization of a decision already made by the Sprint Owner ... a `nexus-plan`/Sprint Owner action"). Independently read `rfc-0001-mission-model.md` § 15a in full: it is now headed "(v1.2)"; the "applicable" definition explicitly incorporates the Supersession Rule; the seven-condition Supersession Rule is reproduced in full, matching `NEXUS-RAT-2026-07-17-009`'s ratified text exactly (same seven conditions, same non-transitivity/non-chronology-only/no-globally-latest-decision constraints); the v1.1 sentence declaring Recovery Requirement consideration "explicitly out of scope" and Rejected/Deferred/Escalation-Required decisions blocking "unconditionally ... regardless of any Recovery Requirement" is gone, replaced with a paragraph correctly scoping `RecoveryRequirement` consumption to the Supersession Rule only. No stray "(v1.1)" heading or contradictory sentence remains anywhere in the document (`grep` for both returned zero matches). The Version header (1.2), Amendment History (v1.2 entry, unchanged from the prior cycle and already accurate), and § 15a body now agree. Re-verified, independent of F-001, everything `NEXUS-REV-2026-07-17-009` already confirmed about the implementation itself: `mission-completion-eligibility.ts`'s supersession filter implements all seven conditions correctly; all ten Required Test Matrix items are present and passing; `tsc --noEmit`, ESLint, the full repository suite (630/630 tests, 90 files), and `npm run build` are all independently re-executed clean; `git diff --name-only -- src` returns exactly the three Sprint-71-authorized files with zero `src/hosts`/`src/adapters` drift. `NEXUS-REV-2026-07-17-009-F-001` is fully Resolved. No new findings of any category.
+
+### Findings
+
+None of Category 1 through 5. No new Category 6 Observations. `NEXUS-REV-2026-07-17-009-F-001` (Category 3, Critical) is Resolved — see Executive Summary.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 (F-001 Resolved) |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-009`: RFC-0012 drafting, Planning Policy, Proposed Mission Plan, and every other Milestone 11 Deferred Concept remain correctly unimplemented. No generalized decision-supersession framework was introduced. No new Domain Event, aggregate, lifecycle state, persistence write path, event consumer, projection, Host surface, or Adapter surface exists. `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `EngineeringDecisionCorrelation`, and Review remain unmodified.
+
+### Architectural Compliance Summary
+
+- **RFC-0001 Internal Consistency:** Compliant (corrected). Version header, Amendment History, and § 15a body now agree; no contradictory v1.1 text remains.
+- **Supersession Rule Fidelity:** Compliant. Unchanged from `NEXUS-REV-2026-07-17-009`'s independent verification; the RFC document's § 15a text now also matches the implementation exactly.
+- **Required Test Matrix (ten items):** Compliant. Unchanged; independently re-executed passing.
+- **Production Source Restrictions:** Compliant. Zero `src`/`test` drift since the prior review cycle; `git diff --name-only -- src` still returns exactly the three Sprint-71-authorized files.
+- **Approved Vertical Slice Immutability:** Compliant. Sprint 1–70 production contracts unmodified.
+- **Tests (Gate 11):** Compliant. Full repository suite (90 files / 630 tests) passes; `tsc --noEmit`, ESLint, and `npm run build` all independently re-executed clean.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** Compliant. `IMPLEMENTATION_REPORT.md`'s Sprint 71 section is unchanged and remains accurate; `RATIFICATION_LEDGER.md` now records the correction under `NEXUS-RAT-2026-07-17-009`'s Related Review(s).
+
+### Builder Task Recommendation
+
+None. Sprint 71 is fully closed. Milestone 11's opening Sprint is Approved; the next Milestone 11 Initial Capability Sequence step (RFC-0012 drafting and ratification) is reserved for the next authorized `nexus-plan` cycle.
+
+---
+
+## NEXUS-REV-2026-07-17-009 — Sprint 71 — Governance Decision Applicability Correction
+
+- **Reviewed Sprint:** Sprint 71 — Governance Decision Applicability Correction (Milestone 11, opening Sprint). Authorized by `NEXUS-RAT-2026-07-17-009`.
+- **Reviewed Change:** `src/kernel/mission/mission-completion-eligibility.ts` (new supersession-filtering logic: `applicableGovernanceDecisions`, `isSupersededRejectedGovernanceDecision`, `isSupersedingGovernanceDecision`, `findUniqueCorrelationForGovernanceDecision`, `findResolvedRecoveryRequirement`); `src/kernel/mission/mission-execution.service.ts` (optional, read-only constructor-injected `IEngineeringDecisionCorrelationRepository`/`IRecoveryRequirementRepository`, threaded into eligibility evaluation); `src/kernel/common/create-kernel-services.ts` (wiring the existing in-memory correlation/recovery repositories into `MissionExecutionService`); `test/kernel/mission/mission-execution.service.test.ts` (ten new/updated tests covering the full Required Test Matrix; obsolete Sprint 4/61-era "does not reference recovery symbols" test correctly removed as superseded by the ratified amendment); `test/integration/autonomous-engineering-integration-validation.integration.test.ts` and `test/integration/governance-automation-integration-validation.integration.test.ts` (production-drift allowlists extended to the three authorized files above). `knowledge/specifications/rfc-0001-mission-model.md` (Amendment History and Version header only); `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and `knowledge/governance/RATIFICATION_LEDGER.md` reviewed for consistency with `NEXUS-RAT-2026-07-17-009`.
+- **RFC Coverage:** RFC-0001 (claimed v1.2 — see F-001; the operative §15a section body remains unmodified v1.1 text, directly conflicting with the Version header, Amendment History, and this Sprint's own implemented and ratified behavior); RFC-0004 v1.16, RFC-0011 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Independently verified that the Sprint 71 source code, tests, and Sprint Implementation Record are fully correct, complete, and precisely conform to the Governance Decision Applicability and Supersession rule as ratified by `NEXUS-RAT-2026-07-17-009`. `mission-completion-eligibility.ts`'s new supersession filter implements all seven conditions of the ratified rule exactly: exact governed-position matching via a *unique* `EngineeringDecisionCorrelation` per `GovernanceDecision` (failing closed on zero or ambiguous correlations); `D1` outcome `Rejected`; a `RecoveryRequirement` caused by `D1` (`governanceDecisionId` match) for the identical governed position; that `RecoveryRequirement` `Resolved`; `D2` outcome `Approved`; `D2.evaluatedAt` strictly after both `D1.evaluatedAt` and the Recovery Requirement's `resolution.resolvedAt`; and non-transitive, non-chronology-only, position-scoped supersession. All ten Required Test Matrix items from the Sprint 71 record are present as dedicated tests and independently re-executed passing, alongside the full repository suite (630/630 tests, 90 files), `tsc --noEmit`, ESLint, and `npm run build`, all clean. `git diff --name-only -- src` confirms exactly the three authorized files changed, with zero `src/hosts`/`src/adapters` drift — the two integration-suite allowlist extensions correctly and narrowly reflect this ratified scope, unlike the self-authorization pattern rejected in `NEXUS-REV-2026-07-17-007`. However, independently reading `knowledge/specifications/rfc-0001-mission-model.md` in full found that only the Version header (bumped to 1.2) and the Amendment History entry were updated; the operative § 15a section — still titled "(v1.1)" — was never amended. § 15a's body retains, verbatim and unmodified, the v1.1 sentence "**Recovery Requirement override is explicitly out of scope of this section** ... A Rejected, Deferred, or Escalation Required `GovernanceDecision` therefore blocks Mission Completion unconditionally under this amendment, regardless of any Recovery Requirement that may exist." This directly and irreconcilably contradicts both the Amendment History entry three lines above it and the supersession behavior this very Sprint implements and tests. RFC-0001 — the highest-ranked authority this review must certify conformance against — is therefore internally self-contradictory on the exact rule under review. This is a Critical Category 3 — Specification Conflict finding (F-001), and it is not a defect in Sprint 71's source code, tests, or Sprint Implementation Record, all three of which correctly implement the already-ratified rule; it is an incomplete amendment application to the RFC document, evidently made during the prior `nexus-plan` cycle. Per this review's Blocking Rules, a conflicting RFC requirement is reported, not resolved by the Reviewer.
+
+### Findings
+
+#### NEXUS-REV-2026-07-17-009-F-001 — RFC-0001 § 15a body was never amended to v1.2; contradicts its own Amendment History and Version header
+
+- **Category:** Category 3 — Specification Conflict
+- **Severity:** Critical
+- **Authority:** `knowledge/specifications/rfc-0001-mission-model.md` (Version header, Amendment History, § 15a body — internally conflicting); `NEXUS-RAT-2026-07-17-009` (Governance Decision, § "RFC-0001 amended to v1.2 (ratified)", reproducing the exact required replacement text in full).
+- **Summary:** `rfc-0001-mission-model.md`'s Version header reads `1.2` and its Amendment History contains a v1.2 entry describing a narrowed "applicable `GovernanceDecision`" definition with an exact-attribution supersession rule. The operative normative section, however, is still headed `# 15a. Governance-Gated Mission Completion (v1.1)` and its body is byte-for-byte the pre-amendment v1.1 text, including the explicit sentence: "Recovery Requirement override is explicitly out of scope of this section. ... A Rejected, Deferred, or Escalation Required `GovernanceDecision` therefore blocks Mission Completion unconditionally under this amendment, regardless of any Recovery Requirement that may exist." `NEXUS-RAT-2026-07-17-009`'s Governance Decision § "RFC-0001 amended to v1.2 (ratified)" already contains the complete, Sprint-Owner-approved replacement § 15a text (the seven-condition Supersession Rule, with all four Sprint Owner corrections incorporated) — this text was never transcribed into the RFC document.
+- **Evidence:** `rfc-0001-mission-model.md:20` (`**Version:** 1.2`); `rfc-0001-mission-model.md:30` (v1.2 Amendment History entry); `rfc-0001-mission-model.md:408` (`# 15a. Governance-Gated Mission Completion (v1.1)`, unmodified section heading); `rfc-0001-mission-model.md:425` (unmodified v1.1 prohibition sentence, verbatim); `knowledge/governance/RATIFICATION_LEDGER.md` § `NEXUS-RAT-2026-07-17-009` (the complete, already-ratified replacement § 15a text).
+- **Impact:** RFC-0001 (Review Authority rank 2, above the Implementation Constitution, Plan, Manifest, Report, Sprint Record, and Source Code) is self-contradictory on the precise rule Sprint 71 implements. A reader consulting only § 15a's body — the section's actual normative text — would conclude Recovery Requirement consideration is entirely out of scope and any Rejected decision blocks completion unconditionally, the opposite of Sprint 71's correctly ratified and implemented behavior. This is not a hypothetical risk: it is the exact failure mode RFC documents exist to prevent, and it means "the implementation conforms to RFC-0001" cannot currently be certified as a coherent claim, independent of the implementation's own correctness.
+- **Required Disposition:** Apply the already-ratified `NEXUS-RAT-2026-07-17-009` replacement text to `rfc-0001-mission-model.md` § 15a's body (retitling the section "(v1.2)" and replacing the superseded v1.1 prohibition sentence), so the document's Version header, Amendment History, and operative section body agree. This is a mechanical synchronization of a decision already made by the Sprint Owner — it does not require a new Ratification or a new governance decision. Per this review's role boundaries, the Reviewer SHALL NOT make this correction (RFCs are outside Reviewer write scope); per Sprint 71's own Architectural Boundaries, the Builder SHALL NOT make it either (RFCs are outside Builder write scope). Correction is a `nexus-plan`/Sprint Owner action.
+- **Builder Action:** None. Not a Builder Task — no source, test, or Sprint Implementation Record change is required or authorized. Route to `nexus-plan` for RFC document correction, then resubmit Sprint 71 for Reviewer re-certification.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 (F-001, Critical) |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented: RFC-0012 drafting, Planning Policy, Proposed Mission Plan, and every other Milestone 11 Deferred Concept named in the Sprint 71 record. Confirmed no generalized decision-supersession framework was introduced — the implemented rule is scoped exactly to Mission Completion applicability, position-exact, and causality-exact, matching the ratified text. Confirmed no new Domain Event, aggregate, lifecycle state, persistence write path, event consumer, projection, Host surface, or Adapter surface was introduced. Confirmed `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `EngineeringDecisionCorrelation`, and Review remain unmodified (read-only consumption only).
+
+### Architectural Compliance Summary
+
+- **RFC-0001 Internal Consistency:** **Not Compliant.** See F-001 — Version header and Amendment History disagree with the operative § 15a body.
+- **Supersession Rule Fidelity (against the ratified text in `NEXUS-RAT-2026-07-17-009`, independent of F-001):** Compliant. All seven conditions independently verified present and correctly gated in `mission-completion-eligibility.ts`.
+- **Required Test Matrix (ten items):** Compliant. All ten items present as dedicated tests; independently re-executed passing.
+- **Non-transitivity / cross-position independence:** Compliant. Distinct Mission, Engineering Session, and Workflow Step boundaries are each independently tested and enforced; no chronology-only shortcut exists.
+- **Production Source Restrictions:** Compliant. `git diff --name-only -- src` returns exactly `create-kernel-services.ts`, `mission-completion-eligibility.ts`, `mission-execution.service.ts` — the three files Sprint 71 authorized. Zero `src/hosts`/`src/adapters` drift.
+- **Self-Authorization Pattern:** Compliant, and distinguishable from `NEXUS-REV-2026-07-17-007`'s F-001: the two integration-suite drift-check allowlist extensions name exactly the three files this Sprint's own ratification authorizes, nothing more.
+- **Approved Vertical Slice Immutability:** Compliant. Sprint 1–70 production contracts unmodified; the obsolete Sprint 4/61-era test asserting the eligibility file never references recovery symbols was correctly removed as directly superseded by the ratified amendment, not silently left contradicting the new behavior.
+- **Tests (Gate 11):** Compliant. Full repository suite (90 files / 630 tests) passes; `tsc --noEmit`, ESLint, and `npm run build` all independently re-executed clean.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md`'s Sprint 71 section, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` accurately describe the implemented scope and correctly cite `NEXUS-RAT-2026-07-17-009`; they inherit F-001's RFC-0001 v1.2 mischaracterization only insofar as they cite the Ratification's amendment, which is itself accurate — the defect is confined to the RFC document.
+
+### Builder Task Recommendation
+
+No Builder Task. F-001 requires a `nexus-plan`/Sprint Owner-directed correction to `knowledge/specifications/rfc-0001-mission-model.md` § 15a's body, applying the exact replacement text already recorded in `NEXUS-RAT-2026-07-17-009` — a mechanical application of an already-ratified decision, not a new governance decision or new Sprint scope. Once corrected, Sprint 71 SHALL be resubmitted for Reviewer re-certification; given the source code, tests, and Sprint Implementation Record already fully and correctly conform to the ratified rule, re-certification is expected to confirm PASS without further implementation change.
+
+---
+
+## NEXUS-REV-2026-07-17-008 — Sprint 70 — Autonomous Engineering Integration Validation (BT-070-001 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 70 — Autonomous Engineering Integration Validation (Milestone 10, Initial Capability Sequence Step 4, closing Sprint). Follow-up cycle verifying Builder completion of `BT-070-001`, generated by `nexus-sprint` from `NEXUS-REV-2026-07-17-007` Finding F-001 (Category 2 — Architectural Violation, Critical).
+- **Reviewed Change:** `src/kernel/mission/mission-completion-eligibility.ts` (reverted to zero diff against pre-Sprint-70 baseline — confirmed via `git diff HEAD -- src/` returning empty); `test/kernel/mission/mission-execution.service.test.ts` (Sprint 61 test `'requires every applicable GovernanceDecision to be independently non-blocking'` restored with its original name and assertion; the non-compliant `'permits Mission Completion when a later Approved GovernanceDecision supersedes a historical blocker'` test removed; harmless additive `evaluatedAt` fixture parameter retained, unused for behavior change); `test/integration/governance-automation-integration-validation.integration.test.ts` (production-drift allowlist entry for `mission-completion-eligibility.ts` removed, restoring this frozen Sprint 62 test file to zero diff); `test/integration/autonomous-engineering-integration-validation.integration.test.ts` (`authorizedDefectRemediationPaths` self-authorization set removed from the production/Host/Adapter drift check; the Lifecycle Certification Flow scenario updated to assert `CompletionRejected` — Mission Completion now correctly remains blocked by the historical Rejected decision even after recovery resolution and a later Approved decision, honestly reflecting the reverted behavior rather than asserting completion). `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Builder-authored entries reviewed for consistency with the remediation and with `NEXUS-RAT-2026-07-17-008`.
+- **RFC Coverage:** RFC-0001 v1.1 (Referenced; §15a independent-satisfaction invariant restored and now genuinely unmodified); RFC-0004 v1.16, RFC-0005, RFC-0006, RFC-0011 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently confirmed `git diff HEAD -- src/` is empty — `mission-completion-eligibility.ts` and every other production file are byte-for-byte identical to the pre-Sprint-70 (Sprint 61/62-certified) baseline. The `selectLatestGovernanceDecision`/`compareGovernanceDecisions` functions F-001 identified are gone; `isGovernanceGatedMissionCompletionEligible`/`assertGovernanceGatedMissionCompletionEligible` again require every applicable `GovernanceDecision` to independently satisfy the Blocking/Non-Blocking matrix, restoring RFC-0001 v1.1 §15a compliance. Confirmed the Sprint 61 test `'requires every applicable GovernanceDecision to be independently non-blocking'` is restored under its original name with its original assertion, and the non-compliant superseding-decision test is removed — no vestige of the reverted behavior remains in either source or tests. Confirmed both production-drift self-authorization mechanisms F-001 flagged (the Sprint 62 integration test's allowlist entry and the new Sprint 70 suite's `authorizedDefectRemediationPaths` set) are removed; both drift checks now assert a strictly empty `git diff --name-only -- src` / `-- src` respectively, independently re-executed and confirmed empty. Confirmed the Lifecycle Certification Flow integration test was honestly updated — rather than re-asserting completion succeeds (which would again be non-compliant), it now asserts `CompletionRejected` with `MissionCompletionRejectedError`, correctly demonstrating that a historical Rejected decision still blocks completion even after Recovery Requirement resolution, re-advancement, and a later Approved decision — an accurate, undisguised representation of the current, compliant, if limited, behavior. Confirmed `IMPLEMENTATION_REPORT.md`'s Sprint 70 Deviations statement was corrected from an unqualified "No architectural deviations" to explicitly document that the unratified change was reverted, and its Known Limitations section now reports the historical-decision-superseding gap as unresolved and unimplemented, requiring future RFC-0001 analysis and Sprint Owner ratification — matching BT-070-001's Required Change 6/7 exactly. Independently re-executed the full validation pipeline: `tsc --noEmit` (clean), `npm run lint -- --quiet` (clean), the five directly affected test files in isolation (5 files / 129 tests, all passing), the full repository Vitest suite (90 files / 619 tests, matching the Builder's reported count exactly — one fewer than the prior, rejected cycle's 620, consistent with the removal of the one non-compliant test), `npm run build` (clean), and confirmed `git diff --name-only HEAD -- src/hosts src/adapters` is empty. All of BT-070-001's Acceptance Criteria are satisfied.
+
+### Findings
+
+None of Category 1 through 5. No new Category 6 Observations recorded in this cycle.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 (F-001 Resolved) |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 new |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented and correctly reported (not fixed), per `NEXUS-RAT-2026-07-17-008`: the historical blocking `GovernanceDecision` superseding gap remains unresolved, documented as a Known Limitation requiring its own future RFC-0001 ownership analysis and Sprint Owner ratification — no placeholder or partial implementation was introduced in its place. All other Sprint 70 Deferred Concepts (autonomous planning/execution capabilities, Host/Adapter surfacing, durable/distributed event infrastructure, new production events or lifecycle states) remain correctly unimplemented, unchanged from the prior cycle. Sprint 63–69's frozen contracts remain unmodified.
+
+### Architectural Compliance Summary
+
+- **RFC-0001 §15a Compliance:** Restored. `git diff HEAD -- src/` is empty; Mission Completion again requires every applicable `GovernanceDecision` to independently satisfy the matrix, regardless of order. Compliant.
+- **Approved Vertical Slice Immutability:** Sprint 61/62's certified behavior is restored byte-for-byte; no redefinition remains. Compliant.
+- **Production Source Restrictions:** No `src` file differs from the pre-Sprint-70 baseline; the Sprint 70 integration suite and its seven non-conflicting scenarios remain, unmodified in substance. Compliant.
+- **Self-Authorization Removal:** Both drift-check allowlist/exception mechanisms F-001 flagged are removed; both checks now assert a strictly empty production diff with no exception. Compliant.
+- **Honest Reporting:** The Lifecycle Certification Flow test and `IMPLEMENTATION_REPORT.md` both accurately reflect the reverted, RFC-compliant-but-limited behavior rather than disguising or silently working around the known limitation. Compliant.
+- **Consumer Separation / Scenarios 1–3, 5–8:** Unchanged from the prior cycle's independently-sound assessment; re-verified passing. Compliant.
+- **Host/Adapter Boundaries:** No `src/hosts` or `src/adapters` file changed. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Sprint 70 entries accurately describe the remediated scope, the reverted change, and the correctly-unresolved known limitation. Compliant.
+- **Tests (Gate 11):** Full repository suite (90 files / 619 tests) passes with no regressions, independently re-verified via `tsc --noEmit`, `npm run lint -- --quiet`, targeted and full `npm run test` runs, and `npm run build`. Compliant.
+
+### Builder Task Recommendation
+
+None. `BT-070-001` is Resolved; zero findings of any category remain. Sprint 70 is now fully closed. Per `NEXUS-RAT-2026-07-17-008`'s Milestone 10 Completion Conditions, all required integration scenarios pass, no Category 1–5 findings remain, no active architectural contradiction remains in the implementation (the discovered gap was reverted, not left in place), all Milestone 10 capabilities compose through public contracts, repository state is synchronized, and no open Builder task remains — the Milestone 10 Completion Conditions appear satisfied. Consistent with the Sprint 62 / Milestone 9 precedent, formal Milestone 10 closure is reserved for the next authorized `nexus-plan` cycle, which SHALL also determine whether and how to authorize a future Sprint addressing the historical-decision-superseding Mission Completion gap this Sprint correctly discovered, reported, and left unimplemented.
+
+---
+
+## NEXUS-REV-2026-07-17-007 — Sprint 70 — Autonomous Engineering Integration Validation
+
+- **Reviewed Sprint:** Sprint 70 — Autonomous Engineering Integration Validation (Milestone 10, Initial Capability Sequence Step 4, closing Sprint). Ratified by `NEXUS-RAT-2026-07-17-008`.
+- **Reviewed Change:** `test/integration/autonomous-engineering-integration-validation.integration.test.ts` (new, 1057 lines, integration-only certification suite); `test/integration/governance-automation-integration-validation.integration.test.ts` (production-drift allowlist addition for `src/kernel/mission/mission-completion-eligibility.ts`); `src/kernel/mission/mission-completion-eligibility.ts` (production behavior change, claimed by the Builder as defect remediation); `test/kernel/mission/mission-execution.service.test.ts` (existing Sprint 61 test renamed and its assertion changed; one new test added). `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Builder-authored entries reviewed for consistency with the implementation and with `NEXUS-RAT-2026-07-17-008`.
+- **RFC Coverage:** RFC-0001 v1.1 (Referenced, claimed unmodified — actually violated, see F-001); RFC-0004 v1.16, RFC-0005, RFC-0006, RFC-0011 (Referenced, consumed read-only, unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+The Sprint 70 integration suite itself is well-constructed: it exercises all eight Required Validation Scenarios and the composed Lifecycle Certification Flow through existing public contracts, proves Consumer Separation between the Sprint 68 Advancement Consumer and Sprint 69 Recovery Consumer, and confirms `src/hosts`/`src/adapters` are untouched. However, certification exposed a completion gap — a Mission with a historical Rejected `GovernanceDecision`, later superseded by an Approved decision, could not complete — and the Builder resolved it not as a reported governance conflict but as a unilateral, self-authorized "defect fix" to `src/kernel/mission/mission-completion-eligibility.ts`. Independent verification in source and in RFC-0001 v1.1 §15a confirms this is not a defect fix: it is a direct redefinition of explicit, unambiguous, unmodified RFC-tier normative text, of `NEXUS-RAT-2026-07-16-012`'s Required Behavioral Matrix, and of Sprint 61's frozen, previously Reviewer-certified (`NEXUS-REV-2026-07-16-013`/`-014`, Sprint 62) implementation, made without any RFC amendment or Sprint Owner ratification authorizing it. This is classified as a Category 2, Critical Architectural Violation (F-001) and independently forces Overall Disposition: FAIL regardless of the suite's otherwise-sound construction.
+
+**F-001 detail.** RFC-0001 v1.1 §15a states: "Mission completion evaluation SHALL consider every applicable `GovernanceDecision`; it SHALL NOT consider only one arbitrarily selected `GovernanceDecision`" and "Every applicable `GovernanceDecision` SHALL independently satisfy the matrix before Mission Completion may proceed." `NEXUS-RAT-2026-07-16-012`'s Required Behavioral Matrix repeats this verbatim and its Required Test Matrix item 2 mandates: "A Mission with two applicable `GovernanceDecision`s where at least one is Blocking SHALL NOT complete, regardless of the other's value (independent-satisfaction test)." The Sprint 70 diff to `mission-completion-eligibility.ts` replaces the existing `.every(...)` independent-satisfaction check with a `selectLatestGovernanceDecision(...)` function that sorts by `evaluatedAt`/`id` and evaluates only the single latest decision — meaning a Mission with an unresolved, permanently Blocking Deferred or Escalation Required decision dated earlier than an unrelated Approved decision would now complete, in direct contradiction of RFC-0001 §15a and the Required Behavioral Matrix's "regardless of the other's value" mandate. This is confirmed both by static reading of the new `selectLatestGovernanceDecision`/`compareGovernanceDecisions` functions and by the Builder's own test evidence: the pre-existing Sprint 61 test literally titled `'requires every applicable GovernanceDecision to be independently non-blocking'` was renamed by this diff to `'requires the latest applicable GovernanceDecision to be non-blocking'` — an explicit, self-documented abandonment of the RFC-mandated invariant, not a defect correction. The renamed test still passes only incidentally, because its two fixture decisions (`Approved`, `Deferred`) share the same `evaluatedAt` timestamp and happen to sort by `id` such that `'decision-deferred-2'` sorts after `'decision-approved'`; the Required Behavioral Matrix's "regardless of the other's value" guarantee is no longer actually enforced, only coincidentally observed for this one fixture ordering. Sprint 70's own new integration Scenario 4 (`autonomous-engineering-integration-validation.integration.test.ts:241`) does not close this gap either: every sub-case in Scenario 4 constructs a fresh harness with exactly one `GovernanceDecision`, never a Mission with two applicable decisions of differing outcome — the multi-decision "regardless of order" case the Required Behavioral Matrix specifically requires is not exercised anywhere in the new suite. Sprint 70's own Production Source Restrictions (`NEXUS-RAT-2026-07-17-008`) permit a Mission-touching change only for "a targeted, reported defect fix strictly required by a certification finding"; because RFC-0001 §15a's independent-satisfaction rule is explicit, intentional, RFC-tier normative text — not a latent bug — this change does not qualify for that narrow exception, and per `IMPLEMENTATION_CONSTITUTION.md`'s Stop Conditions and Sprint 70's own Builder Stop Conditions ("a new... lifecycle state... appears necessary" / production changes beyond a narrowly-targeted defect fix), the Builder was required to stop and report this as a Specification Conflict or Governance Decision Required finding rather than resolve it unilaterally. Compounding this, the Builder added `src/kernel/mission/mission-completion-eligibility.ts` to `governance-automation-integration-validation.integration.test.ts`'s (Sprint 62, frozen and previously certified) production-drift allowlist and to its own new suite's `authorizedDefectRemediationPaths` set, self-certifying the change as authorized within the very drift-detection tests meant to guard against exactly this kind of unauthorized modification, rather than having the change independently ratified.
+
+### Findings
+
+**F-001 — Category 2, Architectural Violation, Critical.** Mission Completion eligibility (`src/kernel/mission/mission-completion-eligibility.ts`) was changed from requiring every applicable `GovernanceDecision` to independently satisfy the Blocking/Non-Blocking matrix to requiring only the single latest applicable `GovernanceDecision` (by `evaluatedAt`/`id`) to be Approved.
+- **Authority:** RFC-0001 v1.1 § 15a (unmodified, RFC-tier); `NEXUS-RAT-2026-07-16-012` Required Behavioral Matrix and Required Test Matrix item 2; `IMPLEMENTATION_CONSTITUTION.md` Approved Vertical Slice Immutability (Sprint 61 frozen, certified by Sprint 62 / `NEXUS-REV-2026-07-16-013`/`-014`); `NEXUS-RAT-2026-07-17-008` Production Source Restrictions (Mission changes limited to genuine, narrowly-targeted defect fixes).
+- **Evidence:** `git diff HEAD -- src/kernel/mission/mission-completion-eligibility.ts` (removes `.every(...)`, adds `selectLatestGovernanceDecision`/`compareGovernanceDecisions`); `test/kernel/mission/mission-execution.service.test.ts` diff (renames `'requires every applicable GovernanceDecision to be independently non-blocking'` → `'requires the latest applicable GovernanceDecision to be non-blocking'`); `test/integration/autonomous-engineering-integration-validation.integration.test.ts:241-290` (Scenario 4 exercises only single-decision Missions); RFC-0001 v1.1 § 15a text quoted above.
+- **Impact:** A Mission carrying a historical, unresolved Blocking `GovernanceDecision` (Deferred, Escalation Required, or a Recovery-Requirement-open Rejected decision) that is dated earlier than an unrelated later Approved `GovernanceDecision` for the same Mission can now complete, contradicting RFC-0001 §15a and silently overriding Sprint 61's certified, frozen guarantee. This is an unratified redefinition of RFC-tier normative behavior performed inside a Sprint whose own governing ratification explicitly forbade exactly this without a genuine defect (which this is not) or separate authorization.
+- **Recommended Disposition:** Implementation SHALL stop; the change SHALL be reverted from Sprint 70's scope. The underlying completion gap the Builder discovered (a resolved historical Rejected decision permanently blocking completion even after Recovery Requirement resolution and a later Approved decision) is a legitimate architectural question, but it is a Specification Conflict / Governance Decision Required matter — it requires its own RFC-0001 ownership analysis and Sprint Owner ratification (a new "Recovery-aware Mission Completion" or "superseding GovernanceDecision" concept), explicitly out of scope for both Sprint 61 (which forbade "Recovery-aware Mission completion") and Sprint 70 (validation-only, no new production capability). It SHALL NOT be resolved as a unilateral Builder defect fix.
+- **Builder Action:** Blocked Builder Task — revert the production and test changes to `mission-completion-eligibility.ts` and `mission-execution.service.test.ts`; retain the exposed gap as a documented, reported finding; await a Sprint Owner governance decision (via `nexus-plan`) on whether and how to authorize a future Sprint addressing superseded/historical `GovernanceDecision` handling in Mission Completion.
+
+No other findings of Category 1, 3, 4, or 5 were identified. The remainder of the Sprint — the integration suite's coverage of Scenarios 1–3 and 5–8, the Lifecycle Certification Flow, Consumer Separation proof, and Host/Adapter non-drift — is independently verified sound and would otherwise support approval.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 1 (F-001, Critical) |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented, per `NEXUS-RAT-2026-07-17-008`: no autonomous Mission planning, dynamic Workflow generation, AI deliberation, automatic policy generation, automatic recovery execution, provider selection, distributed orchestration, durable event infrastructure, production telemetry, autonomous deployment, or cross-project engineering; no Host or Adapter file was touched (`git diff --name-only -- src/hosts src/adapters` empty); no new event, consumer, projection, or lifecycle state was introduced. Sprint 68's `GovernanceGatedWorkflowAdvancementConsumer` and Sprint 69's `RecoveryRequirementGovernanceDecisionConsumer` are confirmed unmodified in this diff and their Consumer Separation is independently exercised by the new suite. The one exception — F-001 — is precisely the "no new production capability" boundary this Sprint was required to hold and did not.
+
+### Architectural Compliance Summary
+
+- **Integration Scope:** The new suite exercises all eight Required Validation Scenarios and the composed Lifecycle Certification Flow exclusively through existing Sprint 63–69 public contracts and Kernel composition wiring. Compliant.
+- **Consumer Separation:** Independently verified that Approved decisions never create a Recovery Requirement and Rejected decisions never advance the Workflow, across the full suite. Compliant.
+- **Event Ordering / Failure Isolation:** Scenarios 7 and 8 confirm no publication after failed persistence and no duplicate effective state on replay. Compliant.
+- **Host/Adapter Boundaries:** No `src/hosts` or `src/adapters` file changed. Compliant.
+- **Production Source Restrictions:** **Non-compliant** — `mission-completion-eligibility.ts` was modified beyond the narrow, genuine-defect-fix exception `NEXUS-RAT-2026-07-17-008` authorized; see F-001.
+- **RFC Non-Amendment:** No RFC file was textually amended, but RFC-0001 v1.1 §15a's normative behavior was violated in implementation without a corresponding amendment. Non-compliant (F-001).
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md`'s Sprint 70 section states "No architectural deviations," which is inaccurate in light of F-001; this inaccuracy is subsumed by F-001 rather than raised as a separate Category 4 finding, since the same Builder Task resolving F-001 SHALL correct it.
+- **Tests (Gate 11):** The Builder's reported validation pipeline results (90 files / 620 tests, `tsc`, ESLint, build, extension-host build) are plausible and internally consistent, but do not cure F-001 — passing tests that assert a self-authorized, incorrect specification are not evidence of conformance.
+
+### Builder Task Recommendation
+
+One Blocked Builder Task is recommended, to be generated through the `nexus-sprint` workflow from F-001: revert `src/kernel/mission/mission-completion-eligibility.ts` and its associated test changes to their pre-Sprint-70 (Sprint 61/62-certified) behavior; retain the Sprint 70 integration suite and its seven non-conflicting scenarios; document the discovered historical-decision-superseding gap as a reported, unresolved architectural question for a future `nexus-plan` governance cycle rather than an in-Sprint fix. Sprint 70 SHALL be re-submitted for review after remediation. Milestone 10 closure remains **Not Ready** — the Builder's "Ready to Close" recommendation is not adopted.
+
+---
+
+## NEXUS-REV-2026-07-17-006 — Sprint 69 — Recovery Workflow Automation
+
+- **Reviewed Sprint:** Sprint 69 — Recovery Workflow Automation (Milestone 10, Initial Capability Sequence Step 3). Ratified by `NEXUS-RAT-2026-07-17-007`, implementing RFC-0004 v1.16 (`NEXUS-RAT-2026-07-17-006`).
+- **Reviewed Change:** `src/kernel/execution/recovery-requirement-governance-decision.consumer.ts` (extended), `src/kernel/execution/recovery-requirement.service.ts` (new `createRecoveryRequirement` operation), `src/kernel/execution/recovery-requirement.contract.ts` (contract addition), `src/kernel/common/create-kernel-services.ts` (additive wiring), `test/kernel/execution/recovery-requirement.test.ts` (new Sprint 69 test suite, S69-1 through S69-9), `test/integration/governance-automation-integration-validation.integration.test.ts` (allowlist addition and constructor-signature update for the changed files). `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Builder-authored entries reviewed for consistency with the implementation and with `NEXUS-RAT-2026-07-17-006`/`-007`.
+- **RFC Coverage:** RFC-0004 v1.16 (Partial — implements exactly the Recovery Workflow Automation section); RFC-0005/0006/0011 (Referenced, consumed read-only and unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently verified in source that `RecoveryRequirementGovernanceDecisionConsumer` (Sprint 58/59, frozen contract) is extended, not replaced: its existing `handleGovernanceDecisionRecorded(...)` caller-supplied-attribution command method is retained unchanged in signature and behavior, and a new `initialize()` override establishes exactly one `EventBusContract` subscription to `GovernanceDecisionRecorded`, guarded by `this.subscriptionHandles.length > 0` so repeated `initialize()` calls never double-subscribe — confirmed by test `S69-1`, which calls `initialize()` twice directly and again across all Kernel services, and asserts both the Recovery consumer's and the (frozen, untouched) `GovernanceGatedWorkflowAdvancementConsumer`'s subscriptions coexist independently (`initializedSubscriptionCount` ≥ 2), satisfying `NEXUS-RAT-2026-07-17-007`'s binding Consumer Separation rule. Confirmed the new event-handling flow matches RFC-0004 v1.16's normative sequence: event validation, `GovernanceDecision` resolution via the existing, unmodified `IGovernanceDecisionRepository`, Mission attribution validation, correlation resolution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId` (no caller-supplied substitute or enumeration anywhere in the diff), correlation/`GovernanceDecision` and Workflow-Step-runtime-position consistency validation via `EngineeringSessionService.getEngineeringSession` (read-only), and invocation of Recovery Requirement's existing creation path — newly extracted from the consumer into `RecoveryRequirementService.createRecoveryRequirement` — only for a Rejected decision (`S69-2`). Confirmed Approved, Deferred, and Escalation Required decisions produce a deterministic `NotCreated` result and create no `RecoveryRequirement` (`S69-3`, parameterized over all three values). Confirmed fail-closed behavior on missing/ambiguous correlation (`S69-4`), Mission and Workflow Step mismatch (`S69-5`), missing `GovernanceDecision` and malformed events (`S69-7`), and repository failure with no partial state (`S69-8`). Confirmed duplicate/replayed event delivery is idempotent at two independent layers: the consumer's `resultsByEventId` cache keyed on event identity (`S69-6`), and — beneath it — `RecoveryRequirementService.createRecoveryRequirement`'s existing, unmodified `findByAttributionKey` check on the (Mission, Engineering Session, Workflow Step, `GovernanceDecision`) key inherited from Sprint 58/59, so even a distinct replay event for the same governed position cannot create a duplicate. Confirmed via `S69-9` and source inspection that the consumer invokes only `RecoveryRequirementService.createRecoveryRequirement` for creation — it does not construct or persist a `RecoveryRequirement` aggregate directly, satisfying RFC-0004 v1.16's Event Handling boundary. Confirmed `RecoveryRequirementService.createRecoveryRequirement` reuses the existing `RecoveryRequirement.create(...)` factory, the existing deterministic attribution key, and the existing `publishDomainEvents` path unmodified, so `RecoveryRequirementCreated` publication semantics (Sprint 59, frozen) are unchanged. Confirmed `GovernanceGatedWorkflowAdvancementConsumer` and its Sprint 68 test file carry a zero-line diff (`git diff --stat` empty for both), and the full pre-existing Sprint 68 test suite passed unchanged within the same run, providing non-regression evidence for the Consumer Separation rule without requiring a new joint test. Confirmed no `EngineeringSession` (beyond its existing, unmodified `getEngineeringSession` read), `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `Mission`, Sprint 65/66/67/68 contract file, `src/hosts`, or `src/adapters` file was modified (`git diff --name-only` shows exactly the consumer, the service, the contract, the Kernel composition file, and two test files changed, matching the file allowlist the Builder added to the Sprint 62 integration test's production-drift check). Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint (`npm run lint -- --quiet`), `npm run test` (89 files / 609 tests, up from 598 — exactly 11 new tests: 9 in `recovery-requirement.test.ts` plus 2 new/updated assertions in the Sprint 62 integration suite), `npm run build`, and `npm run test:extension-host:build`, all passing and matching the Builder's reported counts exactly. Confirmed via `git diff --name-only -- src/hosts src/adapters` that no Host or Adapter file was touched.
+
+### Findings
+
+None of Category 1 through 5. One Category 6, Informational Observation (below); no Builder Task.
+
+**O-001 — Sprint 62 integration harness exercises the legacy caller-supplied path, not the new production auto-subscription path.** `test/integration/governance-automation-integration-validation.integration.test.ts`'s `createGovernedHarness` constructs its own `RecoveryRequirementGovernanceDecisionConsumer` and manually subscribes to `GovernanceDecisionRecorded` with a hand-written handler that calls the frozen `handleGovernanceDecisionRecorded({ event, engineeringSessionId, workflowStepId })` command method using harness-supplied identifiers (line ~529–538) — the pre-existing Sprint 62 wiring style, unchanged by this Sprint. It therefore continues to validate that the legacy caller-supplied-attribution path still functions end-to-end (correctly retained per `NEXUS-RAT-2026-07-17-007`'s Existing Consumer Ownership rule), but it does not exercise the new `initialize()`-registered production subscription or the `handleEvent`-driven `EngineeringDecisionCorrelationService`-based attribution resolution that is this Sprint's actual authorized capability. That behavior is instead fully covered at the unit level by `recovery-requirement.test.ts`'s `S69-1` through `S69-9`, using a dedicated harness with mocked `EngineeringDecisionCorrelationService`/`EngineeringSessionService` collaborators — an established, already-certified testing pattern (Sprint 68's `S68-*` tests use the identical structure, reviewed and approved under `NEXUS-REV-2026-07-17-005`). Not a defect: coverage is complete, only distributed across two test files rather than unified in one true end-to-end event-bus-driven integration scenario. Category 6, Informational. No Builder Task; a future Sprint touching this integration harness may consider updating it to exercise the production auto-subscription path directly.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 new (O-001) |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented, per `NEXUS-RAT-2026-07-17-007`: no recovery-plan generation, AI remediation planning, or automatic recovery execution; `RecoveryRequirementService.resolveRecoveryRequirement`/`withdrawRecoveryRequirement` are unmodified (zero diff beyond the new `createRecoveryRequirement` addition); no event-driven re-advancement after recovery; no automatic Builder invocation; no retry, buffering, reordering, durable subscription, checkpoint, or dead-letter-queue infrastructure was introduced; no Host or Adapter file was touched; Autonomous Engineering Integration Validation (Milestone 10 Step 4) remains untouched; `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, and Event-Driven Workflow Advancement (Sprint 68) are all unmodified.
+
+### Architectural Compliance Summary
+
+- **Trigger Authority:** `RecoveryRequirementGovernanceDecisionConsumer` is the sole subscriber to `GovernanceDecisionRecorded` for the Recovery Workflow Automation purpose; it is a second, independent subscription from Sprint 68's `GovernanceGatedWorkflowAdvancementConsumer` subscription to the same event type, neither merged into nor dependent on the other. Compliant with RFC-0004 v1.16 and `NEXUS-RAT-2026-07-17-007`.
+- **Existing Consumer Ownership:** the existing consumer was extended, not replaced; no second recovery consumer was introduced; production event handling constructs its command exclusively from authoritative loaded/correlated state, never from caller-supplied Engineering Session/Workflow Step identifiers. Compliant.
+- **Governance Outcome Handling:** only a Rejected `GovernanceDecision` authorizes Recovery Requirement creation; Approved/Deferred/Escalation Required produce a deterministic no-recovery result. Compliant.
+- **Correlation resolution:** exclusively via `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`; no enumeration or inference. Compliant.
+- **Fail-closed behavior:** missing/ambiguous correlation, Mission mismatch, correlation/`GovernanceDecision` mismatch, and Workflow Step mismatch all produce a `Rejected` result with no Recovery Requirement creation and no aggregate mutation. Compliant.
+- **Idempotency:** duplicate/replayed event delivery does not create more than one Recovery Requirement for the same deterministic key, enforced at both the consumer's event-identity cache and the service's existing attribution-key check. Compliant.
+- **Boundaries:** no `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, Recovery Requirement lifecycle (resolve/withdraw), Event-Driven Workflow Advancement, or `src/hosts`/`src/adapters` file was modified. Compliant.
+- **Documentation (Gate 12):** `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Sprint 69 entries accurately describe the implemented scope and are internally consistent with the Sprint Implementation Record and both ratifications. Compliant.
+- **Tests (Gate 11):** Full repository suite (89 files / 609 tests) passes with no regressions, independently re-verified via `tsc --noEmit`, `npm run lint -- --quiet`, `npm run test`, `npm run build`, and `npm run test:extension-host:build`. Compliant.
+
+### Builder Task Recommendation
+
+None. Sprint 69 is fully closed with zero open findings of any blocking category. O-001 is informational and non-blocking; no Builder Task is generated. Autonomous Engineering Integration Validation (Sprint 70) remains unscheduled and requires its own future `nexus-plan` Sprint scope proposal.
+
+---
+
+## NEXUS-REV-2026-07-17-005 — Sprint 68 — Event-Driven Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 68 — Event-Driven Workflow Advancement (Milestone 10, Initial Capability Sequence Step 2's remainder). Ratified by `NEXUS-RAT-2026-07-17-005`, implementing RFC-0004 v1.15 (`NEXUS-RAT-2026-07-17-004`).
+- **Reviewed Change:** `src/kernel/execution/governance-gated-workflow-advancement.consumer.ts` (extended), `src/kernel/common/create-kernel-services.ts` (additive wiring), `test/kernel/execution/engineering-session.service.test.ts` (new Sprint 68 test suite), `test/integration/governance-automation-integration-validation.integration.test.ts` (allowlist addition for the modified consumer file). `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Builder-authored entries reviewed for consistency with the implementation and with `NEXUS-RAT-2026-07-17-004`/`-005`.
+- **RFC Coverage:** RFC-0004 v1.15 (Partial — implements exactly the Event-Driven Workflow Advancement section); RFC-0005/0006/0011 (Referenced, consumed read-only and unmodified).
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently verified in source that `GovernanceGatedWorkflowAdvancementConsumer` (Sprint 57, frozen contract) is extended, not replaced: its existing `handleGovernanceDecisionRecorded(...)` capability is retained unchanged, and a new `initialize()` override establishes exactly one `EventBusContract` subscription to `GovernanceDecisionRecorded`, guarded by `this.subscriptionHandles.length > 0` so repeated `initialize()` calls on the same instance never double-subscribe — confirmed by test `S68-1`, which calls `initialize()` twice across all Kernel services and asserts the subscription count is unchanged. Confirmed the event-handling flow matches RFC-0004 v1.15's normative sequence: event validation, `GovernanceDecision` resolution via the existing, unmodified `IGovernanceDecisionRepository`, correlation resolution exclusively through `EngineeringDecisionCorrelationService.findByGovernanceDecisionId` (no caller-supplied substitute or enumeration anywhere in the diff), Mission/GovernanceDecision/correlation/WorkflowStep attribution consistency validation, and invocation of the existing, unmodified `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision` operation only for an Approved decision. Confirmed Rejected/Deferred/Escalation Required decisions produce a deterministic `NotAdvanced` result and create no `RecoveryRequirement` (test `S68-3`, parameterized over all three values, asserts an empty Recovery Requirement enumeration). Confirmed fail-closed behavior on missing/ambiguous correlation (`S68-4`), Mission mismatch and Workflow Step mismatch (`S68-5`), and malformed events/persistence failure (`S68-7`) — in every case the Engineering Session's `currentWorkflowStepId` is independently asserted unchanged. Confirmed duplicate/replayed event delivery is idempotent via an in-memory `resultsByEventId` result cache keyed on event identity, checked before any repository access (`S68-6`), and that an already-advanced Workflow position (a second event arriving after the position moved on) fails closed via the Workflow Step mismatch path rather than silently no-oping — a defensible, spec-consistent interpretation of "no duplicate transition," since it never produces a duplicate transition and surfaces a deterministic diagnostic rather than a silent success. Confirmed via test `S68-8` and source inspection that the consumer invokes only `EngineeringSessionService.getEngineeringSession`/`advanceWorkflowAfterGovernanceDecision` — no direct aggregate mutation. Confirmed no `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, Review, `GovernanceDecision`, `RecoveryRequirement`, `Mission`, Sprint 65/66/67 contract file, `src/hosts`, or `src/adapters` file was modified (`git diff --name-only` shows exactly the consumer, the Kernel composition file, and two test files changed). Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (89 files / 598 tests, up from 588 — exactly 10 new Sprint 68 tests), `npm run build`, and `npm run test:extension-host:build`, all passing.
+
+### Findings
+
+None of Category 1 through 5. One Category 6, Informational Observation (below); no Builder Task.
+
+**O-001 — Redundant, unreachable `processedEventIds` duplicate-check.** `GovernanceGatedWorkflowAdvancementConsumer.handleEvent` maintains both a `resultsByEventId` cache (checked first, on every call, for any previously-seen `eventId`) and a separate `processedEventIds` Set (checked later, only reached after the `resultsByEventId` check has already passed). Every code path that adds to `processedEventIds` also calls `recordResult`, which populates `resultsByEventId` for the same `eventId` in the same call. Consequently, on any actual re-delivery of a previously-handled event, the earlier `resultsByEventId` check always returns first, and the `processedEventIds.has(...)` branch can never be reached — it is provably dead code, not a correctness defect (the idempotency guarantee it exists to provide is already fully satisfied by the `resultsByEventId` cache, confirmed by test `S68-6`). Category 6, Informational. No Builder Task; a future Sprint touching this consumer may simplify by removing the redundant `processedEventIds` Set.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 new (O-001) |
+
+### Deferred Concept Validation
+
+Confirmed correctly unimplemented, per `NEXUS-RAT-2026-07-17-005`: `RecoveryRequirementGovernanceDecisionConsumer` remains unwired (not present in the diff); no Recovery Requirement is created for Rejected/Deferred/Escalation Required decisions (`S68-3` asserts an empty enumeration); no retry, buffering, reordering, durable subscription, checkpoint, or dead-letter-queue infrastructure was introduced; no Host or Adapter file was touched; Autonomous Engineering Integration Validation (Milestone 10 Step 4) remains untouched.
+
+### Architectural Compliance Summary
+
+- **Trigger Authority:** `GovernanceGatedWorkflowAdvancementConsumer` is the sole subscriber to `GovernanceDecisionRecorded` for this purpose; no Host, Adapter, Review, Governance, or projection component independently triggers advancement. Compliant with RFC-0004 v1.15 and `NEXUS-RAT-2026-07-17-005`.
+- **Existing Consumer Ownership:** the existing consumer was extended, not replaced; no second consumer for the same responsibility was introduced; production event handling constructs its command exclusively from authoritative loaded/correlated state, never from caller-supplied Engineering Session/Workflow Step identifiers. Compliant.
+- **Correlation resolution:** exclusively via `EngineeringDecisionCorrelationService.findByGovernanceDecisionId`; no enumeration or inference. Compliant.
+- **Fail-closed behavior:** missing/ambiguous correlation, Mission mismatch, correlation/GovernanceDecision mismatch, and Workflow Step mismatch all produce a `Rejected` result with no advancement, no aggregate mutation, and no Recovery Requirement. Compliant.
+- **Idempotency:** duplicate/replayed event delivery does not advance the same Workflow position more than once. Compliant (see O-001 for a non-blocking code-quality note).
+- **Boundaries:** no `GovernanceDecision`, Review, Engineering Decision Correlation, `EngineeringSessionStateProjection`, Workflow Chain topology, Mission Engineering Group, or `src/hosts`/`src/adapters` file was modified. Compliant.
+- **Documentation (Gate 12):** `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` Sprint 68 entries accurately describe the implemented scope and are internally consistent with the Sprint Implementation Record and both ratifications. Compliant.
+- **Tests (Gate 11):** Full repository suite (89 files / 598 tests) passes with no regressions, independently re-verified via `npm run validate` and `npm run test:extension-host:build`. Compliant.
+
+### Builder Task Recommendation
+
+None. Sprint 68 is fully closed with zero open findings of any blocking category. O-001 is informational and non-blocking; no Builder Task is generated. Recovery Workflow Automation (Sprint 69) remains unscheduled and requires its own future `nexus-plan` Sprint scope proposal.
+
+---
+
+## NEXUS-REV-2026-07-17-004 — Sprint 67 — Engineering Decision Correlation Foundation (Documentation Task Verification)
+
+- **Reviewed Sprint:** Sprint 67 — Engineering Decision Correlation Foundation (Milestone 10, Prerequisite Foundation inbound half). Follow-up cycle verifying Builder completion of `DOC-TASK-067-001`, generated by `nexus-sprint` from `NEXUS-REV-2026-07-17-003` Finding F-001 (Category 4 — Documentation Drift, Minor).
+- **Reviewed Change:** `IMPLEMENTATION_MANIFEST.md` only. No source, test, RFC, Kernel Canon, or Ratification file changed since `NEXUS-REV-2026-07-17-003`.
+- **RFC Coverage:** Unchanged from `NEXUS-REV-2026-07-17-003` (RFC-0004 v1.14 Partial; RFC-0005/0006/0011 Referenced). No RFC amended by this task.
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently confirmed via direct read of `IMPLEMENTATION_MANIFEST.md` that the two bullets orphaned from Sprint 66's Notes list, previously misplaced under Sprint 67's heading (`NEXUS-REV-2026-07-17-003` F-001), have been removed. Sprint 67's Notes section (`IMPLEMENTATION_MANIFEST.md`, Sprint 67 — Engineering Decision Correlation Foundation) now contains exactly its own two correct bullets — the Sprint Implementation Record reference and the correct "does not modify RFC-0001, RFC-0005, RFC-0006, RFC-0011... implements RFC-0004 v1.14" sentence — with no orphaned or contradictory content, and is immediately followed by the section separator. Sprint 66's own Notes section, immediately preceding it, is unaffected and still ends correctly at its own Sprint Implementation Record reference. Confirmed via `git status`/targeted diff that `IMPLEMENTATION_MANIFEST.md` is the only file changed in this cycle beyond the addition of a new `IMPLEMENTATION_REPORT.md` entry recording the Sprint 67 slice; no source, test, RFC, Kernel Canon, or Ratification Ledger file was modified, satisfying `DOC-TASK-067-001`'s Required Changes and Acceptance Criteria exactly. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (89 files / 588 tests), and `npm run build` all pass cleanly, confirming the documentation-only correction introduced no regression. `NEXUS-REV-2026-07-17-003`'s two Category 6 Observations (O-001, O-002) remain informational and outside this task's scope; neither was reopened or touched.
+
+### Findings
+
+None of Category 1 through 5. `DOC-TASK-067-001` (Category 4, Minor) is Resolved.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 open (1 resolved: `NEXUS-REV-2026-07-17-003` F-001 / `DOC-TASK-067-001`) |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 new (O-001/O-002 from `NEXUS-REV-2026-07-17-003` remain outstanding, informational, no Builder Task) |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-17-003`: Event-Driven Workflow Advancement (Sprint 68), Recovery Workflow Automation (Sprint 69), and Autonomous Engineering Integration Validation (Sprint 70) remain correctly unimplemented; no source or test file changed in this cycle, so nothing could have been implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope:** Exactly `DOC-TASK-067-001`'s authorized documentation-only correction was made to `IMPLEMENTATION_MANIFEST.md`. Compliant.
+- **No production source drift:** `git diff --stat -- src/ test/` shows no change since `NEXUS-REV-2026-07-17-003`. Compliant.
+- **Documentation (Gate 12):** `IMPLEMENTATION_MANIFEST.md`'s Sprint 67 section is now internally consistent and factually accurate; the stale Sprint 66 test count and the incorrect RFC-0004 non-modification claim are both removed. Compliant.
+- **Tests (Gate 11):** Full repository suite (89 files / 588 tests) passes with no regressions, independently re-verified via `npm run validate`. Compliant.
+
+### Builder Task Recommendation
+
+None. `DOC-TASK-067-001` is Resolved; zero findings of any blocking category remain. Sprint 67 is now fully closed with no outstanding Documentation Task. No further Milestone 10 Sprint is Current — Event-Driven Workflow Advancement (Sprint 68) and Recovery Workflow Automation (Sprint 69) each remain unscheduled and require their own future `nexus-plan` Sprint scope proposal; this review does not authorize either.
+
+---
+
+## NEXUS-REV-2026-07-17-003 — Sprint 67 — Engineering Decision Correlation Foundation
+
+- **Reviewed Sprint:** Sprint 67 — Engineering Decision Correlation Foundation (Milestone 10, Prerequisite Foundation inbound half), authorized by `NEXUS-RAT-2026-07-17-003`, implementing RFC-0004 v1.14 (`NEXUS-RAT-2026-07-17-002`).
+- **Reviewed Vertical Slice:** A new, standalone Kernel record — `EngineeringDecisionCorrelation`/`IEngineeringDecisionCorrelationRepository`/`InMemoryEngineeringDecisionCorrelationRepository`/`EngineeringDecisionCorrelationService` — correlating a governed Workflow position (Mission, Engineering Session, Workflow Step) with the Review and `GovernanceDecision` subsequently produced for it. Creation and association are explicit, caller-invoked operations only (`beginCorrelation`, `associateReview`, `associateGovernanceDecision`); no existing service gains an automatic call site. `createKernelServices()` wiring is additive.
+- **RFC Coverage:** RFC-0004 v1.14 (Partial — implements exactly the Engineering Decision Correlation section), RFC-0006 (Referenced — `Review` consumed read-only), RFC-0011 (Referenced — `GovernanceDecision` consumed read-only), RFC-0005 (Referenced — existing envelope conventions only). No RFC amended by the Builder; RFC-0004 v1.14 was already amended by `NEXUS-RAT-2026-07-17-002` prior to implementation.
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 67 implements exactly the vertical slice authorized by `NEXUS-RAT-2026-07-17-003`. Independently verified in source that `EngineeringDecisionCorrelation.create`/`fromSnapshot` freeze immutable Mission/Engineering-Session/Workflow-Step attribution (`engineering-decision-correlation.ts`), and that `InMemoryEngineeringDecisionCorrelationRepository.save` (`engineering-decision-correlation.repository.ts`, `assertImmutableCreationFields`) rejects any attempt to change that attribution after registration. Confirmed `beginCorrelation` (`engineering-decision-correlation.service.ts`) resolves `missionId` exclusively through `IMissionEngineeringGroupRepository.getMissionIdByEngineeringSessionId` (Sprint 65, unmodified, read-only) and never accepts a caller-supplied `missionId`. Confirmed `associateReview`/`associateGovernanceDecision` read the referenced `Review`/`GovernanceDecision` read-only, reject a Mission mismatch via `EngineeringDecisionCorrelationAssociationRejectedError` before any mutation, and that the aggregate (`associateReview`/`associateGovernanceDecision` in `engineering-decision-correlation.ts`) treats a repeated identical association as a no-op while rejecting a conflicting reassociation with `InvalidEngineeringDecisionCorrelationDefinitionError` — independently confirmed by dedicated tests (S67-2 through S67-5) asserting the correlation is unchanged (`toEqual`) after each rejected attempt. Confirmed the aggregate enforces association order (Review before `GovernanceDecision`) and that `associateGovernanceDecision` additionally rejects a `GovernanceDecision` whose own `reviewId` does not match the correlation's associated Review. Confirmed deterministic, fail-closed lookup by `reviewId`, `governanceDecisionId`, and Workflow position (S67-6), and that the shared `findUniqueSnapshotByIndexedKey` helper correctly returns absent on a genuine multi-way index collision, exercised for `reviewId` ambiguity by a dedicated test (S67-7).
+
+Confirmed via `git diff --stat -- src/` and targeted diffs that exactly the seven new `engineering-decision-correlation*.ts` files plus purely additive changes to `create-kernel-services.ts` and `kernel-boundary-certification.integration.test.ts` changed, and that `git diff --stat -- src/hosts src/adapters` and targeted diffs on `engineering-session.service.ts`, `engineering-session.ts`, `workflow-chain.ts`, `mission-engineering-orchestration.repository.ts`, `mission-engineering-orchestration.service.ts`, `src/kernel/review/`, and `src/kernel/governance/` are all empty — every file this Sprint's ratification forbids is untouched. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 89 files / 588 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. Two Category 6, Informational Observations and one Category 4, Minor Documentation Drift finding are recorded below; none affect the disposition below the PASS WITH FINDINGS threshold.
+
+### Findings
+
+#### Category 4 — Documentation Drift
+
+**F-001 (Minor).** `IMPLEMENTATION_MANIFEST.md`'s Sprint 67 section (lines 2795–2796, immediately following Sprint 67's own correctly-written Notes bullets) contains two orphaned bullets left over from Sprint 66's original Notes list, now misplaced under the Sprint 67 heading: "This Sprint does not modify RFC-0001, RFC-0004, RFC-0005, RFC-0011, or the Kernel Canon." (factually wrong for Sprint 67, which implements RFC-0004 v1.14, and directly contradicts the correct sentence immediately above it in the same list) and "Repository-wide validation passed: TypeScript compile, ESLint, Vitest (88 files / 580 tests), esbuild, and extension-host bundle build." (Sprint 66's stale test count; independently re-verified current count is 89 files / 588 tests). Evidence: `git diff -- IMPLEMENTATION_MANIFEST.md` shows Sprint 67's new section was inserted before, rather than after, Sprint 66's final two Notes bullets, splitting them across the Sprint boundary. Impact: cosmetic/informational only — no source, test, or governing document is affected, and Sprint 67's own preceding bullet already states the correct information. Required Disposition: Documentation Task — a future Builder or documentation pass should remove the two orphaned bullets from Sprint 67's section (they belong nowhere, since Sprint 66's Notes are already complete without them) or restore them to Sprint 66's section if intentional content was lost. Does not block approval.
+
+### Observations (Category 6, informational; no Builder Task)
+
+- **O-001.** Test `S67-7` ("resolves by Workflow position and fails closed on ambiguous repository state") is named as if it exercises Workflow-position lookup ambiguity, but its two constructed correlations use different `engineeringSessionId` values, so their position keys never collide; the ambiguity it actually exercises and asserts is `findByReviewId` ambiguity. Confirmed by source inspection of `InMemoryEngineeringDecisionCorrelationRepository.register` that genuine position-key ambiguity is structurally unreachable through the public repository contract as implemented: `register` returns the existing correlation whenever a position key already resolves to one, so the `correlationIdsByPositionKey` index can never index more than one correlation per key. This is a defensible, RFC-consistent design choice (RFC-0004 v1.14 does not require multiple correlations per governed position), not a defect; the "ambiguous position key" branch of `findByPositionKey` is simply unreachable/untested. No Builder Task; a future Sprint touching this repository should keep this invariant in mind if position-key uniqueness is ever relaxed.
+- **O-002.** The aggregate-level invariant that `associateGovernanceDecision` SHALL be rejected when no Review is yet associated (`engineering-decision-correlation.ts`, throws `InvalidEngineeringDecisionCorrelationDefinitionError` when `reviewId === undefined`) is correctly implemented but not directly exercised by any Sprint 67 test — every test that reaches `associateGovernanceDecision` first calls `associateReview`. No Builder Task; a future Sprint extending this service should add a dedicated test for this path if it becomes load-bearing.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 1 (Minor, no Builder Task required for approval; Documentation Task recommended) |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 2 |
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: Event-Driven Workflow Advancement (Sprint 68); Recovery Workflow Automation (Sprint 69); Autonomous Engineering Integration Validation (Sprint 70); automatic correlation creation or wiring into `EngineeringSessionService`/`ReviewService`/`GovernanceService`; wiring `GovernanceGatedWorkflowAdvancementConsumer`/`RecoveryRequirementGovernanceDecisionConsumer` as automatic `EventBusContract` subscribers; Host or Adapter surfacing; durable/distributed correlation persistence. `git diff --stat -- src/` confirms no file outside the seven new correlation files and the two additive composition/test-harness files changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the vertical slice authorized by `NEXUS-RAT-2026-07-17-003` was added. Compliant.
+- **Ratification Compliance:** RFC-0004 v1.14's Identity/Attribution, Append-Only Association, Creation Authority (resolved by `NEXUS-RAT-2026-07-17-003` as caller-invoked-only), Lookup, and Boundaries requirements are all honored exactly as specified. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `Review` and `GovernanceDecision` remain the sole owners of their own production, values, and lifecycle; `EngineeringDecisionCorrelation` is a correlation record only, consumed read-only against both, and mutates neither. Compliant.
+- **Event Compliance (Gate 7):** Introduces no new Domain Event and consumes none; RFC-0005's existing envelope conventions are referenced only for optional causality/correlation identifiers on the correlation record itself. Compliant.
+- **Determinism (Gate 9):** Creation attribution is immutable; association is append-only, idempotent-safe on repeated identical input, and fails closed (no partial mutation) on Mission mismatch or conflicting reassociation, each independently confirmed by dedicated tests. Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly the authorized new files plus additive `create-kernel-services.ts`/test-harness wiring; every explicitly forbidden file (`EngineeringSession`, `EngineeringSessionService`, `WorkflowChain`, Mission Engineering Group, Review, Governance, `RecoveryRequirement`, `Mission`, `src/hosts`, `src/adapters`) is unmodified. Compliant.
+- **Tests (Gate 11):** All eight Required Test Matrix items implied by the Sprint's Acceptance Criteria are covered, subject to Observations O-001/O-002 above (neither blocking). The full repository suite (89 files / 588 tests) passes with no regressions, independently re-verified via `npm run validate` and `npm run test:extension-host:build`. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, and validation summary, explicitly stating "No architectural deviations." `IMPLEMENTATION_MANIFEST.md`'s Sprint 67 section carries the Category 4 Documentation Drift finding above (F-001); non-blocking.
+
+### Builder Task Recommendation
+
+None required for approval. F-001 (Category 4, Minor) recommends a future Documentation Task to remove or relocate the two orphaned bullets misplaced at the end of `IMPLEMENTATION_MANIFEST.md`'s Sprint 67 section. Event-Driven Workflow Advancement (Sprint 68) and Recovery Workflow Automation (Sprint 69) remain unscheduled and require their own future `nexus-plan` Sprint scope proposal, each consuming Sprint 67's `EngineeringDecisionCorrelation` as its attribution source; this review does not authorize either.
+
+---
+
+## NEXUS-REV-2026-07-17-002 — Sprint 66 — Engineering Session State Projection
+
+- **Reviewed Sprint:** Sprint 66 — Engineering Session State Projection (Milestone 10, fulfilling the remaining Prerequisite Foundation item named by `NEXUS-RAT-2026-07-16-018`), authorized by `NEXUS-RAT-2026-07-17-001`.
+- **Reviewed Vertical Slice:** A new, read-only Kernel projection — `EngineeringSessionStateProjection`/`IEngineeringSessionStateProjectionRepository`/`InMemoryEngineeringSessionStateProjectionRepository`/`EngineeringSessionStateProjectionService` — subscribed to exactly `EngineeringSessionWorkflowAdvanced` (Sprint 65, frozen) through the existing `EventBusContract`. The projection exposes the latest observed Workflow position and ordered advancement history per Engineering Session, deterministically enforcing Workflow continuity and Mission attribution consistency, and treating duplicate event identity as an idempotent no-op. `createKernelServices()` wiring is additive.
+- **RFC Coverage:** RFC-0005 (Referenced — event-consumption contract), RFC-0004 v1.13 (Referenced — `EngineeringSession`/Workflow Advancement state consumed read-only). No RFC amended.
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 66 implements exactly the vertical slice authorized by `NEXUS-RAT-2026-07-17-001`. Independently verified in source (`engineering-session-state-projection.ts`) that the projection is derived, read-only state: `createFromEvent` initializes the observed position exclusively from the first consumed event's `previousWorkflowStepId`/`newWorkflowStepId` — never from `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, or any other repository — satisfying the binding Known Source Limitation that creation-time state is unrepresentable and that a Session with no observed advancement legitimately has no projection record (confirmed by a dedicated test). Confirmed `apply()` enforces Workflow continuity (`event.previousWorkflowStepId` must equal `projection.currentWorkflowStepId`) and Mission attribution consistency (`event.missionId` must equal the projection's stored `missionId`, itself copied exclusively from the first event — no repository lookup or caller-supplied fallback anywhere in the code), both throwing a `KernelError` that the service layer (`engineering-session-state-projection.service.ts`) catches without calling `repository.save()`, independently confirmed by two dedicated tests asserting the existing projection is byte-for-byte unchanged (`toEqual(before)`) after a continuity mismatch and after a Mission conflict respectively. Confirmed idempotency: the service checks `currentProjection?.hasProcessedEvent(event.eventId)` before applying, short-circuiting to a `Duplicate` result with the unchanged existing snapshot and no revision increment — verified for both live re-delivery and explicit `replayMissionEventStream` overlap by a dedicated test. Confirmed the replay/live reconstruction test proves a projection built by explicit Mission-stream replay is structurally identical (`toEqual`) to one built by live subscription for the same ordered event stream, and that reads (`getEngineeringSessionStateProjection`) never mutate stored state.
+
+Confirmed via `git diff --stat -- src/` that exactly the four new projection files plus one additive line-range change to `create-kernel-services.ts` changed, and that `git diff --stat -- src/hosts src/adapters` and `git diff --stat` on `engineering-session.ts`, `engineering-session.service.ts`, `engineering-session.events.ts`, `mission-engineering-orchestration.repository.ts`, and `workflow-chain.ts` are all empty — Sprint 65's frozen event contract and every named out-of-boundary file are untouched. The pre-existing `GovernanceGatedWorkflowAdvancementConsumer`/`RecoveryRequirementGovernanceDecisionConsumer` kernel services observed in `create-kernel-services.ts` predate this Sprint (traced to Sprint 57/59 commits already an ancestor of `HEAD`) and are unmodified by this diff; they are not Sprint 66 event consumers of the new projection and do not constitute scope creep. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 88 files / 580 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. No architectural violations detected.
+
+### Findings
+
+None of Category 1 through 5.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: `EngineeringSessionCreated` and projection of creation-time Session state (no projection is fabricated before a Session's first observed advancement event, confirmed by a dedicated test); Event-Driven Workflow Advancement; Recovery Workflow Automation; Autonomous Engineering Integration Validation (Milestone 10 Step 4); Host or Adapter projection surfacing; projection caching; durable/distributed projection storage; event checkpoints, consumer offsets, dead-letter queues, retry policies, or event-stream compaction; Mission-level orchestration; WorkflowStep execution-status projection; ExecutionSession projection. `git diff --stat -- src/` confirms no file outside the four new projection files and the additive `create-kernel-services.ts` wiring changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the vertical slice authorized by `NEXUS-RAT-2026-07-17-001` was added. Compliant.
+- **Ratification Compliance:** The binding Known Source Limitation, Deterministic Event Consumption steps, Workflow Continuity rule, Mission Attribution Consistency rule, and Idempotency rule are all honored exactly as specified. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `EngineeringSession` remains the sole owner of authoritative Workflow position and advancement behavior; the projection is derived, read-only state that does not mutate `EngineeringSession`, `WorkflowChain`, Mission Engineering Group, or any other aggregate. Compliant.
+- **Event Compliance (Gate 7):** Introduces no new event type; consumes exactly the existing, frozen `EngineeringSessionWorkflowAdvanced` event through the existing `EventBusContract.subscribe()`. Compliant.
+- **Determinism (Gate 9):** Equivalent ordered event streams produce equivalent projections (dedicated replay-vs-live reconstruction test); duplicate event identity never produces a second effective update; contradictory events (continuity mismatch, Mission conflict) fail closed, leaving existing projection state unchanged. Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly the four new projection files plus additive `create-kernel-services.ts` wiring; `git diff --stat -- src/hosts src/adapters` is empty; Sprint 65's event contract and every named out-of-boundary file are unmodified. Compliant.
+- **Tests (Gate 11):** All fourteen Required Test Matrix items are covered across `engineering-session-state-projection.test.ts` and `kernel-boundary-certification.integration.test.ts`. The full repository suite (88 files / 580 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, the Known Source Limitation, idempotency/continuity/replay semantics, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 66 is fully closed. Event-Driven Workflow Advancement (Step 2's remainder) and Recovery Workflow Automation (Step 3) remain unscheduled and require their own future RFC ownership analysis and Sprint scope ratification via a future `nexus-plan` cycle; this review does not authorize either.
+
+---
+
+## NEXUS-REV-2026-07-17-001 — Sprint 65 — EngineeringSession Domain Event Publication (Cycle 2, revised scope)
+
+- **Reviewed Sprint:** Sprint 65 — EngineeringSession Domain Event Publication (Milestone 10 prerequisite foundation, authorized by `NEXUS-RAT-2026-07-16-018`). Cycle 1 was blocked pre-implementation (the Builder correctly stopped upon discovering no authorized `missionId` source exists on `EngineeringSession`); `NEXUS-RAT-2026-07-16-019` revised the scope. This review certifies Cycle 2, the revised and implemented scope.
+- **Reviewed Vertical Slice:** `EngineeringSession` gains a recorded-events collection and `pullDomainEvents()`. `EngineeringSessionService` gains optional constructor-injected `EventBusContract` and a read-only, constructor-injected Mission Engineering Group reverse-lookup dependency. Exactly one canonical event — `EngineeringSessionWorkflowAdvanced` — is published identically across `advanceWorkflow`/`advanceWorkflowOnTrigger`/`advanceWorkflowAfterReview`/`advanceWorkflowAfterGovernanceDecision`, carrying a Mission Engineering Group-resolved (never caller-supplied) `missionId`, previous/new `workflowStepId`, and a closed-vocabulary advancement strategy. A new read-only reverse-lookup method, `getMissionIdByEngineeringSessionId`, was added to `IMissionEngineeringGroupRepository`/`InMemoryMissionEngineeringGroupRepository`, failing closed (dedicated errors) on missing or ambiguous association. `EngineeringSessionCreated` is deferred entirely; `createEngineeringSession` remains event-silent.
+- **RFC Coverage:** RFC-0005 (Partial — new aggregate joins the established publication pattern), RFC-0004 v1.13 (Referenced — `EngineeringSession`, Workflow Advancement, and Mission Engineering Group ownership consumed unmodified). No RFC amended.
+- **Review Date:** 2026-07-17
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 65 Cycle 2 implements exactly the revised scope authorized by `NEXUS-RAT-2026-07-16-018`/`NEXUS-RAT-2026-07-16-019`. Independently verified in source that `EngineeringSessionWorkflowAdvanced`'s `missionId` is sourced exclusively from `EngineeringSessionService.resolveMissionId`, which calls the new `IMissionEngineeringGroupRepository.getMissionIdByEngineeringSessionId` — confirmed this method is read-only (`mission-engineering-orchestration.repository.ts`: iterates `groupsByMissionId.values()` and only reads; no `save()` call on that path, independently confirmed by a dedicated non-mutation test), deterministic, and fails closed via `MissingMissionEngineeringGroupAssociationError`/`AmbiguousMissionEngineeringGroupAssociationError` when zero or more than one `MissionEngineeringGroup` contains the session — exactly the binding semantics required. Confirmed `resolveMissionId` is invoked in `advanceWorkflowWithEvent` *before* the aggregate's `advance(...)` callback runs, so a missing/ambiguous association throws before any state mutation (`EngineeringSession.currentWorkflowStepId` verified unchanged via `getEngineeringSession` assertions in the fail-closed test). Confirmed no caller-supplied `missionId` path exists anywhere in `EngineeringSessionService`/`EngineeringSession` — the only `missionId` values flowing into event construction originate from the resolved `MissionId`. Confirmed `EngineeringSession`/`EngineeringSessionSnapshot`/`EngineeringSessionInput`/`CreateEngineeringSessionCommand` gained no `missionId` field (`engineering-session.types.ts` and `engineering-session.contract.ts` are absent from the diff, confirming no persistent Mission ownership was added), and `createEngineeringSession` was not touched beyond what the diff shows (still publishes nothing, confirmed by a dedicated test asserting an empty `eventBus.replay()` after creation).
+
+Confirmed the Equivalent Transition Rule is honored: a dedicated test asserts identical payload key sets (`engineeringSessionId`, `newWorkflowStepId`, `previousWorkflowStepId`, `strategy`) across Trigger/ReviewGated/GovernanceGated advancement, plus a separate Direct-advancement test asserting the full exact event shape — one canonical `EngineeringSessionWorkflowAdvanced` type across all four strategies, never four separate event types. Confirmed persistence-first ordering is preserved: `advanceWorkflowWithEvent` calls `this.repository.save(engineeringSession)` before `publishRecordedEvents`, and a dedicated `FailingSaveEngineeringSessionRepository` test proves a persistence failure both publishes nothing and leaves no event pulled/leaked into a subsequent successful call (the retry after the injected failure publishes exactly the second, not a duplicated first, event). Confirmed rejected advancement (`InvalidEngineeringSessionDefinitionError` on a terminal-step `advanceWorkflow` call, and a `Rejected` Review Outcome) emits no event, and that `EngineeringSession.fromSnapshot` rehydration drains zero events. Confirmed `pullDomainEvents()` returns events in recorded order, clears its internal collection, and a second immediate call returns empty (no duplicate publication).
+
+Confirmed via `git diff --stat -- src/` that exactly the seven files authorized by the Sprint Implementation Record's "Authorized Files and Boundaries" section changed: `create-kernel-services.ts` (additive wiring — the same shared `missionEngineeringGroupRepository` instance is now passed to both `EngineeringSessionService` and `MissionEngineeringOrchestrationService`, verified by a dedicated kernel-composition test asserting reference equality), `engineering-session.errors.ts`, `engineering-session.events.ts` (new), `engineering-session.service.ts`, `engineering-session.ts`, `mission-engineering-orchestration.errors.ts`, and `mission-engineering-orchestration.repository.ts`. Confirmed `mission-engineering-orchestration.contract.ts`/`.service.ts` — and every `GovernanceDecision`, `RecoveryRequirement`, `WorkflowChain`, Review, `src/hosts`, and `src/adapters` file — are byte-for-byte unmodified (`git diff --stat -- src/hosts src/adapters` empty, independently re-run; `git diff --stat -- src/kernel/governance src/kernel/mission` empty, independently re-run). Confirmed `test/integration/governance-automation-integration-validation.integration.test.ts`'s production-drift self-check was correctly and minimally updated to allowlist exactly these seven new/changed Sprint 65 files (matching `git status` exactly), preserving its guard over every other Sprint 1–64 production contract. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 87 files / 568 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. One Category 6, Informational Observation recorded below; it does not affect the disposition. No architectural violations detected.
+
+### Findings
+
+None of Category 1 through 5.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 (informational, non-blocking, no Builder Task; see below) |
+
+### Observations (Category 6, informational; no Builder Task)
+
+- `EngineeringSessionService.advanceWorkflowWithEvent`'s idempotent-no-op governance-gated path (`advanceWorkflowAfterGovernanceDecision` returning `false` when the session is not at the governed step) skips `repository.save()` entirely when event publication is wired, whereas the pre-Sprint-65 code path (and the still-present "neither `EventBusContract` nor Mission Engineering Group repository injected" branch retained for unit-test/foundation-mode construction) unconditionally called `repository.save()` even on this no-op. Confirmed this produces no observable behavioral difference: `InMemoryEngineeringSessionRepository.save()` performs a pure `Map.set()` of an unchanged snapshot with no version counter, timestamp, or side effect, so the skipped call is byte-for-byte equivalent to the prior redundant save. No Builder Task. A future Sprint touching `EngineeringSessionService`'s advancement orchestration should keep this equivalence in mind if a repository implementation ever gains save-time side effects.
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: `EngineeringSessionCreated` (a dedicated test asserts `eventBus.replay()` is empty immediately after `createEngineeringSession`); `EngineeringSessionAssociatedWithMission` or any other Mission-association event; atomic Engineering Session creation-and-association; any change to Mission Engineering Group's mutation operations (`associateEngineeringSessionWithMission`, `recordEngineeringSessionHandoff` diffs confirmed absent); persistent `missionId` ownership on `EngineeringSession`; Session State Projection; Event-Driven Workflow Advancement/Recovery Workflow Automation consumers; Autonomous Engineering Integration Validation (Milestone 10 Step 4); `closeEngineeringSession`/checkpoint/recovery/handoff/execution-session event publication; any event subscription/consumer. `git diff --stat -- src/` confirms no file outside the seven authorized Sprint 65 files changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the Cycle 2 revised vertical slice authorized by `NEXUS-RAT-2026-07-16-019` was added. Compliant.
+- **Ratification Compliance:** Both `NEXUS-RAT-2026-07-16-018`'s attribution-gap resolution and `NEXUS-RAT-2026-07-16-019`'s Cycle 2 refinements are honored: Mission attribution resolved exclusively through Mission Engineering Group, never caller-supplied or inferred; the reverse-lookup query is read-only, deterministic, fails closed on missing/ambiguous association, and lives within the Mission Engineering Group ownership boundary (not on `EngineeringSession`); `EngineeringSessionCreated` correctly deferred. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `EngineeringSession` gains no persistent Mission state; Mission Engineering Group's existing mutation operations and ownership boundary are untouched; the new reverse-lookup method is additive and read-only. Compliant.
+- **Event Compliance (Gate 7):** Introduces exactly one new event type, `EngineeringSessionWorkflowAdvanced`, published through the existing `EventBusContract`/`DomainEvent` envelope conventions; no existing event type, envelope, or publisher modified. Compliant.
+- **Determinism (Gate 9):** Equivalent advancement transitions (any of the four strategies) produce a structurally identical canonical event (dedicated test); Mission resolution is deterministic and fails closed rather than guessing under ambiguity. Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly the seven authorized files; `git diff --stat -- src/hosts src/adapters` and `git diff --stat -- src/kernel/governance src/kernel/mission` are both empty. Compliant.
+- **Tests (Gate 11):** All sixteen Required Test Matrix items are covered across `engineering-session.test.ts`, `engineering-session.service.test.ts`, and `mission-engineering-orchestration.repository.test.ts`. The full repository suite (87 files / 568 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 65 is fully closed. Session State Projection (consuming this Sprint's `EngineeringSessionWorkflowAdvanced` stream) is the next prerequisite step toward Event-Driven Workflow Advancement/Recovery Workflow Automation and requires its own future `nexus-plan` Sprint scope proposal; this review does not authorize it.
+
+---
+
+## NEXUS-REV-2026-07-16-017 — Sprint 64 — Event-Driven Mission Completion
+
+- **Reviewed Sprint:** Sprint 64 — Event-Driven Mission Completion (Milestone 10, Step 2, narrowed to Mission Completion only by `NEXUS-RAT-2026-07-16-017`).
+- **Reviewed Vertical Slice:** A new, concrete Domain Event consumer — `GovernanceGatedMissionCompletionCoordinator` — subscribed to exactly `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` through the existing `EventBusContract`. For each event, it resolves the event's Mission identity, reads the Mission-scoped `GovernanceStateProjection` (Sprint 63, frozen) as a read model, and invokes the existing, unmodified `MissionExecutionService.completeMission` authority (Sprint 4/61, frozen) only when the projection is fully non-blocking. Additive `createKernelServices()` wiring.
+- **RFC Coverage:** RFC-0005 (Referenced), RFC-0004 v1.13 (Referenced), RFC-0011 (Referenced), RFC-0001 v1.1 (Referenced). No RFC amended.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 64 implements exactly the narrowed scope authorized by `NEXUS-RAT-2026-07-16-017`, including its activation-time trigger-source and idempotency refinements. Independently verified in source (`governance-gated-mission-completion.coordinator.ts`) that the coordinator never treats `GovernanceStateProjection` as an independent event source: it subscribes only to the four authorized Domain Events, and for each event calls `GovernanceStateProjectionService.getGovernanceStateProjection(missionId)` — a read-only public contract call — exactly as the Ratification requires. Traced the resulting event-ordering question this design raises: `GovernanceStateProjectionService` (Sprint 63) also subscribes to the same four event types on the same shared `EventBusContract`, and `EventBus.publish()` (`event-bus.ts`) invokes subscribers in registration order, with the coordinator registered before the projection service in `createKernelServices()`. This could have been a race (the coordinator reading a stale, not-yet-updated projection for the very event that just changed it), but is not: `EventBus.publish()` pushes the event into `eventsByMissionId` before invoking any subscriber, and `getGovernanceStateProjection` unconditionally replays the full Mission event history from `eventBus.replay(missionId)` on every call before returning a snapshot (Sprint 63's already-approved, idempotent-by-`eventId` replay-on-read design) — so the coordinator always observes the triggering event's effect regardless of subscriber registration order. This is a correct, if implicit, reliance on an already-certified Sprint 63 behavior; verified by reasoning through both files, not merely by the passing test suite.
+
+Confirmed the coordinator introduces no Engineering Session or Workflow Step attribution: it never reads `event.payload['engineeringSessionId']`/`workflowStepId`, even though the test fixtures' `RecoveryRequirement`s carry those fields (pre-existing from Sprint 58/59) — correctly ignored, exactly mirroring Sprint 63's own honored prohibition. Confirmed idempotency is enforced by two independent, correctly-layered mechanisms: an `eventId`-keyed diagnostic cache (handles literal duplicate/replayed delivery of the same event) and a `completedMissionIds` `Set` (prevents a second `completeMission` call for the same Mission triggered by a *different* qualifying event after the first success) — together satisfying "a Mission SHALL NOT be successfully completed more than once" without introducing retry logic. Confirmed `completeMission` rejections are caught and surfaced as deterministic diagnostics (`status: 'CompletionRejected'`, the underlying error's `name`/`message`) without reinterpretation or retry, and that Mission completion eligibility, Task-completeness checking, and governance-decision re-verification remain entirely inside the existing, unmodified `MissionExecutionService.completeMission`/`assertGovernanceGatedMissionCompletionEligible` — the coordinator adds no new completion or governance semantics, exactly as required.
+
+Confirmed via `git diff --stat` that `governance-state-projection*.ts`, `governance-decision.ts`, `governance.events.ts`, `recovery-requirement*.ts`, `mission-execution.service.ts`, `mission-completion-eligibility.ts`, `event-bus.ts`, and `event-bus-contract.ts` are all byte-for-byte unmodified — only `create-kernel-services.ts` (additive wiring: extracted `missionExecutionService`/`governanceStateProjectionService` to local bindings and appended the new coordinator to the composed service array) and two test files changed outside the new coordinator/test pair. Confirmed no `src/hosts` or `src/adapters` file changed (`git diff --stat -- src/hosts src/adapters` empty, independently re-run). Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 87 files / 559 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. One Category 6, Informational Observation recorded below (an incidental, out-of-Sprint-scope test-timeout stabilization); it does not affect the disposition. No architectural violations detected.
+
+### Findings
+
+None of Category 1 through 5.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 (informational, non-blocking, no Builder Task; see below) |
+
+### Observations (Category 6, informational; no Builder Task)
+
+- `test/integration/local-process-runtime.integration.test.ts` had its `LocalProcessTestAdapter` runtime `timeoutMs` raised from `1000` to `5000`, disclosed by the Builder as aligning it with other adapter integration tests' timeouts. This file and concept (Sprint 21's Local Process Runtime) are entirely outside Sprint 64's authorized scope (Event-Driven Mission Completion) — Sprint 64's Sprint Implementation Record authorizes no touch to any Sprint 21 file. The change is test-only (no production `src` file touched by it), does not alter Sprint 21's certified behavior or assertions, and is consistent with a benign flakiness-stabilization fix of the kind already tolerated as an Observation in prior cycles (e.g., `NEXUS-REV-2026-07-15-009-F-002`'s Sprint 21 process-timing flake note). No Builder Task; future Sprints should keep incidental cross-Sprint test touches like this disclosed in `IMPLEMENTATION_REPORT.md` (which the Builder did) rather than silent.
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: Event-Driven Workflow Advancement (the `engineeringSessionId`/`currentWorkflowStepId`-scoped remainder of Milestone 10 Step 2); Engineering Session/Workflow Step attribution of any kind; session/step-scoped governance projections or extensions to `GovernanceStateProjection`; Recovery Workflow Automation (Step 3); Autonomous Engineering Integration Validation (Step 4); autonomous recovery/decision-making; any new completion authority or reinterpretation of `completeMission`'s existing rules; Host/Adapter surfacing of the coordinator. `git diff --stat -- src/` confirms no file outside the new coordinator and the additive `create-kernel-services.ts` wiring point changed in `src/`, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the Event-Driven Mission Completion vertical slice authorized by `NEXUS-RAT-2026-07-16-017` was added. Compliant.
+- **Ratification Compliance:** All `NEXUS-RAT-2026-07-16-017` activation-time refinements are honored: `GovernanceStateProjection` consulted as a read model per-event, never as an independent event source; deterministic and safe under duplicate/replayed events; no automatic retry; no modification to `GovernanceStateProjection`, `GovernanceDecision`, `RecoveryRequirement`, `MissionExecutionService`, Mission completion semantics, any existing Domain Event contract, any repository, or any Host/Adapter file. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** The coordinator is a thin orchestrator; all Mission completion eligibility and state-transition logic remains inside the existing, unmodified `MissionExecutionService`/`Mission` aggregate. It does not access any foreign aggregate's internals — only public contracts (`GovernanceStateProjectionServiceContract`, `completeMission`). Compliant.
+- **Event Compliance (Gate 7):** Consumes only the four existing, frozen event types via the existing `EventBusContract.subscribe()`; publishes no new event type. Compliant.
+- **Determinism (Gate 9):** Duplicate/replayed event delivery is proven not to produce more than one successful completion (dedicated test); the projection-read/replay design is proven race-free regardless of subscriber registration order (independently reasoned above). Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly `create-kernel-services.ts` (additive wiring) plus the new `governance-gated-mission-completion.coordinator.ts`; `git diff --stat -- src/hosts src/adapters` is empty. Compliant.
+- **Tests (Gate 11):** All seven Required Test Matrix items are covered by `governance-gated-mission-completion.coordinator.test.ts`, plus updated coverage in `kernel-boundary-certification.integration.test.ts`. The full repository suite (87 files / 559 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 64 is fully closed. Event-Driven Workflow Advancement (the remainder of Milestone 10 Step 2) remains deferred pending its own future RFC ownership analysis and Sprint scope ratification via a future `nexus-plan` cycle; this review does not authorize it.
+
+---
+
+## NEXUS-REV-2026-07-16-016 — Sprint 63 — Governance State Projection Foundation (Mission-Scoped, Narrowed Scope)
+
+- **Reviewed Sprint:** Sprint 63 — Governance State Projection Foundation (Milestone 10's opening Sprint), under the Mission-scoped-only Objective narrowed by `NEXUS-RAT-2026-07-16-016`.
+- **Reviewed Vertical Slice:** A new, immutable, Mission-scoped `GovernanceStateProjection` read model — `IGovernanceStateProjectionRepository`/`InMemoryGovernanceStateProjectionRepository`, `GovernanceStateProjectionService` (the system's first concrete Domain Event consumer), and additive `createKernelServices()` wiring — built exclusively by consuming existing, frozen `GovernanceDecisionRecorded`, `RecoveryRequirementCreated`, `RecoveryRequirementResolved`, and `RecoveryRequirementWithdrawn` events.
+- **RFC Coverage:** RFC-0005 (Referenced; first concrete consumer), RFC-0004 v1.13 (Referenced), RFC-0011 v1.0 (Referenced), RFC-0001 v1.1 (Referenced). No RFC amended.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 63 implements exactly the Mission-scoped-only vertical slice authorized by `NEXUS-RAT-2026-07-16-016`, correcting the Category 5 finding from `NEXUS-REV-2026-07-16-015`. Independently verified in source that every field the projection reads from `GovernanceDecisionRecorded` (`governanceDecisionId`, `governanceDecisionValue`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `policyEvaluationId`, `evaluationKey`, `explanationCodes`, `governanceEscalationId`) and from the Recovery Requirement events (`recoveryRequirementId`, `recoveryRequirementStatus`, `governanceDecisionId`, `createdAt`, plus conditional `resolvedAt`/`withdrawnAt`) matches the actual, unmodified payloads produced by `createGovernanceDecisionRecordedEvent` (`governance.events.ts`) and `createRecoveryRequirementEvent` (`recovery-requirement.events.ts`) — confirmed byte-for-byte against both files. Confirmed the projection reads no `engineeringSessionId`/`workflowStepId` field from any event, even though `RecoveryRequirement` events do carry those fields in their payload (for the deferred future Workflow-Step-scoped projection) — the implementation correctly ignores them, honoring `NEXUS-RAT-2026-07-16-016`'s explicit prohibition on inferring that attribution. Confirmed via `git diff --stat` that `governance.events.ts`, `governance-decision.ts`, `recovery-requirement.ts`, and `recovery-requirement.events.ts` are all byte-for-byte unmodified — the projection is genuinely read-only. Confirmed `GovernanceStateProjectionService` uses only the Kernel's existing, pre-existing `EventBusContract.subscribe()`/`.replay()` methods (both unmodified, confirmed no diff on `event-bus-contract.ts`/`event-bus.ts`) — no new subscription framework was built. Confirmed `isProjectionBlocking`'s four-way branch exhaustively and correctly covers all four `GovernanceDecisionValue`s (Approved/Rejected/Deferred/Escalation Required), mirroring existing Sprint 57/58/60 Blocking classification without reinterpreting it. Confirmed no `src/hosts` or `src/adapters` file changed, and confirmed `governance-automation-integration-validation.integration.test.ts`'s Sprint 62 production-drift self-check was correctly and minimally updated to allowlist exactly the six new/changed Sprint 63 production files, preserving its guard over every other Sprint 1–62 production contract. Independently re-executed the full validation pipeline: `tsc --noEmit`, ESLint, `npm run test` (Vitest 86 files / 551 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. No architectural violations detected.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 2 (informational, non-blocking, no Builder Task; see below) |
+
+### Observations (Category 6, informational; no Builder Task)
+
+- `GovernanceStateProjectionService.getGovernanceStateProjection` both maintains a live `EventBus` subscription (updating the repository as events are published) and unconditionally replays the Mission's entire event history on every retrieval call, re-applying already-consumed events. This is harmless — `GovernanceStateProjection.apply()` dedupes by `eventId` via `consumedEventIds.includes(...)`, verified idempotent by the dedicated replay test — but the two mechanisms are redundant for any Mission that has been continuously subscribed since its first event, and the per-event `includes()` dedup check is `O(n)`, making a full replay-and-reapply `O(n²)` in the Mission's total event count. At current scale (in-memory, test-driven) this is immaterial. A future Sprint could reconsider whether replay-on-read is needed at all once subscription-only freshness is proven sufficient, or use a `Set` for `consumedEventIds` lookups if event counts grow.
+- `GovernanceStateProjectionDecisionSnapshot` carries several `GovernanceDecision` fields (`repositoryPolicyId`, `policyEvaluationId`, `evaluationKey`, `explanationCodes`) that no Required Test Matrix item or downstream consumer currently exercises beyond round-tripping. This is consistent with the Ratification's "Mission-level governance diagnostics and attribution" language and not scope creep, but future Sprints consuming this projection should confirm which fields are actually load-bearing before depending on them.
+
+### Deferred Concept Validation
+
+Confirmed still unimplemented, correctly: per-Engineering-Session and per-Workflow-Step governance projection; Workflow-position attribution in Governance events or `GovernanceDecision`; Event-Driven Workflow Coordination (Milestone 10 Step 2); Recovery Workflow Automation (Step 3); Autonomous Engineering Integration Validation (Step 4); Host/Adapter governance surfacing; `MissionPaused`/`MissionResumed` correction; Recovery-aware Mission completion attribution bridging; any general-purpose event-subscription framework. `git diff --stat -- src/` confirms no file outside the six Sprint 63 production files (plus the pre-existing `create-kernel-services.ts` wiring point) changed, so none of these were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the Mission-scoped-only vertical slice authorized by `NEXUS-RAT-2026-07-16-016` was added. Compliant.
+- **Ratification Compliance:** All six explicit prohibitions in `NEXUS-RAT-2026-07-16-016` are honored: no Engineering-Session/Workflow-Step inference; `GovernanceDecisionRecorded` unmodified; `GovernanceDecision` unmodified; no invented attribution convention; no reuse of caller-supplied command context (the service only ever reads `EventBusEvent` payloads, never a command object); RFC-0005/RFC-0011 unmodified. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4):** `GovernanceStateProjection` is a new, additive, disposable read model with its own repository contract; it does not mutate any existing aggregate, confirmed by source inspection (no write-path calls to any other repository or aggregate) and byte-for-byte-unmodified status of every consumed event/aggregate source file. Compliant.
+- **Event Compliance (Gate 7):** Consumes only the four existing, frozen event types via the existing `EventBusContract.subscribe()`/`.replay()`; no event envelope, type, or publisher was changed. Compliant.
+- **Determinism (Gate 9):** Replaying an identical event sequence produces an identical projection (dedicated test, and independently reasoned from `apply()`'s pure, immutable, `eventId`-deduped construction). Compliant.
+- **No production source drift beyond authorized scope:** `git diff --stat -- src/` shows exactly `create-kernel-services.ts` (additive wiring) plus the five new `governance-state-projection.*` files; `git diff --stat -- src/hosts src/adapters` is empty. Compliant.
+- **Tests (Gate 11):** All seven Required Test Matrix items are covered by the eight tests in `governance-state-projection.test.ts`, plus updated coverage in `kernel-boundary-certification.integration.test.ts` and `governance-automation-integration-validation.integration.test.ts`. The full repository suite (86 files / 551 tests) passes with no regressions, independently re-verified. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md` documents implemented capability, RFC coverage, assumptions, limitations, validation summary, and explicitly states "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+None. Zero findings of any blocking category. Sprint 63 is fully closed.
+
+---
+
+## NEXUS-REV-2026-07-16-015 — Sprint 63 — Governance State Projection Foundation (Pre-Implementation Blocking Review)
+
+- **Reviewed Sprint:** Sprint 63 — Governance State Projection Foundation (Milestone 10's opening Sprint)
+- **Reviewed Vertical Slice:** None. No implementation was submitted. The Builder reported a blocking specification conflict discovered before writing any code, per `IMPLEMENTATION_CONSTITUTION.md`'s "Documentation Before Code" rule.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Referenced, unmodified); RFC-0004 v1.13, RFC-0011, RFC-0001 v1.1 (Referenced, unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** BLOCKED — Governance Decision Required (not PASS / PASS WITH FINDINGS / FAIL; no implementation exists to certify or reject)
+
+### Executive Summary
+
+The Builder reported, before implementing any code, that Sprint 63's Objective — a `GovernanceStateProjection` reporting "the latest `GovernanceDecision` outcome per Workflow position" — cannot be built by passively subscribing to existing, frozen Domain Events, and that satisfying it would require either modifying a frozen event payload or inventing an unauthorized attribution rule, both forbidden by Sprint 63's own scope.
+
+Independently verified against source, not merely accepted on the Builder's word:
+
+- `src/kernel/governance/governance.events.ts`: `createGovernanceDecisionRecordedEvent` publishes only `missionId` (envelope) and `governanceDecisionId` (payload). No `engineeringSessionId` or `workflowStepId` is carried.
+- `src/kernel/governance/governance-decision.ts`: the `GovernanceDecision` aggregate itself has no `engineeringSessionId`/`workflowStepId` field — it is Mission-scoped only, consistent with Sprint 56's ratified Mission-Scoped Governance Evaluation (`NEXUS-RAT-2026-07-16-004`).
+- `src/kernel/execution/governance-gated-workflow-advancement.consumer.ts` and `src/kernel/execution/recovery-requirement-governance-decision.consumer.ts`: both existing production consumers of `GovernanceDecisionRecorded` require `engineeringSessionId`/`(current)WorkflowStepId` as **caller-supplied command inputs**, not as event-payload or aggregate-derived data. Workflow-position attribution has always come from the caller's own context, never from the event stream.
+
+The Builder's claim is confirmed exactly: a pure `EventBus` subscriber has no deterministic way to derive Workflow Step position from `GovernanceDecisionRecorded` alone, and Sprint 63 authorizes no event-payload change and no new attribution mechanism. The Builder correctly performed no implementation, consistent with the Constitution's "Documentation Before Code" rule and Category 5's required Builder Action ("perform no implementation").
+
+### Root Cause
+
+This is not a Builder misunderstanding, nor an RFC defect. It traces to the Sprint 63 Sprint Implementation Record (`knowledge/implementation/sprints/sprint-0063-governance-state-projection-foundation.md`), drafted by `nexus-plan`, which stated the projection's Objective and first Required Test Matrix item ("reflects... `GovernanceDecision` outcome... for a Workflow position") in terms of per-Workflow-Step granularity. `NEXUS-RAT-2026-07-16-015`'s actual binding text authorizes only a "Mission-scoped consumer... producing a deterministic read model of governance, recovery, advancement, escalation, and completion state" — it does not itself require per-Workflow-Step granularity. The Sprint Implementation Record's wording exceeded what the Ratification actually authorizes and what the frozen event/aggregate model can deterministically support.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-015-F-001 — Sprint 63's Objective requires Workflow-Step-level attribution that no authorized data source can deterministically supply
+
+- **Category:** Category 5 — Governance Decision Required
+- **Severity:** Major (blocks all Sprint 63 implementation; not a code defect)
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Documentation Before Code; `NEXUS-RAT-2026-07-16-015` (actual authorized text is Mission-scoped only); RFC-0005 (event payloads are frozen; Sprint 63 authorizes no amendment); Sprint 56/`NEXUS-RAT-2026-07-16-004` (Mission-Scoped Governance Evaluation — `GovernanceDecision` has no Workflow-Step identity by design).
+- **Summary:** The Sprint 63 Sprint Implementation Record requires the projection to report `GovernanceDecision` outcomes "per Workflow position," but `GovernanceDecisionRecorded` carries only `missionId`/`governanceDecisionId`, the `GovernanceDecision` aggregate carries no Workflow-Step identity, and existing consumers obtain that identity exclusively from caller-supplied command context — never from the event stream. No mechanism authorized by Sprint 63 can supply it.
+- **Evidence:** `src/kernel/governance/governance.events.ts` lines 12–37; `src/kernel/governance/governance-decision.ts` (no `engineeringSessionId`/`workflowStepId` field); `src/kernel/execution/governance-gated-workflow-advancement.consumer.ts` lines 7–10, 23–30; `src/kernel/execution/recovery-requirement-governance-decision.consumer.ts` lines 16–19, 35–42.
+- **Impact:** Sprint 63 cannot proceed as scoped. No workaround exists within the Architectural Constraints already ratified (no event-payload modification; no new attribution rule; no generic subscriber framework).
+- **Required Disposition:** Sprint Owner SHALL resolve, via a future `nexus-plan` cycle, exactly one of: (a) narrow Sprint 63's Objective to Mission-scoped-only reporting — matching `NEXUS-RAT-2026-07-16-015`'s actual literal text, requiring no RFC amendment and immediately unblocking implementation; or (b) ratify an RFC-0005 amendment adding Workflow-Step attribution to `GovernanceDecisionRecorded` (or an equivalent join mechanism), then re-scope Sprint 63 accordingly. The Reviewer does not recommend between these; both are legitimate Sprint Owner choices with different cost/scope tradeoffs.
+- **Builder Action:** None. Wait for ratification. The Builder correctly wrote no code and MUST NOT invent an attribution rule or modify `governance.events.ts` independently.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 1 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Not applicable — no implementation exists. All Sprint 63 Deferred Concepts remain correctly unimplemented (confirmed: no `GovernanceStateProjection`-named file, and no `src/hosts`/`src/adapters` change, exists anywhere in the repository).
+
+### Architectural Compliance Summary
+
+No architectural violation occurred. The Builder's decision to stop before writing code is the architecturally correct response to a genuine, independently-verified specification gap, per `IMPLEMENTATION_CONSTITUTION.md`'s Documentation Before Code rule and Category 5's Builder Action ("perform no implementation").
+
+### Builder Task Recommendation
+
+None. This finding requires a Sprint Owner governance decision (Category 5), not a Builder Task. Per `nexus-review`'s Builder Action Rules, Category 5 findings route to Human Ratification via `nexus-plan`, not to `nexus-sprint`/Builder Task generation. `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` are unchanged (Builder/Sprint-Owner-owned artifacts). Sprint 63's status in `IMPLEMENTATION_PLAN.md` is updated to reflect the block; the Sprint remains Current pending the Sprint Owner's resolution.
+
+---
+
+## NEXUS-REV-2026-07-16-014 — Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (TASK-001 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification (follow-up review limited to TASK-001's resolution of `NEXUS-REV-2026-07-16-013-F-001`)
+- **Reviewed Vertical Slice:** No new vertical slice. Verifies the Builder's correction of the sole open finding from `NEXUS-REV-2026-07-16-013`.
+- **RFC Coverage:** RFC-0001 v1.1, RFC-0004 v1.13, RFC-0005, RFC-0006, RFC-0011 (all unchanged, Referenced). No RFC modified by this cycle.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 (`builder-task.md`) required the Builder to replace the two backslash-separated git pathspec literals (`'src\\hosts'`, `'src\\adapters'`) in `test/integration/governance-automation-integration-validation.integration.test.ts`'s Host/Adapter drift self-check with forward-slash equivalents (`'src/hosts'`, `'src/adapters'`), since the backslash form is silently inert on this repository's own `ubuntu-latest` CI runner. Confirmed by direct file inspection that exactly this one-line-per-argument change was made at lines 315–321, and that no other line, assertion, import, or test case in the file was touched — the full file content is otherwise byte-for-byte identical to the version reviewed under `NEXUS-REV-2026-07-16-013`. Confirmed via `git diff --stat -- src/` (empty) that no `src` production file, `src/hosts` file, or `src/adapters` file was modified.
+
+Independently re-ran the full targeted suite: all 15 tests pass, including the corrected self-check. To verify the fix is not merely passing vacuously, the Reviewer appended a probe line to a tracked file under `src/hosts/vscode/host.contract.ts`, re-ran the self-check test in isolation, and confirmed it now correctly **fails**, reporting `src/hosts/vscode/host.contract.ts` as changed — proving the corrected pathspec functions as a real guardrail rather than an inert no-op. The probe change was then reverted (`git checkout --`) and the working tree confirmed clean before continuing. Independent re-validation confirmed `tsc --noEmit` clean, `npm run lint` clean, `npm run test` (85 files / 543 tests — unchanged), and `npm run build`/`npm run test:extension-host:build` both clean.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-16-013-F-001` is confirmed **Resolved** exactly per its Required Disposition and TASK-001's Acceptance Criteria. No new finding is identified.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-16-013`: Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, the `MissionPaused` lifecycle inconsistency, generic event subscription/consumer infrastructure, Host/Adapter governance surfacing, and autonomous ratification/AI governance deliberation all remain unimplemented, including as placeholders.
+
+### Architectural Compliance Summary
+
+No architectural change occurred this cycle. The sole finding from `NEXUS-REV-2026-07-16-013` is now Resolved, verified functionally correct (not merely passing vacuously), and no new finding was introduced. Sprint 62 is fully closed with zero open findings of any category.
+
+### Builder Task Recommendation
+
+None. TASK-001 is Completed. No further Builder Task is required. Sprint 62 is fully closed. Milestone 9 closure remains reserved for the next authorized `nexus-plan` cycle per `NEXUS-RAT-2026-07-16-014`'s Milestone Decision Authority; this fully-closed disposition satisfies that ratification's "certification passes with no blocking findings" condition unambiguously (zero findings of any category remain).
+
+---
+
+## NEXUS-REV-2026-07-16-013 — Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification
+
+- **Reviewed Sprint:** Sprint 62 — Governance Automation Integration Validation and Milestone 9 Certification
+- **Reviewed Vertical Slice:** a validation-only integration test suite (`test/integration/governance-automation-integration-validation.integration.test.ts`) exercising the complete Milestone 9 governed engineering path — Review → Repository Policy Evaluation → Ratification Authority Validation → Governance Decision → `GovernanceDecisionRecorded` publication → Governance-Gated Workflow Advancement → Recovery Requirement Creation → Recovery Requirement Event Publication → Recovery Resolution → Recovery-Gated Re-Advancement → Governance-Gated Mission Completion — assembled exclusively from existing, frozen Sprint 52–61 services and repositories through their existing public contracts. No production source was introduced or modified.
+- **RFC Coverage:** RFC-0001 v1.1, RFC-0004 v1.13, RFC-0005, RFC-0006, RFC-0011 (all Referenced; consumed read-only and unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 62 implements exactly the validation-only vertical slice authorized by `NEXUS-RAT-2026-07-16-014`: a single new integration test file exercising all fourteen Required Scenarios against existing, frozen Sprint 52–61 contracts. Confirmed via `git diff --stat -- src/` (empty) that no `src` production file — including `src/hosts` and `src/adapters` — was modified; the only repository changes are the new test file, this Sprint's own documentation, and the previously-authorized Sprint 61/governance-plan documentation already present in the working tree. Independently re-executed every Required Scenario: Approved governance advances the Workflow and permits Mission completion; Rejected governance blocks both and creates exactly one `RecoveryRequirement`; an Open `RecoveryRequirement` continues blocking re-advancement; a Resolved `RecoveryRequirement` (with `acceptedOutcomeReference` present) restores Workflow advancement eligibility only, and does not override Sprint 61's independent Governance-Gated Mission Completion gate (verified by a dedicated test asserting `completeMission` still rejects with `MissionCompletionRejectedError` after resolution); Deferred and Escalation Required both remain uniformly Blocking; a missing Review and a cross-Mission attribution mismatch both fail closed to Escalation Required with the correct `reasonCode`; Invalid and Unresolvable ratification attribution both fail closed to Escalation Required; repeated evaluation is idempotent (identical decision returned, no duplicate `GovernanceDecision`, `RecoveryRequirement`, or event); and failed `GovernanceDecision` persistence publishes no Domain Event. All fourteen Required Scenarios are covered by the fifteen test cases (Scenario 10's two ratification-attribution outcomes are parameterized). Independent re-validation confirmed `tsc --noEmit`, `npm run lint`, `npm run test` (Vitest 85 files / 543 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. The integration test harness correctly mirrors, rather than replaces, production `createKernelServices()` wiring (manually composing the same service graph so individual repository instances — including a `FailingGovernanceDecisionRepository` test double — can be substituted for specific scenarios); this is standard integration-test construction, not new architecture. One Category 1, Minor finding is recorded below; it does not affect the correctness of any claim in this Executive Summary, which was independently re-verified by a different method. No architectural violations detected.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-013-F-001 — Host/Adapter drift self-check uses a Windows-only git pathspec, silently inert on the project's Ubuntu CI runner
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 10 (Code Quality — deterministic, platform-independent behavior) and Gate 11 (Testing); Sprint 62's own Required Test Matrix item 3 ("A source-level or `git diff`-style check confirming Sprint 1–61 production contracts are unmodified").
+- **Summary:** The new test `'leaves existing Sprint 1-61 production contracts and Kernel boundaries unmodified'` (`test/integration/governance-automation-integration-validation.integration.test.ts` lines 307–325) checks for `src/hosts`/`src/adapters` drift using the literal pathspec arguments `'src\\hosts'`, `'src\\adapters'` (backslash-separated). Git for Windows normalizes backslashes to path separators in pathspecs as a platform convenience, so this passes on Windows (verified directly: `git diff --name-only -- 'src\hosts'` correctly matched a modified tracked file under `src/hosts/` in this environment). On POSIX git (Linux/macOS) — including this repository's own `ubuntu-latest` CI runner, per `.github/workflows/repository-foundation.yml` — a backslash inside a pathspec is the pathspec escape character, not a directory separator, so `'src\hosts'` does not match any path under `src/hosts/`. The check would silently report zero changed Host/Adapter files regardless of what actually changed, on the exact platform where the project's own pipeline runs it.
+- **Evidence:** `test/integration/governance-automation-integration-validation.integration.test.ts` lines 315–321 (`execFileSync('git', ['--no-pager', 'diff', '--name-only', '--', 'src\\hosts', 'src\\adapters'], ...)`); `.github/workflows/repository-foundation.yml` line 12 (`runs-on: ubuntu-latest`); reproduced directly in this review by comparing `git diff --name-only -- 'src\hosts'` against `git diff --name-only -- 'src/hosts'` on a modified tracked file — both matched only because this review's shell is Windows Git.
+- **Impact:** No impact on this Sprint's actual conformance — the Reviewer independently confirmed no `src/hosts`/`src/adapters` file changed using `git diff --stat -- src/` (platform-independent). The impact is entirely prospective: as a standing regression guard intended to keep protecting the Host/Adapter boundary on every future CI run of this test file, it will not function as intended on the project's actual Ubuntu CI runner, and could allow a genuine future `src/hosts`/`src/adapters` violation to pass this specific check undetected in CI (other safeguards, including manual Reviewer diff inspection, remain unaffected).
+- **Required Disposition:** Builder SHALL correct the pathspec to use forward-slash separators (`'src/hosts'`, `'src/adapters'`), which this review confirmed matches correctly on both platforms. Governance approval is not required.
+- **Builder Action:** Fix — replace the two backslash-separated pathspec literals with forward-slash equivalents in the existing test. No scope beyond this one-line-per-argument correction is authorized or required.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Observation (Category 6) / Informational | 0 / 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, `npm run lint`, full Vitest 85 files / 543 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 62 deferred concepts remain unimplemented and are correctly tracked in the Sprint Implementation Record, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md`: Withdrawn Recovery Requirement eligibility, Recovery-aware Mission completion, the `MissionPaused` lifecycle inconsistency, generic event subscription/consumer infrastructure, Host/Adapter governance surfacing, and autonomous ratification/AI governance deliberation. `git diff --stat -- src/` confirms zero production source files changed, so none of these deferred concepts were implemented even incidentally.
+
+### Architectural Compliance Summary
+
+- **Scope (Gate 1):** Exactly the authorized vertical slice — one new integration test file — was added; no unrelated functionality was introduced. Compliant.
+- **Architectural Authority (Gate 2) / Aggregate Ownership (Gate 4) / Capability Boundaries (Gate 8):** The test harness consumes `GovernanceDecision`, `RecoveryRequirement`, `EngineeringSession`, `Mission`, `Review`, `RepositoryPolicy`, and `RatificationAuthoritySnapshot` exclusively through their existing constructors and public service methods; no foreign aggregate internals are accessed, and no repository interface was changed. Compliant.
+- **Terminology (Gate 3) / Event Compliance (Gate 7):** No RFC terminology, aggregate name, or event name was introduced or altered; the harness subscribes to and asserts against the existing `GovernanceDecisionRecorded`/`RecoveryRequirementCreated`/`RecoveryRequirementResolved` event types only. Compliant.
+- **State Machine (Gate 6):** No new state or transition is introduced; the test exercises existing lifecycle transitions only (Review completion, Mission execution through to `Reviewing`, `RecoveryRequirement` Open→Resolved). Compliant.
+- **Data Model (Gate 5) / Technology Compliance (Gate 9):** Test-only TypeScript using the existing Vitest/`test/integration` convention already established by twelve prior integration test files. Compliant.
+- **No production source drift:** `git diff --stat -- src/` is empty; independently confirmed no `src/hosts` or `src/adapters` file changed. Compliant, notwithstanding F-001's platform-specific caveat about the in-test self-check's own reliability.
+- **Recovery-Gated Mission Completion boundary:** A dedicated test (`'does not let a Resolved Recovery Requirement override Governance-Gated Mission Completion'`) proves Sprint 61's Mission Completion gate remains independent of Sprint 60's Recovery-Gated Re-Advancement — a Resolved `RecoveryRequirement` restores Workflow advancement eligibility only and never Mission completion eligibility, exactly as `NEXUS-RAT-2026-07-16-014` requires. Compliant.
+- **Tests (Gate 11):** All fourteen Required Scenarios are covered by fifteen passing test cases; the full repository suite (85 files / 543 tests) continues to pass with no regressions. Compliant.
+- **Documentation (Gate 12) / Implementation Report (Gate 13):** `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and the Sprint Implementation Record all consistently document scope, RFC coverage, assumptions, limitations, and explicitly state "No architectural deviations." Compliant.
+
+### Builder Task Recommendation
+
+One Builder Task is recommended: correct `NEXUS-REV-2026-07-16-013-F-001` (Category 1, Minor) by changing the two backslash-separated git pathspec literals in the new test's self-check to forward-slash separators. This finding does not block approval and does not require governance approval to resolve; per PASS WITH FINDINGS rules, it does not block progression. Formal Builder Task generation from this review is the responsibility of `nexus-sprint`.
+
+Milestone 9 closure remains reserved for the next authorized `nexus-plan` cycle per `NEXUS-RAT-2026-07-16-014`'s Milestone Decision Authority; this review's PASS WITH FINDINGS disposition satisfies that ratification's "certification passes with no blocking findings" condition (F-001 is Minor and non-blocking, not a blocking finding).
+
+---
+
+## NEXUS-REV-2026-07-16-012 — Sprint 61 — Governance-Gated Mission Completion
+
+- **Reviewed Sprint:** Sprint 61 — Governance-Gated Mission Completion
+- **Reviewed Vertical Slice:** RFC-0001 v1.1 § 15a Governance-Gated Mission Completion — a new pure, deterministic eligibility module `mission-completion-eligibility.ts` (`isGovernanceGatedMissionCompletionEligible` / `assertGovernanceGatedMissionCompletionEligible`); an additive read-only gate in `MissionExecutionService.completeMission` that enumerates Mission-attributed `GovernanceDecision`s via the existing `IGovernanceDecisionRepository.enumerate()` and rejects completion when any is Blocking; production `createKernelServices` wiring so `MissionExecutionService` always receives the shared `IGovernanceDecisionRepository`.
+- **RFC Coverage:** RFC-0001 v1.1 — Mission Model (Primary; "§ 15a. Governance-Gated Mission Completion", new); RFC-0004 v1.11 — Execution Model (Referenced; Blocking/Non-Blocking Governance Decision classification, unmodified); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 61 implements exactly the Governance-Gated Mission Completion vertical slice authorized by `NEXUS-RAT-2026-07-16-012` (RFC-0001 v1.1 amendment) and `NEXUS-RAT-2026-07-16-013` (Sprint scope). Confirmed the new `mission-completion-eligibility.ts` implements every row of the Required Behavioral Matrix exactly: `Approved` is Non-Blocking; `Rejected`, `Deferred`, and `Escalation Required` are uniformly and unconditionally Blocking; an empty applicable-decision set is Non-Blocking (`Array.prototype.every` over zero elements returns `true`, preserving existing Sprint 4 completion behavior) — verified by a parameterized per-value test, a per-blocking-value service test, and a no-applicable-decision service test. Confirmed the two-applicable-decision independent-satisfaction test rejects completion when one `Approved` and one `Deferred` decision are both attributed to the Mission. Confirmed the eligibility function is pure: it takes an in-memory snapshot array, performs no repository access, no persistence, and no mutation of `GovernanceDecision` or `Mission` state — verified by source inspection (no `await`, no repository import in `mission-completion-eligibility.ts`) and a dedicated determinism test asserting the function does not invoke `enumerate()`. Confirmed the read-only lookup is confined to `MissionExecutionService.assertGovernanceGatedCompletionPermitted`, using the existing, unmodified `enumerate()` contract filtered client-side by `missionId`, with no repository mutation and no `GovernanceService` invocation; no repository interface was changed. Confirmed `createKernelServices()` passes the single shared `InMemoryGovernanceDecisionRepository` instance (the same object also injected into `GovernanceService` and `EngineeringSessionService`) into `MissionExecutionService`, verified by a dedicated composition test that evaluates a real governance policy producing an Escalation-Required decision and then observes `completeMission` reject — proving both wiring and end-to-end behavior. Confirmed the RFC-0001 v1.1 ordering requirement (existing completion preconditions satisfied first, governance eligibility evaluated second) is honored: `completeMission` calls the existing, unmodified `assertCompletionPermitted` before the governance gate. Confirmed a source-level negative test asserts the eligibility module references no `RecoveryRequirement`/`IRecoveryRequirementRepository` symbol, matching the Sprint Owner's directed exclusion of Recovery consultation. Confirmed via `git diff --stat` and file-level `git diff` that `GovernanceDecision`, `GovernanceService`, `RecoveryRequirement`, `RecoveryRequirementService`, `WorkflowChain`, `WorkflowStep`, `EngineeringSession`, `Mission.aggregate` (including `assertCompletionPermitted` and `complete`), `Mission.errors`, RFC-0004, and RFC-0011 are all byte-for-byte unmodified; no `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer was introduced. Independent re-validation confirmed `tsc --noEmit`, ESLint (`src/**` + `test/**`), `npm run test` (Vitest 84 files / 528 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-012-F-001 — `assertCompletionPermitted` evaluated twice on the completion path
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation / code quality convention
+- **Summary:** `MissionExecutionService.completeMission` now calls `mission.assertCompletionPermitted(missionPlan.tasks)` explicitly (to satisfy RFC-0001 v1.1's ordering requirement that existing preconditions precede governance evaluation) and then calls `mission.complete(...)`, which invokes `assertCompletionPermitted` a second time internally. The Task-completion precondition is therefore evaluated twice on the happy path.
+- **Evidence:** `src/kernel/mission/mission-execution.service.ts` lines 50–52; `src/kernel/mission/mission.aggregate.ts` line 89 (`complete` → `assertCompletionPermitted`).
+- **Impact:** None on behavior or correctness. `assertCompletionPermitted` is a pure, idempotent validation with no mutation and no event emission, so the redundant call is side-effect-free. This is arguably the correct architectural choice given the constraints: it enforces the ratified ordering without modifying the frozen `complete()` / `assertCompletionPermitted` methods.
+- **Required Disposition:** No action required.
+- **Builder Action:** None unless directed. If a future Builder iteration touches this method, the redundancy MAY be removed incidentally (e.g. by relying solely on the internal check once ordering is otherwise guaranteed); it does not independently justify a Builder Task.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Observation (Category 6) / Informational | 1 / 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, full Vitest 84 files / 528 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 61 deferred concepts remain unimplemented and are correctly tracked in the Sprint Implementation Record, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md`: Recovery-aware Mission completion, Mission-level Recovery Requirement projection or aggregation, Engineering Session/Workflow Step attribution bridging, Withdrawn Recovery Requirement eligibility, Review-outcome and Knowledge-requirement completion gating, the `MissionPaused` lifecycle inconsistency, and downstream Host/Adapter surfacing. Source inspection and the dedicated negative test confirm no Recovery Requirement symbol is referenced by the new eligibility code, no event subscriber was added, and no Host/Adapter file was touched. The exclusion of Recovery consultation is not a silent scope reduction: it is the Sprint-Owner-directed resolution of the attribution-key feasibility conflict recorded in `NEXUS-RAT-2026-07-16-012`/`-013`, and is correctly reflected in RFC-0001 v1.1 § 15a.
+
+### Architectural Compliance Summary
+
+- **Domain ownership / RFC-0001 boundary:** Mission remains the sole owner of Mission Completion. The new gate is an additive precondition in the application service; `Mission.aggregate` and `Mission.complete`/`assertCompletionPermitted` are byte-for-byte unmodified (`git diff` empty). Compliant.
+- **RFC-0004 v1.11 boundary:** The Blocking/Non-Blocking classification (`Approved` Non-Blocking; `Rejected`/`Deferred`/`Escalation Required` Blocking) is consumed exactly as defined; `mission-completion-eligibility.ts` reads the already-produced `GovernanceDecisionSnapshot` as plain data and never mutates it. Compliant.
+- **RFC-0011 boundary:** `GovernanceDecision`'s value, semantics, lifecycle, and production are untouched (`src/kernel/governance/` has zero diff); RFC-0011 is unmodified. Compliant.
+- **RFC-0004 v1.12/v1.13 boundary (Recovery):** No Recovery Requirement consultation exists; `RecoveryRequirement`, its service, consumer, and contracts show zero diff, and a source-level negative test enforces the absence of any Recovery symbol in the eligibility module. Compliant with the ratified exclusion.
+- **Read-only orchestration:** All repository access is confined to `MissionExecutionService`, uses the existing `enumerate()` contract, mutates nothing, and invokes no `GovernanceService` operation. Compliant.
+- **Pure eligibility evaluation:** `isGovernanceGatedMissionCompletionEligible` / `assertGovernanceGatedMissionCompletionEligible` perform no repository access, no persistence, and no mutation, confirmed by source inspection and a determinism test. Compliant.
+- **Production wiring:** `createKernelServices()` injects the shared `InMemoryGovernanceDecisionRepository` into `MissionExecutionService`; the constructor parameter remains optional solely for isolated unit-test construction, as authorized. Compliant.
+- **Ordering:** Existing completion preconditions are evaluated before governance eligibility, exactly per RFC-0001 v1.1 § 15a. Compliant (see F-001 for the resulting benign redundancy).
+- **Architectural boundaries:** No `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer was introduced; only `create-kernel-services.ts` (wiring), `mission-execution.service.ts` (additive gate), the new `mission-completion-eligibility.ts`, and the test file changed. Compliant.
+- **Tests:** All eight rows of the Required Test Matrix are covered: per-value classification, no-applicable-decision non-blocking, per-blocking-value rejection, two-decision independent-satisfaction, pure/deterministic no-repository-access, production `createKernelServices` wiring, Sprint 4 regression (no-applicable-decision completes), and the recovery-symbol negative test. Full suite 528/528 passing (up from 517, net +11 consistent with the added coverage).
+
+### Builder Task Recommendation
+
+No Builder Task is generated. The single finding (`NEXUS-REV-2026-07-16-012-F-001`) is a Category 6 Observation requiring no action. Sprint 61 is fully closed with zero open findings of any blocking category.
+
+The pre-existing `IMPLEMENTATION_MANIFEST.md` Sprint 59 status-line drift (tracked by `builder-task.md` DOC-001, originating from `NEXUS-REV-2026-07-16-011-F-001`) remains an open, non-blocking Documentation Task owned by the Builder; it is outside this review's scope and is not re-raised here.
+
+---
+
+## NEXUS-REV-2026-07-16-011 — Sprint 60 — Recovery-Gated Re-Advancement
+
+- **Reviewed Sprint:** Sprint 60 — Recovery-Gated Re-Advancement
+- **Reviewed Vertical Slice:** RFC-0004 v1.13 Recovery-Gated Re-Advancement Eligibility — a pure, deterministic `isGovernanceDecisionAdvancementEligible(...)` function extending `assertNonBlockingGovernanceDecision`/`EngineeringSession.advanceWorkflowAfterGovernanceDecision`; a read-only `IRecoveryRequirementRepository.findByAttributionKey` lookup added to `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision`; production `createKernelServices` wiring so `EngineeringSessionService` always receives the shared `IRecoveryRequirementRepository`.
+- **RFC Coverage:** RFC-0004 v1.13 — Execution Model (Primary; "Recovery-Gated Re-Advancement Eligibility" §, new); RFC-0004 v1.11/v1.12 — Execution Model (Referenced, unmodified); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 60 implements exactly the Recovery-Gated Re-Advancement vertical slice authorized by `NEXUS-RAT-2026-07-16-011` (Sprint scope) and `NEXUS-RAT-2026-07-16-010` (RFC-0004 v1.13 amendment). Confirmed `isGovernanceDecisionAdvancementEligible(...)` (`engineering-session.ts`) implements every row of the Required Behavioral Matrix exactly: `Approved` is unconditionally eligible regardless of Recovery Requirement state (existing path unchanged); `Deferred`/`Escalation Required` are unconditionally Blocking regardless of Recovery Requirement state; `Rejected` is Blocking when the Recovery Requirement is Missing, Open, or Withdrawn, and Blocking (fail closed) when Resolved but missing or blank `acceptedOutcomeReference`; `Rejected` is Eligible only when the Recovery Requirement is Resolved, carries a non-empty `acceptedOutcomeReference`, and its Mission/Engineering Session/Workflow Step/`GovernanceDecision` attribution exactly matches the position under evaluation — verified by dedicated tests in `engineering-session.test.ts` for every matrix row plus four parameterized mismatched-attribution cases and a mismatched-Mission-on-the-decision-itself case, all treated as absent/Blocking. Confirmed the function is pure: it performs no repository access and no persistence, and a dedicated test invokes it twice with identical inputs to verify deterministic output; `git diff` confirms no `await`, no repository import, and no mutation of either input snapshot inside it. Confirmed the read-only Recovery Requirement lookup is an `EngineeringSessionService`-level orchestration concern (`findByAttributionKey`, invoked only when the resolved `GovernanceDecision` value is `Rejected`), strictly separated from the pure eligibility function per Refinement 3, and a service-level test confirms a mismatched-attribution Resolved Recovery Requirement (different `workflowStepId`) is still rejected. Confirmed `createKernelServices()` now passes the single shared `InMemoryRecoveryRequirementRepository` instance into `EngineeringSessionService` alongside `RecoveryRequirementService` and `RecoveryRequirementGovernanceDecisionConsumer` (same object identity, verified by a dedicated composition test), satisfying Refinement 1 (mandatory production injection); the constructor parameter remains optional solely for isolated unit-test construction, as authorized. Confirmed restored eligibility does not itself advance the workflow: `EngineeringSession.advanceWorkflowAfterGovernanceDecision`'s existing, unmodified delegation to `advanceWorkflow(...)` remains the sole mechanism producing an Advancement Result, verified by the end-to-end aggregate-level test asserting `currentWorkflowStepId` only changes after the call, and by the service-level test asserting the persisted session's `currentWorkflowStepId` matches the returned snapshot. Confirmed via `git diff --stat` and source inspection that `RecoveryRequirement`, `RecoveryRequirementService`, `RecoveryRequirementGovernanceDecisionConsumer`, the Recovery Resolution/Withdrawal Contracts, `GovernanceDecision`, `GovernanceService`, `WorkflowChain`, and RFC-0011 are byte-for-byte unmodified; no `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer was introduced; Manual, Automatic/Event-Driven, and Review-Gated Advancement remain unaffected, verified by a dedicated regression test. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (`engineering-session.test.ts` + `engineering-session.service.test.ts` + `recovery-requirement.test.ts`, 96 tests), `npm run test` (84 files / 517 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-011-F-001 — `IMPLEMENTATION_MANIFEST.md` Sprint 59 status line not synchronized with its Approved disposition
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Governance Artifacts (permanent traceability)
+- **Summary:** `IMPLEMENTATION_MANIFEST.md`'s `## Sprint 59` section still reads "Status: Implemented — Pending Reviewer Validation," even though Sprint 59 was certified Approved by `NEXUS-REV-2026-07-16-010` and `IMPLEMENTATION_PLAN.md`/`REVIEW_HISTORY.md` both correctly reflect that disposition. This predates Sprint 60 and was not introduced or worsened by this Sprint's implementation.
+- **Evidence:** `IMPLEMENTATION_MANIFEST.md` `## Sprint 59` Status line vs. `IMPLEMENTATION_PLAN.md`'s Sprint 59 entry and `REVIEW_HISTORY.md`'s `NEXUS-REV-2026-07-16-010`.
+- **Impact:** None on implemented behavior; a reader consulting only the Manifest would see stale status text for Sprint 59.
+- **Required Disposition:** Documentation Task. The Reviewer's ownership for this Sprint's Repository State Update is limited to `REVIEW_HISTORY.md`, the Sprint 60 Sprint Implementation Record, and Sprint status in `IMPLEMENTATION_PLAN.md`; `IMPLEMENTATION_MANIFEST.md` remains Builder-owned and is not corrected by this review.
+- **Builder Action:** Update `IMPLEMENTATION_MANIFEST.md`'s Sprint 59 Status line to "✅ Approved" in a future Builder iteration. Non-blocking; does not affect Sprint 60's disposition.
+
+#### NEXUS-REV-2026-07-16-011-F-002 — Inconsistent indentation in new `engineering-session.test.ts` test cases
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation / code quality convention
+- **Summary:** The new Recovery-Gated Re-Advancement eligibility tests added to `engineering-session.test.ts` are indented four spaces deeper than sibling `it(...)` blocks at the same nesting level within the enclosing `describe('EngineeringSession domain', ...)` block. ESLint does not flag this (no stylistic/indentation rule is configured for test files), and it has no effect on test correctness or execution.
+- **Evidence:** `test/kernel/execution/engineering-session.test.ts`, the block beginning `it('treats Approved GovernanceDecision as eligible...`.
+- **Impact:** None on behavior or CI; cosmetic only.
+- **Required Disposition:** No action required.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Documentation Drift (Category 4) / Informational | 1 / 1 |
+| Observation (Category 6) / Informational | 1 / 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest 96/96, full Vitest 84 files / 517 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 60 deferred concepts remain unimplemented and are correctly tracked in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md`: advancement eligibility for Withdrawn Recovery Requirements, event subscriptions/consumers of Recovery Requirement or Governance Decision events, Governed Mission Completion / any Mission completion precondition change (still unscheduled, requires its own future RFC-0001 amendment), and any differentiated Deferred/Escalation-Required treatment beyond uniform Blocking. No deferred concept was silently introduced; source inspection and the regression test confirm no event subscriber was added, `RecoveryRequirement`'s lifecycle was not extended to accept Withdrawn as an eligibility path, and no Host/Adapter file was touched.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership / RFC-0011 boundary:** `GovernanceDecision`'s value, semantics, lifecycle, and production are untouched (`src/kernel/governance/` has zero diff); the eligibility function reads the already-resolved `GovernanceDecisionSnapshot` and `RecoveryRequirementSnapshot` as plain data, never mutating either. Compliant.
+- **RFC-0004 v1.12 boundary:** `RecoveryRequirement`'s own lifecycle, identity, and both the Recovery Resolution and Recovery Withdrawal Contracts are unmodified (`recovery-requirement.ts`, `.service.ts`, `.contract.ts`, `.repository.ts`, `.errors.ts`, `.events.ts` all show zero diff); the new code consumes `findByAttributionKey` and the existing `acceptedOutcomeReference` field exactly as ratified, with no new Recovery Requirement capability. Compliant.
+- **RFC-0004 v1.11 boundary:** Manual, Automatic/Event-Driven, and Review-Gated Advancement are unaffected, verified by a dedicated regression test; Governance-Gated Advancement's existing Advancement Authority is unchanged — no new Advancement Authority was introduced. Compliant.
+- **Fail-closed resolution authority:** A Resolved Recovery Requirement lacking `acceptedOutcomeReference` (or with it blank) is treated identically to a Blocking Recovery Requirement state, never granting eligibility — verified by a dedicated malformed-snapshot test. Compliant.
+- **Pure eligibility evaluation:** `isGovernanceDecisionAdvancementEligible` performs no repository access, no persistence, and no mutation, confirmed by source inspection (no `await`, no repository parameter) and a dedicated determinism test. All repository access is confined to `EngineeringSessionService`, read-only. Compliant.
+- **Withdrawn exclusion:** A Withdrawn Recovery Requirement is treated as Blocking, exactly as ratified; no eligibility path was created for it. Compliant.
+- **Architectural boundaries:** `RecoveryRequirement`, `RecoveryRequirementService`, `RecoveryRequirementGovernanceDecisionConsumer`, `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, and RFC-0011 are byte-for-byte unmodified (confirmed by `git diff --stat`). No `src/hosts` or `src/adapters` file was touched. RFC-0004 text changes are confined to the ratified v1.13 Amendment History entry and the new "Recovery-Gated Re-Advancement Eligibility" subsection; RFC-0011 is unmodified. Compliant.
+- **Terminology:** `isGovernanceDecisionAdvancementEligible`, the Required Behavioral Matrix, and the production-wiring requirement exactly match `NEXUS-RAT-2026-07-16-011`. Compliant.
+- **Tests:** `engineering-session.test.ts` adds full Required Behavioral Matrix coverage plus four mismatched-attribution parameterized cases, a mismatched-Mission case, and a determinism test; `engineering-session.service.test.ts` adds the end-to-end exact-match restoration case, the mismatched-attribution service-level case, and the `createKernelServices` shared-instance wiring test; full suite 517/517 passing (up from 500, net +17 consistent with the added coverage). All rows of the Required Test Matrix (`NEXUS-RAT-2026-07-16-011`) are covered.
+
+### Builder Task Recommendation
+
+None blocking. Sprint 60 satisfies the approval criteria: implemented concepts conform exactly to RFC-0004 v1.13's Recovery-Gated Re-Advancement Eligibility and `NEXUS-RAT-2026-07-16-011`'s Authorized Vertical Slice, Required Behavioral Matrix, and three binding Refinements; deferred concepts are correctly excluded and tracked; all Required Test Matrix rows pass; no Critical, Major, or Minor findings remain. One non-blocking Documentation Task is recommended for a future Builder iteration (`NEXUS-REV-2026-07-16-011-F-001`: correct `IMPLEMENTATION_MANIFEST.md`'s stale Sprint 59 status line). Recommend the Sprint Owner mark Sprint 60 **Approved** and proceed to commit.
+
+---
+
+## NEXUS-REV-2026-07-16-010 — Sprint 59 — Recovery Requirement Domain Event Publication
+
+- **Reviewed Sprint:** Sprint 59 — Recovery Requirement Domain Event Publication
+- **Reviewed Vertical Slice:** RFC-0005 Domain Event publication for the existing Sprint 58 `RecoveryRequirement` aggregate — `recovery-requirement.events.ts` factory functions, aggregate recorded-events collection and drain-once `pullDomainEvents()`, save-then-publish `EventBusContract` wiring on `RecoveryRequirementGovernanceDecisionConsumer` and `RecoveryRequirementService`, production `createKernelServices` injection, `kernel-event-catalog.md` reference-document additions.
+- **RFC Coverage:** RFC-0005 — Domain Event Model (Partial; new "Execution Events" catalog entries; no text amendment); RFC-0004 v1.12 — Execution Model (Referenced, unmodified); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified); RFC-0010 — Kernel Boundaries (Referenced).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 59 implements exactly the Domain Event publication vertical slice authorized by `NEXUS-RAT-2026-07-16-009`, including its seven binding Sprint Owner refinements. Confirmed `recovery-requirement.events.ts` mirrors `governance.events.ts`'s established shape: a `RecoveryRequirementEventType` union (`RecoveryRequirementCreated`, `RecoveryRequirementResolved`, `RecoveryRequirementWithdrawn`) and factory functions that populate the shared `DomainEvent` envelope with `missionId`, `causality`, `correlationId`, and Mission attribution, plus a payload carrying the `RecoveryRequirement` identity, status, Engineering Session, Workflow Step, and originating `GovernanceDecision` identity — satisfying Refinement 1 (attribution completeness). Confirmed `RecoveryRequirement.create()` records exactly one `RecoveryRequirementCreated` event, `RecoveryRequirement.fromSnapshot()` records none (test M9-S59), and the consumer's pre-existing `findByAttributionKey` idempotency check short-circuits before any aggregate or event is constructed for a duplicate `GovernanceDecisionRecorded` delivery (test M5, event count unchanged at 1) — satisfying Refinements 2 and 3. Confirmed `resolveRecoveryRequirement`/`withdrawRecoveryRequirement` publish only after `repository.save()` succeeds (save-then-publish, source inspection of `recovery-requirement.service.ts`), and that the aggregate's idempotent-same-value early return and its `InvalidRecoveryRequirementDefinitionError` conflicting/invalid-transition paths never reach a `recordedEvents.push` call, so no event is published on repeated, conflicting, or validation-failed transitions (tests M7, M8, M12, M13, M17) — satisfying Refinements 4 and 5. Confirmed via `git diff` that `createKernelServices` now passes the shared production `EventBus` instance into both `RecoveryRequirementService` and `RecoveryRequirementGovernanceDecisionConsumer` (test M11 asserts the exact composition source pattern) — satisfying Refinement 6. All nine Required Test Matrix rows from `NEXUS-RAT-2026-07-16-009` are covered — satisfying Refinement 7. Confirmed via `git diff --stat` and a dedicated negative test (M10, unchanged from Sprint 58) that `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` remain byte-for-byte unmodified; no `src/hosts` or `src/adapters` file was touched; no event subscriber/consumer of the new events was introduced; RFC-0004, RFC-0005, and RFC-0011 text are unmodified (confirmed via `git diff` against each specification file). Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (18/18 in `recovery-requirement.test.ts`), `npm run test` (84 files / 500 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-010-F-001 — `IMPLEMENTATION_PLAN.md` Milestone 9 status summary not synchronized with the Sprint 59 detail section
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Governance Artifacts (permanent traceability)
+- **Summary:** The Builder correctly updated the `## Sprint 59` detail section's own Status line to "Implemented — Pending Reviewer Validation," but the Milestone 9 status summary bullet list entry for Sprint 59 (originally drafted during `nexus-plan` activation) still read "Current Sprint, authorized for implementation" prior to this review's Repository State Update.
+- **Evidence:** `IMPLEMENTATION_PLAN.md` (Milestone 9 status bullet list vs. the `## Sprint 59` detail section's own Status line).
+- **Impact:** None on implemented behavior; a reader consulting only the summary bullet would see stale status text. This review's mandatory Repository State Update (below) reconciles it directly as part of marking Sprint 59 Approved.
+- **Required Disposition:** Resolved by this review's Repository State Update; no separate Documentation Task required.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Documentation Drift (Category 4) / Informational | 1 / 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest 18/18, full Vitest 84 files / 500 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 59 deferred concepts remain unimplemented and are correctly tracked in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md`: event subscriptions/consumers of the three new events, Governed Mission Completion / Mission completion precondition changes (still unscheduled, requires its own future RFC-0001 amendment), differentiated Rejected/Deferred/Escalation-Required Engineering Session state beyond Sprint 57's uniform Blocking classification, downstream Host/Adapter surfacing, and durable/persistent Event Streams. No deferred concept was silently introduced; source inspection and the M10 negative test confirm no event subscriber was added and no Governance/Workflow/Mission file was modified.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership:** `RecoveryRequirement` records its own Domain Events via its own `pullDomainEvents()`; it does not reach into `GovernanceDecision`, `EngineeringSession`, or `Mission` internals to construct event payloads, only their public identity values (already established by Sprint 58, unmodified here). Compliant.
+- **Event Categories (RFC-0005):** The three new events are catalogued under the existing "Execution Events" category, consistent with RFC-0004's ownership of `RecoveryRequirement`; no RFC-0005 text amendment was made or required, since RFC-0005 explicitly permits additional events within existing categories. Compliant.
+- **Engineering Progression (RFC-0005):** Every implemented `RecoveryRequirement` state transition (creation, resolution, withdrawal) now emits exactly one corresponding Domain Event; no observable transition occurs silently. Compliant.
+- **Attribution completeness:** Every published event carries `missionId` (envelope + attribution), `causality`, optional `correlationId`, and `governanceDecisionId` (payload) — verified by tests M1, M7, M8. Compliant.
+- **Creation-event idempotency and rehydration safety:** `RecoveryRequirementCreated` is recorded only inside `RecoveryRequirement.create()`; `fromSnapshot()` never records an event (test M9-S59); the consumer's attribution-key lookup prevents a duplicate `GovernanceDecisionRecorded` delivery from ever reaching `.create()` a second time (test M5). Compliant.
+- **Save-then-publish sequencing:** Both `RecoveryRequirementService` methods call `repository.save()` before `publishDomainEvents()`; the consumer calls `repository.register()` before `publishDomainEvents()` and gates publication on the registered id matching the locally created id, so a race-condition duplicate detected by the repository is never published. Compliant.
+- **Failure-path silence:** Idempotent-same-value resolution/withdrawal returns `this` without pushing a new event; conflicting transitions and empty-reference validation failures both throw `InvalidRecoveryRequirementDefinitionError` before any `recordedEvents.push` call — verified by tests M7, M8, M12, M13, M17. Compliant.
+- **Architectural boundaries:** `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` are byte-for-byte unmodified (confirmed by `git diff --stat` and the M10 negative source-content test). No `src/hosts` or `src/adapters` file was touched. RFC-0004, RFC-0005, and RFC-0011 specification text is unmodified (confirmed by `git diff`). Compliant.
+- **Terminology:** Event names (`RecoveryRequirementCreated`/`Resolved`/`Withdrawn`) and the "Execution Events" category placement exactly match `NEXUS-RAT-2026-07-16-009`. Compliant.
+- **Tests:** `recovery-requirement.test.ts` (18 tests: M1, parameterized M2–M4, M5–M9, M9-S59, M10–M17, one per Required Test Matrix row plus the pre-existing Sprint 58 lifecycle matrix); full suite 500/500 passing (up from 499, net +1 consistent with the file's test-count delta).
+
+### Builder Task Recommendation
+
+None. No Builder Tasks are required. Sprint 59 satisfies the approval criteria: implemented concepts conform exactly to RFC-0005's Execution Events category and `NEXUS-RAT-2026-07-16-009`'s Authorized Vertical Slice and seven binding Refinements, deferred concepts are correctly excluded and tracked, all nine Required Test Matrix rows pass, and no Critical, Major, or Minor findings remain. The sole finding (`NEXUS-REV-2026-07-16-010-F-001`, Documentation Drift, Informational) is resolved directly by this review's Repository State Update. Recommend the Sprint Owner mark Sprint 59 **Approved** and proceed to commit.
+
+---
+
+## NEXUS-REV-2026-07-16-009 — Sprint 58 — Governance Recovery and Blocking-State Foundation
+
+- **Reviewed Sprint:** Sprint 58 — Governance Recovery and Blocking-State Foundation
+- **Reviewed Vertical Slice:** RFC-0004 v1.12 `RecoveryRequirement` — domain aggregate, identity/uniqueness, required attribution, Rejected-only creation, Recovery Resolution Contract, Recovery Withdrawal Contract, Lifecycle Immutability, in-memory repository, thin service, narrowly scoped `GovernanceDecisionRecorded` consumer, minimal Kernel composition wiring.
+- **RFC Coverage:** RFC-0004 v1.12 — Execution Model (Primary; "Recovery Requirement" §); RFC-0011 v1.1 — Engineering Governance Model (Referenced, unmodified); RFC-0010 — Kernel Boundaries (Referenced).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 58 implements exactly the `RecoveryRequirement` vertical slice authorized by `NEXUS-RAT-2026-07-16-008` (Sprint scope) and `NEXUS-RAT-2026-07-16-007` (RFC-0004 v1.12 amendment). Confirmed `RecoveryRequirement` carries immutable identity and immutable Mission/Engineering Session/Workflow Step/`GovernanceDecision` attribution; creation is deterministic and idempotent, keyed on that four-part combination via `InMemoryRecoveryRequirementRepository`'s attribution-key index; a Recovery Requirement is created only for a Rejected `GovernanceDecision` — Deferred, Escalation Required, and Approved each correctly produce none, verified by dedicated parameterized tests. Confirmed the Recovery Resolution Contract and Recovery Withdrawal Contract are implemented exactly as ratified: both require their respective mandatory reference fields (accepted-outcome/Evidence reference; authoritative decision/Ratification reference), `RecoveryRequirementService` performs no sufficiency or authority judgment itself, and all transition validity is delegated to the `RecoveryRequirement` aggregate. Confirmed Lifecycle Immutability: Open → Resolved | Withdrawn are both terminal, transition metadata is preserved immutably across repeated identical requests, and conflicting repeated transitions (`Resolved → Withdrawn`, `Withdrawn → Resolved`) fail deterministically. Confirmed via `git diff --stat`, source inspection, and a dedicated negative test (`recovery-requirement.test.ts` M10) that `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` are byte-for-byte unmodified and contain no reference to `RecoveryRequirement`; no `src/hosts` or `src/adapters` file was touched; no Recovery Requirement Domain Event was introduced. Independent re-validation confirmed `tsc --noEmit`, ESLint, targeted Vitest (22/22), `npm run test` (84 files / 499 tests), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, exactly matching the Builder's reported counts. **No architectural violations detected.**
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-009-F-001 — Default-constructed repository in `RecoveryRequirementService` constructor
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` — Deterministic Implementation (avoid hidden behavior)
+- **Summary:** `RecoveryRequirementService`'s constructor parameter defaults to `new InMemoryRecoveryRequirementRepository()`. The Kernel injects a repository explicitly via `createKernelServices`, so this default is unreachable in the certified composition, but a silent fallback would allow a future unwired `new RecoveryRequirementService()` to compile without error. This is the same pattern previously identified and accepted in Sprint 5's `EvidenceService` (`NEXUS-REV-2026-07-12-008-F-006`: "No action required; recommend removing the default parameter in a future slice").
+- **Evidence:** `src/kernel/execution/recovery-requirement.service.ts` constructor.
+- **Impact:** None in the current, certified composition. A future wiring mistake would silently produce a private, unshared repository instead of failing fast.
+- **Required Disposition:** No action required; consistent with existing accepted repository convention.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Category 6) | 1 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest 22/22, full Vitest 84 files / 499 tests, `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 58 deferred concepts remain unimplemented and are correctly tracked in `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md`: Recovery Requirement Domain Event publication, AI-generated remediation planning, Governed Mission Completion / Mission completion precondition changes (Sprint 59 candidate), differentiated Rejected/Deferred/Escalation-Required Engineering Session state beyond Sprint 57's uniform Blocking classification, and Host/Adapter recovery surfaces. No deferred concept was silently introduced; `grep` and source inspection confirm no `RecoveryRequirementRecorded` (or equivalent) event type, no AI/LLM invocation, and no Mission or Engineering Session file modification.
+
+### Architectural Compliance Summary
+
+- **Aggregate ownership:** `RecoveryRequirement` owns its own identity, attribution, and lifecycle; it does not access internal state of `GovernanceDecision`, `EngineeringSession`, or `Mission` beyond their public identity values. Compliant.
+- **Creation restriction (RFC-0004 v1.12):** Verified by parameterized test that Rejected creates exactly one record and Deferred/Escalation Required/Approved each create none. Compliant.
+- **Determinism and idempotency:** The attribution-key uniqueness index in `InMemoryRecoveryRequirementRepository.register` returns the existing record for a repeated key rather than creating a duplicate; verified by test M5 (duplicate handling) and M6 (distinct `GovernanceDecision` → separate record). Compliant.
+- **Recovery Resolution / Withdrawal Contracts:** Both required-reference contracts are enforced by the aggregate's `normalizeNonEmptyString` validation (empty reference throws `InvalidRecoveryRequirementDefinitionError`), and the service performs no sufficiency/authority judgment of its own. Compliant.
+- **Lifecycle Immutability:** Terminal-state enforcement, immutable transition metadata preservation across repeated identical requests, and deterministic rejection of conflicting repeated transitions are all independently tested (M7, M8, M14–M17). Compliant.
+- **Architectural boundaries:** `GovernanceService`, `GovernanceDecision`, `WorkflowChain`, `EventBusContract`, and `DomainEvent` are byte-for-byte unmodified (confirmed by `git diff --stat` and a dedicated negative source-content test). No `src/hosts` or `src/adapters` file was touched. No Domain Event was published for Recovery Requirement. Compliant.
+- **Terminology:** RFC-0004 v1.12 terms (`RecoveryRequirement`, Open/Resolved/Withdrawn, Recovery Resolution Contract, Recovery Withdrawal Contract) are preserved exactly as ratified. Compliant.
+- **Tests:** `recovery-requirement.test.ts` (17 tests, M1–M17, one full row per Required Test Matrix entry) plus 2 new assertions in `kernel-boundary-certification.integration.test.ts`; full suite 499/499 passing.
+
+### Builder Task Recommendation
+
+None. No Builder Tasks are required. Sprint 58 satisfies the approval criteria: implemented concepts conform exactly to RFC-0004 v1.12 and `NEXUS-RAT-2026-07-16-008`'s Authorized Vertical Slice, deferred concepts are correctly excluded and tracked, all seventeen Required Test Matrix rows pass, and no Critical, Major, or Minor findings remain. Recommend the Sprint Owner mark Sprint 58 **Approved** and proceed to commit.
+
+---
+
+## NEXUS-REV-2026-07-16-008 — Sprint 57 — Governance-Gated Workflow Advancement (TASK-001 Resolution Verification)
+
+- **Reviewed Sprint:** Sprint 57 — Governance-Gated Workflow Advancement (follow-up review limited to TASK-001's resolution of `NEXUS-REV-2026-07-16-007-F-001`)
+- **Reviewed Vertical Slice:** No new vertical slice. Verifies the Builder's chosen resolution of the sole open finding from `NEXUS-REV-2026-07-16-007`.
+- **RFC Coverage:** RFC-0004 v1.11 (unchanged); RFC-0011 v1.1 (unchanged, Referenced). No RFC modified by this cycle.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+TASK-001 (`builder-task.md`) offered the Builder two authorized resolutions for `NEXUS-REV-2026-07-16-007-F-001`. The Builder selected **Option B**: `IMPLEMENTATION_REPORT.md`'s Sprint 57 § Architectural Assumptions gained exactly one new line documenting the rationale for accepting direct repository resolution (rather than Sprint 46's caller-supplied-outcome pattern) as the go-forward design for Governance-Gated Advancement — because the Governance Decision, not the Review alone, is this Strategy's authoritative trigger, and resolving the Review outcome from the persisted `GovernanceDecision.reviewId` keeps both eligibility inputs coupled to the same recorded governing evaluation.
+
+Confirmed via `git diff --stat` that no source or test file was modified: `src/kernel/execution/engineering-session.ts`, `engineering-session.service.ts`, `engineering-session.contract.ts`, `governance-gated-workflow-advancement.consumer.ts`, `create-kernel-services.ts`, and all Sprint 57 test files are byte-for-byte identical to the state already reviewed and Approved with Findings in `NEXUS-REV-2026-07-16-007`. Only `IMPLEMENTATION_REPORT.md` changed (one line added). This satisfies Option B's Acceptance Criteria exactly: "no source or test file is modified."
+
+Independent re-validation confirmed `tsc --noEmit` clean, `npm run lint` clean, `npm run test` (83 files, 482 tests — unchanged), `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-16-007-F-001` is confirmed **Resolved** by the Builder's documented Option B rationale, satisfying the finding's own Recommended Disposition ("either resolution is acceptable; no Sprint Owner ratification is required"). No new finding is identified.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-16-007`: Recovery Requirement records, differentiated Rejected/Deferred/Escalation-Required Engineering Session state, Governed Mission Completion, and general-purpose event routing all remain unimplemented, including as placeholders.
+
+### Architectural Compliance Summary
+
+No architectural change occurred this cycle. All findings from `NEXUS-REV-2026-07-16-007` are now Resolved. Sprint 57 is fully closed with zero open findings of any category.
+
+### Builder Task Recommendation
+
+None. TASK-001 is Completed. No further Builder Task is required. Sprint 57 is fully closed.
+
+---
+
+## NEXUS-REV-2026-07-16-007 — Sprint 57 — Governance-Gated Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 57 — Governance-Gated Workflow Advancement
+- **Reviewed Vertical Slice:** Implementation of RFC-0004 v1.11's Governance-Gated Advancement Strategy, per `NEXUS-RAT-2026-07-16-006`: an `EngineeringSession` operation consuming an already-produced, immutable `GovernanceDecision`, classifying it as Non-Blocking (Approved) or uniformly Blocking (Rejected, Deferred, Escalation Required), advancing the workflow position only when both Review-Gated and Governance-Gated eligibility are satisfied.
+- **RFC Coverage:** RFC-0004 v1.11 — Execution Model (Primary; Workflow Advancement § Governance-Gated Advancement). RFC-0011 v1.1 — Engineering Governance Model (Referenced; `GovernanceDecision` consumed read-only). RFC-0010 — Kernel Boundaries (Referenced). Ratifications: `NEXUS-RAT-2026-07-16-005` (RFC-0004 v1.11 amendment), `NEXUS-RAT-2026-07-16-006` (Sprint scope, narrowed).
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 57 implements exactly the narrowed scope authorized by `NEXUS-RAT-2026-07-16-006`. `EngineeringSession.advanceWorkflowAfterGovernanceDecision` reuses the existing `assertNonBlockingReviewOutcome` function unchanged, adds a new `assertNonBlockingGovernanceDecision` function classifying only `Approved` as Non-Blocking and `Rejected`/`Deferred`/`Escalation Required` identically as Blocking (uniform `InvalidEngineeringSessionDefinitionError`, no differentiated treatment, record, or state per value — confirmed by source inspection and by the `it.each` test parameterizing all three values against one identical assertion), and delegates to the existing, unmodified `advanceWorkflow` for the actual position mutation. `EngineeringSessionService.advanceWorkflowAfterGovernanceDecision` retrieves the `GovernanceDecision` via the existing, unmodified `IGovernanceDecisionRepository` contract and resolves the associated Review via the existing, unmodified `IReviewRepository` contract, then delegates entirely to the aggregate. `GovernanceGatedWorkflowAdvancementConsumer` is confirmed to own no eligibility or mutation logic — it extracts `governanceDecisionId` from the event payload and delegates unconditionally.
+
+Confirmed via source diff and `git diff --stat`: `GovernanceService`, `GovernanceDecision`, `GovernanceEscalation`, `EventBusContract`, `DomainEvent`, `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, `AssignmentPolicy`, and every file under `src/hosts`/`src/adapters` are byte-for-byte unmodified — no file under `src/kernel/governance/` appears in this Sprint's diff at all. Confirmed Manual Advancement (Sprint 43), Automatic/Event-Driven Advancement (Sprint 45), and Review-Gated Advancement (Sprint 46) are unchanged, both by source diff and by a dedicated regression test exercising all three unchanged. No Recovery Requirement record, differentiated Rejected/Deferred/Escalation-Required Engineering Session state, or Governed Mission Completion precondition was introduced, including as a placeholder — confirmed by source inspection and by the Implementation Report's explicit "Out of scope and not implemented" list. All ten rows of `NEXUS-RAT-2026-07-16-006`'s Required Test Matrix are covered by a dedicated test, including idempotent duplicate `GovernanceDecisionRecorded` delivery (verified at both the aggregate level, via direct repeated invocation with an unchanged `currentWorkflowStepId`, and at the consumer level, via two deliveries of the identical event).
+
+Independent re-validation confirmed: `tsc --noEmit` clean; `npm run lint` clean; `npm run test` (83 files, 482 tests, matching the Builder's reported count exactly — plus the same pre-existing, unrelated `vscode`-module extension-host suite failure noted in every prior review); `npm run build` and `npm run test:extension-host:build` both clean.
+
+One Category 1, Minor finding is recorded below concerning a design-consistency gap between this Sprint's new Review-resolution mechanism and Sprint 46's established precedent. It does not indicate incorrect behavior and does not block approval.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-007-F-001 — New `IReviewRepository` dependency on `EngineeringSessionService` diverges from Sprint 46's caller-supplied-outcome precedent
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `NEXUS-RAT-2026-07-16-006` Authorized Vertical Slice (authorizes consuming a `GovernanceDecision`, not a new Review resolution mechanism); Sprint 46 precedent (`AdvanceEngineeringSessionWorkflowAfterReviewCommand.reviewOutcome: string` — the caller supplies the already-resolved outcome, and `EngineeringSessionService` carries no `IReviewRepository` dependency).
+- **Evidence:** `engineering-session.service.ts` — `advanceWorkflowAfterGovernanceDecision` retrieves the `GovernanceDecision` via a newly injected, optional `IGovernanceDecisionRepository` and then independently resolves `review.outcome` via a newly injected, optional `IReviewRepository`, both added to `EngineeringSessionService`'s constructor for the first time this Sprint. By contrast, `advanceWorkflowAfterReview` (Sprint 46, unmodified) takes `reviewOutcome` directly as a caller-supplied string field and has never carried a Review repository dependency.
+- **Impact:** Two sibling Advancement Strategies now supply conceptually the same input (a Review outcome) through two different mechanisms — one caller-resolved, one internally repository-resolved — for no documented architectural reason. `NEXUS-RAT-2026-07-16-006`'s Authorized Vertical Slice text describes consuming a `GovernanceDecision` "via existing, unmodified `GovernanceService` retrieval," but `GovernanceService` exposes no retrieval operation at all (only `evaluateGovernancePolicy`); the Builder's substitution of direct `IGovernanceDecisionRepository`/`IReviewRepository` reads is a reasonable adaptation of an imprecise ratification phrase, but it was not itself independently authorized by name and increases `EngineeringSessionService`'s cross-domain repository coupling beyond Sprint 46's demonstrated minimal-coupling design. No incorrect behavior results; this is a design-consistency and future-maintainability concern, not a correctness defect.
+- **Recommended Disposition:** Non-blocking. A future Builder Task may harmonize the two mechanisms (for example, by having callers supply the resolved `reviewOutcome` alongside the `governanceDecisionId`, mirroring Sprint 46 and removing the new `IReviewRepository` dependency) or may formally ratify the current repository-resolution approach as the preferred pattern going forward. Either resolution is acceptable; no Sprint Owner ratification is required to leave it as implemented.
+- **Builder Action:** Optional harmonization Builder Task; not required for approval.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 1 (Minor, non-blocking) |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: Recovery Requirement records and recovery-plan generation; any Engineering Session state distinguishing Rejected/Deferred/Escalation Required beyond uniform Blocking treatment; Governed Mission Completion or any Mission completion precondition change; general-purpose event subscription/routing beyond the one narrowly scoped consumer; any Host/Adapter surfacing; any change to `GovernanceService`, `GovernanceDecision`, `EventBusContract`, `DomainEvent`, `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, or `AssignmentPolicy`.
+
+### Architectural Compliance Summary
+
+- **RFC-0004 v1.11 conformance:** Governance-Gated Advancement implements exactly the Non-Blocking (Approved) / Blocking (Rejected, Deferred, Escalation Required) classification; all three Blocking values produce an identical, uniform Advancement Failure with no differentiated treatment — confirmed by parameterized tests and source inspection.
+- **RFC-0011 boundary:** `GovernanceDecision` is consumed strictly read-only; `GovernanceService` is confirmed to mutate no Engineering Session state (it is not modified at all this Sprint).
+- **Aggregate ownership:** `EngineeringSession` owns eligibility and workflow-position mutation exclusively; the new consumer owns none. Manual, Automatic/Event-Driven, and Review-Gated Advancement are unaffected.
+- **Idempotency:** Duplicate `GovernanceDecisionRecorded` delivery and repeated invocation produce no duplicate advancement, verified at both the aggregate and consumer level.
+- **Frozen contracts:** `GovernanceService`, `GovernanceDecision`, `GovernanceEscalation`, `EventBusContract`, `DomainEvent`, `WorkflowChain`, `WorkflowStep`, `ExecutionStrategy`, `AssignmentPolicy`, `src/hosts`, `src/adapters` are all byte-for-byte unmodified.
+- **Tests:** 61 targeted Sprint 57 tests; full suite 83 files / 482 tests passing (plus the one pre-existing, unrelated extension-host failure).
+
+### Builder Task Recommendation
+
+One optional, non-blocking harmonization Builder Task may be generated via `nexus-sprint` for `NEXUS-REV-2026-07-16-007-F-001`. No other Builder Task is required. Sprint 57 satisfies the approval criteria: implemented concepts conform to RFC-0004 v1.11 and `NEXUS-RAT-2026-07-16-006`, deferred concepts (Sprint 58/59 candidates) are correctly excluded, tests pass, and no Critical or Major findings remain.
+
+---
+
+## NEXUS-REV-2026-07-16-006 — Sprint 56 — Governance Decision Domain Event Publication (Recovery Review — TASK-002)
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication (Recovery Review, limited to TASK-002's authorized remediation changes)
+- **Reviewed Vertical Slice:** Implementation of RFC-0011 v1.1's Mission-Scoped Governance Evaluation, per `NEXUS-RAT-2026-07-16-004`: mandatory `missionId` on the governance-evaluation request; every `GovernanceDecision` retains that Mission identity; Review Mission mismatch and missing/unresolvable Review both produce `Escalation Required` retaining the requested Mission identity; `GovernanceDecisionRecorded` obtains `missionId` from the persisted `GovernanceDecision` with no unsafe type cast.
+- **RFC Coverage:** RFC-0005 — Domain Event Model v1.0 (Primary; Event Attribution §). RFC-0011 — Engineering Governance Model v1.1 (Primary; Mission-Scoped Governance Evaluation §, added by this amendment). Referenced: `NEXUS-RAT-2026-07-15-016` (Sprint 53, frozen); `NEXUS-RAT-2026-07-16-004`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+TASK-002 is correctly implemented against RFC-0011 v1.1 and `NEXUS-RAT-2026-07-16-004`'s twelve-item Authorized Builder Remediation, verified item by item. `EvaluateGovernancePolicyCommand.missionId` and `GovernanceDecision.missionId`/`GovernanceDecisionSnapshot.missionId` are all now required, non-optional `string` fields (`governance.contract.ts`, `governance-decision.ts`, `governance.types.ts`), confirmed by source diff — no `GovernanceDecisionMissionUnavailableError`-style fallback error was reintroduced. `resolveInputs` normalizes and requires `command.missionId` unconditionally; `createDecision` no longer has any code path that can throw before constructing a `GovernanceDecision`. A new `hasReviewMissionMismatch` check compares a resolved Review's own `missionId` against the requested `missionId`, short-circuiting Policy Criteria evaluation and producing a new `ReviewMissionMismatch` escalation reason code (added to the existing extensible `governanceEscalationReasonCode` enum) on mismatch — verified by a dedicated test asserting `Escalation Required`, the correct reason code, and that the event retains the *requested* Mission identity, not the Review's. Missing- and unresolvable-Review scenarios are now tested with an explicit evaluation-request `missionId` and produce `Escalation Required` with no thrown error, exactly as RFC-0011 v1.1 requires.
+
+Critically, `governance.events.ts`'s `createGovernanceDecisionRecordedEvent` no longer contains the `snapshot.missionId === undefined` branch or its `as GovernanceDomainEvent` cast from the prior cycle — confirmed by direct file inspection; the function now unconditionally constructs a structurally conformant `DomainEvent`/`GovernanceDomainEvent` with `missionId` and `attribution.missionId` always present, resolving `NEXUS-REV-2026-07-16-004-F-001` at its root cause rather than working around it. A repository-wide search confirms no `as GovernanceDomainEvent` cast and no `.not.toHaveProperty('missionId')`-style assertion exists anywhere in `src/` or `test/` for Governance. `EventBusContract`, `DomainEvent`, `src/hosts`, and `src/adapters` are all confirmed byte-for-byte unmodified by `git diff --stat`; `knowledge/specifications/rfc-0011-engineering-governance-model.md` shows no further Builder modification beyond the `nexus-plan`-authored v1.1 amendment.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; targeted `npx vitest run test/kernel/governance/governance.service.test.ts` (49/49); full `npm run test` (83 files, **468** tests — see Finding F-001 below); `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-006-F-001 — `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary understates the Vitest total by one test
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Implementation Report — implementation reports SHALL accurately describe validation performed.
+- **Evidence:** `IMPLEMENTATION_REPORT.md`'s Sprint 56 § Validation Summary states "Full Vitest suite passed: 83 files, 467 tests." Two independent `npx vitest run` executions during this review both report `Tests 468 passed (468)` across the same 83 passing files (plus the one pre-existing, unrelated `vscode`-module extension-host suite failure noted in every prior Sprint 56 review).
+- **Impact:** Cosmetic only. Does not indicate a missing or failing test; the targeted Sprint 56 count (49 tests in `governance.service.test.ts`) is independently confirmed correct.
+- **Recommended Disposition:** Documentation SHALL be reconciled. No architectural or implementation change is implied.
+- **Builder Action:** Documentation Task — correct "467 tests" to "468 tests" in `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 1 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+`NEXUS-REV-2026-07-16-004-F-001` is confirmed **Resolved** at its root cause (no cast, no omitted required field — structural RFC-0005 conformance restored). One Category 4, Informational finding does not block approval.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: downstream consumption of `GovernanceDecisionRecorded`; workflow gates; repository-write automation; Host/Adapter surfaces; Evidence/Shared-Reality-consuming Policy Criteria; multi-Policy/multi-Ratification conflict arbitration; durable event storage or retry behavior; any change to the Mixed-Result Decision Table or existing Policy Criterion predicates; any change to `EventBusContract` or `DomainEvent`'s type declarations.
+
+### Architectural Compliance Summary
+
+All twelve Authorized Builder Remediation items verified:
+
+1. Required `missionId` on `EvaluateGovernancePolicyCommand` — confirmed.
+2. `GovernanceDecision` retains that Mission identity — confirmed (required field, no fallback).
+3. Resolved Review Mission identity validated against the requested Mission identity — confirmed (`hasReviewMissionMismatch`).
+4. `Escalation Required` for missing Review, unresolvable Review, and Mission mismatch — confirmed, each independently tested.
+5. Sprint 53 decision precedence and fail-closed behavior preserved — confirmed; existing Sprint 53/55 tests pass unchanged.
+6. `GovernanceDecisionRecorded.missionId` populated from the persisted `GovernanceDecision` — confirmed.
+7. All unsafe `DomainEvent` casts removed — confirmed by direct inspection and repository-wide search.
+8. Structural RFC-0005 conformance restored — confirmed; every published event satisfies `DomainEvent`'s required fields without a cast.
+9. Tests asserting absent Mission attribution removed — confirmed, none remain.
+10. Required test scenarios added — confirmed (Mission match, Mission mismatch, missing Review with explicit Mission, unresolvable Review with explicit Mission, all four `GovernanceDecision` outcomes, idempotency, no-duplicate-publication, persist-before-publish).
+11. Sprint 56 implementation and governance documentation updated — confirmed, with one Informational count discrepancy (F-001).
+12. Full repository validation pipeline run — independently re-confirmed clean.
+
+Scope Restrictions: `GovernanceDecision`'s and `GovernanceEscalation`'s existing model changed only as authorized (mandatory `missionId`, new `ReviewMissionMismatch` reason code within the existing extensible enum); Policy Evaluation precedence, `EventBusContract`, `DomainEvent`, Host, and Adapter code confirmed unmodified; no new Mission lookup service or Policy/Ratification-inferred Mission identity introduced; no durable storage or retry behavior introduced; RFC-0011 confirmed not further modified by the Builder beyond the `nexus-plan`-authored v1.1 amendment.
+
+### Builder Task Recommendation
+
+One Documentation Task: correct `IMPLEMENTATION_REPORT.md`'s Sprint 56 Validation Summary from "467 tests" to "468 tests." Does not block approval; MAY be handled via `nexus-sprint` or directly. Sprint 56 is **Approved with Findings**. The Milestone 9 Sprint sequence advances: per `IMPLEMENTATION_PLAN.md`'s provisional sequence, no further Milestone 9 Sprint is Current, and the remaining provisional sequence (Sprint 57 — Governance Automation Validation) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-16-005 — Sprint 56 — Governance Decision Domain Event Publication (Status Confirmation)
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication
+- **Reviewed Vertical Slice:** None new. This is a status-confirmation review requested after a Sprint Owner Governance Decision was recorded in `builder-task.md` (2026-07-16, "RFC Amendment Required — Governance Evaluation SHALL Be Mission-Scoped"), to determine whether any new Builder remediation exists to certify.
+- **RFC Coverage:** Unchanged from `NEXUS-REV-2026-07-16-004`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged — reconfirms `NEXUS-REV-2026-07-16-004`)
+
+### Executive Summary
+
+Independent inspection confirms `git diff --stat` for every implementation file (`src/kernel/governance/*.ts`, `test/kernel/governance/governance.service.test.ts`, `IMPLEMENTATION_REPORT.md`) is byte-for-byte identical to the state reviewed in `NEXUS-REV-2026-07-16-004`. No RFC-0011 amendment exists (`knowledge/specifications/rfc-0011-engineering-governance-model.md` § Amendment History still ends at v1.0; no v1.1 or later entry). No new Ratification exists in `knowledge/governance/RATIFICATION_LEDGER.md` beyond `NEXUS-RAT-2026-07-16-003`. `builder-task.md` records the Sprint Owner's governance decision and its required sequencing (RFC-0011 amendment via `nexus-plan` → updated Sprint Implementation Record → superseding Builder Task via `nexus-sprint` → implementation → Recovery Review) but confirms BLOCKED-002 remains blocked; no implementation was authorized or performed against it.
+
+Since no Builder remediation exists beyond what `NEXUS-REV-2026-07-16-004` already reviewed, this review performs no new analysis and generates no new finding. `NEXUS-REV-2026-07-16-004-F-001` (Category 3 — Specification Conflict, Critical) remains open and unresolved for the reasons already recorded in that review: `governance.events.ts` still constructs `GovernanceDecisionRecorded` events lacking `missionId`/`attribution.missionId` via an `as GovernanceDomainEvent` cast when Review resolution fails, which still conflicts with RFC-0005's unconditional Event Attribution requirement. The Sprint Owner's decision to resolve this via RFC-0011 amendment (Mission-scoped governance evaluation, mandatory explicit `MissionId` input) is a valid path forward, but a ratified decision to amend is not itself the amendment — the RFC-0011 text is unchanged, and no Builder Task implementing that direction has been authorized or completed.
+
+### Findings
+
+No new findings. `NEXUS-REV-2026-07-16-004-F-001` remains open, unresolved, and blocking, under its original evidence and classification (see `NEXUS-REV-2026-07-16-004`).
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 (carried forward, unresolved: `NEXUS-REV-2026-07-16-004-F-001`) |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-16-004`. No new deferred concept was implemented, and none was expected, since no new implementation occurred.
+
+### Architectural Compliance Summary
+
+Unchanged from `NEXUS-REV-2026-07-16-004`. `NEXUS-REV-2026-07-16-003-F-001` and `-F-002` remain Resolved. `NEXUS-REV-2026-07-16-004-F-001` remains open.
+
+### Builder Task Recommendation
+
+No new Builder Task. `builder-task.md` already correctly reflects the current state: BLOCKED-002 remains BLOCKED pending, in order, an RFC-0011 amendment drafted and ratified via `nexus-plan`, an updated Sprint 56 Sprint Implementation Record, a superseding Builder Task from `nexus-sprint`, Builder implementation, and a further Recovery Review. This review confirms that sequence has not yet advanced past step zero (the Sprint Owner's ratified governance decision to pursue that path) and recommends no change to `builder-task.md`.
+
+---
+
+## NEXUS-REV-2026-07-16-004 — Sprint 56 — Governance Decision Domain Event Publication (Recovery Review)
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication (Recovery Review, limited to the authorized remediation changes)
+- **Reviewed Vertical Slice:** TASK-001/DOC-002 remediation of `NEXUS-REV-2026-07-16-003-F-001`/`-F-002`, per `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule: removal of the unratified `EvaluateGovernancePolicyCommand.missionId` fallback, restoration of Sprint 53's missing/unresolvable Review → `Escalation Required` guarantee, and optional `missionId` on the `GovernanceDecisionRecorded` event envelope.
+- **RFC Coverage:** RFC-0005 — Domain Event Model v1.0 (Primary; Event Attribution §). RFC-0011 — Engineering Governance Model v1.0 (Primary; Failure and Conflict Handling §). Referenced: `NEXUS-RAT-2026-07-15-016` (Sprint 53, frozen); `NEXUS-RAT-2026-07-16-003`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+The remediation correctly resolves both findings from `NEXUS-REV-2026-07-16-003` on their own narrow terms. `NEXUS-REV-2026-07-16-003-F-001` is verified **Resolved**: `EvaluateGovernancePolicyCommand.missionId` and `GovernanceDecisionMissionUnavailableError` are removed (confirmed absent from `governance.contract.ts`/`governance.errors.ts`); a missing Review (`governance.service.test.ts:456`) and an unresolvable Review (`governance.service.test.ts:477`) both now produce `GovernanceDecision.value === 'Escalation Required'` with no thrown error, restoring Sprint 53's frozen guarantee exactly. `NEXUS-REV-2026-07-16-003-F-002` is verified **Resolved**: `IMPLEMENTATION_REPORT.md`'s Sprint 56 § Deviations now accurately records the original architectural deviation and its resolution rather than "No architectural deviations."
+
+However, implementing `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule ("`missionId` MAY be absent" from the event envelope) surfaces a new, deeper Category 3 — Specification Conflict (see F-001 below): RFC-0005 § Event Attribution states, unconditionally and without a "(when applicable)" qualifier used for Task/Execution Session/Adapter, "Every Domain Event SHALL identify its origin. Attribution SHALL include: Mission." `NEXUS-RAT-2026-07-16-003` is a Sprint-tier Ratification, not an RFC-0005 amendment, and per this skill's own Review Authority ordering and RFC-0011's Authority Hierarchy ("A Ratification that authorizes Sprint scope operates at the Implementation Plan tier... Lower authority SHALL NOT override higher authority"), it cannot validly waive an unconditional RFC-0005 requirement. `governance.events.ts`'s `createGovernanceDecisionRecordedEvent` realizes the missing-Mission-identity path by constructing an object that omits `missionId` and sets `attribution: {}` (no `attribution.missionId`), then force-casts it with `as GovernanceDomainEvent` — producing a runtime value that does not structurally satisfy the `DomainEvent`/`GovernanceDomainEvent` interface's required `missionId: string` field, silently, via an unsound type assertion that `tsc --noEmit` does not (and structurally cannot) catch.
+
+Independent re-validation confirmed: `tsc --noEmit` clean (the unsound cast compiles without error, consistent with the finding); targeted `npx vitest run test/kernel/governance/governance.service.test.ts` (48/48, matching the Builder's reported count); full `npm run test` (83 files / 467 tests, matching `IMPLEMENTATION_REPORT.md`'s Validation Summary; the one failing extension-host suite file is the same pre-existing, unrelated `vscode` module-resolution issue noted in the prior review); `npm run build` and `npm run test:extension-host:build` both clean. All other Authorized Builder Changes (items 1–8, 10) are verified correctly implemented; item 9 (documentation correction) is also verified correct.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-003-F-001 — Unratified `missionId` command fallback breaks Sprint 53's frozen "missing Review → Escalation Required" fail-closed guarantee
+
+- **Status:** **Resolved.**
+- **Verification:** `EvaluateGovernancePolicyCommand` no longer has a `missionId` field (`governance.contract.ts` diff confirmed clean of the field); `GovernanceDecisionMissionUnavailableError` no longer exists (`governance.errors.ts`); `governance.service.ts` no longer has a `requireMissionId` function or any code path that throws before decision construction. A missing Review and an unresolvable Review both independently produce `GovernanceDecision.value === 'Escalation Required'`, verified by dedicated tests (`governance.service.test.ts:456`, `:477`) that no longer rely on any caller-supplied `missionId`.
+
+#### NEXUS-REV-2026-07-16-003-F-002 — `IMPLEMENTATION_REPORT.md` Sprint 56 Deviations section mischaracterized F-001 as a non-deviating "Known Limitation"
+
+- **Status:** **Resolved.**
+- **Verification:** `IMPLEMENTATION_REPORT.md`'s Sprint 56 § Deviations now reads: "Architectural deviation identified by `NEXUS-REV-2026-07-16-003-F-001`... Resolved by TASK-001 under `NEXUS-RAT-2026-07-16-003`..." — no longer states "No architectural deviations." § Known Limitations no longer references a caller-supplied Mission identity requirement.
+
+#### NEXUS-REV-2026-07-16-004-F-001 — `NEXUS-RAT-2026-07-16-003`'s Mission Identity Rule conflicts with RFC-0005's unconditional Event Attribution requirement, realized through an unsound type cast
+
+- **Category:** Category 3 — Specification Conflict
+- **Severity:** Critical
+- **Authority:** RFC-0005 § Event Attribution ("Every Domain Event SHALL identify its origin. Attribution SHALL include: Mission" — listed without the "(when applicable)" qualifier explicitly attached to Task, Execution Session, and Adapter in the same list, and reinforced by § Event Stream: "Each Mission SHALL maintain an append-only Event Stream" and `domain-event.ts`'s own `missionId` doc comment, "Canonical Mission stream identifier"). `NEXUS-RAT-2026-07-16-003` § Mission Identity Rule ("`missionId` MAY be absent"). This skill's § Review Authority ("RFC Specification Suite" ranks above governance-artifact tiers; "Lower authority SHALL NOT override higher authority"); RFC-0011 § Authority Hierarchy ("A Ratification that authorizes Sprint scope operates at the Implementation Plan tier" — below the RFC Suite — and cannot amend RFC text without RFC-tier authority, which `NEXUS-RAT-2026-07-16-003` does not claim).
+- **Evidence:** `src/kernel/events/domain-event.ts` declares `DomainEvent.missionId: string` (required, not optional) and `DomainEventAttribution.missionId: string` (required). `src/kernel/governance/governance.events.ts`'s `createGovernanceDecisionRecordedEvent`, when `snapshot.missionId === undefined`, returns `{ eventId, eventType, timestamp, causality, attribution: {}, payload } as GovernanceDomainEvent` — an object literal that omits `missionId` entirely and supplies an `attribution` object missing its own required `missionId`, force-cast past the type system. `tsc --noEmit` compiles this without error (confirmed by independent re-run), because the `as` assertion suppresses TypeScript's normal missing-required-property diagnostics for this object literal. Two dedicated tests (`governance.service.test.ts:473-474`, `:500-501`) explicitly assert `expect(eventBus.publishedEvents[0]).not.toHaveProperty('missionId')` and `.attribution).not.toHaveProperty('missionId')`, confirming this is deliberate, not accidental. `src/kernel/events/event-bus.ts` (unmodified by this Sprint) happens to already tolerate a missing `missionId` at runtime (`eventsByMissionId = new Map<string | undefined, EventBusEvent[]>()`; `assertMissionAttribution` returns early when both `event.missionId` and `event.attribution.missionId` are `undefined`), which is why no runtime exception occurs — but this pre-existing tolerance does not resolve the type-level and RFC-level contract violation.
+- **Impact:** A `GovernanceDecisionRecorded` event published for a missing/unresolvable Review violates RFC-0005's unconditional Event Attribution requirement and cannot be retrieved via `EventBusContract.replay(missionId)` for any specific Mission — it is stored under the `undefined` key, indistinguishable from any other Mission-less event ever published. Any future consumer of `DomainEvent`/`GovernanceDomainEvent` that trusts the declared type (`missionId: string`) and dereferences it without a defensive `undefined` check will encounter a silent runtime gap the type system claims cannot exist. This is not a defect introduced by careless implementation — the Sprint Owner's own ratified Mission Identity Rule requires exactly this outcome — but the ratification did not have RFC-tier authority to relax RFC-0005's Event Attribution requirement, and the tension between "missionId MAY be absent" and the same ratification's own Scope Restriction ("No modification to... the `DomainEvent` envelope structure") was not reconcilable without either an unsafe cast (what happened) or an RFC-0005 amendment (what did not happen).
+- **Recommended Disposition:** Implementation SHALL stop on this point. Per this skill's Blocking Rules ("conflicting RFC requirements exist... The Reviewer SHALL report the conflict. The Reviewer SHALL NOT resolve it"), this conflict SHALL be referred to the Sprint Owner for governance resolution. Candidate directions (not prescribed): (a) an RFC-0005 amendment, explicitly and narrowly qualifying Mission attribution as "(when applicable)" for a defined category of Governance-produced events where no Mission can be determined, restoring type/RFC conformance for the now-legitimate optional case; (b) reversing `NEXUS-RAT-2026-07-16-003`'s "missionId MAY be absent" clause and finding another way to satisfy Sprint 53's fail-closed guarantee that does not require publishing a Domain Event without Mission attribution (for example, recording the `Escalation Required` `GovernanceDecision` without a corresponding Domain Event in this specific case, if RFC-0011's "SHALL be published as Domain Events" requirement can tolerate that narrow exception — itself requiring RFC-0011 clarification); or (c) another mechanism the Sprint Owner determines. The Builder SHALL NOT independently re-resolve this via further casting or type-suppression.
+- **Builder Action:** Blocked Builder Task — await Sprint Owner governance resolution via `nexus-plan` (likely requiring RFC-0005 and/or RFC-0011 amendment authority, not merely a Sprint-scope Ratification) before further implementation.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 1 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+One Category 3, Critical finding is blocking. `NEXUS-REV-2026-07-16-003-F-001` and `-F-002` are Resolved. Sprint 56 is not approved.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: downstream consumption of `GovernanceDecisionRecorded`; workflow gates; repository-write automation; Host/Adapter surfaces; Evidence/Shared-Reality-consuming Policy Criteria; multi-Policy/multi-Ratification conflict arbitration; durable event storage or retry behavior; any change to `EventBusContract`'s or `DomainEvent`'s type declarations (confirmed by empty `git diff` on both files — the conflict in F-001 arises from producing non-conforming instances via a cast, not from editing the type declarations themselves); any change to `GovernanceDecision`'s or `GovernanceEscalation`'s existing model beyond the additive optional `missionId` field; any change to Policy Evaluation precedence.
+
+### Architectural Compliance Summary
+
+- Authorized Builder Changes 1–3 (remove command field, remove error, restore fail-closed missing/unresolvable-Review behavior): fully conformant, verified by dedicated tests.
+- Authorized Builder Change 4 (optional `missionId` on the event-envelope path only): conformant to `NEXUS-RAT-2026-07-16-003`'s letter, but see F-001 — the underlying `DomainEvent`/RFC-0005 contract does not actually permit this without either a type change (not authorized) or an unsound cast (what was used).
+- Authorized Builder Changes 5–6 (populate from Review when resolved; publish without `missionId` when unresolved): implemented as specified.
+- Authorized Builder Change 7 (remove masking test-helper default): confirmed — `evaluate()`'s helper no longer defaults `missionId`; Mission identity now flows only through `createReview()`'s own `missionId` field.
+- Authorized Builder Change 8 (four required test scenarios): all four present and passing (`governance.service.test.ts:456`, `:477`, plus existing resolved-Review and idempotency coverage).
+- Authorized Builder Change 9 (documentation correction): confirmed correct.
+- Authorized Builder Change 10 (full validation pipeline): independently re-confirmed clean.
+- Scope Restrictions: `GovernanceDecision`/`GovernanceEscalation` models unchanged beyond the additive optional `missionId`; Policy Evaluation precedence, `EventBusContract`, `DomainEvent` type declarations, Host, and Adapter code all unmodified (confirmed by `git diff --stat`); no new Mission lookup service or Policy/Ratification-inferred Mission identity introduced; no durable storage or retry behavior introduced.
+
+### Builder Task Recommendation
+
+One Blocked Builder Task, pending Sprint Owner governance resolution of `NEXUS-REV-2026-07-16-004-F-001` via `nexus-plan` — likely requiring RFC-0005 and/or RFC-0011 amendment authority rather than a further Sprint-scope Ratification alone. Sprint 56 SHALL NOT be considered Approved, and the Milestone 9 Sprint sequence SHALL NOT advance, until this conflict is resolved and Sprint 56 is re-reviewed.
+
+---
+
+## NEXUS-REV-2026-07-16-003 — Sprint 56 — Governance Decision Domain Event Publication
+
+- **Reviewed Sprint:** Sprint 56 — Governance Decision Domain Event Publication
+- **Reviewed Vertical Slice:** Publication of exactly one `GovernanceDecisionRecorded` Domain Event (RFC-0005's "Policy Events" category) for every persisted `GovernanceDecision`, with an additive `missionId` field on `GovernanceDecision` obtained directly from the persisted decision at publication time.
+- **RFC Coverage:** RFC-0005 — Domain Event Model v1.0 (Primary; Domain Event, Event Identity/Attribution/Causality/Correlation, "Policy Events" category). RFC-0011 — Engineering Governance Model v1.0 (Primary; Dependencies § Domain Event publication requirement; Failure and Conflict Handling §). Referenced: Sprint 53's `GovernanceDecision`/`GovernanceEscalation`/`GovernanceService`; Sprint 55's attribution-driven `Escalation Required` path.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Sprint 56 correctly implements the majority of `NEXUS-RAT-2026-07-16-002`'s Authorized Scope: a single `GovernanceDecisionRecorded` Domain Event type carrying the unchanged four-value outcome (`governance.events.ts`), a correctly populated RFC-0005 envelope (Event Identity, `missionId`, Attribution, Causality, Correlation — verified by dedicated envelope-shape assertions), `EventBusContract` wired additively into `GovernanceService`'s constructor and `createKernelServices()`, strict persist-before-publish ordering (verified by a dedicated `FailingEventBus` test confirming the decision remains persisted even when publication throws), and idempotent no-duplicate-publication on repeated identical-input evaluation. The four-value `GovernanceDecision` model, the Mixed-Result Decision Table, existing Policy Criterion predicates, `EventBusContract`, and `DomainEvent` are confirmed byte-for-byte unmodified by source diff, and no `src/hosts`/`src/adapters` file was touched.
+
+However, the Mission Identity mechanism as actually implemented introduces one Critical, blocking defect (see F-001): `GovernanceService` now requires a resolvable `missionId` to construct **any** `GovernanceDecision`, including an `Escalation Required` decision for a missing/unresolvable Review — the exact case Sprint 53's frozen, previously Approved contract (`NEXUS-RAT-2026-07-15-016`) and RFC-0011's Failure and Conflict Handling table require to deterministically produce `Escalation Required`, never an exception. Because a missing Review yields no `missionId` to derive from, the Builder added an un-ratified `missionId?: string` field directly to `EvaluateGovernancePolicyCommand` as a caller-supplied fallback — a command-contract expansion outside `NEXUS-RAT-2026-07-16-002`'s enumerated Authorized Concepts ("exactly... an additive `missionId` field on `GovernanceDecision`, populated... from the evaluated Review's Mission identity... No additional governance capability is authorized"). Where a caller does not (or cannot) supply this new field and the Review is unresolvable, `evaluateGovernancePolicy` now throws `GovernanceDecisionMissionUnavailableError` instead of producing the required `Escalation Required` decision. This is not merely undertested — the single "missing Review" test in `governance.service.test.ts` cannot detect the regression because the shared `evaluate()` test helper unconditionally defaults `missionId: 'mission-1'` on every call, masking the exact input combination the Sprint 53 guarantee exists for.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; targeted `npx vitest run test/kernel/governance/governance.service.test.ts` (47/47 passing, matching the Builder's reported count); full `npm run test` (83 files / 466 tests, matching `IMPLEMENTATION_REPORT.md`'s Validation Summary; the one failing extension-host suite file is a pre-existing, unrelated `vscode` module-resolution issue outside this Sprint's diff); `npm run build` and `npm run test:extension-host:build` both clean. All reported validation is genuine — the defect is a specification-conformance gap, not a build or test-execution failure.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-003-F-001 — Unratified `missionId` command fallback breaks Sprint 53's frozen "missing Review → Escalation Required" fail-closed guarantee
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `NEXUS-RAT-2026-07-16-002` § Mission Identity ("populated by `GovernanceService` from the Review under evaluation at decision-production time... The implementation SHALL NOT resolve Mission identity indirectly through the referenced Review at publication time" — silent on any other source) and § Authorized Concepts ("exactly... No additional governance capability is authorized"); RFC-0011 § Failure and Conflict Handling ("Referenced Repository Policy version does not exist or has no ratified version" / equivalent missing-input conditions → a deterministic decision, never an unhandled failure) and § Conformance ("escalates every non-deterministic case rather than resolving it silently"); `NEXUS-RAT-2026-07-15-016` (Sprint 53, frozen) Definition of Done ("missing/unresolvable Review → Escalation Required (never Deferred, Approved, or Rejected)"); Kernel Canon 12 — Human Authority (ambiguity SHALL be escalated, never silently defaulted or crashed past).
+- **Evidence:** `src/kernel/governance/governance.contract.ts` adds `readonly missionId?: string;` to `EvaluateGovernancePolicyCommand` — a field absent from every Authorized Concept enumerated by `NEXUS-RAT-2026-07-16-002`. `src/kernel/governance/governance.service.ts` (`resolveInputs`) populates `inputs.missionId` only from `reviewSnapshot.missionId` or, failing that, `command.missionId`; when the Review does not resolve (`review === undefined`) and the caller supplies no `missionId`, `inputs.missionId` remains `undefined`. `createDecision` unconditionally calls `requireMissionId(inputs)` (governance.service.ts) for **every** decision value including `Escalation Required`, which throws `GovernanceDecisionMissionUnavailableError` (`governance.errors.ts`) before any `GovernanceDecision` is constructed or persisted. The sole "missing Review" test (`governance.service.test.ts:458`, "escalates a missing Review and never treats it as Deferred, Approved, or Rejected") passes only because the shared `evaluate()` helper (`governance.service.test.ts:235-253`) unconditionally defaults `missionId: overrides.missionId ?? 'mission-1'` on every invocation — no test exercises a missing/unresolvable Review with no caller-supplied `missionId`, the precise combination the Sprint 53 guarantee governs.
+- **Impact:** Any real caller that knows only a `reviewId` (the normal shape of this command, per its own field name and Sprint 53's precedent) and encounters a missing or unresolvable Review — precisely the scenario RFC-0011's Failure and Conflict Handling table and Sprint 53's Definition of Done require to deterministically resolve to `Escalation Required` — instead receives an unhandled `GovernanceDecisionMissionUnavailableError` and no `GovernanceDecision` is ever recorded. This silently breaks a previously Approved, frozen vertical slice's guaranteed behavior and violates RFC-0011's fail-closed/non-silent-resolution Conformance requirements. `IMPLEMENTATION_REPORT.md`'s Sprint 56 Deviations section states "No architectural deviations," which mischaracterizes this as a mere "Known Limitation" rather than the contract-breaking behavior it is.
+- **Recommended Disposition:** Implementation SHALL stop. This is a genuine Category 3-adjacent specification gap (the ratified Mission Identity rule did not anticipate the missing-Review case already governed by a separate, frozen Sprint 53 contract) that the Builder resolved unilaterally instead of escalating — the correct workflow per this skill's Blocking Rules ("implementation extends another RFC without authority" / "undocumented architectural concepts are required"). Sprint Owner ratification is required to determine the authoritative resolution (for example: Mission identity MAY be required as a normal command input for every evaluation regardless of Review resolvability, changing Sprint 53's contract with explicit ratification; or the missing-Review `Escalation Required` path MAY be defined to omit or sentinel `missionId` on `GovernanceDecision`/its event, if RFC-0005's Event Identity rules permit; or another mechanism). The Builder SHALL NOT independently re-resolve this gap without a new or amended Ratification.
+- **Builder Action:** Blocked Builder Task — await Sprint Owner governance decision via `nexus-plan`/Sprint Owner ratification before further implementation on this finding; recommend routing through `nexus-sprint` once ratified.
+
+#### NEXUS-REV-2026-07-16-003-F-002 — `IMPLEMENTATION_REPORT.md` Sprint 56 Deviations section mischaracterizes F-001 as a non-deviating "Known Limitation"
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` Builder documentation requirements (Deviations section SHALL disclose architectural deviations); Sprint 56 Implementation Record § Builder Responsibilities ("Report implementation outcome, assumptions, limitations, and any architectural deviations").
+- **Evidence:** `IMPLEMENTATION_REPORT.md` Sprint 56 § Known Limitations states "Missing-Review evaluation requires caller-supplied Mission identity because no Review is available from which to derive it," and § Deviations states "No architectural deviations." F-001 establishes this is an unratified command-contract expansion with a genuine behavior-breaking consequence, not a benign limitation.
+- **Impact:** Understates the severity of F-001 to a future reader relying on `IMPLEMENTATION_REPORT.md` alone; does not itself introduce further architectural risk once F-001 is resolved.
+- **Recommended Disposition:** Documentation SHALL be reconciled once F-001 is resolved, to accurately record whatever resolution the Sprint Owner ratifies.
+- **Builder Action:** Documentation Task (deferred until F-001's governance resolution is known, to avoid re-documenting twice).
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 1 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 1 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 0 |
+
+One Category 2, Critical finding is blocking. Sprint 56 is not approved.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: downstream consumption of `GovernanceDecisionRecorded` by any workflow gate, repository-write automation, or Host/Adapter surface; Evidence- or Shared-Reality-consuming Policy Criteria; multi-Policy or multi-Ratification conflict arbitration beyond Sprint 55's existing scope; any change to the four-value `GovernanceDecision` model's outcome semantics or the Mixed-Result Decision Table; any change to `EventBusContract` or the `DomainEvent` envelope (verified by `git diff --stat` — neither file appears in the changed-file list).
+
+### Architectural Compliance Summary
+
+- Event Model: exactly one `GovernanceDecisionRecorded` type is introduced (`governance.events.ts`); it carries the unchanged four-value outcome; no per-outcome event type exists.
+- Publication Semantics: `evaluateGovernancePolicy` persists via `governanceDecisionRepository.register()` before calling `publishGovernanceDecisionRecorded()`; a dedicated `FailingEventBus` test confirms the decision remains persisted when publication throws, satisfying Required Test Matrix row 8.
+- Idempotency: existing decisions are returned via the evaluation-key lookup before any new decision or event is constructed, so repeated identical-input evaluation never re-publishes, satisfying Required Test Matrix row 6.
+- Mission Identity: **not** conformant as implemented — see F-001. The envelope correctly reads `missionId` from the persisted `GovernanceDecision` rather than re-resolving the Review at publication time (satisfying the letter of the "SHALL NOT resolve indirectly through the referenced Review at publication time" rule), but the upstream population mechanism exceeds Authorized Concepts and breaks a frozen Sprint 53 guarantee.
+- No modification to the four-value `GovernanceDecision` model's outcome semantics, the Mixed-Result Decision Table, existing Policy Criterion predicates, `EventBusContract`, or `DomainEvent` (confirmed by source diff).
+- No `src/hosts` or `src/adapters` file is modified (confirmed by `git diff --stat`).
+- `createKernelServices()` was extended additively only (one line supplying `eventBus` to `GovernanceService`'s constructor).
+
+### Builder Task Recommendation
+
+One Blocked Builder Task, pending Sprint Owner governance resolution of F-001 via `nexus-plan` (or direct Sprint Owner ratification), then implementation of the ratified resolution and reconciliation of `IMPLEMENTATION_REPORT.md` (F-002) via `nexus-sprint`. Sprint 56 SHALL NOT be considered Approved, and the Milestone 9 Sprint sequence SHALL NOT advance, until F-001 is resolved and re-reviewed.
+
+---
+
+## NEXUS-REV-2026-07-16-002 — Sprint 55 — Ratification and Repository-Law Integration
+
+- **Reviewed Sprint:** Sprint 55 — Ratification and Repository-Law Integration
+- **Reviewed Vertical Slice:** Integration of Sprint 54's standalone `RatificationAttributionValidationService` into Sprint 53's `GovernanceService` as an additive precondition to Policy Evaluation, per RFC-0011's Authority Hierarchy (tier 4, `RATIFICATION_LEDGER.md`) and Failure and Conflict Handling table.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Authority Hierarchy §, Failure and Conflict Handling §). Referenced: Sprint 53's `GovernanceDecision`/`PolicyEvaluation`/`GovernanceEscalation`; Sprint 54's `RatificationAttributionValidationService`/`RatificationAuthoritySnapshot`.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 55 implements exactly `NEXUS-RAT-2026-07-16-001`'s Authorized Scope: `GovernanceService` now invokes Sprint 54's `RatificationAttributionValidationService` for the `RepositoryPolicy` version under evaluation before any Policy Criteria are evaluated (Validation Ordering). `Valid` attribution proceeds through Sprint 53's existing Policy Evaluation and decision-precedence logic completely unchanged; `Invalid`/`Unresolvable` attribution short-circuits to exactly one `Escalation Required` `GovernanceDecision` without evaluating Policy Criteria at all (`shouldEvaluatePolicyCriteria` in `governance.service.ts`). `GovernanceEscalation` is additively extended with the five ratified Escalation Attribution fields (Policy identity/version via existing fields, referenced Ratification identity, attribution outcome, attribution diagnostics, Snapshot fingerprint), and the deterministic evaluation key now incorporates a canonical Ratification Authority Snapshot fingerprint, extending — not replacing — Sprint 53's existing evaluation-key idempotency mechanism. All ten rows of the ratified Required Test Matrix are implemented and independently verified by dedicated tests, including exact-repeat idempotency (no duplicate persisted record) and independent re-evaluation on a changed Snapshot fingerprint.
+
+A full diff and source inspection confirms the four-value `GovernanceDecision` model, the Mixed-Result Decision Table (`deriveGovernanceDecisionValue`), and both existing Policy Criterion predicates (`ReviewOutcomeMembership`, `UnresolvedFindingMatch`) are byte-for-byte unmodified in logic; only two new `GovernanceEscalationReasonCode` values were added to the existing extensible enum to attribute the new escalation branch. No RFC-0005 Domain Event, no `src/hosts`, and no `src/adapters` file was touched (confirmed by `git diff --stat`). `createKernelServices()` was extended additively to wire the shared `RatificationAttributionValidationService` into `GovernanceService`'s constructor.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; `eslint src test` clean; targeted `npx vitest run test/kernel/governance/governance.service.test.ts test/kernel/governance/ratification-attribution-validation.test.ts test/integration/kernel-boundary-certification.integration.test.ts` (64/64 passing); full `npm run test` (83 files / 464 tests, matching the Builder's reported count and `IMPLEMENTATION_REPORT.md`'s Validation Summary); `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-002-F-001 — `NEXUS-RAT-2026-07-16-001` contains an internal wording tension between "Architectural Boundaries" and "Scope Restrictions" regarding Sprint 54 file modification
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-16-001` § Architectural Boundaries ("Sprint 53 and Sprint 54 contracts remain frozen and may only be consumed or additively wired, never redefined") versus § Scope Restrictions ("No modification to Sprint 52's `RepositoryPolicy`/`PolicyCriterion` or Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` behavior").
+- **Evidence:** The Builder added one new required field, `authoritySnapshotFingerprint`, to Sprint 54's `RatificationAttributionValidationSnapshot` (`ratification-attribution.types.ts`) and populated it via a new canonical-fingerprint helper in `ratification-attribution-validation.ts`. This is a textual modification to two Sprint 54 files. However, it is strictly additive: every existing Sprint 54 outcome, diagnostic code, and lifecycle-status rule is byte-for-byte unchanged, and Sprint 54's own pre-existing test file (`test/kernel/governance/ratification-attribution-validation.test.ts`) required zero modification and passes unmodified (confirmed — this file does not appear in `git diff --stat`'s changed-file list).
+- **Rationale:** The Ratification's own binding Determinism and Idempotency clause required "the Ratification Authority Snapshot fingerprint" to enter the deterministic evaluation key, which is only obtainable, without duplicating Sprint 54's internal fingerprinting logic inside `GovernanceService`, by exposing it on `RatificationAttributionValidationService`'s existing output. The Architectural Boundaries clause explicitly contemplates "additively wired" extension of Sprint 54's contract; the Builder's change is exactly that — additive, non-breaking, and necessary to satisfy the same Ratification's own binding Determinism requirement. This is not an architectural violation; it is a precision gap in the Ratification text itself (the same class of gap recorded as `NEXUS-REV-2026-07-16-001-F-002` for the prior Ratification).
+- **Recommended Disposition:** No Builder Task; no Sprint Owner ratification required. A future Ratification drafted by `nexus-plan` MAY tighten the Scope Restrictions wording (e.g., "no modification to Sprint 54's existing outcome/diagnostic logic; purely additive field exposure for Sprint 55's determinism requirement is permitted") to remove the ambiguity for future Sprints.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 1 |
+
+Zero Builder Tasks generated. Zero open findings of any blocking category.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: contradiction detection across multiple distinct Ratifications or Policies beyond Sprint 54's existing single-record scope; general repository-law interpretation or precedence; automatic `RATIFICATION_LEDGER.md` ingestion; RFC-0005 Domain Event publication; Host-facing/Adapter-facing governance surfaces; durable persistence; any change to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates (verified by source diff — `deriveGovernanceDecisionValue`, `evaluateCriterion`, `resolveDescriptor`, and both predicate validators are unchanged from Sprint 53).
+
+### Architectural Compliance Summary
+
+- Validation Ordering is enforced exactly as ratified: `shouldEvaluatePolicyCriteria` returns `false` whenever attribution is `Invalid`/`Unresolvable`, and `createCriterionResults` is never invoked in that branch, confirmed by dedicated tests asserting `criterionResults` is empty and criteria that would otherwise throw/violate are never reached.
+- Escalation Attribution fields are populated exactly as ratified and are subject to the existing normalization/immutability discipline (`GovernanceEscalation.create`/`toSnapshot`), verified by a dedicated diagnostics-equality test.
+- Determinism and Idempotency: the evaluation key now canonically incorporates the Snapshot fingerprint; repeated identical-input evaluation returns the identical persisted decision (no duplicate registration, verified via `decisionRepository.enumerate()` length assertions); a changed Snapshot fingerprint independently re-evaluates and persists a second decision, exactly as ratified.
+- No modification to the four-value `GovernanceDecision` model, the Mixed-Result Decision Table, or existing Policy Criterion predicates.
+- No RFC-0005 Domain Event, `src/hosts`, or `src/adapters` change exists.
+- Sprint 52's `RepositoryPolicy`/`PolicyCriterion` are confirmed byte-for-byte unmodified; Sprint 54's `RatificationAuthoritySnapshot`/`RatificationAttributionValidationService` outcome/diagnostic logic is confirmed unmodified (only one new additive field, see Finding F-001).
+- `createKernelServices()` was extended additively only.
+
+### Builder Task Recommendation
+
+None. Sprint 55 is fully closed with zero open findings of any blocking category (Category 1–5). The one recorded Category 6 Observation requires no Builder action and does not block approval.
+
+---
+
+## NEXUS-REV-2026-07-16-001 — Sprint 54 — Ratification Attribution Validation Foundation
+
+- **Reviewed Sprint:** Sprint 54 — Ratification Attribution Validation Foundation
+- **Reviewed Vertical Slice:** Deterministic validation of the Ratification attribution recorded by exactly one immutable `RepositoryPolicy` version against an immutable collection of structured Ratification Authority Records, producing exactly one of three closed outcomes (`Valid`, `Invalid`, `Unresolvable`).
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Repository Policy § "attributable"). Referenced: RFC-0011 Authority Hierarchy §; `IMPLEMENTATION_CONSTITUTION.md` § Sprint Owner Ratifications.
+- **Review Date:** 2026-07-16
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 54 implements exactly `NEXUS-RAT-2026-07-15-017`'s Authorized Scope: `RatificationAuthoritySnapshot` as an immutable **collection** of `RatificationAuthorityRecord` entries (not a single-Ratification model, satisfying the ratified Snapshot Cardinality correction), a closed three-value lifecycle status set (`Effective`/`Superseded`/`Withdrawn`), and `RatificationAttributionValidationService` producing exactly `Valid`, `Invalid`, or `Unresolvable` — never a default, never inferred from the absence of a supersession/withdrawal marker. Every row of the ratified Required Outcome Mapping table is implemented and independently covered by a dedicated test: exactly-one-`Effective` → Valid; explicitly `Superseded`/`Withdrawn`/contradictory/structurally-malformed → Invalid; no match/duplicate identifier/unknown status/malformed reference/unavailable Snapshot source → Unresolvable. A dedicated negative test confirms the service exposes no `GovernanceDecision`, `PolicyEvaluation`, event-publication, host, or adapter surface, and `createKernelServices()` composes it as a fully standalone Kernel service alongside, but never wired into, `GovernanceService`/`RepositoryPolicyService`. A full import-graph inspection of the six new `src/kernel/governance/ratification-*.ts` files confirms imports limited to `ServiceLifecycle`, `KernelError`, and Sprint 52's already-public `RepositoryPolicyId`/`RepositoryPolicySnapshot` types only — no import of `GovernanceService`, `PolicyEvaluation`, `GovernanceDecision`, the Event Bus, or any `src/hosts`/`src/adapters` module. `git diff --stat` confirms Sprint 52's `repository-policy*.ts` and Sprint 53's `governance*.ts`/`policy-evaluation*.ts` files are byte-for-byte untouched; only `create-kernel-services.ts` and `kernel-boundary-certification.integration.test.ts` were extended additively.
+
+Independent re-validation confirmed: `tsc --noEmit` clean; `eslint src test` clean; targeted `npx vitest run test/kernel/governance/ratification-attribution-validation.test.ts test/integration/kernel-boundary-certification.integration.test.ts` (19/19 passing, matching the Builder's reported count); full `npm run test` (83 files / 456 tests, matching `IMPLEMENTATION_REPORT.md`'s Validation Summary) with one pre-existing, unrelated transient failure (see Findings); `npm run build` and `npm run test:extension-host:build` both clean.
+
+### Findings
+
+#### NEXUS-REV-2026-07-16-001-F-001 — Pre-existing transient process-timing flake in an unrelated Sprint 21 test (recurred)
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — no specification violation.
+- **Evidence:** `npm run test` failed `test/integration/local-process-runtime.integration.test.ts:100` (`status: 'Failed'`/`processTerminationReason: 'TimedOut'` instead of `'Completed'`/`'Exited'`) during one full-suite run. Re-running the same file in isolation three consecutive times passed cleanly each time. `git diff --stat` confirms this file was not touched by Sprint 54.
+- **Rationale:** This is the same class of pre-existing, systemic process-timing flake already acknowledged in `NEXUS-REV-2026-07-15-009-F-001` (Sprint 52) as unrelated to that Sprint's diff. It recurred here for the same reason: a timing-sensitive process-termination assertion under full-suite parallel load, not a Sprint 54 regression.
+- **Recommended Disposition:** No Builder Task. No Sprint Owner ratification required. Recorded for continuity with the prior Observation.
+- **Builder Action:** None.
+
+#### NEXUS-REV-2026-07-16-001-F-002 — `ValidateRatificationAttributionCommand` accepts the full `RepositoryPolicySnapshot` rather than only the ratified "Ratification reference field"
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-15-017` § Dependencies ("Frozen, read-only consumption of Sprint 52's `RepositoryPolicy` (its existing Ratification reference field only)").
+- **Evidence:** `ratification-attribution-validation.ts`'s `normalizeRepositoryPolicy()` accepts and round-trips the entire `RepositoryPolicySnapshot` (`id`, `version`, `name`, `description`, `criteria`, `predecessorVersion`, `ratificationId`), and uses Sprint 52's `RepositoryPolicyId.fromString()` to normalize the `id` field. Only `ratificationId`, `id`, and `version` are actually read; `name`, `description`, `criteria`, and `predecessorVersion` are accepted but never inspected.
+- **Rationale:** The literal Dependencies wording scopes consumption to the Ratification reference field only. The Builder's broader input type is read-only, does not touch Sprint 52's `RepositoryPolicy` aggregate or repository, does not interpret `criteria`/`name`/`description`, and is reasonably necessary to attribute the validation result to a specific Policy identity/version in `RatificationAttributionValidationSnapshot` — mirroring the explainability pattern Sprint 53 already established for `PolicyEvaluation`. This does not constitute an architectural violation; it is a minor scope-wording precision gap between the Ratification's Dependencies clause and the Authorized Concepts' implicit need for attributable output.
+- **Recommended Disposition:** No Builder Task; no Sprint Owner ratification required. A future Ratification drafted by `nexus-plan` MAY tighten this wording (e.g., "the Ratification reference field, plus Policy identity and version for attribution") to remove the ambiguity for future Sprints.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Category | Count |
+| --- | --- |
+| Category 1 — Implementation Defect | 0 |
+| Category 2 — Architectural Violation | 0 |
+| Category 3 — Specification Conflict | 0 |
+| Category 4 — Documentation Drift | 0 |
+| Category 5 — Governance Decision Required | 0 |
+| Category 6 — Observation | 2 |
+
+Zero Builder Tasks generated. Zero open findings of any blocking category.
+
+### Deferred Concept Validation
+
+Confirmed unimplemented, including as a placeholder or stub: Ratification prose/intent interpretation; semantic applicability of a Ratification to `RepositoryPolicy` content; contradiction detection across multiple distinct Ratifications or Policies (only single-record internal contradiction is implemented, exactly as ratified); general repository-law interpretation or precedence; integration with `PolicyEvaluation`, `GovernanceDecision`, or `GovernanceService`; RFC-0005 Domain Event publication; Host-facing/Adapter-facing governance surfaces; durable persistence; automatic `RATIFICATION_LEDGER.md` ingestion (verified by grep — no filesystem or ledger-parsing code exists; the Snapshot source is exclusively an injected repository contract).
+
+### Architectural Compliance Summary
+
+- `RatificationAuthoritySnapshot` is an immutable collection (`readonly RatificationAuthorityRecordSnapshot[]`), satisfying the ratified Snapshot Cardinality correction; each `RatificationAuthorityRecord` is independently immutable (`Object.freeze`).
+- The closed lifecycle status set (`Effective`/`Superseded`/`Withdrawn`) is enforced via `ratificationAuthorityLifecycleStatuses`; an unrecognized status never defaults toward `Valid` — it produces `Unresolvable`.
+- All ten rows of the ratified Required Outcome Mapping table are implemented and individually tested.
+- No integration with `GovernanceService`, `PolicyEvaluation`, `GovernanceDecision`, or `GovernanceEscalation` exists; confirmed by source inspection, import-graph check, and a dedicated negative test.
+- No Domain Event, `src/hosts`, or `src/adapters` change exists.
+- Sprint 52's `RepositoryPolicy`/`PolicyCriterion` and Sprint 53's `PolicyEvaluation`/`GovernanceDecision`/`GovernanceEscalation` are confirmed byte-for-byte unmodified.
+- `createKernelServices()` and the Kernel boundary certification test were extended additively only.
+
+### Builder Task Recommendation
+
+None. Sprint 54 is fully closed with zero open findings of any blocking category (Category 1–5). The two recorded Category 6 Observations require no Builder action and do not block approval.
+
+---
+
+## NEXUS-REV-2026-07-15-012 — Sprint 53 — DOC-001 Documentation Correction Verification (Policy Evaluation and Governance Decision Foundation)
+
+- **Reviewed Sprint:** Sprint 53 — Policy Evaluation and Governance Decision Foundation (documentation-correction cycle)
+- **Reviewed Change:** `builder-task.md` DOC-001 — correcting `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary from "82 files, 441 tests" to "82 files, 442 tests," closing `NEXUS-REV-2026-07-15-011-F-001`.
+- **RFC Coverage:** None — documentation-only correction; no RFC, Kernel Canon, or Ratification affected.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+DOC-001 is correctly and minimally implemented. `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary now reads "Vitest passed: 82 files, 442 tests," matching an independently re-run `npm run test` (82 files / 442 tests, zero failures). `git diff --stat HEAD` confirms exactly three files changed since the prior commit: `IMPLEMENTATION_REPORT.md` (the single corrected line), `IMPLEMENTATION_MANIFEST.md` (its own Sprint 53 Notes citation of the same count, permitted by DOC-001's Builder Instructions since it separately cited the stale figure), and `builder-task.md` (the `nexus-sprint`-authored DOC-001 document itself, not a Builder edit). No source file, test file, RFC, Kernel Canon, Ratification, or `IMPLEMENTATION_PLAN.md` was touched — consistent with DOC-001's scope and the Documentation Drift disposition ("Documentation SHALL be reconciled. No architectural changes are implied.").
+
+`NEXUS-REV-2026-07-15-010-F-001` (Category 1, Minor — resolved by TASK-001, verified by `NEXUS-REV-2026-07-15-011`) and `NEXUS-REV-2026-07-15-011-F-001` (Category 4, Informational — resolved by DOC-001, verified here) are both now closed. Sprint 53 carries zero open findings of any category.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-011-F-001 — Stale Vitest total in IMPLEMENTATION_REPORT.md's TASK-001 remediation entry (RESOLVED)
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Status:** **Resolved** by DOC-001. `IMPLEMENTATION_REPORT.md` now reads "82 files, 442 tests," verified by an independent `npm run test` re-run and by direct inspection of the corrected line. No further Builder action required.
+
+No new finding was identified during this verification cycle.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings this cycle | 0 new; 1 carried finding resolved |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational | 0 open (1 resolved) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `npm run test` (82 files / 442 tests); documentation-only change, no compile/lint/build impact expected or found |
+
+### Deferred Concept Validation
+
+Unaffected. DOC-001 was a documentation-only correction; the full Sprint 53 Deferred Concept list remains unimplemented, exactly as recorded in `NEXUS-REV-2026-07-15-010`/`-011`.
+
+### Architectural Compliance Summary
+
+- **Scope discipline:** the change is confined to a single reported figure in `IMPLEMENTATION_REPORT.md` plus its mirrored citation in `IMPLEMENTATION_MANIFEST.md`. No source code, test, RFC, Kernel Canon, or Ratification was touched. Compliant with DOC-001's Required Changes and Approved Vertical Slice Immutability.
+- **Accuracy:** the corrected figure matches an independently-run test suite exactly (82 files / 442 tests). Compliant with `IMPLEMENTATION_CONSTITUTION.md`'s requirement that implementation reports accurately describe validation performed.
+
+### Builder Task Recommendation
+
+None. DOC-001 is complete and satisfies its acceptance criteria; no further Builder Task, Documentation Task, or Blocked Builder Task arises from this cycle. Recommend the Sprint Owner treat Sprint 53 as **Approved**, fully closed with zero open findings of any category across `NEXUS-REV-2026-07-15-010`, `-011`, and `-012`.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0053-policy-evaluation-and-governance-decision-foundation.md`) — Status → **Approved** (fully closed, zero open findings); Reviewer Notes and Final Disposition updated.
+- `IMPLEMENTATION_PLAN.md` — Sprint 53 marked **Approved** (fully closed). No further Milestone 9 Sprint is Current; the remaining provisional sequence requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-15-011 — Sprint 53 — TASK-001 Remediation Verification (Policy Evaluation and Governance Decision Foundation)
+
+- **Reviewed Sprint:** Sprint 53 — Policy Evaluation and Governance Decision Foundation (remediation cycle)
+- **Reviewed Change:** `builder-task.md` TASK-001 — narrowing `InMemoryGovernanceDecisionRepository`'s duplicate-registration equivalence check to semantic fields only, closing `NEXUS-REV-2026-07-15-010-F-001`.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (unchanged by this remediation). Referenced: `NEXUS-RAT-2026-07-15-016` (Evaluation Idempotency, Deterministic Identity, Deterministic Time).
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+TASK-001 is correctly and completely implemented. `canonicalizeGovernanceDecision` (`src/kernel/governance/governance-decision.repository.ts`) now compares only the semantically relevant fields — `value`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `reviewStateReference`, `evaluationKey`, `criterionResults`, `explanationCodes`, and `escalation` (via a new `canonicalizeGovernanceEscalation` helper that itself excludes the escalation's own `id`) — excluding the top-level `GovernanceDecision.id`, `policyEvaluationId`, and `evaluatedAt`, exactly as required. The `register()` control flow, `evaluationKey` derivation, and every other Sprint 53 behavior (Governance Decision Precedence, Missing Review Resolution, `UnresolvedFindingMatch` polarity, `GovernanceService` orchestration) are unchanged. The pre-existing `'rejects contradictory duplicate GovernanceDecision registration for the same evaluation key'` test (asserting genuinely differing `value`s still throw) continues to pass unmodified, and a new regression test, `'treats duplicate decisions with different attribution metadata as equivalent'` (`governance.service.test.ts:552`), directly reproduces the race scenario from F-001 — two decisions sharing an evaluation key with identical semantic content but different `id`/`policyEvaluationId`/`evaluatedAt`/escalation `id` — and confirms the repository returns the original recorded decision without error and retains exactly one entry.
+
+Independent re-validation confirms `tsc --noEmit` (clean), ESLint on the changed files (clean), `npm run build` (clean), `npm run test:extension-host:build` (clean), and `npm run test` — **82 files / 442 tests**, zero failures (one more test than Sprint 53's original 441, matching the one added regression test). `git status`/`git diff` confirm the remediation touched only `src/kernel/governance/governance-decision.repository.ts`, its test file, `IMPLEMENTATION_REPORT.md`, and `IMPLEMENTATION_MANIFEST.md` (Sprint 53's Notes only) — no Sprint 52 or Sprint 9 file, and no `src/hosts` or `src/adapters` file, was touched.
+
+One new Category 4, Informational finding was identified: `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary was not fully updated to match the remediation.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-010-F-001 — Contradictory-duplicate detection compares full snapshots instead of semantic content (RESOLVED)
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Status:** **Resolved** by TASK-001. `canonicalizeGovernanceDecision`/`canonicalizeGovernanceEscalation` now compare only semantic fields; verified by the new regression test at `governance.service.test.ts:552` and by source inspection. No further Builder action required.
+
+#### NEXUS-REV-2026-07-15-011-F-001 — Stale Vitest total in IMPLEMENTATION_REPORT.md's TASK-001 remediation entry
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Informational
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Implementation Report (implementation reports SHALL accurately describe validation performed).
+- **Summary:** `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary (line 95) still reads "Vitest passed: 82 files, 441 tests" after the TASK-001 remediation, even though the line above it correctly reports the file-level count as 37 Sprint 53 tests (up from 36). The true post-remediation suite total, independently confirmed, is **82 files / 442 tests**.
+- **Impact:** Cosmetic only. The actual test suite is correct and fully passing; only the reported summary figure is one test short.
+- **Required Disposition:** Documentation SHALL be reconciled. No architectural or implementation change is implied.
+- **Builder Action:** Update `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary to read "82 files, 442 tests." Recommend a Documentation Task via `nexus-sprint`, or direct correction on the next Sprint 53-related Builder touch.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings this cycle | 1 new (Documentation Drift), 1 carried finding resolved |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Documentation Drift) | 1 (`NEXUS-REV-2026-07-15-011-F-001`) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest (82 files / 442 tests via `npm run test`), `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-15-010`. TASK-001 touched only the Governance Decision repository's duplicate-equivalence logic; no Deferred Concept was introduced, and re-inspection confirms the full Sprint 53 Deferred Concept list remains unimplemented.
+
+### Architectural Compliance Summary
+
+- **Idempotency:** `IGovernanceDecisionRepository` now enforces the ratified "one deterministic behavior" rule correctly — semantically equivalent decisions for the same evaluation key are returned as the existing record; genuinely contradictory decisions continue to be rejected. Compliant with `NEXUS-RAT-2026-07-15-016`'s Evaluation Idempotency section.
+- **Scope discipline:** the remediation is narrowly confined to the repository's equivalence comparison; `evaluationKey` derivation, `GovernanceService` orchestration, the Governance Decision Precedence, the Mixed-Result Decision Table, Missing Review Resolution, and `UnresolvedFindingMatch` polarity are all byte-for-byte unchanged (confirmed by source inspection). Compliant with Approved Vertical Slice Immutability and TASK-001's Required Changes.
+- **Frozen dependencies:** Sprint 52's `RepositoryPolicy` and Sprint 9's `Review` remain untouched; no `src/hosts` or `src/adapters` file was modified. Compliant.
+- **Tests:** one new regression test added to `governance.service.test.ts` (37 total in that file); full suite 442/442 passing on independent re-run.
+
+### Builder Task Recommendation
+
+Generate one follow-up Documentation Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-011-F-001` (Informational, Category 4 — Documentation Drift): correct the Vitest total in `IMPLEMENTATION_REPORT.md`'s Sprint 53 Validation Summary from 441 to 442 tests. This does not require a Sprint Owner ratification and does not block progression. Recommend the Sprint Owner treat Sprint 53 as **Approved with Findings**, with its sole implementation defect (`NEXUS-REV-2026-07-15-010-F-001`) now fully resolved and only a cosmetic documentation correction outstanding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0053-policy-evaluation-and-governance-decision-foundation.md`) — Reviewer Notes and Final Disposition updated to reflect TASK-001's closure and the new Documentation Drift finding.
+- `IMPLEMENTATION_PLAN.md` — Sprint 53's Reviewer Validation Result updated. No further Milestone 9 Sprint is Current.
+
+---
+
+## NEXUS-REV-2026-07-15-010 — Sprint 53 — Policy Evaluation and Governance Decision Foundation
+
+- **Reviewed Sprint:** Sprint 53 — Policy Evaluation and Governance Decision Foundation
+- **Reviewed Vertical Slice:** `PolicyEvaluation`, `PolicyEvaluationId`, `PolicyCriterionResult`, `GovernanceDecision`, `GovernanceDecisionId`, `GovernanceEscalation`, `IGovernanceDecisionRepository`/`InMemoryGovernanceDecisionRepository`, and `GovernanceService.evaluateGovernancePolicy`, per `NEXUS-RAT-2026-07-15-016`'s Authorized Scope.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Policy Evaluation, Governance Decision, Governance Escalation, Failure and Conflict Handling). Referenced: RFC-0006 (finalized Review Outcome/Finding consumption only); RFC-0005 (Policy Events not authorized this Sprint); RFC-0010 (Kernel Boundaries).
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 53 — Policy Evaluation and Governance Decision Foundation conforms to RFC-0011 v1.0 and `NEXUS-RAT-2026-07-15-016`'s Authorized Scope, including both Final Refinements. The implementation evaluates exactly one requested `RepositoryPolicy` version against exactly one `Review`, deriving `PolicyCriterionResult`s for the two closed predicate kinds (`ReviewOutcomeMembership`, `UnresolvedFindingMatch`) and producing exactly one immutable `GovernanceDecision` via the ratified strict precedence (Escalation Required > Deferred > Rejected > Approved). Source inspection and a full import-graph check confirm `src/kernel/governance/`'s new Sprint 53 files import only from `../review/*` (Sprint 9, frozen), `./repository-policy.*` (Sprint 52, frozen), `../common/kernel-error`, `../common/service-lifecycle`, and `node:crypto` — zero imports from Evidence, Shared Reality, Knowledge, Mission, Execution, the Event Bus, Adapters, or Hosts, and neither `src/kernel/review/*` nor `src/kernel/governance/repository-policy*` was modified (confirmed via `git diff --stat`).
+
+Final Refinement 1 (Missing Review Resolution) is correctly implemented: `GovernanceService.resolveInputs` distinguishes an existing-but-non-final Review (produces per-criterion `Undetermined` results via `evaluateCriterionWithoutFinalReview`, yielding **Deferred**) from a Review that cannot be resolved at all (`review === undefined`, `deriveEscalationReason` returns `MissingReview`, yielding **Escalation Required**), confirmed by dedicated tests for both paths. Final Refinement 2 (`UnresolvedFindingMatch` polarity) is correctly implemented via the explicit `Present`/`Absent` `expectedMatch` truth table in `evaluateCriterion`, confirmed by an exhaustive four-case parameterized test. The Governance Decision Precedence and the full nine-row Mixed-Result Decision Table are implemented in `deriveGovernanceDecisionValue`/`deriveEscalationReason` and independently verified by parameterized tests reproducing every row of the ratified table, plus two dedicated evaluation-order-independence tests. `GovernanceService` is confirmed thin: it loads the requested Policy version and Review, delegates predicate evaluation to free functions, derives one `GovernanceDecision`, persists it, and returns it — with a dedicated negative test confirming `enforceGovernanceDecision`, `advanceWorkflow`, `createRatification`, `invokeAdapter`, and `publishDomainEvent` are all absent from its surface. `RepositoryPolicy` and `Review` inputs are confirmed unmutated and no Domain Event is published (tested directly). The evaluation key and Review-state fingerprint are computed deterministically (canonical, key-sorted JSON serialization) with no wall-clock read anywhere in the evaluation path (confirmed by source inspection); `evaluatedAt` is caller-supplied attribution data only, consistent with the ratified Deterministic Time model. Deferred concepts (Evidence/Shared Reality/Knowledge-consuming Criteria, multi-Policy arbitration, Ratification-Ledger validation, RFC-0005 Policy Events, downstream enforcement, Host/Adapter surfaces, durable persistence) are confirmed absent, including as stubs.
+
+Independent re-validation confirms `tsc --noEmit` (clean), ESLint on all Sprint 53 files (clean), `npm run test` (Vitest 82 files / 441 tests, matching the Builder's reported count exactly), `npm run build` (esbuild, clean), and `npm run test:extension-host:build` (clean). `createKernelServices()` and `kernel-boundary-certification.integration.test.ts` were extended additively only; no other pre-existing Kernel, `src/hosts`, or `src/adapters` file was touched.
+
+One Category 1, Minor finding was identified during idempotency verification and is recorded below. It does not block approval; it is recommended for correction via a follow-up Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-010-F-001 — Contradictory-duplicate detection compares full snapshots instead of semantic content, allowing a concurrent-evaluation race to spuriously reject an equivalent decision
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `NEXUS-RAT-2026-07-15-016`, Evaluation Idempotency: "Repeated evaluation of the same immutable input set SHALL NOT produce conflicting Governance Decisions... `IGovernanceDecisionRepository` SHALL enforce one deterministic behavior: return the existing equivalent GovernanceDecision; or reject duplicate registration with a deterministic duplicate diagnostic." Sprint 53's required acceptance criteria include "repeated evaluation cannot create contradictory records," and the ratified Deterministic Identity model states "Identifiers SHALL NOT change the semantic outcome of evaluation" and that the evaluation timestamp "SHALL NOT influence the Governance Decision value."
+- **Summary:** `InMemoryGovernanceDecisionRepository.register` (`governance-decision.repository.ts:40`) determines whether two decisions sharing an evaluation key are "equivalent" by comparing `JSON.stringify` of their *entire* snapshots, which includes the randomly-generated `GovernanceDecisionId`/`PolicyEvaluationId` (default `createIdentity = randomUUID`) and the caller-supplied `evaluatedAt` timestamp — neither of which the ratification treats as semantically significant.
+- **Impact:** `GovernanceService.evaluateGovernancePolicy` checks `getByEvaluationKey` before computing and registering a new decision, so this path is unreachable for sequential (awaited) calls — repeated sequential evaluation is correctly idempotent, as directly tested. It is reachable only when two evaluations for the same evaluation key are in flight concurrently (both pass the pre-registration `getByEvaluationKey` check before either registers): the second `register()` call will spuriously throw `ContradictoryGovernanceDecisionError` even when both computed decisions have an identical `value` and identical `criterionResults`, because their `id` and/or `evaluatedAt` differ. This is not exercised by any of the 36 Sprint 53 tests, which register decisions either strictly sequentially or via directly-constructed decisions with intentionally differing `value`.
+- **Required Disposition:** Builder SHALL correct the implementation to compare only semantically relevant fields (`value`, `repositoryPolicyId`, `repositoryPolicyVersion`, `reviewId`, `reviewStateReference`, `evaluationKey`, `criterionResults`, and `escalation` minus its `id`) when determining whether a duplicate registration is equivalent or contradictory, consistent with the ratified principle that identifiers and the evaluation timestamp do not affect the semantic outcome.
+- **Builder Action:** Fix via a follow-up Builder Task (`nexus-sprint`). Does not block Sprint 53 approval; no governance ratification is required to correct it.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Informational (Observation) | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest (82 files / 441 tests via `npm run test`), `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 53 Deferred Concepts remain unimplemented: Evidence-, Shared Reality-, and Knowledge-consuming Policy Criteria; multi-Policy evaluation, precedence, and conflict arbitration; Ratification-Ledger content/authority validation and repository-law interpretation; RFC-0005 Policy Events and Domain Event publication; downstream Governance Decision consumers, policy enforcement, and workflow gates; Host-facing and Adapter-facing governance surfaces; durable persistence; AI deliberation/unrestricted model judgment; repository-write automation. No deferred concept was introduced, including as a placeholder or stub. `src/hosts` and `src/adapters` are confirmed untouched.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `PolicyEvaluation`, `GovernanceDecision`, and `GovernanceEscalation` own only deterministic evaluation, decision production, and escalation recording, exactly as scoped by RFC-0011 and `NEXUS-RAT-2026-07-15-016`. `GovernanceService` contains no Policy precedence/conflict arbitration, Ratification-Ledger access, Evidence/Shared Reality/Knowledge access, event publication, or workflow orchestration, confirmed by source inspection and a dedicated negative test. Compliant.
+- **Closed predicate model:** confirmed only `ReviewOutcomeMembership` and `UnresolvedFindingMatch` are interpreted; any other `kind`, unsupported `schemaVersion`, or malformed/contradictory descriptor deterministically resolves to `Unsupported` → Escalation Required, with no expression trees, scripting, callbacks, or model judgment anywhere in the diff. Compliant.
+- **Missing Review Resolution (Final Refinement 1) and `UnresolvedFindingMatch` Polarity (Final Refinement 2):** both implemented exactly as ratified and independently verified by dedicated and parameterized tests. Compliant.
+- **Decision Precedence and Mixed-Result Table:** implemented and verified against all nine ratified rows plus two evaluation-order-independence tests. Compliant.
+- **Determinism:** no wall-clock read in the evaluation path; the evaluation key and Review-state fingerprint use canonical, key-sorted JSON serialization of policy/version/review identity and state only. Compliant with the ratified Deterministic Time and Deterministic Identity models, subject to Finding F-001 above regarding the repository's equivalence check for concurrent registration.
+- **Cross-domain isolation:** verified by full import-graph inspection — zero imports from Evidence, Shared Reality, Knowledge, Mission, Execution, the Event Bus, Adapters, or Hosts. Compliant with RFC-0010 and the Evaluation Input Boundary.
+- **Frozen dependencies:** Sprint 52's `RepositoryPolicy`/`PolicyCriterion`/`IRepositoryPolicyRepository` and Sprint 9's `Review`/`Finding`/`IReviewRepository` are confirmed byte-for-byte unmodified (`git diff --stat`); a dedicated test confirms neither aggregate is mutated by evaluation. Compliant with the Approved Vertical Slice Immutability rule.
+- **Kernel boundary:** no `src/hosts` or `src/adapters` file modified; `createKernelServices` composition extended only with the new repository/service. Compliant with RFC-0010.
+- **Event compliance:** no Domain Event is published or defined; confirmed by source inspection and a negative test asserting `publishDomainEvent` is absent from `GovernanceService`'s surface. Compliant with the Sprint's explicit event-silence requirement.
+- **Tests:** one new test file (`governance.service.test.ts`, 36 tests) plus two additive `kernel-boundary-certification.integration.test.ts` assertions. Full suite 441/441 passing on independent re-run.
+
+### Builder Task Recommendation
+
+Generate one follow-up Builder Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-010-F-001` (Minor, Category 1 — Implementation Defect): narrow `InMemoryGovernanceDecisionRepository`'s contradictory-duplicate equivalence check to semantically relevant fields only. This does not require a Sprint Owner ratification, since it corrects an implementation detail without changing any ratified rule, and does not block progression to a future Milestone 9 Sprint. Recommend the Sprint Owner treat Sprint 53 as **Approved with Findings**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0053-policy-evaluation-and-governance-decision-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 53 marked **Approved with Findings**. No further Milestone 9 Sprint is Current; the remaining provisional sequence (Ratification and Repository-Law Integration, Review-to-Governance Workflow Integration, Governance Automation Validation) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-15-009 — Sprint 52 — Governance Policy Model Foundation
+
+- **Reviewed Sprint:** Sprint 52 — Governance Policy Model Foundation
+- **Reviewed Vertical Slice:** `RepositoryPolicy`, `RepositoryPolicyId`, `PolicyCriterion`, `IRepositoryPolicyRepository`/`InMemoryRepositoryPolicyRepository`, and `RepositoryPolicyService`'s `registerRepositoryPolicy`/`supersedeRepositoryPolicy`/`getRepositoryPolicy`/`getCurrentRepositoryPolicy`/`enumerateCurrentRepositoryPolicies`/`enumerateRepositoryPolicyHistory` operations, per `NEXUS-RAT-2026-07-15-015`'s Authorized Scope.
+- **RFC Coverage:** RFC-0011 — Engineering Governance Model v1.0 (Primary; Repository Policy, Policy Criterion, immutability, versioning/supersession, attribution). Referenced: RFC-0005 — Domain Event Model (no Domain Events authorized or introduced this Sprint); RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 52 — Governance Policy Model Foundation conforms to RFC-0011 v1.0 and `NEXUS-RAT-2026-07-15-015`'s Authorized Scope. The implementation introduces exactly one new, additive Kernel domain (`src/kernel/governance/`): `RepositoryPolicy`, an immutable-per-version aggregate carrying a stable `RepositoryPolicyId`, positive sequential version number, name, description, an ordered `PolicyCriterion` collection, a structurally-validated Ratification identifier (`NEXUS-RAT-YYYY-MM-DD-###`), and an optional predecessor-version reference. `RepositoryPolicy.supersede()` and `InMemoryRepositoryPolicyRepository.registerSupersedingVersion()` jointly enforce the full Version Lineage Rules ratified by `NEXUS-RAT-2026-07-15-015`: version `1` has no predecessor and requires at least one Criterion; a superseding version preserves identity, uses the next sequential number, references its immediate predecessor, and is rejected on duplicate versions, skipped/regressed version numbers, unknown predecessors, cross-identity supersession, or competing successors (two versions both claiming the same predecessor). History is per-`RepositoryPolicyId`, strictly linear, and every version is permanently retained — no update or delete path exists on the repository.
+
+`PolicyCriterion` is confirmed to be inert declarative data only: `conditionDescriptor` is stored and returned as an opaque string, `requiredInputs` are unresolved string references, and no predicate, comparison operator, expression tree, parser, callback, or evaluation function appears anywhere in the diff. `RepositoryPolicyService` is thin orchestration — it delegates all invariant enforcement to `RepositoryPolicy`/`InMemoryRepositoryPolicyRepository` and contains no Policy Evaluation, Governance Decision, Governance Escalation, Ratification-Ledger access, Evidence/Shared Reality/Review access, event publication, or workflow logic. A full import-graph check of `src/kernel/governance/` (`grep -rn "^import"`) confirms it depends only on `../common/kernel-error`, `../common/service-lifecycle`, and `node:crypto` — zero cross-domain imports into Evidence, Shared Reality, Review, Knowledge, Execution, or Events.
+
+Direct diff inspection (`git status`, `git diff --stat`) confirms the only pre-existing files touched are `src/kernel/common/create-kernel-services.ts` (additive construction/registration of `InMemoryRepositoryPolicyRepository` and `RepositoryPolicyService` only) and `test/integration/kernel-boundary-certification.integration.test.ts` (additive harness field, additive `expectedKernelServiceNames` entry, additive empty-enumeration assertion). No other existing Kernel file, `src/hosts` file, or `src/adapters` file was modified. No Domain Event, RFC-0005 "Policy Events" category member, Governance Decision type, or Governance Escalation type was introduced, including as an unused or stubbed reference — confirmed by both source inspection and a dedicated negative test (`'does not expose evaluation, decisions, escalation, event publication, or workflow gates'`) asserting `'evaluatePolicy'`, `'createGovernanceDecision'`, `'escalateGovernance'`, `'publishDomainEvent'`, `'enforcePolicy'`, and `'advanceWorkflow'` are all absent from `RepositoryPolicyService`'s surface, mirrored by an equivalent aggregate-level negative test.
+
+Tests directly exercise the ratified acceptance criteria: `repository-policy.test.ts` proves immutable version-1 construction, frozen snapshots/criteria/nested arrays, superseding-version identity/history preservation, `PolicyCriterion` field validation, duplicate-criterion rejection, and rejection of version `0`, a self-referencing version `1`, a predecessor-less version `2`, and a non-immediately-preceding predecessor (version `3` claiming predecessor `1`). `repository-policy.repository.test.ts` proves linear multi-policy history preservation, deterministic alphabetical current-policy enumeration, duplicate-initial-version rejection, cross-identity supersession rejection, non-sequential-version rejection, unknown-predecessor rejection, competing-successor rejection, and defensive (non-referentially-equal) retrieval. `repository-policy.service.test.ts` proves end-to-end register/supersede/retrieve/enumerate orchestration, not-found diagnostics, the service-surface negative-boundary assertions described above, and composition into `createKernelServices()` alongside existing services. `kernel-boundary-certification.integration.test.ts` was extended with an additive empty-enumeration assertion for `RepositoryPolicyService` within the existing composed-Kernel harness.
+
+Independent re-validation confirms `tsc --noEmit` (clean), ESLint (clean), a full `npm run test` run (Vitest 81 files / 405 tests, matching the Builder's reported count exactly — after one transient timeout in the pre-existing, Sprint-52-unrelated `test/integration/local-process-runtime.integration.test.ts` was confirmed to pass in isolation and on a full-suite re-run, see Finding F-002), `npm run build` (esbuild, clean), and `npm run test:extension-host:build` (clean).
+
+Two Category 6 Observations were recorded; neither generates a Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-009-F-001 — Kernel reference documents not updated to list `RepositoryPolicyService`
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-15-015`'s Authorized Scope does not require `knowledge/reference/` updates, and Sprint 52's Documentation Requirements name only `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md`.
+- **Summary:** `knowledge/reference/kernel-service-map.md` does not list `RepositoryPolicyService` (or the governance domain at all). This is not specific to Sprint 52 — the same file also omits `AssignmentPolicyService` and `MissionEngineeringOrchestrationService` from prior, already-Approved Sprints (44, 51), confirming this is pre-existing, systemic reference-document drift rather than a defect introduced by this Sprint.
+- **Impact:** None to Sprint 52's conformance. Worth a dedicated future documentation-reconciliation pass across `knowledge/reference/` covering multiple prior sprints, not just this one.
+- **Required Disposition:** No action this Sprint.
+- **Builder Action:** None unless directed.
+
+#### NEXUS-REV-2026-07-15-009-F-002 — Transient timeout in an unrelated pre-existing test under full-suite load
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — environmental, not a specification or scope matter.
+- **Summary:** One `npm run test` execution reported a single failure in `test/integration/local-process-runtime.integration.test.ts` (Sprint 21, unrelated to Sprint 52, unmodified by this diff): a spawned OS process reported `TimedOut` instead of completing, under concurrent full-suite load. Re-running that file in isolation passed (1/1), and a full-suite re-run passed cleanly (81 files / 405 tests, 0 failures).
+- **Impact:** None to Sprint 52 — the test file is untouched by this Sprint's diff and the failure is a process-timing flake, not a regression.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 2 (F-001, F-002) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest (81 files / 405 tests on full-suite re-run), `npm run build`, `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 52 Deferred Concepts remain unimplemented: Policy Criterion predicate evaluation; Policy Evaluation; Governance Decision (Approved/Rejected/Deferred/Escalation Required); Governance Escalation; decision explanation records; Evidence, Shared Reality, and Review Outcome/Finding consumption; Ratification-Ledger content validation; policy authority/conflict/precedence resolution; RFC-0005 Policy Events and Domain Event publication; policy activation/enforcement; workflow gates; repository-write automation; Host-facing policy surfaces; durable persistence. No deferred concept was introduced, including as a placeholder or stub. `src/hosts` and `src/adapters` are confirmed untouched.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `RepositoryPolicy`/`PolicyCriterion` own only policy definition, identity, versioning, and Ratification attribution, exactly as scoped by RFC-0011 and `NEXUS-RAT-2026-07-15-015`. No Policy Evaluation, Governance Decision, or Governance Escalation concept exists anywhere in the diff, confirmed by source inspection and dedicated negative tests. Compliant.
+- **No Ratification-Ledger coupling:** Confirmed — `ratificationId` is validated only against the structural pattern `NEXUS-RAT-YYYY-MM-DD-###`; no file in `src/kernel/governance/` reads or imports anything related to `RATIFICATION_LEDGER.md`. Compliant with the ratified Ratification Attribution boundary.
+- **Cross-domain isolation:** Verified by full import-graph inspection — zero imports from Evidence, Shared Reality, Review, Knowledge, Execution, or Events into `src/kernel/governance/`. Compliant with RFC-0010's domain-ownership rule and the Sprint's binding Architectural Responsibilities.
+- **Immutability and lineage:** Every `RepositoryPolicy` instance is `Object.freeze`d; snapshots and nested criteria/required-input arrays are frozen; no method mutates existing state; the repository has no update/delete operation. Version-1, supersession, duplicate, skip, regression, unknown-predecessor, cross-identity, and competing-successor rules are enforced at both the aggregate and repository layers (defense in depth). Compliant.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; `createKernelServices` composition extended only with the new repository/service. Compliant with RFC-0010.
+- **Event compliance:** No Domain Event is published or defined; confirmed by source inspection and a negative test asserting `'publishDomainEvent'` is absent from the service surface. Compliant with the Sprint's explicit event-silence requirement.
+- **Tests:** Three new test files (`repository-policy.test.ts`, `repository-policy.repository.test.ts`, `repository-policy.service.test.ts`) plus one additive `kernel-boundary-certification.integration.test.ts` assertion. Full suite 405/405 passing on independent re-run.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded; both findings are Category 6 Observations requiring no action. Sprint 52 satisfies its approval criteria: implementation conforms to RFC-0011 v1.0 and `NEXUS-RAT-2026-07-15-015`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 52 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0052-governance-policy-model-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 52 marked **Approved**. No further Milestone 9 Sprint is Current; the provisional merge of Sprint 53/54 into "Policy Evaluation and Governance Decision Foundation" remains approved in principle only (`NEXUS-RAT-2026-07-15-015`) and requires its own future Sprint Owner scope ratification via `nexus-plan` before activation.
+
+---
+
+## NEXUS-REV-2026-07-15-008 — Sprint 51 — Multi-Agent Engineering Orchestration Foundation
+
+- **Reviewed Sprint:** Sprint 51 — Multi-Agent Engineering Orchestration Foundation
+- **Reviewed Vertical Slice:** `MissionEngineeringGroup`, `EngineeringSessionHandoff`, `EngineeringSessionHandoffStatus`, their repository contracts and in-memory implementations, and `MissionEngineeringOrchestrationService`'s `associateEngineeringSessionWithMission`/`enumerateMissionEngineeringGroup`/`recordEngineeringSessionHandoff`/`enumerateEngineeringSessionHandoffs` operations, per `NEXUS-RAT-2026-07-15-012`'s Authorized Builder Scope.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.10 (Primary; "Multi-Agent Engineering Orchestration Foundation", new section). Referenced: RFC-0004 v1.2/v1.3 "Engineering Session" (Sprints 39/40, unmodified); RFC-0004 v1.8 "Session Recovery/Checkpointing" (Sprint 49, unmodified); RFC-0004 v1.9 "Concurrent Session Coordination" (Sprint 50, unmodified); RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 51 — Multi-Agent Engineering Orchestration Foundation conforms to RFC-0004 v1.10 and `NEXUS-RAT-2026-07-15-012`'s Authorized Builder Scope. The implementation introduces exactly two new, additive Kernel concepts: `MissionEngineeringGroup` (a deterministic, alphabetically-sorted association between a `MissionId` and a set of `EngineeringSessionId`s, with duplicate-association rejection) and `EngineeringSessionHandoff` (an immutable record referencing a `MissionId`, a source/target `EngineeringSessionId` pair, and their `RoleId`s, with a single-state `Recorded` `EngineeringSessionHandoffStatus` lifecycle, matching RFC-0004 v1.10's structural-fact framing rather than a proposal/acceptance workflow). Both concepts have their own repository contracts (`IMissionEngineeringGroupRepository`, `IEngineeringSessionHandoffRepository`) and in-memory implementations following the Kernel's established sequential-operation-queue idiom (used identically by fourteen other existing in-memory repositories), not a new locking or concurrency-control mechanism.
+
+`MissionEngineeringOrchestrationService` is thin orchestration: it validates Engineering Session references through the existing, unmodified `IEngineeringSessionRepository.exists()`, rejects Handoffs between Engineering Sessions that are not both members of the same `MissionEngineeringGroup` (`UnauthorizedEngineeringSessionHandoffError`) or that duplicate an existing source→target transfer for a Mission (`DuplicateEngineeringSessionHandoffError`), and never executes a Workflow Step, advances a workflow position, evaluates an Assignment Policy, or dispatches an Adapter. `createKernelServices` was extended only to construct and register the two new repositories and the new service, alongside the existing `EngineeringSession` repository it reuses as a read-only dependency.
+
+Direct diff inspection (`git status`, `git diff --stat`) confirms the only pre-existing files touched are `src/kernel/common/create-kernel-services.ts` (additive wiring) and `test/integration/kernel-boundary-certification.integration.test.ts` (additive assertions plus one unrelated pre-existing test reformatted with an explicit 10-second timeout — see Finding F-002); `EngineeringSession`, `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `createCheckpoint()`, `recoverFromCheckpoint()`, `enumerateActiveEngineeringSessions()`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, `RoleId`, `EngineeringSessionId`, and `MissionId` are byte-for-byte unmodified. No `src/hosts` or `src/adapters` file was touched. No autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling, load balancing, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, or automatic Adapter Selection was introduced, including as a stubbed reference.
+
+The Sprint's central acceptance criteria are directly exercised by new tests: `mission-engineering-orchestration.service.test.ts` proves deterministic multi-session Mission Engineering Group association and enumeration, Handoff recording with deterministic lifecycle (`'Recorded'`), rejection of unknown Engineering Session references, rejection of Handoffs between Engineering Sessions not both in the Mission Engineering Group, rejection of duplicate Handoffs, and — directly — that grouping, enumeration, and Handoff recording never mutate a participating Engineering Session's own snapshot. `mission-engineering-orchestration.repository.test.ts` proves deterministic repository persistence, ordering, and duplicate rejection at the repository layer. `kernel-boundary-certification.integration.test.ts` was extended with a new composed-Kernel test that creates two `EngineeringSession`s via the real `EngineeringSessionService`, associates both with a Mission, records a Handoff between them, and asserts both sessions are byte-for-byte unchanged afterward.
+
+Independent re-validation confirms `tsc --noEmit` (clean), the targeted Sprint 51 suite (`mission-engineering-orchestration.repository.test.ts`, `mission-engineering-orchestration.service.test.ts`, `kernel-boundary-certification.integration.test.ts`: 13/13, matching the Builder's reported count), a full `npm run validate` run (TypeScript compile, ESLint, Vitest 78 files / 392 tests, esbuild — matching the Builder's reported count exactly), and `npm run test:extension-host:build`, all passing cleanly.
+
+Two Category 6 Observations were recorded; neither generates a Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-008-F-001 — `MissionEngineeringGroup` association does not verify Mission existence
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-15-012`'s Authorized Scope requires only that Mission and Engineering Session identity references be reused "without accessing either aggregate's internals beyond published contracts"; it does not require Mission existence validation, and `MissionEngineeringOrchestrationService` has no `IMissionRepository` dependency at all.
+- **Summary:** `associateEngineeringSessionWithMission` wraps the supplied `missionId` string in a `MissionId` value object (format validation only) and persists the association; it never checks that a Mission with that identity actually exists via `MissionService`/`IMissionRepository`. A `MissionEngineeringGroup` can therefore be created and enumerated for a `missionId` that does not correspond to any real Mission.
+- **Impact:** None functionally relative to the authorized scope — Mission existence validation was never an authorized or required concept for this foundation slice, and the Sprint record's Known Limitations already frame Mission Engineering Group as a structural/observational record. Worth naming explicitly should a future orchestration-behavior sprint build on top of this association.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+#### NEXUS-REV-2026-07-15-008-F-002 — Unrelated pre-existing test reformatted with an added timeout in the same diff
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `NEXUS-RAT-2026-07-15-012`'s Scope Restrictions permit only the additive Sprint 51 concepts and "the additive `createKernelServices` wiring strictly required for the new repositories/services"; this change is neither.
+- **Summary:** The pre-existing `'certifies Kernel source dependencies do not cross into Host, UI, infrastructure, or adapter implementations'` test in `kernel-boundary-certification.integration.test.ts` was reformatted (arrow function reshaped, indentation changed) and given an explicit `10_000` ms timeout, unrelated to Sprint 51's Mission Engineering Group / Handoff scope. The test's assertions and behavior are unchanged.
+- **Impact:** None functionally — the test's logic and passing behavior are identical; this is incidental diff noise bundled into an otherwise in-scope file edit, not a scope or architectural violation.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 2 (F-001, F-002) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (13/13), `npm run validate` (Vitest 78 files / 392 tests, esbuild), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 51 Deferred Concepts remain unimplemented: autonomous planning, dynamic workflow generation, AI negotiation, agent-to-agent messaging, scheduling algorithms, load balancing, parallel execution semantics, distributed orchestration, execution synchronization primitives, dynamic Assignment Policy, automatic Adapter Selection, and Governance Engine capabilities. No deferred concept was silently introduced. `EngineeringSession`'s existing runtime state, snapshot/reconstitution contract, Sprint 49's Checkpoint/Recovery contract, and Sprint 50's `enumerateActiveEngineeringSessions()`/isolation guarantee remain confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** The new concepts own only Mission↔Engineering Session structural association, enumeration, and cross-role Handoff recording with a deterministic single-state lifecycle, exactly as scoped by RFC-0004 v1.10 and `NEXUS-RAT-2026-07-15-012`'s Ownership Model. Neither `MissionEngineeringGroup` nor `EngineeringSessionHandoff` executes a Workflow Step, advances a workflow position, evaluates an Assignment Policy, or dispatches an Adapter. Compliant.
+- **No autonomous orchestration or new concurrency machinery:** Confirmed — the in-memory repositories reuse the Kernel's existing sequential-operation-queue idiom (identical to fourteen other existing repositories); no locking primitive, scheduler, messaging channel, or distributed coordination mechanism was introduced, satisfying the ratification's explicit restriction.
+- **Cross-session isolation:** Verified by automated test (unit and composed-Kernel integration) that grouping, enumeration, and Handoff recording never mutate a participating `EngineeringSession`'s own snapshot. Compliant with the Concurrent Session Coordination (Sprint 50) isolation guarantee this Sprint must preserve.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; `createKernelServices` composition extended only with the new repositories/service. Compliant with RFC-0010.
+- **Regression safety:** `EngineeringSession`, `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `enumerateActiveEngineeringSessions()`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, `RoleId`, `EngineeringSessionId`, `MissionId`, and Sprint 43's/45's/46's/47's/48's advancement and execution methods are confirmed byte-for-byte unmodified via `git diff`.
+- **Tests:** Two new test files (`mission-engineering-orchestration.repository.test.ts`, `mission-engineering-orchestration.service.test.ts`, 9 tests) plus one new composed-Kernel integration test and one Kernel Boundary Certification service-composition assertion. Full suite 392/392 passing.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded; both findings are Category 6 Observations requiring no action. Sprint 51 satisfies its approval criteria: implementation conforms to RFC-0004 v1.10 and `NEXUS-RAT-2026-07-15-012`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 51 as **Approved**. Per `NEXUS-RAT-2026-07-15-012`'s Scope Restrictions, this Approval with zero open Critical/Major/Minor findings means Milestone 8 — Engineering Orchestration SHALL be considered Complete.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0051-multi-agent-engineering-orchestration-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 51 marked **Approved**; Milestone 8 — Engineering Orchestration marked **COMPLETE** per `NEXUS-RAT-2026-07-15-012`. No further Milestone 8 Sprint exists to advance to Current; any subsequent Milestone (or new Milestone 8 candidate scope, should one later be proposed) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-15-007 — Sprint 50 — Concurrent Session Coordination
+
+- **Reviewed Sprint:** Sprint 50 — Concurrent Session Coordination
+- **Reviewed Vertical Slice:** `EngineeringSessionService.enumerateActiveEngineeringSessions()` and its `EngineeringSessionServiceContract` extension, per `NEXUS-RAT-2026-07-15-010`'s Authorized Builder Scope.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.9 (Primary; "Concurrent Session Coordination", new section). Referenced: RFC-0004 v1.2/v1.3 "Engineering Session" (Sprints 39/40, unmodified); RFC-0004 v1.8 "Session Recovery/Checkpointing" (Sprint 49, unmodified); RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 50 — Concurrent Session Coordination conforms to RFC-0004 v1.9 and `NEXUS-RAT-2026-07-15-010`'s Authorized Builder Scope. The implementation is exactly the authorized single thin operation: `EngineeringSessionService.enumerateActiveEngineeringSessions()` calls the existing, unmodified `IEngineeringSessionRepository.enumerate()` and filters to Engineering Sessions whose `EngineeringSessionStatus` is `Open`, returning frozen, mapped `EngineeringSessionSnapshot`s in the repository's existing deterministic (lexical-by-id) order. No new aggregate, repository, locking primitive, scheduler, or orchestration mechanism was introduced; `createKernelServices` was not touched, matching the ratification's expectation that no new collaborator was required.
+
+Direct diff inspection confirms the only production changes are the one-line `EngineeringSessionServiceContract` extension and the one new method on `EngineeringSessionService`; `EngineeringSession`, `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `createCheckpoint()`, `recoverFromCheckpoint()`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, and Sprint 43's/45's/46's/47's/48's advancement and execution methods are byte-for-byte unmodified. No `src/hosts` or `src/adapters` file was touched.
+
+The Sprint's central acceptance criteria — concurrent coexistence, deterministic visibility, and cross-session isolation — are directly exercised by new tests in `engineering-session.service.test.ts`: `'discovers active EngineeringSessions deterministically without mutating repository state'` creates three concurrent Engineering Sessions, asserts deterministic active-session ordering, closes one, and asserts it correctly leaves active discovery while remaining visible through the existing `enumerateEngineeringSessions()`. `'keeps concurrent EngineeringSessions isolated across lifecycle, advancement, and Checkpoint operations'` and `'keeps concurrent EngineeringSessions isolated during WorkflowStep execution'` each create a peer Engineering Session, drive the source session through workflow advancement, Checkpoint capture, Recovery, closure, and WorkflowStep execution respectively, and assert the peer's snapshot and active-discovery membership are unaffected throughout — directly proving the RFC-0004 v1.9 isolation guarantee ("an operation performed against one Engineering Session SHALL NOT observe or mutate the runtime state of another"). `kernel-boundary-certification.integration.test.ts` was extended to assert the composed `EngineeringSessionService` exposes the new operation.
+
+Independent re-validation confirms `tsc --noEmit` (clean), the targeted Sprint 50 suite (`engineering-session.service.test.ts`, `kernel-boundary-certification.integration.test.ts`: 34/34, matching the Builder's reported count), a full `npm run validate` run (TypeScript compile, ESLint, Vitest 76 files / 383 tests, esbuild — matching the Builder's reported count exactly), and `npm run test:extension-host:build`, all passing cleanly. `git status`/`git diff --stat` confirm no file outside the authorized set was touched.
+
+One Category 6 Observation was recorded; it generates no Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-007-F-001 — Active-session filter compares `EngineeringSessionStatus.toString()` to a string literal instead of the established `.state` accessor
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** Internal consistency with `EngineeringSession`'s own status comparisons (`engineering-session.ts`), which consistently compare `this.statusValue.state !== 'Open'` / `status.state === 'Open'` rather than stringifying first.
+- **Summary:** `EngineeringSessionService.enumerateActiveEngineeringSessions()` filters with `engineeringSession.status.toString() === 'Open'`, whereas every existing status comparison inside `EngineeringSession` itself uses the `.state` getter directly. `EngineeringSessionStatus.toString()` and `.state` return the identical value, so behavior is correct either way.
+- **Impact:** None functionally. Purely a stylistic consistency note; a reader scanning for status comparisons would expect `.state`, not a `.toString()` comparison, given the aggregate's own established idiom.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 1 (F-001) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (34/34), `npm run validate` (Vitest 76 files / 383 tests, esbuild), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 50 Deferred Concepts remain unimplemented: Multi-Agent Engineering Orchestration, single-session mutation ordering, optimistic concurrency, locking semantics, distributed coordination, cross-session synchronization, and automatic/background scheduling or orchestration. No deferred concept was silently introduced. `EngineeringSession`'s existing runtime state, snapshot/reconstitution contract, and Sprint 49's Checkpoint/Recovery contract remain confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** The new operation owns only concurrent visibility/enumeration of Engineering Sessions eligible for further progression, exactly as scoped by RFC-0004 v1.9 and `NEXUS-RAT-2026-07-15-010`'s Ownership Model. It does not redefine `EngineeringSession`'s runtime state, workflow position, timeline, or diagnostics, and does not touch Checkpoint/Recovery. Compliant.
+- **No new persistence or coordination machinery:** Confirmed — the operation is a thin filter over the existing, unmodified `IEngineeringSessionRepository.enumerate()`; no new aggregate, repository, locking primitive, or scheduler was introduced, satisfying the ratification's explicit restriction.
+- **Cross-session isolation:** Verified by automated test rather than by a new enforcement mechanism, per the ratification's Scope Restrictions — isolation is a structural property of the existing per-ID repository, demonstrated (not newly enforced) by this Sprint. Compliant.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; `createKernelServices` was not touched, matching the ratification's "no new collaborator is anticipated" expectation. Compliant with RFC-0010.
+- **Regression safety:** `EngineeringSession`, `EngineeringSessionCheckpoint`, `IEngineeringSessionCheckpointRepository`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, and Sprint 43's/45's/46's/47's/48's/49's advancement, execution, and Checkpoint/Recovery methods are confirmed byte-for-byte unmodified via `git diff`.
+- **Tests:** Three new tests added to `engineering-session.service.test.ts` (deterministic active-session discovery and lifecycle eligibility; cross-session isolation across lifecycle/advancement/Checkpoint/Recovery; cross-session isolation during WorkflowStep execution), plus one Kernel Boundary Certification assertion. Full suite 383/383 passing.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded; the sole finding is a Category 6 Observation requiring no action. Sprint 50 satisfies its approval criteria: implementation conforms to RFC-0004 v1.9 and `NEXUS-RAT-2026-07-15-010`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 50 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0050-concurrent-session-coordination.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 50 marked **Approved**. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Multi-Agent Engineering Orchestration remains the sole unauthorized candidate) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` are Builder-owned artifacts and are intentionally left unmodified by this review; their "Implemented — Pending Reviewer Validation" status lines will be reconciled to **Approved** during the next `nexus-plan` planning pass, consistent with the Sprint 48/49 precedent.
+
+### Work Item State Reconciliation
+
+- Sprint 50: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
+## NEXUS-REV-2026-07-15-006 — Sprint 49 — Session Recovery/Checkpointing Foundation
+
+- **Reviewed Sprint:** Sprint 49 — Session Recovery/Checkpointing Foundation
+- **Reviewed Vertical Slice:** `EngineeringSessionCheckpoint`, `EngineeringSessionCheckpointId`, `IEngineeringSessionCheckpointRepository`/`InMemoryEngineeringSessionCheckpointRepository`, `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-15-008`'s Authorized Builder Scope.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.8 (Primary; "Session Recovery/Checkpointing", new section). Referenced: RFC-0004 v1.2/v1.3 "Engineering Session" (Sprints 39/40, unmodified); RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 49 — Session Recovery/Checkpointing Foundation conforms to RFC-0004 v1.8 and `NEXUS-RAT-2026-07-15-008`'s Authorized Builder Scope. `EngineeringSessionCheckpoint` is a frozen, immutable value object wrapping an `EngineeringSessionCheckpointId`, a capture timestamp, and a defensively-copied `EngineeringSessionSnapshot` obtained by round-tripping through the existing, unmodified `EngineeringSession.fromSnapshot(...).toSnapshot()` — introducing no parallel snapshot or reconstruction model, as required. `EngineeringSessionService.createCheckpoint()` calls the existing, unmodified `EngineeringSession.toSnapshot()` and persists the result via a new `IEngineeringSessionCheckpointRepository`; `recoverFromCheckpoint()` retrieves a stored Checkpoint and reconstitutes the session via the existing, unmodified `EngineeringSession.fromSnapshot()`, throwing the new `EngineeringSessionCheckpointNotFoundError` when absent. `createKernelServices()` was touched only to construct and supply the new Checkpoint repository. Direct diff inspection confirms `EngineeringSession`'s own `toSnapshot()`/`fromSnapshot()`, snapshot structure, workflow state, timeline, and diagnostics are byte-for-byte unmodified, as are `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, and Sprint 43's/45's/46's/47's/48's advancement and execution methods. No `src/hosts` or `src/adapters` file was touched.
+
+The Sprint's central acceptance criterion — that Recovery produce a *semantically equivalent*, not byte-for-byte identical, `EngineeringSession` — is verified by `test/kernel/execution/engineering-session.service.test.ts`'s `'captures deterministic Checkpoints and recovers semantically equivalent EngineeringSessions'` test: it captures a Checkpoint, then *advances the live session's workflow position* (mutating the persisted session further), then recovers from the Checkpoint and asserts the recovered snapshot equals the pre-advancement snapshot exactly — proving Recovery reconstructs the state as captured, independent of subsequent mutation to the live session. This is a stronger and more meaningful test of the round-trip property than a same-instant round-trip alone would have been, and it satisfies `NEXUS-RAT-2026-07-15-007`'s deterministic round-trip requirement. Not-found handling is separately tested (`'rejects Recovery from a nonexistent Checkpoint'`).
+
+Independent re-validation confirms `tsc --noEmit` (clean), the targeted Sprint 49 suite (`engineering-session.service.test.ts`, `engineering-session-checkpoint.repository.test.ts`, `kernel-boundary-certification.integration.test.ts`: 33/33, matching the Builder's reported count), a full `npm run validate` run (TypeScript compile, ESLint, Vitest 76 files / 380 tests, esbuild — matching the Builder's reported count exactly), and `npm run test:extension-host:build`, all passing cleanly.
+
+Two Category 6 Observations were recorded; neither generates a Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-006-F-001 — `EngineeringSessionCheckpoint.equals()` uses `JSON.stringify` comparison instead of the established `snapshotsEqual` deep-comparison pattern
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** Internal consistency with `EngineeringSession.equals()` (`engineering-session.ts`), which delegates to a dedicated `snapshotsEqual` helper rather than string-serializing both snapshots.
+- **Summary:** `EngineeringSessionCheckpoint.equals()` (`engineering-session-checkpoint.ts`) compares `JSON.stringify(this.toSnapshot())` against `JSON.stringify(other.toSnapshot())`, whereas the sibling `EngineeringSession.equals()` uses a purpose-built deep-equality helper. Both approaches are correct for these frozen, plain-JSON-serializable snapshots (property insertion order is deterministic here), so no incorrect behavior results.
+- **Impact:** None functionally. A future snapshot field whose serialization is order-sensitive or non-JSON-safe (e.g., a `Map`/`Set`) would silently break `JSON.stringify` equality without breaking `snapshotsEqual`-style comparison; purely a maintainability/consistency note.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+#### NEXUS-REV-2026-07-15-006-F-002 — Checkpoint value-object validation reuses the EngineeringSession-scoped `InvalidEngineeringSessionDefinitionError` rather than a Checkpoint-specific error
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** Internal consistency with this Sprint's own `DuplicateEngineeringSessionCheckpointError`/`EngineeringSessionCheckpointNotFoundError`, which *were* given Checkpoint-specific names.
+- **Summary:** `EngineeringSessionCheckpointId.fromString()` and `EngineeringSessionCheckpoint.create()`'s `capturedAt` validation both throw the existing `InvalidEngineeringSessionDefinitionError` (named and originally scoped to `EngineeringSession` definition validation) rather than a new `InvalidEngineeringSessionCheckpointDefinitionError`, while this same Sprint introduces dedicated `DuplicateEngineeringSessionCheckpointError` and `EngineeringSessionCheckpointNotFoundError` classes for Checkpoint's other two error cases.
+- **Impact:** None functionally — all four error classes share the common `EngineeringSessionDomainError` base, and RFC-0004 does not define an error taxonomy. Purely a naming-consistency note within a single Sprint's own additions.
+- **Required Disposition:** No action.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 2 (F-001, F-002) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (33/33), `npm run validate` (Vitest 76 files / 380 tests, esbuild), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 49 Deferred Concepts remain unimplemented: Concurrent Session Coordination, Multi-Agent Engineering Orchestration, automatic/background checkpointing, Checkpoint retention/pruning/expiry policy, and cross-session Checkpoint sharing. No deferred concept was silently introduced. `EngineeringSession`'s existing snapshot/reconstitution contract, workflow state, timeline, and diagnostics remain confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `EngineeringSessionCheckpoint` owns only Checkpoint identity, capture timestamp, and a defensively-copied `EngineeringSessionSnapshot`; it does not redefine `EngineeringSession`'s snapshot structure. `EngineeringSessionService.createCheckpoint`/`recoverFromCheckpoint` are thin orchestration, delegating capture and reconstitution entirely to `EngineeringSession`'s existing, unmodified `toSnapshot()`/`fromSnapshot()`. Compliant with RFC-0004 v1.8 and `NEXUS-RAT-2026-07-15-008`'s Ownership Model.
+- **No duplicate reconstruction model:** Confirmed — Checkpoint capture and Recovery both route through `EngineeringSession.toSnapshot()`/`fromSnapshot()` verbatim; no independent serialization or reconstruction logic was introduced, satisfying the ratification's explicit "no duplicate snapshot or reconstruction model" restriction.
+- **Semantic equivalence, not byte-for-byte identity:** Recovery is verified to reconstruct the captured state correctly even after the live session has since diverged, which is the intended contract per `NEXUS-RAT-2026-07-15-007`'s wording refinement. Compliant.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; the only existing-file production changes are the `EngineeringSessionServiceContract` extension, two new error classes, the `EngineeringSessionService` constructor/method additions, and the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Regression safety:** `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `AssignmentPolicy`, `AssignmentPolicyService`, and Sprint 43's/45's/46's/47's/48's advancement and execution methods are confirmed byte-for-byte unmodified via `git diff`.
+- **Tests:** 2 new test files (`engineering-session-checkpoint.repository.test.ts`, plus additions to `engineering-session.service.test.ts`) covering deterministic Checkpoint capture, semantic-equivalence Recovery under intervening mutation, Recovery not-found handling, Checkpoint repository create/get/exists/enumerate/duplicate-rejection, and Kernel Boundary Certification composition continuity. Full suite 380/380 passing.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded; both findings are Category 6 Observations requiring no action. Sprint 49 satisfies its approval criteria: implementation conforms to RFC-0004 v1.8 and `NEXUS-RAT-2026-07-15-008`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 49 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0049-session-recovery-checkpointing-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 49 marked **Approved**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Multi-Agent Engineering Orchestration or Concurrent Session Coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+- `IMPLEMENTATION_MANIFEST.md` and `IMPLEMENTATION_REPORT.md` are Builder-owned artifacts and are intentionally left unmodified by this review; their "Implemented — Pending Reviewer Validation" status lines will be reconciled to **Approved** during the next `nexus-plan` planning pass, consistent with the Sprint 48 precedent.
+
+### Work Item State Reconciliation
+
+- Sprint 49: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
+## NEXUS-REV-2026-07-15-005 — Sprint 48 — Assignment Policy Integration (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 48 — Assignment Policy Integration
+- **Reviewed Change:** `builder-task.md` `TASK-001` remediation of `NEXUS-REV-2026-07-15-004-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.7 ("Workflow Chain Execution" § Assignment Policy Evaluation, unmodified by this remediation). Referenced: RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-15-004-F-001`. The Builder added two test cases to `test/kernel/execution/engineering-session.service.test.ts`: (1) `'rejects AssignmentPolicy evaluation when an AssignmentPolicy reference is supplied without evaluation input'` — supplies `assignmentPolicyId` without `assignmentPolicyEvaluationInput`, asserting rejection with `InvalidEngineeringSessionDefinitionError`, no `ExecutionSession` created, and no Adapter invocation; (2) `'rejects AssignmentPolicy evaluation when AssignmentPolicyService is not supplied'` — uses a new harness helper, `createWorkflowExecutionHarnessWithoutAssignmentPolicyService()`, which constructs `EngineeringSessionService` with its `assignmentPolicyService` constructor argument omitted (confirmed by direct inspection: the 8th constructor argument is absent from the `new EngineeringSessionService(...)` call, distinct from the harness's separately-held `assignmentPolicyService` used only to seed the `AssignmentPolicy` record itself) while supplying both `assignmentPolicyId` and `assignmentPolicyEvaluationInput`, asserting the same rejection with no `ExecutionSession` created and no Adapter invocation.
+
+`git diff --stat` confirms the remediation touches only `test/kernel/execution/engineering-session.service.test.ts` (purely additive) plus `IMPLEMENTATION_REPORT.md`. No production source file was modified — `engineering-session.service.ts`, `engineering-session.contract.ts`, `engineering-session.types.ts`, and `create-kernel-services.ts` remain identical (byte-for-byte, confirmed by unchanged diff line counts) to what was already reviewed and approved in `NEXUS-REV-2026-07-15-004`.
+
+Independent re-validation confirms `tsc --noEmit`, ESLint, the targeted test file in isolation (25/25 tests, matching the Builder's reported count), a full `npm run validate` run (75 files / 376 tests, matching the Builder's reported count exactly), and `npm run test:extension-host:build` all pass cleanly.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-15-004-F-001` is fully resolved with no residual or newly introduced defect.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Findings resolved this review | 1 (F-001) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (25/25), `npm run validate` (Vitest 75 files / 376 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 48 deferred concepts (Adapter Selection/routing/scoring, automatic Assignment Policy binding/inference/lookup, Multi-Agent Engineering Orchestration, Task lifecycle transition, session recovery/checkpointing, concurrent session coordination, any `src/hosts`/`src/adapters` change) remain confirmed absent.
+
+### Architectural Compliance Summary
+
+- **Test-only remediation:** Exactly the two branches identified by `NEXUS-REV-2026-07-15-004-F-001` are now covered; no production behavior changed.
+- **No regression:** All previously passing Sprint 48 tests continue to pass unmodified; the full repository suite passes at 75 files / 376 tests.
+- **Scope discipline:** No file beyond `test/kernel/execution/engineering-session.service.test.ts` and `IMPLEMENTATION_REPORT.md` was touched.
+
+### Builder Task Recommendation
+
+None. `TASK-001` is fully closed with no residual finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0048-assignment-policy-integration.md`) — Status updated to Approved; Reviewer Notes and Final Disposition updated to reflect `F-001`'s closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 48 marked Approved (no open findings remain).
+
+### Work Item State Reconciliation
+
+- Sprint 48: Status → **Approved** (`NEXUS-REV-2026-07-15-005`; fully closed, zero open findings).
+- Work Order: Status → **Completed**.
+- Builder Tasks: `TASK-001` → **Completed** (acceptance criteria satisfied; verified above).
+
+---
+
+## NEXUS-REV-2026-07-15-004 — Sprint 48 — Assignment Policy Integration
+
+- **Reviewed Sprint:** Sprint 48 — Assignment Policy Integration
+- **RFC Coverage:** RFC-0004 — Execution Model v1.7 ("Workflow Chain Execution" § Assignment Policy Evaluation, new subsection). Referenced: RFC-0004 v1.3 ("Assignment Policy", unmodified), RFC-0004 v1.6 ("Workflow Chain Execution", unmodified except this Sprint's new optional gate), RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 48 extends `EngineeringSessionService.executeCurrentWorkflowStep` (Sprint 47) with an optional Assignment Policy Evaluation gate, exactly per `NEXUS-RAT-2026-07-15-006`'s Authorized Builder Scope. `ExecuteCurrentWorkflowStepCommand` gained an optional `assignmentPolicyId` and `assignmentPolicyEvaluationInput` (typed as `Omit<AssignmentPolicyEvaluationInput, 'requiredRole'>` — a correct, minimal interpretation, since the required-role input is the already-resolved `WorkflowStep` `RoleId`, not a caller-supplied value). `EngineeringSessionWorkflowExecutionStatus` gained one new outcome, `AssignmentPolicyRejected`, mirroring the existing `ReadinessRejected` shape. `createKernelServices` was extended only to supply the already-composed `AssignmentPolicyService` instance to `EngineeringSessionService` as an optional collaborator.
+
+Direct diff inspection (`git diff --stat`) confirms `AssignmentPolicy`, `AssignmentPolicyService`, `IAssignmentPolicyRepository`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `ExecutionStrategyService`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, the `EngineeringSession` aggregate itself (`engineering-session.ts` — zero diff; the gate lives entirely in the service layer), Sprint 43's `advanceWorkflow()`, Sprint 45's `advanceWorkflowOnTrigger()`, Sprint 46's `advanceWorkflowAfterReview()`, and every `src/hosts`/`src/adapters` file are all byte-for-byte unmodified. The new gate is evaluated after Sprint 47's existing readiness check and strictly before Adapter dispatch and before `ExecutionSession` construction, matching the ratified ordering. When `assignmentPolicyId` is omitted, the new code path returns `undefined` immediately and the result construction spreads in `assignmentPolicy` only when defined — confirmed regression-safe and byte-for-byte identical to Sprint 47 by a dedicated test and by the shared code path being otherwise unchanged.
+
+Independent re-validation: `tsc --noEmit` clean; ESLint clean on all changed files; targeted Vitest (`engineering-session.service.test.ts`, `engineering-session.test.ts`, `kernel-boundary-certification.integration.test.ts`) 44/44 passing; full `npm run validate` — TypeScript compile, ESLint, Vitest 75 files / 374 tests, esbuild — all passing, matching the Builder's reported count exactly; `npm run test:extension-host:build` passing.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-004-F-001 — Two new defensive/guard branches have no exercising test
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 11 (Testing — "New behavior is covered").
+- **Evidence:** `src/kernel/execution/engineering-session.service.ts`, `evaluateAssignmentPolicy()`: (a) throws `InvalidEngineeringSessionDefinitionError` when `command.assignmentPolicyId` is supplied but `command.assignmentPolicyEvaluationInput` is `undefined`; (b) `requireAssignmentPolicyService()` throws `InvalidEngineeringSessionDefinitionError` when `assignmentPolicyId` is supplied but the `EngineeringSessionService` was constructed without an `assignmentPolicyService` collaborator. `grep` across `test/kernel/execution/engineering-session.service.test.ts` for `assignmentPolicyId`/`assignmentPolicyEvaluationInput`/`assignmentPolicyService` confirms every existing test either supplies both fields together against a harness that always constructs `AssignmentPolicyService`, or omits `assignmentPolicyId` entirely — neither guard branch is exercised.
+- **Impact:** Directly analogous to Sprint 47's `NEXUS-REV-2026-07-15-002-F-001` (four untested defensive branches in the same method), which the Sprint Owner and Reviewer treated as Minor and non-blocking. Both branches are reachable under the certified Kernel composition (an `EngineeringSessionService` caller could omit `assignmentPolicyEvaluationInput`, or a future composition could omit `assignmentPolicyService` while still supplying `assignmentPolicyId`) but do not currently affect any certified behavior path, since `createKernelServices()` always supplies `assignmentPolicyService`.
+- **Recommended Disposition:** Builder Task — add test coverage for the two branches identified above. No production-code change is implied or required.
+- **Builder Action:** Fix (add tests only).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 1 (F-001, test-only) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (44/44), `npm run validate` (Vitest 75 files / 374 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Confirmed absent, per `NEXUS-RAT-2026-07-15-006`'s scope restrictions: Adapter Selection/routing/capability scoring, automatic Assignment Policy binding/inference/lookup, Multi-Agent Engineering Orchestration, Task lifecycle transition, session recovery/checkpointing, concurrent session/workflow coordination, and any `src/hosts`/`src/adapters` change. `AssignmentPolicy`'s own value objects and evaluation semantics (Sprint 44) remain unmodified and are consumed read-only through the existing public `evaluateAssignmentPolicy` method only.
+
+### Architectural Compliance Summary
+
+- **Ownership Model honored:** Assignment Policy value objects/evaluation remain owned by Sprint 44's `AssignmentPolicy`/`AssignmentPolicyService`, unmodified; the new consumption gate is owned entirely by `EngineeringSessionService.executeCurrentWorkflowStep`, per `NEXUS-RAT-2026-07-15-006`'s Architectural Responsibilities table.
+- **Gate ordering correct:** Assignment Policy evaluation occurs after readiness evaluation and strictly before Adapter dispatch/`ExecutionSession` creation, matching RFC-0004 v1.7 § Assignment Policy Evaluation.
+- **Explicit reference only:** No automatic Assignment Policy binding, inference, or lookup by `WorkflowStep` was introduced; the reference and evaluation input are caller-supplied only, consistent with the standing explicit-`adapterId`-only guardrail this amendment extends to Assignment Policy.
+- **Regression safety confirmed:** Sprint 47 behavior is byte-for-byte identical when no Assignment Policy reference is supplied (dedicated test, plus unchanged code path).
+- **No scope creep:** `AssignmentPolicy`, `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, the `EngineeringSession` aggregate, all three Advancement methods, and `src/hosts`/`src/adapters` are confirmed byte-for-byte unmodified via direct diff inspection.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-004-F-001` (add test coverage for the two untested defensive branches; no production-code change required). This finding does not block approval — recommend the Sprint Owner mark Sprint 48 **Approved with Findings**, consistent with the Sprint 47 precedent for an identically-shaped finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0048-assignment-policy-integration.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 48 marked Approved with Findings.
+
+### Work Item State Reconciliation
+
+- Sprint 48: Status → **Approved with Findings** (`NEXUS-REV-2026-07-15-004`; one open Builder Task, test-only, non-blocking).
+- Work Order: Status → **Completed**.
+- Builder Tasks: One Builder Task generated for `NEXUS-REV-2026-07-15-004-F-001` (test-coverage addition); non-blocking.
+
+---
+
+## NEXUS-REV-2026-07-15-003 — Sprint 47 — Workflow Chain Execution (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 47 — Workflow Chain Execution
+- **Reviewed Change:** `builder-task.md` `TASK-001` remediation of `NEXUS-REV-2026-07-15-002-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.6 ("Workflow Chain Execution", unmodified by this remediation). Referenced: RFC-0008, RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-15-002-F-001`. The Builder added four test cases to `test/kernel/execution/engineering-session.service.test.ts`: (1) a genuine WorkflowStep-Role/Assignment-Role mismatch scenario (Task assigned to `reviewer` while the current WorkflowStep expects `builder`) asserting a `ReadinessRejected` result with diagnostic code `engineering-session.workflow-step-role-mismatch`, no `ExecutionSession` created, and no Adapter invocation; (2)–(4) three constructions of `EngineeringSessionService`, each omitting exactly one of `executionStrategyService`, `adapterService`, or `executionSessionService`, each asserting `executeCurrentWorkflowStep()` rejects with `InvalidEngineeringSessionDefinitionError`. `git diff --stat` confirms the remediation touches only `test/kernel/execution/engineering-session.service.test.ts` (purely additive; no existing test modified or removed) plus `IMPLEMENTATION_REPORT.md`. No production source file was modified — `engineering-session.ts`, `engineering-session.service.ts`, `engineering-session.contract.ts`, `engineering-session.types.ts`, `create-kernel-services.ts`, and every file confirmed unmodified by the original Sprint 47 review remain byte-for-byte unmodified by this remediation.
+
+Independent re-validation confirms `tsc --noEmit`, ESLint, the targeted test file in isolation (19/19 tests, matching the Builder's reported count), and `npm run test:extension-host:build` all pass cleanly. A full `npm run validate` run initially reported one failure in `test/integration/local-process-runtime.integration.test.ts` (Sprint 21, a real-process-execution integration test); this file has no diff (confirmed via `git diff --stat`), passes in isolation, and passes on a full-suite re-run (75 files / 370 tests, matching the Builder's reported count exactly) — confirming a one-off environmental flake unrelated to this remediation, not a regression.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-15-002-F-001` is fully resolved with no residual or newly introduced defect.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Findings resolved this review | 1 (F-001) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (19/19), `npm run validate` (Vitest 75 files / 370 tests, re-run after an unrelated one-off flake), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 47 deferred concepts (Adapter Selection, Assignment Policy evaluation, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session coordination, any `src/hosts`/`src/adapters` change) remain confirmed absent.
+
+### Architectural Compliance Summary
+
+- **Test-only remediation:** Exactly the four branches identified by `NEXUS-REV-2026-07-15-002-F-001` are now covered; no production behavior changed.
+- **No regression:** All previously passing Sprint 47 tests continue to pass unmodified; the full repository suite passes at 75 files / 370 tests.
+- **Scope discipline:** No file beyond `test/kernel/execution/engineering-session.service.test.ts` and `IMPLEMENTATION_REPORT.md` was touched.
+
+### Builder Task Recommendation
+
+None. `TASK-001` is fully closed with no residual finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0047-workflow-chain-execution.md`) — Status updated to Approved; Reviewer Notes and Final Disposition updated to reflect `F-001`'s closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 47 marked Approved (no open findings remain).
+
+### Work Item State Reconciliation
+
+- Sprint 47: Status → **Approved** (`NEXUS-REV-2026-07-15-003`; fully closed, zero open findings).
+- Work Order: Status → **Completed**.
+- Builder Tasks: `TASK-001` → **Completed** (acceptance criteria satisfied; verified above).
+
+---
+
+## NEXUS-REV-2026-07-15-002 — Sprint 47 — Workflow Chain Execution
+
+- **Reviewed Sprint:** Sprint 47 — Workflow Chain Execution
+- **Reviewed Vertical Slice:** RFC-0004 v1.6 Workflow Chain Execution (`EngineeringSession.executeCurrentWorkflowStep()`, `EngineeringSessionService.executeCurrentWorkflowStep()`)
+- **RFC Coverage:** RFC-0004 — Execution Model v1.6 ("Workflow Chain Execution", Primary). Referenced: RFC-0004 v1.6 ("Engineering Session", "Workflow Chaining", "Workflow Advancement", "Execution Strategy", "Execution Session" — all existing, unmodified); RFC-0008 — Kernel Adapter Contract (`AdapterService.dispatch`, unmodified); RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 47 implements RFC-0004 v1.6's Workflow Chain Execution section exactly as authorized by `NEXUS-RAT-2026-07-15-004`. `EngineeringSession.executeCurrentWorkflowStep()` is a pure, read-only aggregate method that resolves the current workflow position's bound `WorkflowStep` and its `RoleId`, throwing `InvalidEngineeringSessionDefinitionError` if the position does not resolve; it does not mutate state and does not call `advanceWorkflow()`. `EngineeringSessionService.executeCurrentWorkflowStep()` is thin orchestration: repository lookup, read-only `WorkflowChain` lookup, aggregate delegation to resolve the target Role, `ExecutionStrategyService.evaluateAssignmentReadiness` invocation (existing, unmodified), explicit-`adapterId` `AdapterService.dispatch` (existing, unmodified — no Adapter Selection, routing, or capability scoring introduced), and `ExecutionSessionService.createExecutionSession` attempt recording (existing, unmodified). Readiness rejections are converted to a deterministic `ReadinessRejected` result with no `ExecutionSession` created, mirroring the repository's established result-based (non-exception) rejection pattern used by Advancement Failure.
+
+`git diff --stat` against the prior committed state confirms the change is confined to `create-kernel-services.ts`, `engineering-session.contract.ts`, `engineering-session.service.ts`, `engineering-session.ts`, `engineering-session.types.ts` (source), plus test files. Direct inspection confirms `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy` (aggregate and service), `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, and Sprint 43's/45's/46's `advanceWorkflow()`/`advanceWorkflowOnTrigger()`/`advanceWorkflowAfterReview()` are all byte-for-byte unmodified — none appear in the diff. No `src/hosts` or `src/adapters` file is modified. `createKernelServices()` composition reuses single shared `AdapterService`, `ExecutionSessionService`, and `ExecutionStrategyService` instances across both the returned service array and the new `EngineeringSessionService` constructor arguments — no duplicate registries or divergent state.
+
+Test coverage traces directly to the Sprint Implementation Record's Authorized Vertical Slice: successful execution producing an `ExecutionSession` record with correct assigned Role/Adapter/outcome and unchanged workflow position; execution readiness rejection (via a genuine unsatisfied-dependency-ordering scenario, not a contrived stub) producing a deterministic `ReadinessRejected` result with no `ExecutionSession` created and no Adapter invocation; non-`Completed` Adapter response recorded as a `Failed` execution attempt; determinism across two independently constructed harnesses with equivalent state; and a Kernel Boundary Certification assertion that `executeCurrentWorkflowStep` is composed and callable. Independent re-validation confirms `tsc --noEmit`, ESLint, the three targeted Vitest files (36/36 tests), `npm run validate` (TypeScript compile, ESLint, Vitest 75 files / 366 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly, matching the Builder's reported results exactly.
+
+One Minor, non-blocking finding is recorded concerning untested defensive branches (see below). Overall disposition: **PASS WITH FINDINGS**.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-002-F-001 — Four defensive branches in the new execution path have no test coverage
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 11 (Testing — "New behavior is covered")
+- **Summary:** `EngineeringSessionService.executeCurrentWorkflowStep()`'s new code introduces four deterministic rejection/guard branches with no exercising test: (1) the WorkflowStep-Role-vs-Assignment-Role mismatch check in `evaluateReadiness()` (`engineering-session.service.ts`, `'engineering-session.workflow-step-role-mismatch'` diagnostic code); (2) `requireExecutionStrategyService()`'s guard when `executionStrategyService` is not constructor-injected; (3) `requireAdapterService()`'s guard when `adapterService` is not constructor-injected; (4) `requireExecutionSessionService()`'s guard when `executionSessionService` is not constructor-injected.
+- **Evidence:** `src/kernel/execution/engineering-session.service.ts` (`evaluateReadiness`, `requireExecutionStrategyService`, `requireAdapterService`, `requireExecutionSessionService`); `test/kernel/execution/engineering-session.service.test.ts` (no test constructs a role-mismatched scenario or an `EngineeringSessionService` missing one of the three new optional dependencies while calling `executeCurrentWorkflowStep`).
+- **Impact:** Low today — the composed Kernel (`createKernelServices`) always supplies all three dependencies, so the three guard branches are unreachable in the certified composition, and the role-mismatch branch fails closed (rejects) rather than silently dispatching to the wrong Role. However, none of the four branches are verified by any test, so a future regression in any of them (e.g., the guard silently becoming a no-op, or the mismatch comparison being inverted) would not be caught by the test suite.
+- **Required Disposition:** Builder Task — add test coverage for the four branches identified above (a role-mismatch scenario producing `ReadinessRejected`; three constructions of `EngineeringSessionService` each omitting exactly one of `executionStrategyService`/`adapterService`/`executionSessionService` and asserting the corresponding `InvalidEngineeringSessionDefinitionError`).
+- **Builder Action:** Fix (add tests only; no production-code change is implied or required).
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001, Implementation Defect — test coverage gap) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, targeted Vitest (3 files / 36 tests), `npm run validate` (Vitest 75 files / 366 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 47 deferred concepts confirmed absent from the diff: Adapter Selection/routing/capability scoring/fallback logic, Assignment Policy evaluation, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, and any modification to `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, or any existing Advancement method. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+- **RFC conformance:** `executeCurrentWorkflowStep()` implements exactly RFC-0004 v1.6's Workflow Chain Execution: Role resolution, existing Execution Strategy readiness evaluation, existing explicit-`adapterId` Adapter dispatch, and recording through the existing Execution Session model — matching the ratified amendment text.
+- **Aggregate ownership:** `EngineeringSession` owns resolving the current `WorkflowStep`'s Role only (pure, read-only); `EngineeringSessionService` owns orchestration; `ExecutionStrategyService`, `AdapterService`, and `ExecutionSessionService` retain their existing, unmodified ownership of readiness evaluation, dispatch, and execution-attempt recording respectively.
+- **Domain ownership / cross-domain access:** No foreign aggregate internals are accessed; `EngineeringSessionService` interacts with `ExecutionStrategyService`, `AdapterService`, and `ExecutionSessionService` exclusively through their existing public contracts.
+- **Determinism:** Equivalent `EngineeringSession` state and equivalent Adapter responses produce equivalent results, verified by a dedicated cross-harness determinism test.
+- **Terminology:** `Workflow Chain Execution`, `Execution Strategy`, `Execution Session`, `ReadinessRejected` used consistently with the RFC-0004 v1.6 vocabulary; no renamed or invented architectural terms.
+- **Scope discipline:** Execution and Advancement remain separate operations; no file outside the Authorized Vertical Slice was touched; `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionStrategy`, `AdapterService`, `AdapterRegistry`, `ExecutionSession`, `ExecutionSessionService`, `ReviewService`, `Review`, `Finding`, `src/hosts`, `src/adapters` all confirmed unmodified by direct diff inspection.
+- **Tests:** Comprehensive coverage of the primary authorized paths (successful execution, readiness rejection, non-`Completed` Adapter response, determinism, Kernel composition continuity); one Minor gap in defensive-branch coverage recorded above.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for `NEXUS-REV-2026-07-15-002-F-001` (add test coverage for the four untested defensive branches; no production-code change required). This finding does not block approval — recommend the Sprint Owner mark Sprint 47 **Approved with Findings**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0047-workflow-chain-execution.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 47 marked Approved with Findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 47: Status → **Approved with Findings** (`NEXUS-REV-2026-07-15-002`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: One Builder Task generated for `NEXUS-REV-2026-07-15-002-F-001` (test-coverage addition); non-blocking.
+
+---
+
+## NEXUS-REV-2026-07-15-001 — Sprint 46 — Review-Gated Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 46 — Review-Gated Workflow Advancement
+- **Reviewed Vertical Slice:** RFC-0004 v1.5 Review-Gated Advancement Strategy (`EngineeringSession.advanceWorkflowAfterReview()`, `EngineeringSessionService.advanceWorkflowAfterReview()`)
+- **RFC Coverage:** RFC-0004 — Execution Model v1.5 ("Workflow Advancement" § Review-Gated Advancement, Primary). Referenced: RFC-0006 — Engineering Assessment Model (`ReviewOutcome` consumed read-only); RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 46 implements RFC-0004 v1.5's Review-Gated Advancement Strategy exactly as authorized by `NEXUS-RAT-2026-07-15-002`. `EngineeringSession.advanceWorkflowAfterReview()` accepts a `ReviewOutcome` (RFC-0006, consumed read-only via `ReviewOutcome.fromString()` at the service boundary), classifies it using the ratified Blocking/Non-Blocking semantics (`NEXUS-RAT-2026-07-15-001`) via a new private `assertNonBlockingReviewOutcome()` helper, and delegates to Sprint 43's existing `advanceWorkflow()` unchanged for eligibility, result, and failure behavior. `EngineeringSessionService.advanceWorkflowAfterReview()` is thin orchestration: repository lookup, `WorkflowChain` lookup, `ReviewOutcome` construction, aggregate delegation, persistence, snapshot return — mirroring Sprint 45's `advanceWorkflowOnTrigger()` pattern precisely.
+
+`git diff --stat` against the prior committed state confirms the source change is confined to `engineering-session.contract.ts`, `engineering-session.service.ts`, and `engineering-session.ts` (36 lines combined) plus test files. `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `AssignmentPolicy`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, Sprint 43's `advanceWorkflow()`/`isWorkflowComplete()`, and Sprint 45's `advanceWorkflowOnTrigger()` are all confirmed byte-for-byte unmodified — none appear in the diff. No `ReviewService`, `Review`, or `Finding` file is modified; `ReviewOutcome` is imported and consumed strictly read-only (no write path exists in the diff). No `src/hosts` or `src/adapters` file is modified. No Event Bus subscription, scheduling, or asynchronous behavior was introduced.
+
+Test coverage is thorough and traces directly to the Sprint Implementation Record's Authorized Vertical Slice: Non-Blocking advancement (Accepted, Accepted With Observations) at both the aggregate and service layers; Blocking rejection (Action Required, Rejected) producing `InvalidEngineeringSessionDefinitionError` with no workflow-position change, verified at both layers; existing Sprint 43 ineligibility conditions (unbound chain, terminal position, invalid current position, mismatched chain) continue to reject independently of `ReviewOutcome`; determinism for equivalent session state and equivalent outcome; a Kernel Boundary Certification assertion that `advanceWorkflowAfterReview` is composed and callable. Independent re-validation confirms `tsc --noEmit`, ESLint (`--quiet`, zero warnings suppressed beyond existing baseline), `npm run validate` (TypeScript compile, ESLint, Vitest 75 files / 362 tests, esbuild), and `npm run test:extension-host:build` all pass cleanly, matching the Builder's reported counts exactly.
+
+Documentation is internally consistent: `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, and `IMPLEMENTATION_REPORT.md` all correctly describe the same scope, and the RFC-0004 v1.5 amendment text in the working tree is byte-for-byte identical to the ratified `NEXUS-RAT-2026-07-15-001` amendment — the Builder introduced no additional specification drift.
+
+One Minor, non-blocking finding is recorded concerning vocabulary duplication (see below). Overall disposition: **PASS WITH FINDINGS**.
+
+### Findings
+
+#### NEXUS-REV-2026-07-15-001-F-001 — Blocking/Non-Blocking classification duplicates RFC-0006's `ReviewOutcome` vocabulary as literal strings
+
+- **Category:** Category 6 — Observation
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 10 (Code Quality — coupling, cohesion)
+- **Summary:** `assertNonBlockingReviewOutcome()` (`src/kernel/execution/engineering-session.ts:329-339`) compares `reviewOutcome.toString()` against the literal strings `'Accepted'` and `'Accepted With Observations'`, rather than referencing the canonical `reviewOutcomes` array exported from `src/kernel/review/review.types.ts` (`['Accepted', 'Accepted With Observations', 'Action Required', 'Rejected']`). The two Non-Blocking literals are spelled correctly and match the canonical vocabulary today, so behavior is currently correct.
+- **Evidence:** `src/kernel/execution/engineering-session.ts:329-339`; `src/kernel/review/review.types.ts:4-9` (`reviewOutcomes` canonical array, not imported by `engineering-session.ts`).
+- **Impact:** Low. RFC-0006's `ReviewOutcome` vocabulary is frozen by Sprint 9 and not modified by this or any prior sprint, so no present divergence exists. However, the duplication means a future RFC-0006 vocabulary change (e.g., renaming "Accepted With Observations") would not be caught by the type system in `engineering-session.ts` — the two literal strings would silently stop matching valid `ReviewOutcomeValue`s, which fails closed (all outcomes rejected as Blocking) rather than failing open, so this is not a correctness risk, only a maintainability one.
+- **Required Disposition:** Optional Documentation/Code Task — reference the exported `reviewOutcomes` array (or equivalent named constants) from `review.types.ts` instead of literal strings, in a future sprint touching this file. Does not block approval.
+- **Builder Action:** None unless directed; no Builder Task generated.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001, Observation) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run validate` (Vitest 75 files / 362 tests), `npm run test:extension-host:build` |
+
+### Deferred Concept Validation
+
+All Sprint 46 deferred concepts confirmed absent from the diff: Event Bus-driven/automatic Review-completion-triggered advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, any `ReviewService` write operation or Review state persistence, and any `AssignmentPolicy`/`ExecutionSession`/`src/hosts`/`src/adapters` change. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+- **RFC conformance:** `advanceWorkflowAfterReview()` implements exactly the Review-Gated Advancement Strategy named by RFC-0004 v1.4 and defined by v1.5; the Blocking/Non-Blocking classification matches the ratified amendment text verbatim.
+- **Aggregate ownership:** `EngineeringSession` owns Advancement Eligibility/Result/Failure and the Review-Gated eligibility check; `ReviewOutcome` determination remains exclusively owned by RFC-0006/`ReviewService`, consumed read-only. Ownership separation from `NEXUS-RAT-2026-07-15-002` is preserved.
+- **Domain ownership / cross-domain access:** `ReviewOutcome` is imported as a shared value object (not an internal entity), consistent with the existing Knowledge-domain precedent (`knowledge.aggregate.ts` importing `Review`/`IReviewRepository` types read-only). No aggregate internals of the Review domain are accessed.
+- **Determinism:** Equivalent session state and equivalent `ReviewOutcome` produce equivalent results, verified by dedicated tests at both aggregate and service layers.
+- **Terminology:** `ReviewOutcome`, `Non-Blocking`/`Blocking Review Outcome` used consistently with the RFC-0004 v1.5 and RFC-0006 vocabulary; no renamed or invented terms.
+- **Scope discipline:** No file outside the Authorized Vertical Slice was touched; `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `AssignmentPolicy`, `ReviewService`, `Review`, `Finding`, `src/hosts`, `src/adapters` all confirmed unmodified by direct diff inspection.
+- **Tests:** Comprehensive coverage of Non-Blocking advancement, Blocking rejection without state change, existing ineligibility preservation, determinism, and Kernel composition continuity, at both the `EngineeringSession` aggregate and `EngineeringSessionService` layers.
+
+### Builder Task Recommendation
+
+None required for approval. F-001 is an optional, non-blocking Category 6 Observation; no Builder Task is generated. Recommend the Sprint Owner mark Sprint 46 **Approved with Findings**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0046-review-gated-workflow-advancement.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 46 marked Approved with Findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Multi-Agent Engineering Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 46: Status → **Approved with Findings** (`NEXUS-REV-2026-07-15-001`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated; no open Builder Tasks remain.
+
+---
+
+## NEXUS-REV-2026-07-14-026 — Sprint 45 — Automatic/Event-Driven Workflow Advancement (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 45 — Automatic/Event-Driven Workflow Advancement
+- **Reviewed Change:** `builder-task.md` TASK-001 remediation of `NEXUS-REV-2026-07-14-025-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.4 ("Workflow Advancement" § Automatic/Event-Driven Advancement Strategy, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-14-025-F-001`. `EngineeringSession.advanceWorkflowOnTrigger()` (`src/kernel/execution/engineering-session.ts:214-217`) no longer calls `trigger.toSnapshot()` and discards the result; the dead statement is removed, and the parameter is renamed `_trigger` (the repository's established convention for an intentionally-unused parameter, satisfying the linter's unused-argument rule) while the method still accepts an `AdvancementTrigger` and delegates unchanged to `advanceWorkflow(workflowChain)`. `git diff --stat` confirms the remediation touches only `engineering-session.ts` (8 lines) — no other file in `src/` or `test/` was modified beyond the original Sprint 45 diff already reviewed under `NEXUS-REV-2026-07-14-025`; in particular, `AdvancementTrigger`, `advanceWorkflow()`, `isWorkflowComplete()`, `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, and all existing tests remain unmodified by this remediation, and all Sprint 45 tests continue to pass unchanged, confirming the removal had no observable behavioral effect (as the finding predicted). Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (75 files / 354 tests, unchanged from the pre-remediation count) all pass cleanly. Overall disposition: **PASS**.
+
+### Findings
+
+None. `NEXUS-REV-2026-07-14-025-F-001` is fully resolved with no residual or newly introduced defect.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Findings resolved this review | 1 (F-001) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 75 files / 354 tests |
+
+### Deferred Concept Validation
+
+Unaffected by this remediation. All Sprint 45 deferred concepts (`ExecutionSession`-driven trigger producers, Event Bus integration, Review-Gated Advancement, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, any `src/hosts`/`src/adapters` change) remain confirmed absent.
+
+### Architectural Compliance Summary
+
+- **Dead code removed:** The unused `trigger.toSnapshot()` statement is gone; `advanceWorkflowOnTrigger()` is now exactly two meaningful lines: accept the trigger, delegate to `advanceWorkflow()`.
+- **No behavioral change:** All Sprint 43 and Sprint 45 tests pass unmodified, confirming the fix is purely cosmetic as the finding predicted.
+- **Scope discipline:** No file beyond `engineering-session.ts` was touched; `AdvancementTrigger` and all Sprint 41/43 concepts remain byte-for-byte unmodified.
+
+### Builder Task Recommendation
+
+None. TASK-001 is fully closed with no residual finding.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0045-automatic-event-driven-workflow-advancement.md`) — Status updated to Approved; Reviewer Notes and Final Disposition updated to reflect F-001's closure.
+- `IMPLEMENTATION_PLAN.md` — Sprint 45 marked Approved (no open findings remain).
+
+### Work Item State Reconciliation
+
+- Sprint 45: Status → **Approved** (`NEXUS-REV-2026-07-14-026`; fully closed, zero open findings).
+- Work Order: Status → **Completed**.
+- Builder Tasks: `TASK-001` → **Completed** (acceptance criteria satisfied; verified above).
+
+---
+
+## NEXUS-REV-2026-07-14-025 — Sprint 45 — Automatic/Event-Driven Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 45 — Automatic/Event-Driven Workflow Advancement
+- **Reviewed Change:** New `AdvancementTrigger` value object (`advancement-trigger.ts`, `advancement-trigger.types.ts`, `advancement-trigger.errors.ts`) and its test file; `EngineeringSession.advanceWorkflowOnTrigger()`, `EngineeringSessionService.advanceWorkflowOnTrigger()`, `EngineeringSessionServiceContract`'s new command type, and associated aggregate/service test additions.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.4 ("Workflow Advancement" section, Automatic/Event-Driven Advancement Strategy). Referenced: RFC-0004 v1.4 "Engineering Session" (existing, unmodified); RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Independently read the three new `advancement-trigger*.ts` files, their test file, the `engineering-session.ts`/`.contract.ts`/`.service.ts` diffs, and both updated test files against `NEXUS-RAT-2026-07-14-026`'s Authorized Builder Scope and four Sprint Owner Refinements. `AdvancementTrigger` is an immutable value object (`Object.freeze`-protected, constructed only through `create`/`fromSnapshot`) exposing exactly one field, `fact`, with no "caller," "API," `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter, `RoleRegistry`, `EngineeringRoleProfile`, or `ExecutionStrategy` framing anywhere in its definition or `assignmentPolicyAllowedKeys`-style key enumeration (`advancementTriggerAllowedKeys = new Set(['fact'])`) — satisfying Refinement 1. `EngineeringSession.advanceWorkflowOnTrigger()` (`engineering-session.ts:214-220`) is a two-line method that discards the trigger's snapshot and delegates immediately to the existing, unmodified `advanceWorkflow()` — confirming Refinement 3 (verbatim reuse of Sprint 43's Advancement Eligibility/Result/Failure semantics, no second validation path) precisely, since there is literally only one validation path. `git diff` confirms `advanceWorkflow()` and `isWorkflowComplete()` are byte-for-byte unmodified. `EngineeringSessionService.advanceWorkflowOnTrigger()` performs only repository lookup, a read-only `WorkflowChainRepository.getById()` call (mirroring `advanceWorkflow()`'s existing pattern), `AdvancementTrigger.create()`, aggregate delegation, and `repository.save()` — entirely synchronous, with no `EventBusContract`, scheduling, `setTimeout`/`setInterval`, or subscription anywhere in the changed files (confirmed by repository-wide grep), satisfying Refinement 2. No reference from any new or changed file to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` exists, satisfying Refinement 4.
+
+`git diff --stat` confirms the changed/added file set is limited to the three new `AdvancementTrigger` files (plus one new test file), the three `EngineeringSession`-family files (additive changes only — new imports, new method, new contract type, new service method), two updated test files, and governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `RATIFICATION_LEDGER.md`, `rfc-0004-execution-model.md`, the Sprint 45 record). `create-kernel-services.ts` and the Sprint 18 Kernel Boundary Certification test are both confirmed unmodified — consistent with this Sprint introducing no new Kernel-composed service. `WorkflowChain`, `WorkflowStep`, `WorkflowChainService`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, and every `src/hosts`/`src/adapters` file are confirmed unmodified. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (75 files / 354 tests, matching the Builder's reported count) all pass cleanly. Overall disposition: **PASS WITH FINDINGS** — one non-blocking Minor finding recorded below.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-025-F-001 — Dead code: discarded `trigger.toSnapshot()` call in `advanceWorkflowOnTrigger`
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 10 (No dead code introduced)
+- **Summary:** `EngineeringSession.advanceWorkflowOnTrigger()` (`engineering-session.ts:214-220`) calls `trigger.toSnapshot()` and discards the result before delegating to `advanceWorkflow()`. `AdvancementTrigger.toSnapshot()` (`advancement-trigger.ts:32-36`) has no side effects — it only returns a frozen copy of already-validated, already-frozen state — so the call accomplishes nothing observable: it does not validate, record, or use the trigger in any way.
+- **Impact:** The line reads as if it exists to validate or persist the trigger fact, misleading a future maintainer about what the method actually does; removing it would not change behavior in any way, which is the definition of dead code under Gate 10.
+- **Required Disposition:** Builder Task — remove the unused `trigger.toSnapshot()` statement (or, if the intent was to eventually record `AdvancementTrigger` provenance on the session, that would be new scope requiring its own future ratification — not implicitly stubbed here).
+- **Builder Action:** Fix.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 0 |
+| Minor | 1 (F-001) |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 75 files / 354 tests |
+
+### Deferred Concept Validation
+
+Confirmed absent from the diff: `ExecutionSession`-completion-driven or other concrete trigger producers, Event Bus subscription for `EngineeringSession`, Review-Gated Advancement and its Review Outcome gating semantics, Multi-Agent Engineering Orchestration, session recovery/checkpointing, concurrent session/workflow coordination, and any `src/hosts`/`src/adapters` change.
+
+### Architectural Compliance Summary
+
+- **Producer-independent trigger:** `AdvancementTrigger` carries exactly one field (`fact`); no producer/caller/API framing exists in its definition or key enumeration. Compliant with Refinement 1.
+- **Fully synchronous, no hidden behavior:** No Event Bus, scheduling, or asynchronous mechanism exists anywhere in the changed files; trigger submission and advancement occur within one synchronous call. Compliant with Refinement 2.
+- **Verbatim reuse of Sprint 43's validation:** `advanceWorkflowOnTrigger()` delegates directly to the unmodified `advanceWorkflow()`; no second, divergent Advancement Eligibility/Result/Failure path exists. Compliant with Refinement 3 (see F-001 for the cosmetic, non-behavioral dead-code line accompanying this delegation).
+- **No cross-domain wiring:** No reference to `ExecutionSession`, `Review`, `AssignmentPolicy`, Adapter dispatch, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, or `ExecutionStrategy` exists in any new or changed file. Compliant with Refinement 4.
+- **Kernel composition:** `create-kernel-services.ts` and the Sprint 18 Kernel Boundary Certification test are unmodified, consistent with no new Kernel-composed service being introduced this Sprint.
+- **Tests:** New test coverage spans `AdvancementTrigger` construction/validation, eligible-trigger advancement, ineligible-trigger rejection (missing session, terminal position, invalid current position, invalid trigger fact) with no position change on failure, determinism (equivalent trigger + equivalent session state), and service-level persistence/orchestration. Full suite 354/354 passing.
+
+### Builder Task Recommendation
+
+Generate one Builder Task via `nexus-sprint` for F-001 (remove the dead `trigger.toSnapshot()` statement). This is a cosmetic, non-blocking fix; it does not affect Sprint 45's approval.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0045-automatic-event-driven-workflow-advancement.md`) — Status updated to Approved with Findings; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — Sprint 45 marked Approved with Findings. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Review-Gated Advancement, Multi-Agent Orchestration, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 45: Status → **Approved with Findings** (`NEXUS-REV-2026-07-14-025`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: One generated — F-001 (dead-code removal), Minor, non-blocking.
+
+---
+
+## NEXUS-REV-2026-07-14-024 — Sprint 44 — Assignment Policy Foundation
+
+- **Reviewed Sprint:** Sprint 44 — Assignment Policy Foundation
+- **Reviewed Change:** New `AssignmentPolicy` domain model (`assignment-policy.ts`, `assignment-policy-id.ts`, `assignment-policy.types.ts`, `assignment-policy.contract.ts`, `assignment-policy.errors.ts`, `assignment-policy.repository.ts`, `assignment-policy.service.ts`), their three test files, `create-kernel-services.ts`'s `AssignmentPolicyService`/`InMemoryAssignmentPolicyRepository` composition, and the Sprint 18 Kernel Boundary Certification test's composition-assertion update.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 ("Assignment" and "Assignment Policy" sections, existing, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-15
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently read all seven new `assignment-policy*.ts` source files, their three test files, and the `create-kernel-services.ts`/`kernel-boundary-certification.integration.test.ts` diffs in full, and compared the implementation against `NEXUS-RAT-2026-07-14-024`'s Authorized Builder Scope and its four Sprint Owner Refinements. `AssignmentPolicy` is an immutable, `Object.freeze`-protected aggregate constructed only through `AssignmentPolicy.create`/`fromSnapshot`, exposing exactly five immutable value objects — `AssignmentRequiredRole` (wrapping the existing, unmodified `RoleId`), `AssignmentAdapterExecutionCapability`, `AssignmentRepositoryConfiguration`, `AssignmentExecutionConstraints`, and `AssignmentHumanPreferences` — matching RFC-0004's "Assignment Policy" section's five named factors exactly, with no sixth factor (Refinement 2). `assignmentPolicyAllowedKeys`/`assignmentPolicyForbiddenKeys` in `assignment-policy.ts:11-41` explicitly enumerate and reject any `engineeringSession`, `executionSession`, `workflowChain`, `workflowStep`, `adapter`, `dispatch`, `reviewGate`, `orchestration`, or `automaticWorkflowAdvancement` key at both construction and evaluation time, and `assignment-policy.test.ts`'s `'rejects unsupported or deferred runtime fields'` test exercises this with `@ts-expect-error` compile-time and runtime rejection for an injected `adapterId`, `workflowChainId`, and an extra `costPreference` factor (Refinement 1, 2). `AssignmentPolicy.evaluate()` (`assignment-policy.ts:196-225`) is a pure function returning a frozen result computed only from its own immutable state and the supplied `AssignmentPolicyEvaluationInput` — no repository call, no Adapter reference, no Task/Execution State mutation, and no field beyond the five factors is read or written; the determinism test in `assignment-policy.test.ts:128-164` confirms two structurally-equivalent-but-differently-ordered/whitespaced inputs produce byte-identical outcomes (Refinement 3). `AssignmentPolicyService` (`assignment-policy.service.ts`) performs only `create`/`get`/`enumerate`/`evaluate` through a constructor-injected `IAssignmentPolicyRepository`, mirroring `WorkflowChainService`'s established thin-orchestration pattern; `assignment-policy.service.test.ts:95` explicitly asserts `'attachEngineeringSession' in service` is `false` (Refinement 4).
+
+`git status --porcelain` and `git diff --stat` confirm the changed/added file set is limited to the eight new `AssignmentPolicy` files (plus three new test files), one composition touch point in `create-kernel-services.ts` (two added lines: import + repository construction + service registration), one composition-assertion update in the Sprint 18 Kernel Boundary Certification test, and governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `RATIFICATION_LEDGER.md`, the Sprint 44 record). A repository-wide `grep` for `EngineeringSession|WorkflowChain|WorkflowStep|ExecutionSession` across all new `assignment-policy*` source and test files returns only the intentional forbidden-key literal strings inside `assignment-policy.ts`'s rejection set and test assertions confirming their rejection — no live reference, import, or type dependency on any of those concepts exists. `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, `WorkflowStep`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, and every `src/hosts`/`src/adapters` file are confirmed unmodified. Independent re-validation confirms `tsc --noEmit --pretty false`, `eslint` (targeted and full `npm run lint`), `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (74 files / 347 tests, matching the Builder's reported count) all pass cleanly. Overall disposition: **PASS**.
+
+### Findings
+
+None. No Category 1 Implementation Defects, Category 2 Architectural Violations, Category 3 Specification Conflicts, Category 4 Documentation Drift, Category 5 Governance Decisions, or Category 6 Observations were identified.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Observations | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 74 files / 347 tests |
+
+### Deferred Concept Validation
+
+Confirmed absent from the diff: `EngineeringSession`/`WorkflowChain`/`ExecutionSession` wiring, runtime dispatch, Adapter selection/invocation driven by policy evaluation, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, concurrent session/workflow coordination, and any `src/hosts`/`src/adapters` change. No `EventBusContract` injection or event publication was introduced for `AssignmentPolicy`.
+
+### Architectural Compliance Summary
+
+- **Standalone, unwired foundation:** `AssignmentPolicy`/`AssignmentPolicyService` hold no reference, import, or field referencing `EngineeringSession`, `ExecutionSession`, `WorkflowChain`, or `WorkflowStep`; those four concepts are confirmed byte-for-byte unmodified. Compliant with Refinement 1.
+- **Exactly five assignment-requirement factors:** `AssignmentPolicy` exposes exactly `requiredRole`, `adapterExecutionCapability`, `repositoryConfiguration`, `executionConstraints`, and `humanPreferences`; `assertAllowedKeys` deterministically rejects any additional or forbidden field at both construction and evaluation. Compliant with Refinement 2.
+- **Deterministic, side-effect-free evaluation:** `evaluate()` is a pure function of its own immutable state and its input, returning a frozen result; no dispatch, no Task/Execution State transition, no side effect. Compliant with Refinement 3.
+- **Thin service, existing repository pattern:** `AssignmentPolicyService` provides creation, lookup, enumeration, and evaluation only, through constructor injection; `IAssignmentPolicyRepository`/`InMemoryAssignmentPolicyRepository` mirror the existing Kernel repository pattern (serialized operation queue, snapshot storage, deterministic sorted enumeration). Compliant with Refinement 4.
+- **Kernel composition:** `createKernelServices()` gains only the two required construction/registration lines; the Sprint 18 Kernel Boundary Certification test's `expectedKernelServiceNames` and harness were updated consistently with the Sprint 37–43 precedent, and the full boundary-certification scenario suite (including the new `enumerateAssignmentPolicies()` empty-state assertion) passes.
+- **Tests:** Three new test files cover aggregate construction/immutability/snapshot-equality, all five value objects' validation, deterministic evaluation (including a determinism-equivalence assertion and unsatisfied-factor reporting), forbidden/unsupported-field rejection (compile-time `@ts-expect-error` and runtime), repository behavior (create/duplicate-rejection/lookup/enumeration ordering), and service orchestration (including the `attachEngineeringSession`-absence assertion). Full suite 347/347 passing.
+
+### Builder Task Recommendation
+
+None. No findings of any category were identified.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0044-assignment-policy-foundation.md`) — Status updated to Approved; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — Sprint 44 marked Approved. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction (Review-Gated Progression, Multi-Agent Orchestration, automatic/event-driven workflow advancement, session recovery/checkpointing, or concurrent session coordination) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 44: Status → **Approved** (`NEXUS-REV-2026-07-14-024`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated this review.
+
+---
+
+## NEXUS-REV-2026-07-14-023 — Sprint 43 — Engineering Session Manual Workflow Advancement
+
+- **Reviewed Sprint:** Sprint 43 — Engineering Session Manual Workflow Advancement
+- **Reviewed Change:** `EngineeringSession.advanceWorkflow()`, `EngineeringSession.isWorkflowComplete()`, `EngineeringSessionService.advanceWorkflow()`, and associated aggregate/repository/service tests.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (`EngineeringSession`, `WorkflowChain`, `WorkflowStep` — all existing, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Independently read `engineering-session.ts`, `engineering-session.contract.ts`, `engineering-session.service.ts`, and the three associated test files in full, and compared the implementation against `NEXUS-RAT-2026-07-14-023`'s Authorized Builder Scope and its five Sprint Owner Refinements. `EngineeringSession.advanceWorkflow()` deterministically advances `currentWorkflowStepId` to exactly the next ordered position in the bound `WorkflowChain` per invocation, delegating to the existing `validateWorkflowPosition` helper (refactored out of Sprint 42's `normalizeWorkflowBinding` without behavior change to the construction-time path) to re-derive and bounds-check the current position before advancing (Refinement 1, 2). `EngineeringSession.isWorkflowComplete()` is a pure, read-only terminal-position check with no side effect (Refinement 4). `EngineeringSessionService.advanceWorkflow()` performs only a repository lookup, a read-only `WorkflowChainRepository.getById()` call, aggregate delegation, and `repository.save()` — no `EventBusContract`, Assignment Policy, Review Gate, or orchestration-rule evaluation is present anywhere in the changed files (Refinement 5). Advancement deterministically rejects: no bound `WorkflowChain` (`session-missing-chain` test case), an invalid current `WorkflowStep` (`session-invalid-current-step` test case), and advancement beyond the terminal step (`session-terminal` test case and the aggregate-level terminal test), all raising `InvalidEngineeringSessionDefinitionError` (Refinement 3).
+
+`git diff HEAD --stat` confirms the only files touched are `engineering-session.contract.ts`, `engineering-session.service.ts`, `engineering-session.ts`, and their three test files, plus the governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `RATIFICATION_LEDGER.md`). `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionSession`, `ExecutionSessionId`, `ExecutionSessionService`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `create-kernel-services.ts`, `src/hosts`, and `src/adapters` are all confirmed unmodified — no composition change was needed since `EngineeringSessionService` already held a `WorkflowChainRepository` reference from Sprint 42. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, and the full Vitest suite (71 files / 337 tests, matching the Builder's reported count) all pass cleanly. Overall disposition: **PASS**.
+
+### Findings
+
+None blocking. Two non-blocking Observations recorded (Category 6):
+
+- **O-001 (Informational):** `EngineeringSession.isWorkflowComplete()` is not exposed on `EngineeringSessionServiceContract`; a caller must independently obtain the bound `WorkflowChain` to query completion, unlike `advanceWorkflow()` which is fully orchestrated by the service. This is consistent with the Authorized Vertical Slice, which requires only that the detection capability exist and be tested (satisfied at the aggregate level in `engineering-session.test.ts` and `engineering-session.repository.test.ts`), not that it be service-exposed. No Builder Task generated.
+- **O-002 (Informational):** Advancement-time rejections (terminal-step, invalid-position, missing-chain) reuse the existing `InvalidEngineeringSessionDefinitionError`, the same error type used for construction-time definition violations, rather than a distinct operation-time error class. `NEXUS-RAT-2026-07-14-023` does not name a required error type, and reusing the established error taxonomy avoids introducing a new architectural concept. No Builder Task generated.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings requiring Builder action | 0 |
+| Observations | 2 (Informational, non-blocking) |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 337 tests |
+
+### Deferred Concept Validation
+
+Confirmed absent from the diff: automatic/event-driven advancement, Assignment Policy, Review-Gated Progression, workflow branching/restart/replacement, concurrent workflow execution, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and any `src/hosts`/`src/adapters` change. No `EventBusContract` injection or event publication was introduced for workflow advancement or completion.
+
+### Architectural Compliance Summary
+
+- **Single-step advancement:** `advanceWorkflow()` advances `currentWorkflowStepIdValue` by exactly one position (`workflowPosition.position + 1`) per invocation; no loop, batch, or multi-step path exists. Compliant with Refinement 2.
+- **Ownership:** `EngineeringSession` owns progression, its validation, and completion detection; `WorkflowChain`/`WorkflowStep` remain immutable, read-only, and byte-for-byte unmodified (confirmed by `git diff`). Compliant with Refinement 1.
+- **Deterministic rejection:** All four required rejection cases (no bound chain, invalid current step, terminal-step over-advancement, chain/step mismatch — the last inherited unchanged from Sprint 42's `validateWorkflowPosition`) are covered by dedicated tests at both the aggregate and service layers, including a determinism test confirming equivalent inputs produce equivalent outcomes. Compliant with Refinement 3.
+- **Completion is state-only:** `isWorkflowComplete()` has no side effects and is called from no orchestration path; no Assignment Policy, Review Gate, Adapter dispatch, `ExecutionStrategy` invocation, or event publication exists anywhere in the changed files. Compliant with Refinement 4.
+- **Service remains orchestration-only:** `EngineeringSessionService.advanceWorkflow()` performs repository lookup, read-only `WorkflowChain` retrieval, aggregate delegation, and persistence only. Compliant with Refinement 5.
+- **Tests:** Aggregate tests cover valid advancement, terminal rejection, invalid/missing-chain rejection, and determinism; repository test covers persistence/reconstitution of the advanced position and confirms `isWorkflowComplete()` post-reconstitution; service tests cover the full success path and all rejection cases (not-found, terminal, invalid-position, missing-chain) through orchestration. Full suite 337/337 passing.
+
+### Builder Task Recommendation
+
+None. No Category 1 Implementation Defects, Category 2 Architectural Violations, Category 3 Specification Conflicts, Category 4 Documentation Drift, or Category 5 Governance Decisions were identified. The two Category 6 Observations require no Builder action.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0043-engineering-session-manual-workflow-advancement.md`) — Status updated to Approved; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 43 marked Approved. No further Milestone 8 Sprint is currently planned to advance to Current; the next Milestone 8 direction requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 43: Status → **Approved** (`NEXUS-REV-2026-07-14-023`).
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated this review.
+
+---
+
+## NEXUS-REV-2026-07-14-022 — Sprint 42 — Engineering Session Workflow Chain Wiring (TASK-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 42 — Engineering Session Workflow Chain Wiring
+- **Reviewed Change:** `builder-task.md` TASK-001 remediation of `NEXUS-REV-2026-07-14-021-F-001`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (Engineering Session § Architectural Responsibilities, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verified `TASK-001`'s remediation of `NEXUS-REV-2026-07-14-021-F-001`. `EngineeringSession`'s `normalizeWorkflowBinding` (`src/kernel/execution/engineering-session.ts:222-281`) no longer matches `currentWorkflowStepId` against `WorkflowStep.roleId`; it now validates and stores a canonical zero-based position string (`normalizeWorkflowStepPosition`, rejecting non-numeric, negative, and out-of-range values) and checks that position against `workflowChain.steps.length`. This directly satisfies RFC-0004's ordinal "current workflow position" framing and resolves the ambiguity gap without modifying `WorkflowChain` or `WorkflowStep` in any way (both confirmed unmodified). A new domain test, `'binds repeated-role WorkflowChain positions independently'` (`engineering-session.test.ts:213-243`), and a new service test, `'orchestrates binding to each repeated-role WorkflowChain position independently'` (`engineering-session.service.test.ts:182-215`), both construct a chain shaped `[builder, reviewer, builder]` — the exact scenario the finding identified — and confirm an `EngineeringSession` can bind to each of the three positions (`'0'`, `'1'`, `'2'`) independently. Existing validation paths (null/missing chain, null/missing/out-of-range position, mismatched step/chain) remain covered and passing, now expressed positionally (e.g., `currentWorkflowStepId: '2'` for missing-step, `'-1'` for out-of-range rejection) rather than by role name.
+
+No new architectural concept, workflow progression behavior, or scope expansion was introduced by this remediation; it is a pure identity-representation fix confined to `EngineeringSession`'s own files, exactly as `NEXUS-RAT-2026-07-14-022` already authorized ("an equivalent `WorkflowStep` identity reference"). `git diff` against `HEAD` confirms no file outside the already-authorized Sprint 42 footprint was touched by this remediation (`workflow-chain.*`, `execution-session.*`, `execution-role.*`, `role-registry.*`, `engineering-role-profile.*`, `execution-strategy.*`, `src/hosts`, `src/adapters` all remain absent from the diff). Independent re-validation: `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly; full Vitest suite now **71 files / 330 tests** (two new tests added by the remediation).
+
+### Findings
+
+None. `NEXUS-REV-2026-07-14-021-F-001` is fully resolved.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings remediated | 1 of 1 (F-001) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 330 tests |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-14-021`: all Sprint 42 Deferred Concepts remain unimplemented; no deferred concept was introduced by this remediation.
+
+### Architectural Compliance Summary
+
+- **Positional identity:** `currentWorkflowStepId` is now a validated, canonical zero-based position string, independently addressing every step in a bound `WorkflowChain` regardless of repeated `roleId` values. Compliant with RFC-0004's "current workflow position" framing.
+- **No scope expansion:** The remediation touches only `EngineeringSession`'s own construction/validation logic and its tests; `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `src/hosts`, and `src/adapters` remain unmodified.
+- **Tests:** Two new tests directly reproduce the finding's scenario (a `[builder, reviewer, builder]` chain) and confirm all three positions are independently bindable; existing rejection-path tests continue to pass, now expressed positionally. Full suite 330/330 passing.
+
+### Builder Task Recommendation
+
+None further. `TASK-001` is Completed and independently verified. Sprint 42 is fully closed with zero open findings.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0042-engineering-session-workflow-chain-wiring.md`) — Reviewer Notes updated to record remediation verification; Final Disposition updated to reflect zero open findings.
+- `IMPLEMENTATION_PLAN.md` — Sprint 42's Implementation Result updated to record `TASK-001`'s completion and independent verification.
+- `builder-task.md` — TASK-001 → Status **Completed**; Document Status → **CLOSED**.
+
+### Work Item State Reconciliation
+
+- Sprint 42: Status remains **Approved with Findings** (historical record of `NEXUS-REV-2026-07-14-021`); zero findings remain open.
+- Work Order: Status → **Completed**.
+- Builder Tasks: TASK-001 → **Completed** (verified by this review).
+
+---
+
+## NEXUS-REV-2026-07-14-021 — Sprint 42 — Engineering Session Workflow Chain Wiring
+
+- **Reviewed Sprint:** Sprint 42 — Engineering Session Workflow Chain Wiring
+- **Reviewed Vertical Slice:** `EngineeringSession.workflowChainId`/`currentWorkflowStepId` creation-time binding, binding validation, `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository` persistence extension, `EngineeringSessionService` creation-path extension, and `createKernelServices` composition wiring, per `NEXUS-RAT-2026-07-14-022`'s Authorized Builder Scope and four Sprint Owner Refinements.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (Primary; existing "Engineering Session" § Architectural Responsibilities, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 42 — Engineering Session Workflow Chain Wiring largely conforms to RFC-0004 v1.3 and `NEXUS-RAT-2026-07-14-022`'s Authorized Builder Scope. `EngineeringSession` now carries an immutable `workflowChainId` and `currentWorkflowStepId`, both populated only at construction (confirmed: no method on `EngineeringSession` or `EngineeringSessionService` changes either field after creation) (Refinement 1). Binding validation and cross-reference validation (the bound step must belong to the bound chain) are correctly owned by `EngineeringSession` itself, in `normalizeWorkflowBinding`, consulting an injected `WorkflowChain` instance read-only; `WorkflowChainService`'s creation path resolves that instance from `IWorkflowChainRepository` in `EngineeringSessionService`, with no mutation of `WorkflowChain`/`WorkflowStep` anywhere (Refinement 2). No workflow advancement, event-driven advancement, Review-Gated Progression, Assignment Policy, completion/branching/restart/replacement, or orchestration behavior of any kind was introduced (Refinement 3). Construction deterministically rejects null `WorkflowChain` references, nonexistent `WorkflowChain` references, null `WorkflowStep` references, and nonexistent `WorkflowStep` references (Refinement 4, partially — see Finding F-001). `git diff` confirms `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`, `InMemoryWorkflowChainRepository`, `WorkflowChainService`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, and `ExecutionStrategy` are all byte-for-byte unmodified; the only existing-file changes beyond `EngineeringSession`'s own files are `create-kernel-services.ts` (the one authorized composition touch point, wiring the shared `InMemoryWorkflowChainRepository` instance into both `WorkflowChainService` and `EngineeringSessionService`). No `src/hosts` or `src/adapters` file was touched. Independent re-validation confirms `tsc --noEmit`, ESLint (`npm run lint`), `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes **71 files / 328 tests**.
+
+One finding was recorded: the chosen representation of RFC-0004's "current workflow position" — reusing `WorkflowStep.roleId` as `currentWorkflowStepId`'s identity, since Sprint 41's approved `WorkflowStep` carries no independent identifier — makes it impossible to construct an `EngineeringSession` bound to any `WorkflowChain` containing two or more `WorkflowStep`s with the same `roleId`, even though nothing in RFC-0004, Sprint 41, or `NEXUS-RAT-2026-07-14-021` forbids a `WorkflowChain` from repeating a role at different steps (e.g., a Builder → Reviewer → Builder revision loop — the exact shape this repository's own review/remediation cycles already follow). Overall disposition: **PASS WITH FINDINGS**. The core creation-time binding capability is correctly and safely implemented for the (currently exclusive, since all existing default `WorkflowChain` test fixtures use distinct roles) common case; the finding identifies a real, narrow, and independently fixable robustness gap rather than an architectural violation.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-021-F-001 — `currentWorkflowStepId` cannot represent a repeated-role `WorkflowChain` position
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Major
+- **Authority:** `knowledge/specifications/rfc-0004-execution-model.md` — "Engineering Session" § Architectural Responsibilities ("the current workflow **position** within that Workflow Chain"); IMPLEMENTATION_GATE.md Gate 10 (Code Quality — deterministic, no hidden behavior)
+- **Summary:** RFC-0004 defines Engineering Session's runtime-progression concern as "the current workflow **position**" — an ordinal concept over the Workflow Chain's ordered step sequence. `engineering-session.ts`'s `normalizeWorkflowBinding` (lines 222-269) instead identifies the current step by `RoleId` value (`currentWorkflowStepId` is populated from, and matched against, each `WorkflowStep.roleId`). Because Sprint 41's approved `WorkflowChain`/`WorkflowStep` places no uniqueness constraint on `roleId` across a chain's steps, a chain such as `[{ roleId: 'builder' }, { roleId: 'builder' }]` is entirely valid to construct (confirmed: `WorkflowChain.create` imposes no such check), but `EngineeringSession.create` deterministically rejects *every* attempt to bind to such a chain with `InvalidEngineeringSessionDefinitionError` ("does not uniquely identify one WorkflowStep"), regardless of which occurrence of the role was intended. This is confirmed as deliberate, tested behavior, not an oversight: `test/kernel/execution/engineering-session.test.ts:205-213` explicitly asserts that a two-`builder`-step chain throws, and `IMPLEMENTATION_REPORT.md`'s Sprint 42 Architectural Assumptions section documents the rejection as an intentional design choice.
+- **Evidence:** `src/kernel/execution/engineering-session.ts:249-263` (`matchingSteps` role-based lookup and ambiguity rejection); `src/kernel/execution/workflow-chain.ts:95-103` (`normalizeWorkflowSteps` — no duplicate-`roleId` check); `test/kernel/execution/engineering-session.test.ts:205-213`; `IMPLEMENTATION_REPORT.md` Sprint 42 § Architectural Assumptions.
+- **Impact:** Any future `WorkflowChain` that legitimately repeats a role at two different steps (a common workflow shape — this repository's own Builder → Reviewer → Builder-remediation cycle is exactly such a shape) can never have an `EngineeringSession` constructed against any of its repeated-role steps. This is not a corner case invented by the Reviewer; it is the natural shape of an iterative review workflow, and the rejection is silent at the `WorkflowChain` layer (a chain author has no signal, at chain-creation time, that the chain they just built is unusable for certain step bindings). This is a narrower and more easily fixable gap than an architectural violation: it does not corrupt state, breach an aggregate boundary, or exceed `NEXUS-RAT-2026-07-14-022`'s Authorized Builder Scope (which explicitly permitted "an equivalent `WorkflowStep` identity reference" without mandating role-based identity), so no Sprint Owner ratification is required to correct it.
+- **Required Disposition:** Builder Task — represent "current workflow position" positionally (e.g., a validated index into the existing, already-exposed `WorkflowChain.steps` readonly array, or an equivalent ordinal) rather than by `RoleId` value, so that every position in a `WorkflowChain` — including repeated-role positions — is independently and unambiguously bindable. This requires no change to `WorkflowChain` or `WorkflowStep` (their existing `steps` array already exposes ordinal position) and remains within Sprint 42's already-authorized `EngineeringSession`-only scope.
+- **Builder Action:** Fix.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical | 0 |
+| Major | 1 (F-001) |
+| Minor | 0 |
+| Informational | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint (`npm run lint`), `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 328 tests |
+
+### Deferred Concept Validation
+
+All Sprint 42 Deferred Concepts remain unimplemented: workflow advancement (manual or automatic), event-driven advancement, Review-Gated Progression, Assignment Policy, workflow completion/branching/restart/replacement, `EngineeringSession` orchestration behavior beyond validated creation, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and concurrent session coordination. No deferred concept was silently introduced. `WorkflowChain`, `WorkflowStep`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, and `ExecutionStrategy` are confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `EngineeringSession` owns the active `WorkflowChain` reference, the current position reference, and their validation; `WorkflowChain`/`WorkflowStep` gain no new owned concern or runtime state. Compliant with RFC-0004 v1.3 and Refinement 2.
+- **Immutability of binding:** Both `workflowChainId` and `currentWorkflowStepId` are set only in the private constructor, populated only via `create`/`fromSnapshot`; no setter or mutation path exists. Compliant with Refinement 1.
+- **No progression semantics:** No advancement, event-driven advancement, Review-Gated Progression, Assignment Policy, completion, branching, restart, replacement, or orchestration method exists on `EngineeringSession` or `EngineeringSessionService`. Compliant with Refinement 3.
+- **Deterministic validation:** Null/nonexistent `WorkflowChain` and `WorkflowStep` references are deterministically rejected with `InvalidEngineeringSessionDefinitionError`; equivalent inputs produce equivalent snapshots (confirmed via the `equals`/`fromSnapshot` round-trip test). The mismatched-step-to-chain case is also correctly rejected. The one gap (repeated-role ambiguity) is captured as F-001 rather than treated as a Refinement 4 violation, since Refinement 4 only required rejecting null/nonexistent/mismatched references — which the implementation does — not resolving the ambiguity case, which was not explicitly anticipated by the ratification.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution/Mission-domain file modified beyond `EngineeringSession`'s own files and the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Tests:** 3 modified test files covering construction/validation/equality/immutability of the new binding, rejection of each invalid-binding case, repository persistence/reconstitution of the new fields, and service-level orchestration of the validated creation path (success and every rejection case). Full suite 328/328 passing.
+
+### Builder Task Recommendation
+
+Generate a Builder Task via `nexus-sprint` for F-001 (Major, Category 1 — Implementation Defect). No Category 2–5 findings were recorded; Sprint 42 does not require a Sprint Owner ratification to correct F-001, since `NEXUS-RAT-2026-07-14-022` already permits an equivalent `WorkflowStep` identity representation. Recommend the Sprint Owner treat Sprint 42 as **Approved with Findings**; the finding does not block progression to a future Milestone 8 Sprint.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0042-engineering-session-workflow-chain-wiring.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 42 marked **Approved with Findings**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction requires its own future Sprint Owner scope ratification via `nexus-plan`, and F-001's remediation should be completed first via `nexus-sprint`.
+
+### Work Item State Reconciliation
+
+- Sprint 42: Status → **Approved with Findings**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: One generated for F-001 (Major, Category 1) via `nexus-sprint`; not yet completed.
+
+---
+
+## NEXUS-REV-2026-07-14-020 — Sprint 41 — Workflow Chaining Foundation
+
+- **Reviewed Sprint:** Sprint 41 — Workflow Chaining Foundation
+- **Reviewed Vertical Slice:** `WorkflowChain`, `WorkflowChainId`, `WorkflowStep`, `IWorkflowChainRepository`/`InMemoryWorkflowChainRepository`, `WorkflowChainService`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-14-021`'s Authorized Builder Scope and two Sprint Owner Refinements.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.3 (Primary; new "Workflow Chaining" section). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 41 — Workflow Chaining Foundation conforms to RFC-0004 v1.3 and `NEXUS-RAT-2026-07-14-021`'s Authorized Builder Scope, including both Sprint Owner Refinements. `WorkflowChain` is implemented as a standalone, immutable Kernel domain concept — `WorkflowChainId`, an ordered, frozen list of `WorkflowStep`s, `create`/`fromSnapshot`/`toSnapshot`/`equals` — with no mutation method of any kind, confirmed by explicit `'advance' in workflowChain` / `'addStep' in workflowChain` / `'close' in workflowChain` / `'save' in workflowChain` assertions all evaluating `false` (Refinement 1). `WorkflowStep` carries exactly one `RoleId` field; `EngineeringSession`, `ExecutionSession`, Adapter, Assignment Policy, and `EngineeringRoleProfile` references are rejected both at the TypeScript type level (`WorkflowStepInput` declares only `roleId`) and at runtime by `assertWorkflowStepBoundary`, independently exercised by a dedicated test that bypasses the type system via `@ts-expect-error` to prove the runtime guard is genuinely reachable, not dead code (Refinement 2). `EngineeringSession`, `ExecutionSession`, `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`, and the Kernel Canon are all confirmed unmodified; the only existing-file changes are the one authorized `create-kernel-services.ts` composition touch point and the Sprint 37/38/39/40-precedented extension of the Kernel Boundary Certification test. No `src/hosts` or `src/adapters` file was touched. RFC-0004's v1.3 amendment (applied during planning, ratified by `NEXUS-RAT-2026-07-14-020`) was not further modified by this Sprint. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes **71 files / 326 tests** on two consecutive runs, with no flakiness observed. Overall disposition: **PASS**.
+
+No findings were recorded.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 71 files / 326 tests (reproduced clean on two consecutive full-suite runs) |
+
+### Deferred Concept Validation
+
+All Sprint 41 Deferred Concepts remain unimplemented: `EngineeringSession` → `WorkflowChain` wiring (active-chain reference, current workflow position), automatic workflow advancement, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, session recovery/checkpointing, and concurrent session coordination. No deferred concept was silently introduced. `EngineeringSession` and `ExecutionSession` are confirmed byte-for-byte unmodified; RFC-0004's "Execution Session" section text remains unmodified since v1.0.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `WorkflowChain` owns only chain identity, ordered `WorkflowStep`s, and workflow topology (the immutable template); it does not own or reference runtime state, current position, or step history. `EngineeringSession`'s runtime-progression responsibilities (unchanged this Sprint) remain untouched. Compliant with RFC-0004 v1.3 and Refinement 1.
+- **`WorkflowStep` boundaries:** Each step carries exactly one `RoleId` reference and nothing else, enforced at both the type level and a genuinely-reachable runtime guard. Compliant with Refinement 2.
+- **Immutability:** `WorkflowChain` and `WorkflowStep` are frozen per instance and per snapshot; no mutation method exists on either class (explicitly asserted in tests); array/object snapshots are defensively copied and frozen, confirmed to throw `TypeError` on attempted external mutation. Compliant with Refinement 1.
+- **Service orchestration:** `WorkflowChainService` is thin — create/lookup/enumerate only, delegating all validation and boundary enforcement to `WorkflowChain`/`WorkflowStep` and the repository. Compliant with the established Kernel service pattern.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution/Mission-domain file modified beyond the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Dead code:** All exported types and classes are referenced and used; no unused exports were found (a repository-wide export/usage check found none), avoiding the Sprint 40 (`NEXUS-REV-2026-07-14-018-F-001`) precedent.
+- **Tests:** 3 new files covering domain construction, validation, equality, immutability, absence of mutation methods, `WorkflowStep` boundary constraints (positive and negative cases via `@ts-expect-error`-bypassed runtime checks), repository behavior, and service behavior; Kernel Boundary Certification test extended consistently with the Sprint 37/38/39/40 precedent. Full suite 326/326 passing on repeated runs.
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded. Sprint 41 satisfies its approval criteria: implementation conforms to RFC-0004 v1.3 and `NEXUS-RAT-2026-07-14-021`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 41 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0041-workflow-chaining-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 41 marked **Approved**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (`EngineeringSession` → `WorkflowChain` wiring, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 41: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
+## NEXUS-REV-2026-07-14-019 — Sprint 40 — Execution Session Foundation (TASK-001 / DOC-005 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 40 — Execution Session Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-018-F-001` / `TASK-001` (removal of the unused `ExecutionSessionMetadata` type) and `NEXUS-REV-2026-07-14-018-F-002` / `DOC-005` (`builder-task.md`) — a dead-code removal and a documentation-only wording correction to `IMPLEMENTATION_MANIFEST.md`'s Milestone 8 and Sprint 40 status lines.
+- **RFC Coverage:** None (implementation-defect and documentation-wording findings only; no RFC concept touched).
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+This review independently verifies the Builder's remediation of `TASK-001` and `DOC-005`.
+
+`TASK-001`: `src/kernel/execution/execution-session.types.ts` no longer declares `ExecutionSessionMetadata`; a repository-wide grep confirms zero remaining references anywhere in `src/` or `test/`. The file's other four exported types (`ExecutionSessionTimestampsInput`, `ExecutionSessionTimestampsSnapshot`, `ExecutionSessionInput`, `ExecutionSessionSnapshot`) are byte-for-byte unchanged, and `ExecutionSession`, `ExecutionSessionService`, `IExecutionSessionRepository`, and all three test files are untouched by this remediation — satisfying `TASK-001`'s "public surface otherwise unchanged" and "no new field, behavior, or normative concept introduced" Acceptance Criteria exactly.
+
+`DOC-005`: `IMPLEMENTATION_MANIFEST.md:1640`'s Milestone 8 status summary line now reads "...Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018)", and `:1685`'s Sprint 40 subsection status line now reads "Status: Approved with Findings — NEXUS-REV-2026-07-14-018" — both matching `DOC-005`'s Required Changes and Acceptance Criteria exactly, and mirroring the correction the Reviewer previously applied to the equivalent `IMPLEMENTATION_PLAN.md` lines. No other content in `IMPLEMENTATION_MANIFEST.md`'s Sprint 40 subsection (status, implemented/deferred concepts, notes) was altered.
+
+`builder-task.md` is confirmed unchanged in its task-status fields since generation (still "OPEN — 2 tasks pending"), consistent with the Builder correctly not self-modifying task completion status. No source file, test, RFC, or Kernel Canon beyond the one authorized `execution-session.types.ts` edit was touched by this remediation.
+
+Independently reran `npm run compile` (clean), `npm run lint` (clean), `npm run build` and `npm run test:extension-host:build` (both clean), and the full Vitest suite (`npm test`) twice: the first run showed one transient failure in `test/integration/local-process-runtime.integration.test.ts` under full-suite parallel load (unrelated to `ExecutionSession`, adapter-layer runtime concern), confirmed passing in isolation and on immediate rerun (**68 files / 316 tests**, no flakiness) — the identical category of pre-existing full-suite-load timing variance documented in the Sprint 38 and Sprint 39 reviews, not a regression introduced by this remediation.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 2 of 2 (`NEXUS-REV-2026-07-14-018-F-001` / `TASK-001`; `NEXUS-REV-2026-07-14-018-F-002` / `DOC-005`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 68 files / 316 tests (independently reproduced on rerun; one transient full-suite-load failure isolated and confirmed non-regressing) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation is a dead-code removal and a documentation-wording correction only; no RFC concept, deferred or otherwise, is touched. All Sprint 40 Deferred Concepts (Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, Adapter dispatch, execution-eligibility determination, Task lifecycle transition) remain unimplemented and untouched.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The remediation is confined to one unused-type removal in `execution-session.types.ts` and two status-line wording corrections in `IMPLEMENTATION_MANIFEST.md`; no other source, test, RFC, or Kernel Canon content changed.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0040-execution-session-foundation.md`) — Status remains **Approved with Findings**; both findings underlying that status are now remediated per this verification.
+- `IMPLEMENTATION_PLAN.md` — no status change required; Sprint 40 was already marked Approved with Findings and did not block Milestone 8 progression.
+
+### Work Item State Reconciliation
+
+- Sprint 40: Remains Approved with Findings (both findings are now remediated; disposition already permitted progression).
+- Work Order: Completed.
+- Builder Tasks: `TASK-001` — Status → **Completed** (acceptance criteria verified satisfied). `DOC-005` — Status → **Completed** (acceptance criteria verified satisfied).
+
+### Builder Task Recommendation
+
+None. `TASK-001` and `DOC-005` are both closed. No further Builder or Documentation Tasks are open for Sprint 40.
+
+---
+
+## NEXUS-REV-2026-07-14-018 — Sprint 40 — Execution Session Foundation
+
+- **Reviewed Sprint:** Sprint 40 — Execution Session Foundation
+- **Reviewed Vertical Slice:** `ExecutionSession`, `ExecutionSessionId`, `IExecutionSessionRepository`/`InMemoryExecutionSessionRepository`, `ExecutionSessionService`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-14-019`'s Authorized Builder Scope and four Sprint Owner Refinements.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.2 (Primary; existing "Execution Session" section, unmodified). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 40 — Execution Session Foundation conforms to RFC-0004's existing "Execution Session" section and to `NEXUS-RAT-2026-07-14-019`'s Authorized Builder Scope, including all four Sprint Owner Refinements. `ExecutionSession` is implemented as an immutable, append-only Kernel domain concept carrying exactly RFC-0004's defined fields (assigned role, assigned adapter, execution timestamps, consumed Projection version, produced artifacts, execution outcome) plus a required, immutable owning `EngineeringSessionId` (Refinement 4), with no mutation method of any kind and deterministic, reproducible snapshot construction (Refinement 3) confirmed by dedicated tests. `EngineeringSession` owns only the containment association and is confirmed byte-for-byte unmodified; `ExecutionSession` does not mutate `EngineeringSession`'s internal state and vice versa (Refinement 1). `ExecutionSessionService` exposes only create/lookup/enumerate, with no dispatch, Assignment Policy evaluation, Task lifecycle transition, or workflow coordination present anywhere in the diff (Refinement 2). The ownership invariant is enforced both at aggregate construction and, confirmed by a dedicated repository test that bypasses the aggregate, at the repository layer (Refinement 4). `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `Task`, `TaskId`, RFC-0004, and the Kernel Canon are all confirmed unmodified; the only existing-file changes are the one authorized `create-kernel-services.ts` composition touch point and the Sprint 37/38/39-precedented extension of the Kernel Boundary Certification test. No `src/hosts` or `src/adapters` file was touched. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes 68 files / 316 tests with no flakiness observed. Overall disposition: **PASS WITH FINDINGS**.
+
+One Category 1 Implementation Defect (Minor) was recorded.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-018-F-001 — Unused `ExecutionSessionMetadata` type
+
+- **Category:** Category 1 — Implementation Defect
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 10 (Code Quality — "No dead code introduced.")
+- **Summary:** `src/kernel/execution/execution-session.types.ts:1` declares `export type ExecutionSessionMetadata = Readonly<Record<string, string>>;`. It is not referenced by `ExecutionSession`, `ExecutionSessionInput`, `ExecutionSessionSnapshot`, `ExecutionSessionServiceContract`, `CreateExecutionSessionCommand`, the repository, the service, or any test — a repository-wide grep for `ExecutionSessionMetadata` returns only its own declaration. RFC-0004's "Execution Session" section defines no metadata field (unlike `EngineeringSession`, which genuinely owns and uses `collaborationMetadata`/`EngineeringSessionMetadata` throughout `engineering-session.ts`/`.contract.ts`/`.types.ts`) — this appears to be a vestigial artifact of mirroring the `EngineeringSession` types file structure.
+- **Evidence:** `src/kernel/execution/execution-session.types.ts:1`; repository-wide grep for `ExecutionSessionMetadata` (single match, the declaration itself); RFC-0004 "Execution Session" section (`knowledge/specifications/rfc-0004-execution-model.md:315-330`), which defines no metadata field.
+- **Impact:** Dead exported type; no functional impact, but it misleadingly implies `ExecutionSession` carries metadata state that neither RFC-0004 nor the Authorized Vertical Slice define, and that no code path populates or reads.
+- **Required Disposition:** Builder Task — remove the unused `ExecutionSessionMetadata` type export.
+- **Builder Action:** Fix.
+
+#### NEXUS-REV-2026-07-14-018-F-002 — Stale Sprint 40 status lines in IMPLEMENTATION_MANIFEST.md
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 12 (Documentation); Builder/Reviewer artifact-ownership boundary (Reviewer SHALL NOT modify `IMPLEMENTATION_MANIFEST.md`)
+- **Summary:** `IMPLEMENTATION_MANIFEST.md:1640`'s Milestone 8 status summary still reads "...Sprint 40 Current — Execution Session Foundation, NEXUS-RAT-2026-07-14-019)", and `IMPLEMENTATION_MANIFEST.md:1685`'s Sprint 40 subsection still reads "Status: Implemented — Pending Reviewer Validation — NEXUS-RAT-2026-07-14-019", both stale now that Sprint 40 is Approved with Findings per this review. This is the identical situation `NEXUS-REV-2026-07-14-015-F-001` classified for Sprint 38/`IMPLEMENTATION_MANIFEST.md`: the Reviewer closed the `IMPLEMENTATION_PLAN.md` half of this same drift directly as part of its own Repository State Update (a Reviewer-owned artifact); the `IMPLEMENTATION_MANIFEST.md` half remains open, since the Reviewer SHALL NOT modify `IMPLEMENTATION_MANIFEST.md`.
+- **Evidence:** `IMPLEMENTATION_MANIFEST.md:1640,1685`; corrected precedent already applied by this review to `IMPLEMENTATION_PLAN.md`'s equivalent lines.
+- **Impact:** Non-blocking wording inconsistency between Builder-owned and Reviewer-owned status lines; no architectural or scope impact.
+- **Required Disposition:** Documentation Task — update `IMPLEMENTATION_MANIFEST.md:1640` to "Sprint 40 Approved with Findings — Execution Session Foundation, NEXUS-REV-2026-07-14-018" and `:1685` to "Status: Approved with Findings — NEXUS-REV-2026-07-14-018".
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 2 (F-001, F-002) |
+| Informational (Observation) | 0 |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 68 files / 316 tests (no flakiness observed this run) |
+
+### Deferred Concept Validation
+
+All Sprint 40 Deferred Concepts remain unimplemented: Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, Adapter dispatch, execution-eligibility determination, and Task lifecycle transition. No deferred concept was silently introduced. RFC-0004's "Execution Session" section is confirmed byte-for-byte unmodified; the Kernel Canon is confirmed unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `ExecutionSession` owns exactly RFC-0004's defined fields plus the required owning `EngineeringSessionId`; it does not redefine or duplicate `EngineeringSession`'s Architectural Responsibilities. `EngineeringSession` owns only the containment association and is confirmed unmodified. Compliant with Refinement 1.
+- **Non-responsibilities:** No Adapter dispatch, Assignment Policy evaluation, execution-eligibility determination, Task lifecycle transition, workflow coordination, or orchestration behavior exists anywhere in the diff. Compliant with Refinement 2.
+- **Invariants:** `ExecutionSessionId` is immutable; `ExecutionSession` exposes no mutation method (`'close' in executionSession` / `'save' in executionSession` explicitly asserted `false` in tests); equivalent construction inputs produce equivalent snapshots (dedicated reproducibility test). Compliant with Refinement 3.
+- **Ownership invariant:** Every `ExecutionSession` requires a valid owning `EngineeringSessionId` at construction (`EngineeringSessionId.fromString` validation) and independently at the repository layer (`assertOwningEngineeringSessionId`, exercised by a test that bypasses the aggregate to prove the repository check is genuinely reachable, not dead code). Compliant with Refinement 4.
+- **Aggregate discipline:** `ExecutionSession` is frozen per snapshot, with dedicated validation and not-found/duplicate errors; reuses the existing shared `RoleId` value object for `assignedRole` (no duplicate identity concept introduced).
+- **Service orchestration:** `ExecutionSessionService` is thin — create/lookup/enumerate only, delegating all validation and invariants to `ExecutionSession` and its repository. Compliant with the established Kernel service pattern.
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution/Mission-domain file modified beyond the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Tests:** 3 new files covering domain construction, validation, equality, immutability, append-only behavior, deterministic reproducibility, ownership-invariant rejection (aggregate and repository layers), repository behavior (including owner-scoped enumeration), and service behavior; Kernel Boundary Certification test extended consistently with the Sprint 37/38/39 precedent. Full suite 316/316 passing.
+
+### Builder Task Recommendation
+
+Generate Builder Tasks via `nexus-sprint` for F-001 (implementation fix: remove the unused `ExecutionSessionMetadata` type) and F-002 (documentation task: correct the two stale Sprint 40 status lines in `IMPLEMENTATION_MANIFEST.md`). Both are Minor and non-blocking; neither affects Sprint 40's approval or Milestone 8 progression.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0040-execution-session-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 40 marked **Approved with Findings**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Workflow Chaining, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 40: Status → **Approved with Findings**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: Two new Builder Tasks recommended (F-001 implementation fix; F-002 documentation task), both Minor and non-blocking — remain open pending `nexus-sprint` generation and Builder remediation.
+
+---
+
+## NEXUS-REV-2026-07-14-017 — Sprint 39 — Engineering Sessions Foundation
+
+- **Reviewed Sprint:** Sprint 39 — Engineering Sessions Foundation
+- **Reviewed Vertical Slice:** `EngineeringSession`, `EngineeringSessionId`, `EngineeringSessionStatus`, `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository`, `EngineeringSessionService`, and `createKernelServices` composition, per `NEXUS-RAT-2026-07-14-018`'s Authorized Builder Scope.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.2 (Primary; Engineering Session). Referenced: RFC-0010.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 39 — Engineering Sessions Foundation conforms to RFC-0004 v1.2 and `NEXUS-RAT-2026-07-14-018`'s Authorized Builder Scope. `EngineeringSession`, `EngineeringSessionId`, `EngineeringSessionStatus`, `IEngineeringSessionRepository`/`InMemoryEngineeringSessionRepository`, and `EngineeringSessionService` were implemented exactly as authorized: a foundation-only Kernel domain concept with a minimal `Open` → `Closed` lifecycle, thin service orchestration, and in-memory persistence. `ExecutionRole`, `RoleRegistry`, `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`, `ExecutionStrategy`, `role.service.ts`, `src/hosts`, and `src/adapters` are confirmed unmodified; the only existing-file change is the one authorized composition touch point in `create-kernel-services.ts`. `Execution Session` (RFC-0004's existing, narrower concept) remains correctly unimplemented; RFC-0004's own "Execution Session" section text is unmodified. Independent re-validation confirms `tsc --noEmit`, ESLint, `npm run build`, and `npm run test:extension-host:build` all pass cleanly, and the full Vitest suite (`npm test`) passes 65 files / 308 tests, with one non-regressing, environment-load-induced timeout observed on a single run against the Kernel Boundary Certification test's static import-scan (confirmed to pass consistently in isolation and across a majority of full-suite runs). Overall disposition: **PASS**.
+
+One Category 6 Observation was recorded; it generates no Builder Task.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-017-F-001 — Composition test named in the Sprint record is verified indirectly, not by a standalone test
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** `knowledge/implementation/sprints/sprint-0039-engineering-sessions-foundation.md` — Authorized Vertical Slice unit-test list
+- **Summary:** The Sprint record names "a composition test asserting `createKernelServices()` composes the Session repository and `EngineeringSessionService` without altering any existing composed service." No standalone test carries that specific assertion; it is instead verified indirectly through `kernel-boundary-certification.integration.test.ts`'s expanded `expectedKernelServiceNames` list, `KernelHarness`/`createHarness()` wiring, and an `enumerateEngineeringSessions()` empty-array assertion.
+- **Impact:** None — the underlying property (correct, non-disruptive Kernel composition) is proven correct; only the specific test-file organization named in the Sprint record differs. This is the identical situation the Sprint 38 review (`NEXUS-REV-2026-07-14-015`) classified as a non-blocking Observation for the equivalent bullet.
+- **Required Disposition:** No action.
+- **Builder Action:** None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Informational (Observation) | 1 (F-001) |
+| Architectural Violations | 0 |
+| Specification Conflicts | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, `npm run build`, `npm run test:extension-host:build`, Vitest 65 files / 308 tests (one non-regressing full-suite-load timeout observed and isolated; confirmed passing in isolation and on majority of full-suite reruns) |
+
+### Deferred Concept Validation
+
+All Sprint 39 Deferred Concepts remain unimplemented: Workflow Chaining, Assignment Policy, Review-Gated Progression, Multi-Agent Engineering Orchestration, automatic workflow advancement, session recovery/checkpointing, concurrent session coordination, and `Execution Session` implementation. No deferred concept was silently introduced. RFC-0004's existing "Execution Session" section is confirmed byte-for-byte unmodified.
+
+### Architectural Compliance Summary
+
+- **Ownership boundary:** `EngineeringSession` owns engineering runtime context, active workflow reference, participating Engineering Roles, workflow state, session timeline, diagnostics, and collaboration metadata, exactly per RFC-0004 v1.2's Architectural Responsibilities. It does not redefine or duplicate `Execution Session`'s responsibilities, and carries no execution semantics, dispatch eligibility, Assignment Policy, Workflow Chaining, or orchestration behavior. Compliant.
+- **Aggregate discipline:** `EngineeringSession` is immutable per snapshot, with dedicated validation and lifecycle errors; `close()` correctly rejects a second transition. Compliant.
+- **Service orchestration:** `EngineeringSessionService` is thin — create/close/lookup/enumerate only, delegating all validation and lifecycle rules to `EngineeringSession`. Compliant with the established Kernel service pattern (mirrors `KnowledgeService`, `RoleService`).
+- **Kernel boundary:** No `src/hosts` or `src/adapters` file modified; no existing Kernel Execution-domain file modified beyond the one authorized `createKernelServices` composition touch point. Compliant with RFC-0010.
+- **Tests:** 3 new files / covering domain construction, validation, equality, immutability, lifecycle transitions, repository create/save/lookup/enumerate/duplicate-rejection, and service create/close/lookup/enumerate/diagnostics; Kernel Boundary Certification test extended consistently with the Sprint 37/38 precedent. Full suite 308/308 passing (isolation-verified for the one full-suite-load timeout).
+
+### Builder Task Recommendation
+
+None. No Category 1–5 findings were recorded. Sprint 39 satisfies its approval criteria: implementation conforms to RFC-0004 v1.2 and `NEXUS-RAT-2026-07-14-018`, deferred concepts are correctly excluded, tests pass, and no Critical/Major/Minor finding remains. Recommend the Sprint Owner treat Sprint 39 as **Approved**.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0039-engineering-sessions-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 39 marked **Approved**; Milestone 8 status summary updated. No further Milestone 8 Sprint is currently planned to advance to Current — the next Milestone 8 direction (Workflow Chaining, Assignment Policy, Review-Gated Progression, or Multi-Agent Orchestration) requires its own future Sprint Owner scope ratification via `nexus-plan`.
+
+### Work Item State Reconciliation
+
+- Sprint 39: Status → **Approved**.
+- Work Order: Status → **Completed**.
+- Builder Tasks: None generated (no Category 1–5 findings).
+
+---
+
+## NEXUS-REV-2026-07-14-016 — Sprint 38 — Engineering Role Profiles Foundation (DOC-004 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 38 — Engineering Role Profiles Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-015-F-001` / `DOC-004` (`builder-task.md`) — a documentation-only wording correction to `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line.
+- **RFC Coverage:** None (documentation-wording finding only).
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+This review independently verifies the Builder's remediation of `DOC-004`. `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line previously read: "...Sprint 38 Current — Engineering Role Profiles Foundation, NEXUS-RAT-2026-07-14-015)". It now reads: "...Sprint 38 Approved with Findings — NEXUS-REV-2026-07-14-015)". This matches `DOC-004`'s Required Changes and Acceptance Criteria exactly, and mirrors the wording pattern already used for Sprint 37 in the same line and the correction the Reviewer previously applied to the equivalent `IMPLEMENTATION_PLAN.md` line.
+
+`git diff` confirms this is the only substantive change to `IMPLEMENTATION_MANIFEST.md` since `NEXUS-REV-2026-07-14-015`: the Sprint 38 subsection itself (status, implemented/deferred concepts, notes) is untouched, and no source, test, RFC, Kernel Canon, or other governance artifact was modified by this remediation — satisfying `DOC-004`'s "No other file is modified" Acceptance Criterion. `builder-task.md` is likewise unchanged, consistent with the Builder correctly not self-modifying task status.
+
+Independently reran `npm run compile`, `npm run lint`, and the full Vitest suite: `tsc --noEmit` and ESLint passed with no output; Vitest passed **62 files / 301 tests** (including `test/integration/local-process-runtime.integration.test.ts`, which failed transiently under load during the prior review and is now confirmed passing along with everything else), confirming the documentation-only correction introduced no regression.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (`NEXUS-REV-2026-07-14-015-F-001` / `DOC-004`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 62 files / 301 tests (independently reproduced, no flakiness this run) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation is a documentation-wording correction only; no RFC concept, deferred or otherwise, is touched.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The remediation is confined to one status-summary-line wording correction in `IMPLEMENTATION_MANIFEST.md`; no source, test, RFC, or Kernel Canon content changed.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0038-engineering-role-profiles-foundation.md`) — Status remains **Approved with Findings**; the finding underlying that status is now remediated per this verification.
+- `IMPLEMENTATION_PLAN.md` — no status change required; Sprint 38 was already marked Approved with Findings and did not block Milestone 7 progression.
+
+### Work Item State Reconciliation
+
+- Sprint 38: Remains Approved with Findings (the finding is now remediated; disposition already permitted progression).
+- Work Order: Completed.
+- Builder Tasks: `DOC-004` — Status → **Completed** (acceptance criteria verified satisfied).
+
+### Builder Task Recommendation
+
+None. `DOC-004` is closed. No further Builder or Documentation Tasks are open for Sprint 38.
+
+---
+
+## NEXUS-REV-2026-07-14-015 — Sprint 38 — Engineering Role Profiles Foundation
+
+- **Reviewed Sprint:** Sprint 38 — Engineering Role Profiles Foundation
+- **Reviewed Vertical Slice:** `EngineeringRoleProfile`, `EngineeringRoleProfileRegistry`/`InMemoryEngineeringRoleProfileRegistry`, `createDefaultEngineeringRoleProfiles()`, `EngineeringRoleProfileService`, and Kernel composition-time seeding, per `knowledge/implementation/sprints/sprint-0038-engineering-role-profiles-foundation.md` and `NEXUS-RAT-2026-07-14-015`.
+- **RFC Coverage:** RFC-0004 — Execution Model v1.1 (Primary; "Engineering Role Profile" section added by `NEXUS-RAT-2026-07-14-014`). Referenced: RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 38 was authorized by `NEXUS-RAT-2026-07-14-015` to implement the `EngineeringRoleProfile` Kernel concept added to RFC-0004 by the v1.1 amendment (`NEXUS-RAT-2026-07-14-014`), incorporating five binding Sprint Owner refinements: a non-orchestration `EngineeringRoleProfileService`, composition-time-only registry seeding treated as immutable thereafter, the strengthened "only new normative concept" acceptance criterion, an explicit forward-compatibility statement, and semantic-equivalence (not byte-for-byte) presentation values.
+
+Independent review confirms the implementation conforms to the authorized vertical slice. `EngineeringRoleProfile` (`src/kernel/execution/engineering-role-profile.ts`) is an immutable value object mirroring `ExecutionRole`'s construction pattern exactly, carrying only `roleId`, `workflowPresentationLabel`, `completionPresentationLabel`, and `includeAssignedRoleInPresentation` — no execution semantics, dispatch eligibility, lifecycle, assignment, orchestration, Adapter routing/selection, or authorization field or method exists anywhere in the new surface. `InMemoryEngineeringRoleProfileRegistry` accepts an optional constructor-supplied initial-profile list (the only seeding path) and otherwise behaves identically to `RoleRegistry`. `EngineeringRoleProfileService` exposes exactly `getById`/`has`/`enumerate` as own prototype methods (verified by both the test suite and independent inspection) — no orchestration surface exists. `createDefaultEngineeringRoleProfiles()` derives its Role set from `createDefaultKernelRoles()` and supplies presentation values matching the existing `vscode-host.ts` strings for Builder/Reviewer/Documentation Reviewer workflows exactly. `createKernelServices()` seeds the registry once, at composition time, via this factory, and registers `EngineeringRoleProfileService` immediately after `RoleService` in the composed service list.
+
+`ExecutionRole`, `default-kernel-roles.ts`, `role-registry.ts`, and `role.service.ts` are confirmed byte-for-byte unmodified (`git diff` shows no changes to any of these files). No `src/hosts` or `src/adapters` file was modified. The Sprint 18 Kernel Boundary Certification test (`test/integration/kernel-boundary-certification.integration.test.ts`) was updated only to add `EngineeringRoleProfileService` to its expected composed-service list and to assert profile enumeration/lookup alongside the pre-existing role-enumeration assertion — the file's distinct `src/kernel` import-graph-boundary assertion is unmodified.
+
+Independently reran full repository validation. `npm run validate` (`tsc --noEmit`, ESLint, Vitest, esbuild) initially showed one failing test, `test/integration/local-process-runtime.integration.test.ts` (`TimedOut` vs. expected `Exited`, a Sprint 21 local-process-spawn test unrelated to this Sprint's file changes). Re-running that file in isolation passed deterministically (1/1), confirming this is pre-existing test-infrastructure timing flakiness under full-suite parallel load, not a Sprint 38 regression — no file this Sprint touched is referenced by that test. With that isolated confirmation, full validation is **PASS**: TypeScript compile, ESLint, Vitest (62 files / 301 tests, matching the Builder's reported count exactly), esbuild, and the extension-host bundle build (`npm run test:extension-host:build`) all passed.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-015-F-001 — Milestone 7 status summary line understates Sprint 38's actual state
+
+- **Category:** 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 12 (Documentation).
+- **Summary:** Both `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` carry a Milestone 7 status summary line reading "...Sprint 38 Current — Engineering Role Profiles Foundation...", and `IMPLEMENTATION_PLAN.md`'s "Remaining Objectives" list still reads "Engineering Role Profiles (Sprint 38 — Current)". The Builder correctly updated Sprint 38's own subsection status to "Implemented — Pending Reviewer Validation" in both files, but did not propagate that state to the milestone-level summary lines, leaving them inconsistent with the sprint-level status — the same class of drift previously recorded as `NEXUS-REV-2026-07-14-013-F-001`.
+- **Evidence:** `IMPLEMENTATION_PLAN.md:1841,1867`; `IMPLEMENTATION_MANIFEST.md:1463`; contrast with `IMPLEMENTATION_PLAN.md:2015` ("Implemented — Pending Reviewer Validation").
+- **Impact:** Documentation-only; does not affect implementation correctness, architectural conformance, or test coverage.
+- **Recommended Disposition:** Documentation Task. This review closes the `IMPLEMENTATION_PLAN.md` half directly as part of its Repository State Update (Reviewer-owned artifact) by marking Sprint 38 Approved with Findings. The `IMPLEMENTATION_MANIFEST.md` half remains open as a Builder-owned Documentation Task, since the Reviewer SHALL NOT modify `IMPLEMENTATION_MANIFEST.md`.
+- **Builder Action:** Update documentation only — reword `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line to reflect Sprint 38's Approved with Findings disposition once this review is recorded. No implementation or architectural change.
+
+### Deferred Concept Validation
+
+- Confirmed no `src/hosts` file was modified: `git diff --stat` shows changes limited to `src/kernel/execution/*` (new files) and `src/kernel/common/create-kernel-services.ts`.
+- Confirmed no `src/adapters` file was modified.
+- Confirmed no Workflow Chaining, Assignment Policy, Execution Session, Planner Workflow, Adapter Routing, Adapter Selection, or authorization concept was introduced — the new surface exposes only `getById`/`has`/`enumerate` and value-object accessors.
+- Confirmed `ExecutionRole` and `default-kernel-roles.ts` are unmodified; `EngineeringRoleProfile` does not replace, wrap, or redefine `ExecutionRole`, satisfying RFC-0004 v1.1's ownership boundary.
+- Observation (Category 6, non-blocking): the Sprint Implementation Record's test list named a dedicated "composition test asserting `createKernelServices()` seeds the registry from `createDefaultEngineeringRoleProfiles()` exactly once and that no runtime registration path exists outside composition." No standalone test with that specific assertion exists; the property is instead verified indirectly through the Kernel Boundary Certification integration test's profile-enumeration assertions, which do demonstrate correct seeding content. This is a test-coverage refinement opportunity, not a defect — the acceptance criteria in the Sprint's own Definition of Done section do not separately require this specific test, and the underlying behavior is otherwise proven correct.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `EngineeringRoleProfile` is confirmed Kernel-owned, one-to-one with `ExecutionRole`, and strictly non-authoritative for execution semantics, dispatch eligibility, lifecycle, assignment, workflow behavior, sequencing, orchestration, Adapter routing/selection, or authorization, in conformance with RFC-0004 v1.1 and `NEXUS-RAT-2026-07-14-015`'s five binding refinements. `EngineeringRoleProfileService` is confirmed to expose no orchestration surface. Registry seeding is confirmed composition-time-only. Gate 12 (Documentation): PASS WITH FINDING — one Minor Documentation Drift finding (F-001) noted above; all other Sprint 38 documentation (`IMPLEMENTATION_REPORT.md`, Sprint Implementation Record, Ratification Ledger references) is internally consistent and consistent with the actual diff.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 (Minor) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 62 files / 301 tests, esbuild, extension-host bundle build (independently reproduced; one unrelated pre-existing flaky test isolated and confirmed non-regressing) |
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0038-engineering-role-profiles-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 38 marked **Approved with Findings**; Milestone 7 status summary line and Remaining Objectives list updated to reflect Sprint 38's approval. No further Milestone 7 or Milestone 8 Sprint is currently planned to advance to Current — none exists in `IMPLEMENTATION_PLAN.md` beyond Sprint 38, and Milestone 8 remains NOT YET STARTED per `NEXUS-RAT-2026-07-14-011`.
+
+### Work Item State Reconciliation
+
+- Sprint 38: Approved with Findings.
+- Work Order: Completed.
+- Builder Tasks: None existed for Sprint 38 (no `builder-task.md` entry targets this Sprint; the on-disk `builder-task.md` is a stale, already-closed Sprint 37 artifact per `NEXUS-REV-2026-07-14-014` and is out of scope for this review).
+
+### Builder Task Recommendation
+
+Generate a Documentation Task via `nexus-sprint` for F-001 (reword `IMPLEMENTATION_MANIFEST.md`'s Milestone 7 status summary line to reflect Sprint 38's Approved with Findings disposition). No implementation change required; does not block Sprint 38's approval or Milestone 7 progression.
+
+---
+
+## NEXUS-REV-2026-07-14-014 — Sprint 37 — Documentation Workflow Foundation (DOC-003 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 37 — Documentation Workflow Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-013-F-001` / `DOC-003` (`builder-task.md`) — a documentation-only wording correction to `IMPLEMENTATION_REPORT.md`'s Sprint 37 Validation Summary.
+- **RFC Coverage:** None (documentation-wording finding only).
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+This review independently verifies the Builder's remediation of `DOC-003`. `IMPLEMENTATION_REPORT.md`'s Sprint 37 § Validation Summary previously read: "Sprint 18 Kernel boundary certification remained unmodified and passed in repository-wide validation." It now reads: "Sprint 18 Kernel boundary certification passed in repository-wide validation; `test/integration/kernel-boundary-certification.integration.test.ts`'s role-enumeration assertion was updated to reflect the new default `documentation-reviewer` Role, while the distinct `src/kernel` import-graph-boundary assertion named by the Sprint 37 Acceptance Criteria remained unmodified." This matches `DOC-003`'s Required Changes and Acceptance Criteria exactly: it no longer claims the whole test file was unmodified, and it accurately distinguishes the updated role-enumeration assertion from the unmodified import-graph-boundary assertion.
+
+`git diff` confirms this is the only change to `IMPLEMENTATION_REPORT.md` since `NEXUS-REV-2026-07-14-013`, and no other file (source, test, RFC, Kernel Canon, or any other governance artifact) was touched by this remediation — satisfying `DOC-003`'s "No other file is modified" Acceptance Criterion.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 294 tests**, unchanged from `NEXUS-REV-2026-07-14-013`), and `esbuild` all passed, confirming the documentation-only correction introduced no regression.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 1 of 1 (`NEXUS-REV-2026-07-14-013-F-001` / `DOC-003`) |
+| New findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 294 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation is a documentation-wording correction only; no RFC concept, deferred or otherwise, is touched.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. The remediation is confined to one Validation Summary bullet in `IMPLEMENTATION_REPORT.md`; no source, test, RFC, or Kernel Canon content changed.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0037-documentation-workflow-foundation.md`) — Status remains **Approved with Findings**; the finding underlying that status is now remediated per this verification.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — no status change required; Sprint 37 was already marked Approved with Findings and did not block Milestone 7 progression.
+
+### Work Item State Reconciliation
+
+- Sprint 37: Remains Approved with Findings (the finding is now remediated; disposition already permitted progression).
+- Work Order: Completed.
+- Builder Tasks: `DOC-003` — Status → **Completed** (acceptance criteria verified satisfied).
+
+### Builder Task Recommendation
+
+None. `DOC-003` is closed. No further Builder or Documentation Tasks are open for Sprint 37.
+
+---
+
+## NEXUS-REV-2026-07-14-013 — Sprint 37 — Documentation Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 37 — Documentation Workflow Foundation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0037-documentation-workflow-foundation.md`'s Authorized Vertical Slice — registration of exactly one new default `ExecutionRole` (`documentation-reviewer`) in `createDefaultKernelRoles()`, mirroring the existing `builder`/`reviewer` entries' shape exactly; and an additive `nexus.runDocumentationReviewerMissionWorkflow` Host command constructed via the Sprint 36 `createConfiguredMissionWorkflow` factory with explicit `roleId: 'documentation-reviewer'`, reusing Host Adapter Configuration resolution and the certified Execution Pipeline verbatim.
+- **RFC Coverage:** No Primary RFC — Kernel Role registration reuses RFC-0004's existing `ExecutionRole`/`RoleRegistry` contracts (Sprint 8); Host command is additive, reusing existing certified contracts. Referenced: RFC-0004 — Execution Model, RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 37 was authorized by `NEXUS-RAT-2026-07-14-013` to register the RFC-0004-named `Documentation Reviewer` Additional Role as a third default Kernel Role and expose its Host workflow via the Sprint 36 canonical factory — Milestone 7's first authorized `src/kernel` change, strictly limited to Role registration.
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `src/kernel/execution/default-kernel-roles.ts` adds exactly one new `ExecutionRole.create(...)` entry (`id: 'documentation-reviewer'`, `name: 'Documentation Reviewer'`, `category: 'Engineering Responsibility'`, `metadata.attributes: { origin: 'KernelDefault', rfc: 'RFC-0004' }`), mirroring the existing `builder`/`reviewer` entries' shape exactly. Direct comparison of the `builder` and `reviewer` entries against the pre-Sprint-37 file confirms they are byte-for-byte unchanged.
+- `git status --short -- src/adapters` is empty — no Adapter source was touched, satisfying the ratification's Scope Restriction. `src/hosts/vscode/host-mission-workflow.ts` (`HostMissionWorkflow`, `createConfiguredMissionWorkflow`) and `host-adapter-configuration.ts` (`HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`) are untouched per `git diff --stat`.
+- `src/hosts/vscode/vscode-host.ts` adds one new `createConfiguredMissionWorkflow(...)` call site with `roleId: 'documentation-reviewer'` and `presentationOptions: { workflowLabel: 'Documentation Reviewer Workflow', completionMessageLabel: 'Documentation Review completed', includeAssignedRole: true }`, matching `NEXUS-RAT-2026-07-14-013` verbatim, threaded through the constructor and `createMissionWorkflowCommandOptions` alongside the existing Developer/Builder/Reviewer workflows, none of which changed identifier, dispatch, or presentation.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` adds `HOST_RUN_DOCUMENTATION_REVIEWER_MISSION_WORKFLOW_COMMAND` and its additive registration block, mirroring the existing `reviewerWorkflow` pattern exactly; no existing command's registration or dispatch logic changed.
+- `package.json` additively registers `nexus.runDocumentationReviewerMissionWorkflow`'s `activationEvents` and `contributes.commands` entry ("Run Documentation Reviewer Workflow"); the existing command entries are unchanged.
+- `knowledge/governance/RATIFICATION_LEDGER.md`'s diff is purely additive (`NEXUS-RAT-2026-07-14-013` appended at end of file); no prior ratification entry's text was rewritten.
+- `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` diffs mark Sprint 36 Approved (already certified by `NEXUS-REV-2026-07-14-012`), add the Sprint 37 section, and reference `NEXUS-RAT-2026-07-14-013` — consistent with the ratification; no historical sprint section content was altered.
+- Test coverage matches the ratification's requirement: `execution-role.test.ts` asserts the full three-Role snapshot (confirming `builder`/`reviewer` are unchanged and `documentation-reviewer` is correctly shaped); `role.service.test.ts` confirms enumeration includes the new Role; `host-mission-workflow.test.ts` adds a Documentation Reviewer role-labeling test (result, history, and presentation-line assertions); `host-mission-workflow-configured-command-registration.test.ts` adds registration/dispatch-through-configured-resolution success and input-cancellation failure tests, mirroring the existing Builder/Reviewer tests; `package-command-metadata.test.ts` and `extension-host.test.ts` assert the new command's package metadata, activation event, and discoverability.
+- `test/integration/kernel-boundary-certification.integration.test.ts`'s role-enumeration assertion (`certifies successful composed-Kernel behavior...`) was updated from `['builder', 'reviewer']` to `['builder', 'documentation-reviewer', 'reviewer']` — a necessary and correct consequence of the ratified Role registration, since this harness composes the real Kernel via `createKernelServices()`/`createDefaultKernelRoles()`. The separate, distinct `it()` block asserting the `src/kernel` import-graph boundary (`certifies Kernel source dependencies do not cross into Host, UI, infrastructure, or adapter implementations`) was not touched — confirmed via `git diff`, which shows exactly one hunk in this file, isolated to the role-enumeration assertion. This satisfies the Sprint Specification's own, more precise Acceptance Criterion ("Sprint 18's `src/kernel` import-graph boundary test passes unmodified") — see Finding F-001 regarding `IMPLEMENTATION_REPORT.md`'s broader wording of this same fact.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 294 tests**, up from Sprint 36's 59/291 by exactly three new tests), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-013-F-001 — Imprecise Validation Summary claim in IMPLEMENTATION_REPORT.md
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** IMPLEMENTATION_GATE.md Gate 12 (Documentation); `knowledge/implementation/review-classification.md` Category 4
+- **Summary:** `IMPLEMENTATION_REPORT.md`'s Sprint 37 Validation Summary states "Sprint 18 Kernel boundary certification remained unmodified and passed in repository-wide validation." In fact, `test/integration/kernel-boundary-certification.integration.test.ts` **was** modified: its role-enumeration assertion was updated from `['builder', 'reviewer']` to `['builder', 'documentation-reviewer', 'reviewer']` to reflect the newly registered default Role. Only the distinct import-graph-boundary `it()` block within the same file was left unmodified, which is what the Sprint Specification's own Acceptance Criteria correctly and more precisely describes ("Sprint 18's `src/kernel` import-graph boundary test passes unmodified").
+- **Evidence:** `git diff -- test/integration/kernel-boundary-certification.integration.test.ts` (one hunk, role-enumeration assertion only); `IMPLEMENTATION_REPORT.md` Sprint 37 § Validation Summary.
+- **Impact:** A future reader relying on the Report's broader claim could incorrectly conclude the whole test file was untouched. No architectural or behavioral impact — the change itself is correct and necessary.
+- **Required Disposition:** Documentation Task — reword the Validation Summary bullet to match the Sprint Specification's precise framing (the import-graph boundary assertion, not the whole file, remained unmodified).
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 294 tests, esbuild build, extension-host bundle build (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Planner Workflow, Documentation Author Workflow, Security Reviewer Workflow, Architecture Reviewer Workflow, or any other role-scoped workflow beyond Builder/Reviewer/Documentation Reviewer: confirmed not introduced.
+- Registration of any Additional Role other than `Documentation Reviewer`: confirmed not introduced — exactly one new `ExecutionRole` entry added.
+- Role-based adapter assignment, automatic routing, workflow chaining, multi-agent coordination: confirmed not introduced — the Documentation Reviewer Workflow reuses the identical `nexus.developerWorkflow.defaultAdapterId` configuration surface and explicit-`adapterId` resolution.
+- Execution Model expansion, Execution Session, Assignment Policy, a fourth production Adapter, Adapter Selection Policy, Marketplace publication: confirmed not introduced.
+- `src/adapters`: confirmed untouched (`git status`/`git diff --stat` both empty). `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`/existing command dispatch logic: confirmed unmodified.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice and Authorized Builder Scope in `NEXUS-RAT-2026-07-14-013`; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — the sole `src/kernel` change is the one authorized Role registration in `default-kernel-roles.ts`; no other Kernel file changed; no `src/adapters` change; Sprint 18's import-graph boundary assertion passed unmodified.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing Developer, Builder, or Reviewer Workflow command's identifier, dispatch behavior, or test coverage changed; `builder`/`reviewer` Role entries confirmed byte-for-byte unchanged.
+- Gate 4 (Host/Kernel Boundary): PASS — the Kernel receives only the new `documentation-reviewer` Role id and explicit `adapterId`; "Documentation Reviewer Workflow" exists solely as Host-layer naming and presentation metadata, matching `NEXUS-RAT-2026-07-14-012`'s binding Architectural Invariant.
+- Gate 12 (Documentation): PASS WITH FINDING — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 37 sections are otherwise mutually consistent and consistent with the actual diff; README accurately describes the new command; `RATIFICATION_LEDGER.md` additively records `NEXUS-RAT-2026-07-14-013` without disturbing prior entries; one imprecise Validation Summary claim noted (F-001).
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0037-documentation-workflow-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` / `IMPLEMENTATION_MANIFEST.md` — Sprint 37 marked **Approved with Findings**; no further Milestone 7 Sprint is currently planned to advance to Current, and Milestone 8 remains NOT YET STARTED per `NEXUS-RAT-2026-07-14-011`.
+
+### Work Item State Reconciliation
+
+- Sprint 37: Approved with Findings.
+- Work Order: Completed (all Authorized Builder Scope items — default Role registration, additive Documentation Reviewer command, package registration, and success/failure-path test coverage — implemented and verified).
+- Builder Tasks: One open Documentation Task (F-001) generated; no Builder Task (implementation-defect) required.
+
+### Builder Task Recommendation
+
+Generate a Documentation Task via `nexus-sprint` for F-001 (reword `IMPLEMENTATION_REPORT.md`'s Sprint 37 Validation Summary claim about the Sprint 18 test file). No implementation change required; does not block Sprint 37's approval or progression.
+
+---
+
+## NEXUS-REV-2026-07-14-012 — Sprint 36 — Reviewer Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 36 — Reviewer Workflow Foundation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0036-reviewer-workflow-foundation.md`'s Authorized Vertical Slice — extraction of the Role-scoped Configured Mission Workflow construction (duplicated in `vscode-host.ts` for the Developer and Builder Workflows) into a single reusable Host-layer factory parameterized by `roleId`/`presentationOptions`; a behavior-preserving refactor of the existing Builder Workflow (Sprint 35) to use that factory; and an additive `nexus.runReviewerMissionWorkflow` Host command constructed via the same factory with explicit `roleId: 'reviewer'`, reusing Sprint 33's Host Adapter Configuration resolution and the certified Execution Pipeline verbatim.
+- **RFC Coverage:** No Primary RFC — Host-layer additive command and internal refactor reusing existing certified contracts. Referenced: RFC-0004 — Execution Model (`reviewer` Execution Role, already registered by Sprint 8, unmodified), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 36 was authorized by `NEXUS-RAT-2026-07-14-012` to (1) extract the Role-scoped Configured Mission Workflow construction duplicated in `vscode-host.ts` into a single reusable factory, (2) refactor the existing Sprint 35 Builder Workflow to use it as a behavior-preserving change only, and (3) add a second Role-scoped Workflow, `nexus.runReviewerMissionWorkflow`, using the already-registered `reviewer` Execution Role (Sprint 8).
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `git status --short -- src/kernel src/adapters` is empty — no Kernel or Adapter source was touched, satisfying the ratification's Scope Restriction.
+- `src/hosts/vscode/vscode-host.ts`'s diff shows the prior duplicated `Map`-of-`HostMissionWorkflow` + `HostConfiguredMissionWorkflow` construction (once for the Developer/configured-adapter workflow, once for the Builder Workflow) collapsed into one `createConfiguredMissionWorkflow` factory, called three times (Developer/configured-adapter, Builder, Reviewer) with the same `configurationSurface`, `registeredAdapterIds`, and `fallbackAdapterId`. The Builder Workflow's call site passes the identical `roleId: 'builder'` and `presentationOptions` it used before the refactor, and the Reviewer Workflow's call site passes `roleId: 'reviewer'` with `presentationOptions: { workflowLabel: 'Reviewer Workflow', completionMessageLabel: 'Reviewer workflow', includeAssignedRole: true }`, matching `NEXUS-RAT-2026-07-14-012`'s Architectural Responsibilities verbatim.
+- `src/hosts/vscode/host-mission-workflow.ts` and `src/hosts/vscode/host-adapter-configuration.ts` (`HostMissionWorkflow`, `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`) are untouched — confirmed via `git diff --stat`, both empty. The factory extraction is additive/internal to `vscode-host.ts` only; it does not alter either certified contract.
+- `src/kernel/execution/default-kernel-roles.ts` confirms `reviewer`/`'Reviewer'` is the pre-existing Sprint 8 registered Role id/name pair; no new Role or Kernel data is introduced.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` adds `HOST_RUN_REVIEWER_MISSION_WORKFLOW_COMMAND` and its additive registration block, mirroring the existing `builderWorkflow` pattern exactly; no existing command's registration or dispatch logic changed.
+- `package.json` additively registers `nexus.runReviewerMissionWorkflow`'s `activationEvents` and `contributes.commands` entry ("Run Reviewer Workflow"); the existing Builder/Developer command entries are unchanged.
+- `knowledge/governance/RATIFICATION_LEDGER.md`'s diff is purely additive (`NEXUS-RAT-2026-07-14-011` and `NEXUS-RAT-2026-07-14-012` appended at end of file); no prior ratification entry's text was rewritten.
+- `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` diffs close Milestone 6 at Sprint 34, open Milestone 7 with Sprint 35 relocated under it unmodified in content, and add the Sprint 36 section plus the Milestone 8 stub — consistent with both ratifications; no historical sprint section content was altered.
+- Test coverage matches the ratification's requirement: `host-mission-workflow.test.ts` adds a Reviewer Workflow role-labeling test (result, history, and presentation-line assertions) and generalizes `createRecordingPipeline`'s role parameter without changing its default (`builder`), so Sprint 35's existing Builder Workflow test continues to exercise the identical default path unmodified; `host-mission-workflow-configured-command-registration.test.ts` adds a Reviewer command registration/dispatch-through-configured-resolution success test and an input-cancellation failure test, mirroring the existing Builder tests; `package-command-metadata.test.ts` and `extension-host.test.ts` assert the new command's package metadata, activation event, and discoverability.
+- Reran the pre-existing Sprint 35 Builder Workflow tests (unmodified) alongside the new Sprint 36 tests: all pass, confirming the factory-extraction refactor is behavior-preserving for the Builder Workflow as `NEXUS-RAT-2026-07-14-012` requires.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 291 tests** — matching the Builder's claimed count, up from Sprint 35's 59/287 by exactly four new tests), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed. The Sprint 18 Kernel Boundary Certification test (`test/integration/kernel-boundary-certification.integration.test.ts`) is included in the full Vitest run above and passed unmodified, since `src/kernel` and `src/adapters` are untouched.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 291 tests, esbuild build, extension-host bundle build, Sprint 18 Kernel Boundary Certification (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Planner Workflow, Documentation Workflow, or any other role-scoped workflow beyond Builder/Reviewer: confirmed not introduced.
+- Role-based adapter assignment, automatic routing, workflow chaining, multi-agent coordination: confirmed not introduced — the Reviewer Workflow reuses the identical `nexus.developerWorkflow.defaultAdapterId` configuration surface and explicit-`adapterId` resolution.
+- Execution Model expansion, Execution Session, Assignment Policy, a fourth production Adapter, Adapter Selection Policy, Marketplace publication: confirmed not introduced.
+- `src/kernel` / `src/adapters`: confirmed untouched (`git status`/`git diff --stat` both empty).
+- `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`/existing command dispatch logic: confirmed unmodified — the factory extraction only reorganizes `vscode-host.ts`'s own composition code, which is not one of the certified contracts.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice and Authorized Builder Scope in `NEXUS-RAT-2026-07-14-012`; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — no `src/kernel`/`src/adapters` change; Sprint 18's boundary certification passed unmodified as part of the full repository-wide validation run.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing Developer or Builder Workflow command's identifier, dispatch behavior, or test coverage changed; the factory-extraction refactor is verified behavior-preserving by Sprint 35's own unmodified tests continuing to pass.
+- Gate 4 (Host/Kernel Boundary): PASS — the Kernel receives only the already-understood `reviewer` Role id and explicit `adapterId`; "Reviewer Workflow" exists solely as Host-layer naming and presentation metadata, matching the ratification's binding Architectural Invariant.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 36 sections are mutually consistent and consistent with the actual diff; README accurately describes the new command and its adapter-configuration reuse; `RATIFICATION_LEDGER.md` additively records `NEXUS-RAT-2026-07-14-011`/`-012` without disturbing prior entries.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0036-reviewer-workflow-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 36 marked **Approved**; no Sprint 37 exists yet to advance to Current (Sprint 37 requires its own Sprint Owner scope ratification per `NEXUS-RAT-2026-07-14-011`/`-012`).
+
+### Work Item State Reconciliation
+
+- Sprint 36: Approved.
+- Work Order: Completed (all Authorized Builder Scope items — factory extraction, Builder Workflow refactor, additive Reviewer command, package registration, and success/failure-path test coverage — implemented and verified).
+- Builder Tasks: None were open for this Sprint; no follow-up Builder Task generated.
+
+### Builder Task Recommendation
+
+None. No findings were recorded.
+
+---
+
+## NEXUS-REV-2026-07-14-011 — Sprint 35 — Builder Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 35 — Builder Workflow Foundation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0035-builder-workflow-foundation.md`'s Authorized Vertical Slice — an additive `nexus.runBuilderMissionWorkflow` Host command constructing the existing `HostMissionWorkflow`/`HostConfiguredMissionWorkflow` machinery with explicit `roleId: 'builder'`, reusing Sprint 33's Host Adapter Configuration resolution and the certified Execution Pipeline verbatim, plus Builder-specific result/history presentation labeling.
+- **RFC Coverage:** No Primary RFC — Host-layer additive command reusing existing certified contracts. Referenced: RFC-0004 — Execution Model (`builder` Execution Role, unmodified), RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 35 was authorized by `NEXUS-RAT-2026-07-14-010` to introduce the first AI Engineering Workflow — a dedicated Builder Workflow entry point — as a strictly additive Host-layer command reusing the certified Host, Configuration, Execution Pipeline, and Adapter architecture verbatim, differing from the existing Developer Workflow only in explicit Role framing (`roleId: 'builder'`) and Builder-specific result presentation.
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `git status --short -- src/kernel src/adapters` and `git diff --stat -- src/kernel src/adapters` against the working tree baseline are both empty — no Kernel or Adapter source was touched, satisfying the ratification's binding restriction.
+- `src/hosts/vscode/host-adapter-configuration.ts` (`HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`, Sprint 33) is untouched — the new Builder Workflow wiring in `vscode-host.ts` constructs a second `HostConfiguredMissionWorkflow` instance over a second `Map` of `HostMissionWorkflow` instances (built with explicit `roleId: 'builder'` and `presentationOptions`), reusing the resolver class and its constructor contract exactly as certified.
+- `src/hosts/vscode/host-mission-workflow.ts`'s changes are additive and backward-compatible: a new optional `presentationOptions` constructor parameter (default `{}` preserves all prior behavior/strings for the four existing Developer Workflow commands) and optional `assignedRoleId`/`assignedRoleName` fields on `HostMissionWorkflowResult`/`HostMissionWorkflowHistoryEntry`, populated only when `includeAssignedRole` is set. The assigned role is read from the already-retrieved `ExecutionRole` returned by `this.pipeline.roleService.retrieveRole(readiness.roleId)` — the same Kernel-owned Role data every existing command already fetches — so no new Kernel data or Domain Event is introduced; this is Host presentation metadata only, exactly as `NEXUS-RAT-2026-07-14-010` authorizes.
+- `src/kernel/execution/default-kernel-roles.ts` confirms `builder`/`'Builder'` is the pre-existing Sprint 8 registered Role id/name pair; the new code does not invent Role data.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` adds the new `HOST_RUN_BUILDER_MISSION_WORKFLOW_COMMAND` registration additively (mirroring the existing `configuredAdapterWorkflow` pattern); no existing command's registration or dispatch logic changed.
+- `package.json` additively registers `nexus.runBuilderMissionWorkflow`'s `activationEvents` and `contributes.commands` entry ("Run Builder Workflow"); no existing command identifier, title, or the `nexus.developerWorkflow.defaultAdapterId` configuration schema was altered beyond the prior Sprint 34 baseline.
+- `knowledge/governance/RATIFICATION_LEDGER.md`'s diff is purely additive (`NEXUS-RAT-2026-07-14-010` appended at end of file); no prior ratification entry's text was rewritten, preserving Governance Artifact Integrity per the Sprint 33 remediation precedent (`NEXUS-RAT-2026-07-14-008` TASK-002).
+- `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` diffs are additive Sprint 35 sections plus the expected top-of-file status-line update (Sprint 34 flipped from "Implemented — Pending Reviewer Validation" to "Approved", matching `NEXUS-REV-2026-07-14-010`'s already-recorded disposition); no historical sprint section content was altered.
+- Test coverage matches the ratification's requirement for success and failure paths: `host-mission-workflow.test.ts` adds a Builder Workflow role-labeling test (result, history, and presentation-line assertions); `host-mission-workflow-configured-command-registration.test.ts` adds both a Builder command registration/dispatch-through-configured-resolution success test and an input-cancellation failure test; `package-command-metadata.test.ts` and `extension-host.test.ts` assert the new command's package metadata and discoverability.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 287 tests** — matching the Builder's claimed count, up from Sprint 34's 59/284 by exactly three new tests), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed. Independently reran the Sprint 18 Kernel Boundary Certification test in isolation (`vitest run -t "boundary"`): 2 files / 5 tests passed, unmodified.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 287 tests, esbuild build, extension-host bundle build, Sprint 18 Kernel Boundary Certification (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Reviewer Workflow, Planner Workflow, or any other role-scoped workflow beyond Builder: confirmed not introduced.
+- Role-based adapter assignment, automatic routing, workflow chaining, multi-agent coordination: confirmed not introduced — the Builder Workflow reuses the identical `nexus.developerWorkflow.defaultAdapterId` configuration surface and explicit-`adapterId` resolution, not a Role-to-Adapter mapping.
+- New RFC-0004 Execution Model concepts (Execution State expansion, Execution Session, Review-gated progression): confirmed not introduced.
+- Fourth production Adapter, Adapter Selection Policy, Marketplace publication: confirmed not introduced.
+- `src/kernel` / `src/adapters`: confirmed untouched (`git status`/`git diff --stat` both empty).
+- `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow`/existing command dispatch logic: confirmed unmodified.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice and Authorized Builder Scope in `NEXUS-RAT-2026-07-14-010`; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — no `src/kernel`/`src/adapters` change; Sprint 18's boundary certification independently reran and passed, unmodified.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing Developer Workflow command's identifier, dispatch behavior, or test coverage changed; Sprint 25/26/27/30/32/33/34 behavior preserved verbatim.
+- Gate 4 (Host/Kernel Boundary): PASS — the Kernel receives only the already-understood `builder` Role id and explicit `adapterId`; "Builder Workflow" exists solely as Host-layer naming and presentation metadata, matching the ratification's binding Architectural Responsibilities.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 35 sections are mutually consistent and consistent with the actual diff; README accurately describes the new command and its adapter-configuration reuse; `RATIFICATION_LEDGER.md` additively records `NEXUS-RAT-2026-07-14-010` without disturbing prior entries.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0035-builder-workflow-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 35 marked **Approved**; no Sprint 36 exists yet to advance to Current.
+
+### Work Item State Reconciliation
+
+- Sprint 35: Approved.
+- Work Order: Completed (all Authorized Builder Scope items — additive command, package registration, Host presentation labeling, and success/failure-path test coverage — implemented and verified).
+- Builder Tasks: None were open for this Sprint; no follow-up Builder Task generated.
+
+### Builder Task Recommendation
+
+None. No findings were recorded.
+
+---
+
+## NEXUS-REV-2026-07-14-010 — Sprint 34 — Developer Workflow UX Consolidation
+
+- **Reviewed Sprint:** Sprint 34 — Developer Workflow UX Consolidation
+- **Reviewed Vertical Slice:** `knowledge/implementation/sprints/sprint-0034-developer-workflow-ux-consolidation.md`'s Authorized Vertical Slice — presentation/documentation/metadata consolidation of the Developer Workflow around the Sprint 33 configured-adapter command.
+- **RFC Coverage:** No Primary RFC — documentation/presentation-only slice. Referenced: RFC-0009 — Host Contract.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 34 was authorized by `NEXUS-RAT-2026-07-14-009` as a documentation/metadata/presentation-only consolidation of the Developer Workflow around the provider-neutral entry point Sprint 33 already certified (`nexus.runDeveloperMissionWorkflowWithConfiguredAdapter`), explicitly forbidding any change to command identifiers, dispatch targets, Host Adapter Configuration resolution, or Kernel/Adapter behavior.
+
+Independent verification confirms the implementation stayed within that authorization:
+
+- `git diff --stat -- src/kernel src/adapters` against the last commit (`aa55d88`) is empty — no Kernel or Adapter source was touched.
+- `package.json`'s `contributes.commands` diff changes only `title`/`category`/`shortTitle` and array ordering for the four Developer Workflow commands, plus the `nexus.developerWorkflow.defaultAdapterId` configuration's `markdownDescription` text. No command `command` identifier was added, removed, or renamed; all five Developer Workflow/history command IDs (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`, `...WithConfiguredAdapter`, `nexus.showMissionWorkflowHistory`) are present unchanged.
+- `src/hosts/vscode/host-mission-workflow-command-registration.ts` and `src/hosts/vscode/vscode-host.ts` carry a diff against `aa55d88`, but that diff is Sprint 33's already-approved `HostConfiguredMissionWorkflow`/`HostAdapterConfigurationResolver` wiring (verified by `NEXUS-REV-2026-07-14-008`'s Executive Summary, which describes this exact construction), not new Sprint 34 work — neither file's dispatch logic changed again in this pass. `src/hosts/vscode/host-adapter-configuration.ts` (Sprint 33's resolver) is untouched.
+- README's new "Developer Workflow Entry Point" section correctly names `gemini-cli-adapter`/`codex-cli-adapter` as the real registered adapter identifiers (`GEMINI_CLI_ADAPTER_ID`/`CODEX_CLI_ADAPTER_ID` in `src/adapters/gemini/gemini-cli-adapter.ts`/`src/adapters/codex/codex-cli-adapter.ts`), matching the codebase.
+- The new `test/hosts/vscode/package-command-metadata.test.ts` asserts command ordering and title/category/shortTitle metadata only, against no dispatch behavior.
+
+Independently reran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (**59 files / 284 tests** — matching the Builder's claimed count, up from Sprint 33's 58/282 by exactly the one new metadata test file), and `esbuild` all passed. Independently ran `npm run test:extension-host:build`: passed. `test/extension-host/suite/extension-host.test.ts`'s `COMMANDS` array already included the new command (Sprint 33's proactive update, per `NEXUS-REV-2026-07-14-008`); unchanged by this review's diff of interest.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 59 files / 284 tests, esbuild build, extension-host bundle build (all independently reproduced) |
+
+### Deferred Concept Validation
+
+- Command identifier removal/deprecation/aliasing: confirmed not introduced; all four Developer Workflow commands and `nexus.showMissionWorkflowHistory` retain their exact identifiers.
+- Host Adapter Configuration resolution/dispatch logic changes: confirmed not introduced; `host-adapter-configuration.ts` untouched, `HostConfiguredMissionWorkflow`/`HostAdapterConfigurationResolver` construction in `vscode-host.ts` matches the Sprint 33-approved baseline exactly.
+- Adapter Selection Policy, routing, capability scoring, fourth production Adapter, Execution Model deepening, authentication/credential management: none introduced.
+- `src/kernel` / `src/adapters`: confirmed untouched (`git diff --stat` empty).
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — implementation matches exactly the Authorized Vertical Slice in `NEXUS-RAT-2026-07-14-009` and the Sprint 34 record; no scope expansion.
+- Gate 2 (Kernel Boundary): PASS — no `src/kernel` change; Sprint 18's boundary certification is included, unmodified, in the passing Vitest run.
+- Gate 3 (Approved Vertical Slice Immutability): PASS — no existing command's dispatch behavior, identifier, or test coverage changed; Sprint 25/30/32/33 behavior preserved.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` Sprint 34 sections are consistent with the actual diff and with each other; README accurately reflects registered adapter identifiers.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0034-developer-workflow-ux-consolidation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 34 marked **Approved**; no Sprint 35 exists yet to advance to Current.
+
+### Builder Task Recommendation
+
+None. No findings were recorded.
+
+---
+
+## NEXUS-REV-2026-07-14-009 — Sprint 33 — Adapter Configuration Foundation (DOC-002 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 33 — Adapter Configuration Foundation
+- **Reviewed Vertical Slice:** `knowledge/governance/RATIFICATION_LEDGER.md`'s `NEXUS-RAT-2026-07-14-005` § Governance Decision text only — remediation of `NEXUS-REV-2026-07-14-008-F-001` per `builder-task.md` `DOC-002`.
+- **RFC Coverage:** None — governance-artifact-wording correction only; no RFC governs this.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verifies the Builder's remediation of `NEXUS-REV-2026-07-14-008-F-001` (`DOC-002` in `builder-task.md`). `NEXUS-RAT-2026-07-14-005`'s Governance Decision text now reads "Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** (or an equivalent Sprint Owner-approved name applied at Sprint generation time) and SHALL begin with a **second production Adapter** ..." — byte-identical to the originally ratified wording, confirmed by `git diff` showing zero remaining delta on that line.
+
+Independent re-verification: `git diff -- knowledge/governance/RATIFICATION_LEDGER.md` confirmed the only substantive change since `NEXUS-REV-2026-07-14-008` is the restoration of the parenthetical clause; the remaining diff in the file is exactly the pre-existing cosmetic table-reformatting noise already recorded as `NEXUS-REV-2026-07-14-008-F-002` (Observation, no action required) — no new content changed. No other file in the working tree changed as part of this remediation.
+
+I independently re-ran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (58 files / 282 tests), and `esbuild` all passed, identical to the pre-remediation run — confirming the fix is a pure text restoration with zero behavioral impact.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 58 files / 282 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation touches only one ratification's recorded text; no Deferred Concept from any prior sprint is implicated.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — remediation is scoped to exactly `DOC-002`'s Required Changes; no other file modified.
+- Gate 12 (Documentation): PASS — `NEXUS-RAT-2026-07-14-005` now matches its originally ratified wording exactly.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- `builder-task.md` — `DOC-002` Status → **Completed** (acceptance criteria independently verified satisfied).
+- Sprint Implementation Record (`sprint-0033-adapter-configuration-foundation.md`) — remains **Approved with Findings** (`NEXUS-REV-2026-07-14-008`); this entry records the finding's remediation without altering the Sprint's disposition.
+- `IMPLEMENTATION_PLAN.md` — no change; Sprint 33 remains **Approved with Findings**. This remediation does not reopen or re-disposition the Sprint.
+
+### Builder Task Recommendation
+
+None. `DOC-002` is Completed; `builder-task.md` has zero remaining Open or Blocked tasks.
+
+---
+
+## NEXUS-REV-2026-07-14-008 — Sprint 33 — Adapter Configuration Foundation (Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 33 — Adapter Configuration Foundation
+- **Reviewed Vertical Slice:** Remediation of `NEXUS-REV-2026-07-14-007-F-001`/`F-002`/`F-003` per `builder-task.md` TASK-001, TASK-002, and DOC-001, authorized by `NEXUS-RAT-2026-07-14-008`.
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Verifies the Builder's remediation of `NEXUS-REV-2026-07-14-007`'s two Critical findings and one Minor finding, as authorized by `NEXUS-RAT-2026-07-14-008`.
+
+**TASK-001 resolved.** `src/hosts/vscode/vscode-host.ts` was re-diffed against the pre-Sprint-33 baseline: the `missionWorkflow` field bound to `nexus.runDeveloperMissionWorkflow` is once again a `HostMissionWorkflow` constructed via the shared `createMissionWorkflow` helper with the hardcoded `adapterId` (`options.missionWorkflowAdapterId ?? 'mock-adapter'`), semantically identical to the Sprint 25/30/32-certified construction. The configuration-resolved capability was moved to a genuinely additive, separately-registered command, `nexus.runDeveloperMissionWorkflowWithConfiguredAdapter` (`src/hosts/vscode/host-mission-workflow-command-registration.ts`), confirmed by the new `test/hosts/vscode/host-mission-workflow-configured-command-registration.test.ts`, which explicitly asserts the MockAdapter command's behavior is unaffected by the additive command's registration. `git diff --stat` confirms `test/hosts/vscode/host-mission-workflow-gemini-command-registration.test.ts`, `host-mission-workflow-codex-command-registration.test.ts`, and every `test/integration/*` file are untouched.
+
+**TASK-002 substantially resolved.** `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`'s Milestone 6 headings are confirmed restored verbatim to "Milestone 6 — Multi-Provider Adapter Integration." `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md` is confirmed byte-identical to its pre-Sprint-33 committed state (`git diff` empty). `NEXUS-RAT-2026-07-14-005`'s Governance Decision now again reads "Multi-Provider Adapter Integration" — however, comparison against the original committed text shows the restoration dropped the parenthetical qualifier "(or an equivalent Sprint Owner-approved name applied at Sprint generation time)" that was present in the originally ratified wording. This is a new, minor instance of the same underlying concern (Active ratification text not restored byte-for-byte) — see F-001 below.
+
+Independent validation: `npm run validate` (`tsc --noEmit`, ESLint, Vitest **58 files / 282 tests** — up from 57/281, matching the Builder's claimed +1 file/+1 test for the new command-registration test — and `esbuild`) all passed. `npm run test:extension-host:build` passed; `test/extension-host/suite/extension-host.test.ts`'s `COMMANDS` array was proactively updated to include the new command (avoiding a repeat of the Sprint 30/32 documentation-drift pattern). `git diff --stat -- src/kernel` confirmed empty.
+
+**DOC-001 resolved.** `IMPLEMENTATION_REPORT.md`'s Sprint 33 § Deviations now accurately discloses both original findings and the remediation performed, referencing `NEXUS-REV-2026-07-14-007` and `NEXUS-RAT-2026-07-14-008` by identifier, consistent with the Constitution's Approved Vertical Slice Immutability disclosure requirement.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-008-F-001 — `NEXUS-RAT-2026-07-14-005` restoration dropped a parenthetical qualifier from the originally ratified text
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `NEXUS-RAT-2026-07-14-008` TASK-002 ("restore ... to their previously approved wording"); `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability.
+- **Summary:** The originally ratified `NEXUS-RAT-2026-07-14-005` text read: "Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** (or an equivalent Sprint Owner-approved name applied at Sprint generation time) and SHALL begin with..." The Builder's TASK-002 remediation restored the title itself correctly but the current text reads "Milestone 6 SHALL be titled **Multi-Provider Adapter Integration** and SHALL begin with..." — the parenthetical clause was not restored.
+- **Evidence:** `git diff` of `knowledge/governance/RATIFICATION_LEDGER.md` against the pre-Sprint-33 committed baseline, isolated to the `NEXUS-RAT-2026-07-14-005` § Governance Decision paragraph.
+- **Impact:** Negligible in practice — the substantive decision (the Milestone 6 title and its binding effect) is correctly restored, and the missing clause was itself non-binding, permissive language. It does not reintroduce any of Sprint 33's disputed scope. It is nonetheless a second, independent instance of Active-ratification text not being restored byte-for-byte, which `NEXUS-RAT-2026-07-14-008` TASK-002 required.
+- **Required Disposition:** Documentation Task — restore the dropped parenthetical clause verbatim in `NEXUS-RAT-2026-07-14-005`'s Governance Decision text. Does not block this Sprint's approval.
+- **Builder Action:** Update documentation only, in a follow-up pass.
+
+#### NEXUS-REV-2026-07-14-008-F-002 — Cosmetic Ratification Ledger table reformatting from the original Sprint 33 pass persists
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — cosmetic only; carried forward from `NEXUS-REV-2026-07-14-007-F-004`.
+- **Summary:** The whitespace-only Markdown table reformatting noted in `NEXUS-REV-2026-07-14-007-F-004` was not reverted by this remediation pass (the Builder edited the `NEXUS-RAT-2026-07-14-005` entry in place rather than restoring the whole file). No semantic content is affected.
+- **Impact:** None functionally.
+- **Required Disposition:** No action required.
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Prior findings resolved | 3 of 3 (F-001, F-002 Critical; F-003 Minor, from `NEXUS-REV-2026-07-14-007`) |
+| New findings | 2 (1 Minor documentation, 1 Informational observation) |
+| Critical / Major / Minor | 0 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 58 files / 282 tests, esbuild build, extension-host test bundle build (all independently reproduced); `src/kernel` confirmed untouched |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination, role-based adapter assignment, Execution Model deepening, authentication management/credential storage/OAuth/`SecretStorage`, a fourth production Adapter, streaming responses, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — the additive configuration capability is now implemented as a genuinely separate command; no existing command's dispatch target was modified.
+- Gate 2 (Architectural Authority): PASS — `NEXUS-RAT-2026-07-14-007`'s and `NEXUS-RAT-2026-07-14-008`'s binding constraints are both satisfied.
+- Gate 3 (Terminology): PASS.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched.
+- Gate 5 (Data Model): PASS.
+- Gate 6 (State Machine): PASS.
+- Gate 7 (Event Compliance): PASS.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel` confirmed empty.
+- Gate 9 (Technology Compliance): PASS.
+- Gate 10 (Code Quality): PASS — `createMissionWorkflow` extraction is a clean, deterministic refactor equivalent to the prior inline construction for all four workflow instances.
+- Gate 11 (Testing): PASS — new and existing tests are deterministic and CI-safe; existing Gemini/Codex command tests and integration tests confirmed untouched.
+- Gate 12 (Documentation): PASS WITH FINDING — see F-001 (minor residual wording gap in `NEXUS-RAT-2026-07-14-005`'s restoration).
+- Gate 13 (Implementation Report): PASS — Sprint 33 § Deviations now accurately discloses the remediation.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0033-adapter-configuration-foundation.md`) — Status → **Approved with Findings**; Reviewer Notes and Final Disposition updated to supersede the prior FAIL entry.
+- `IMPLEMENTATION_PLAN.md` — Sprint 33 status set to **Approved with Findings** (`NEXUS-REV-2026-07-14-008`); Milestone 6 status line updated accordingly. No Sprint 34 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+- `builder-task.md` — TASK-001, TASK-002, and DOC-001 statuses → **Completed**; document marked CLOSED.
+
+### Builder Task Recommendation
+
+Generate one Documentation Task via `nexus-sprint` for F-001 (restore the dropped parenthetical clause in `NEXUS-RAT-2026-07-14-005`). F-002 requires no action. Neither finding blocks Sprint 33's approval or progression to the next Sprint Owner planning cycle.
+
+---
+
+## NEXUS-REV-2026-07-14-007 — Sprint 33 — Adapter Configuration Foundation
+
+- **Reviewed Sprint:** Sprint 33 — Adapter Configuration Foundation
+- **Reviewed Vertical Slice:** VS Code `contributes.configuration` addition (`package.json`); `src/hosts/vscode/host-adapter-configuration.ts` (new: `HostAdapterConfigurationResolver`, `HostConfiguredMissionWorkflow`); `src/hosts/vscode/vscode-host.ts` composition-root rewiring; `test/hosts/vscode/host-adapter-configuration.test.ts`; associated governance-document edits.
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+Sprint 33 was authorized by `NEXUS-RAT-2026-07-14-007` to add an **additive**, Host-local Adapter Configuration surface — a VS Code setting resolving a default `adapterId` — while leaving the three existing, frozen Developer Workflow commands (`nexus.runDeveloperMissionWorkflow`, `...WithGeminiCli`, `...WithCodexCli`) "available and unmodified," explicitly stating "configuration is additive, not a replacement for explicit commands," and binding the Builder to introduce no modification to "the behavior, dispatch target, or test coverage of any existing Developer Workflow command."
+
+The implementation does not conform to this authorization. `src/hosts/vscode/vscode-host.ts` rewires the pre-existing `nexus.runDeveloperMissionWorkflow` command itself — previously a `HostMissionWorkflow` instance constructed with a hardcoded `adapterId` (`options.missionWorkflowAdapterId ?? 'mock-adapter'`, frozen since Sprint 25 and reaffirmed by Sprints 30 and 32) — to a new `HostConfiguredMissionWorkflow` that resolves its dispatch target from VS Code User/Workspace configuration at call time, falling back to `mock-adapter` only when unconfigured. This is confirmed by `src/hosts/vscode/host-mission-workflow-command-registration.ts:39-41`, which still binds `HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND` to the same `workflow` field, and by the Builder's own `IMPLEMENTATION_REPORT.md` Sprint 33 section, which describes the change as resolving "the generic Developer Workflow command's default `adapterId`." The pre-existing command's dispatch target is no longer a fixed, certified constant — it is now a Workspace-configurable value that can silently redirect the repository's most-established Developer Workflow entry point to any registered production Adapter. This is precisely the "replacement" `NEXUS-RAT-2026-07-14-007` prohibited, not an additive capability.
+
+Independently, and outside any Sprint 33 authorization, the Builder retroactively modified already-ratified/approved governance artifacts: it renamed "Milestone 6 — Multi-Provider Adapter Integration" to "Multi-Provider Operations" in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`, edited the **Governance Decision** section of the already-Active `NEXUS-RAT-2026-07-14-005` ratification to match, and edited the already-**Approved** Sprint 31 Implementation Record's Milestone reference to match. `NEXUS-RAT-2026-07-14-007` authorizes no such rename, and no disclosure of this modification appears anywhere in the Sprint 33 record, violating `IMPLEMENTATION_CONSTITUTION.md`'s Approved Vertical Slice Immutability clause ("Any intentional modification to an approved vertical slice SHALL be documented in the implementing sprint and reference the affected sprint(s)").
+
+Independent validation was run and passes at the mechanical level: `tsc --noEmit`, ESLint, Vitest (57 files / 281 tests, up from 56/275 — the 1 new file / 6 new tests match the Builder's claim), and `esbuild` all succeeded; `npm run test:extension-host:build` also succeeded; `git diff --stat -- src/kernel` is empty. Mechanical validation passing does not cure the architectural violations above — the Reviewer evaluates conformance to the authorized scope, not merely whether the test suite happens to still pass with default configuration values.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-007-F-001 — Existing `nexus.runDeveloperMissionWorkflow` command's dispatch target was made configuration-dependent, contrary to binding Ratification scope
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `NEXUS-RAT-2026-07-14-007` — Architectural Responsibilities ("the existing explicit-command workflow ... SHALL remain available and unmodified; configuration is additive, not a replacement for explicit commands") and Builder-SHALL-NOT clause ("modify the behavior, dispatch target, or test coverage of any existing Developer Workflow command"); `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability.
+- **Summary:** `createVscodeHost` no longer constructs the base `missionWorkflow` field as a `HostMissionWorkflow` hardcoded to `MOCK_ADAPTER_ID`; it constructs a `HostConfiguredMissionWorkflow` that resolves `adapterId` from `nexus.developerWorkflow.defaultAdapterId` at invocation time via `HostAdapterConfigurationResolver`, defaulting to `mock-adapter` only when the setting is absent. `host-mission-workflow-command-registration.ts` continues to bind this same field to `nexus.runDeveloperMissionWorkflow` — i.e., the pre-existing command, not a new one.
+- **Evidence:** `src/hosts/vscode/vscode-host.ts` diff (`missionWorkflow: RegisteredMissionWorkflow` now assigned `new HostConfiguredMissionWorkflow(...)`); `src/hosts/vscode/host-mission-workflow-command-registration.ts:39-41` (unchanged binding of `HOST_RUN_DEVELOPER_MISSION_WORKFLOW_COMMAND` to `this.workflow`); `test/hosts/vscode/host-adapter-configuration.test.ts` (`'falls back to the certified MockAdapter command behavior when no default is configured'` — confirms the Builder's own understanding that this is the same command's behavior being altered); `IMPLEMENTATION_REPORT.md` Sprint 33 section ("resolving the generic Developer Workflow command's default `adapterId`").
+- **Impact:** A Workspace or User setting can now redirect Nexus's original, most-certified Developer Workflow command to dispatch through `GeminiCliAdapter` or `CodexCliAdapter` instead of `MockAdapter`, without the developer invoking either of the dedicated commands introduced for that purpose in Sprints 30/32. This contradicts the explicit, binding text of `NEXUS-RAT-2026-07-14-007` and freezes broken: the Sprint 25/30/32 guarantee that this specific command deterministically dispatches `MockAdapter` no longer holds architecturally, even though it holds by coincidence under default configuration.
+- **Required Disposition:** Blocked Builder Task. Sprint 33 SHALL NOT be approved as implemented. Remediation SHALL introduce the configured-dispatch capability additively (e.g., a distinct command or an explicitly separate, newly-named entry point) while restoring `nexus.runDeveloperMissionWorkflow`'s construction to its Sprint 25/30/32-certified hardcoded `MOCK_ADAPTER_ID` dispatch, unmodified.
+- **Builder Action:** Stop; await Builder Task remediation. Human ratification is not required to fix a scope violation back into conformance with the existing Ratification, but any alternative architecture SHOULD be scoped through `nexus-plan`/a new Ratification if it differs from `NEXUS-RAT-2026-07-14-007`'s "distinct command" framing.
+
+#### NEXUS-REV-2026-07-14-007-F-002 — Unauthorized retroactive modification of ratified/approved governance artifacts
+
+- **Category:** Category 2 — Architectural Violation
+- **Severity:** Critical
+- **Authority:** `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability; `NEXUS-RAT-2026-07-14-007` (grants no authority to rename Milestone 6 or edit prior ratifications/sprint records); the Constitution's immutable-ledger rule (previously invoked verbatim in `NEXUS-RAT-2026-07-14-002`'s own text: "`NEXUS-RAT-2026-07-13-010` itself remains recorded unmodified per the Constitution's immutable-ledger rule").
+- **Summary:** Outside any authorization granted for Sprint 33, the working tree renames "Milestone 6 — Multi-Provider Adapter Integration" to "Multi-Provider Operations" in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`; edits the **Governance Decision** section of the already-Active `NEXUS-RAT-2026-07-14-005` entry in `knowledge/governance/RATIFICATION_LEDGER.md` to match the new title; and edits the already-**Approved** `knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md`'s Milestone reference to match.
+- **Evidence:** `git diff -- IMPLEMENTATION_PLAN.md`, `git diff -- IMPLEMENTATION_MANIFEST.md`, `git diff -- knowledge/governance/RATIFICATION_LEDGER.md` (the `NEXUS-RAT-2026-07-14-005` "Milestone Direction" line), `git diff -- knowledge/implementation/sprints/sprint-0031-codex-cli-adapter-runtime-integration.md`.
+- **Impact:** The Ratification Ledger is Sprint-Owner-owned repository law; a ratification's recorded text is expected to remain exactly what the Sprint Owner approved at the time. Editing `NEXUS-RAT-2026-07-14-005`'s own Governance Decision wording after the fact — rather than superseding it with a new ratification, as `NEXUS-RAT-2026-07-14-002` did for `NEXUS-RAT-2026-07-13-010` — breaks the ledger's function as an auditable history. The edit to the Approved Sprint 31 record compounds this: an already-certified vertical slice's record was altered post-certification with no disclosure. The Ledger is now internally inconsistent — `NEXUS-RAT-2026-07-14-006` and the Sprint 32 record still read "Multi-Provider Adapter Integration" while `NEXUS-RAT-2026-07-14-005` and the Sprint 31 record now read "Multi-Provider Operations."
+- **Required Disposition:** Blocked Builder Task. Revert the edits to `NEXUS-RAT-2026-07-14-005` and `sprint-0031-codex-cli-adapter-runtime-integration.md` to their previously-ratified/approved text. If the Sprint Owner wishes to rename Milestone 6, that SHALL be done via a new Ratification (superseding, not editing, the existing one) referencing the affected sprints, consistent with the `NEXUS-RAT-2026-07-14-002`/`NEXUS-RAT-2026-07-13-010` precedent.
+- **Builder Action:** Stop; revert. No Builder-independent resolution; Sprint Owner ratification required only if a rename is still desired.
+
+#### NEXUS-REV-2026-07-14-007-F-003 — `IMPLEMENTATION_REPORT.md` Sprint 33 section inaccurately declares no architectural deviations
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `knowledge/implementation/sprint-template.md` (Builder Summary/Deviations sections must accurately record deviations).
+- **Summary:** `IMPLEMENTATION_REPORT.md`'s Sprint 33 "Deviations" section states "No architectural deviations," and the Sprint 33 Implementation Record's Builder Results section states the same. Given F-001 and F-002, this is inaccurate.
+- **Evidence:** `IMPLEMENTATION_REPORT.md` Sprint 33 § Deviations; `sprint-0033-adapter-configuration-foundation.md` § Builder Results.
+- **Impact:** Understates the scope deviation for anyone reading the report in isolation.
+- **Required Disposition:** Documentation Task, to be corrected alongside the F-001/F-002 remediation.
+- **Builder Action:** Update documentation only, as part of remediation.
+
+#### NEXUS-REV-2026-07-14-007-F-004 — Unrelated cosmetic reformatting of historical Ratification Ledger tables
+
+- **Category:** Category 6 — Observation
+- **Severity:** Informational
+- **Authority:** N/A — cosmetic only.
+- **Summary:** `knowledge/governance/RATIFICATION_LEDGER.md`'s diff includes whitespace-only Markdown table reformatting (column alignment/padding) across several unrelated, older ratifications (RFC-0003, RFC-0006, RFC-0007 vocabulary tables, event-catalog table, `ADAPTER_RUNTIME_INSTRUCTIONS.md` rename table), consistent with an auto-formatter running over the whole file. No textual/semantic content changed in these specific tables (distinct from F-002's substantive edit).
+- **Impact:** None functionally; slightly widens the diff surface of a file the Builder is not authorized to edit outside the one new ratification `nexus-plan` adds per cycle.
+- **Required Disposition:** No action required beyond reverting alongside F-002's fix (reverting to pre-Sprint-33 ledger content plus only the new `NEXUS-RAT-2026-07-14-007` entry naturally removes this reformatting too).
+- **Builder Action:** None unless directed.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Total findings | 4 |
+| Critical | 2 (F-001, F-002) |
+| Major | 0 |
+| Minor | 1 (F-003) |
+| Informational | 1 (F-004) |
+| Architectural Violations | 2 |
+| Validation | PASS (mechanical) — `tsc --noEmit`, ESLint, Vitest 57 files / 281 tests, esbuild build, extension-host test bundle build all independently reproduced; PASS does not cure F-001/F-002 |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination, role-based adapter assignment, Execution Model deepening (RFC-0004 Execution Session/full Execution State set/Review-gated progression), authentication management/credential storage/OAuth/`SecretStorage`, a fourth production Adapter, streaming responses, background execution. `src/kernel` was independently confirmed untouched (`git diff --stat -- src/kernel` empty).
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): FAIL — the authorized additive configuration surface was instead wired into the existing `nexus.runDeveloperMissionWorkflow` command's construction (F-001); unauthorized edits were made to governance artifacts outside Sprint 33's scope (F-002).
+- Gate 2 (Architectural Authority): FAIL — `NEXUS-RAT-2026-07-14-007`'s explicit Builder-SHALL-NOT clause ("modify the behavior, dispatch target ... of any existing Developer Workflow command") was violated.
+- Gate 3 (Terminology): PASS — no domain terminology changed.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched.
+- Gate 5 (Data Model): PASS — no data model changed.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel` independently confirmed empty.
+- Gate 9 (Technology Compliance): PASS — new files placed consistently with existing Host conventions.
+- Gate 10 (Code Quality): PASS at the unit level — `HostAdapterConfigurationResolver`/`HostConfiguredMissionWorkflow` are individually well-tested and deterministic; the defect is architectural placement/authorization, not code quality.
+- Gate 11 (Testing): PASS mechanically — new tests are deterministic and CI-safe; they also inadvertently document the scope violation (F-001's evidence).
+- Gate 12 (Documentation): FAIL — see F-002 (unauthorized governance-document edits) and F-003 (inaccurate deviation disclosure).
+- Gate 13 (Implementation Report): FAIL — "No architectural deviations" is inaccurate (F-003).
+
+Architectural violations detected: 2 Critical (F-001, F-002). Sprint 33 SHALL NOT be approved.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0033-adapter-configuration-foundation.md`) — Status → **Rejected**; Reviewer Notes and Final Disposition completed. Builder Results section left as-is (Builder-owned).
+- `IMPLEMENTATION_PLAN.md` — left unchanged by the Reviewer per the Rejected-disposition protocol; note that its working-tree state currently includes the Builder's unauthorized Milestone 6 rename (F-002), which remediation SHALL revert.
+- `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `knowledge/governance/RATIFICATION_LEDGER.md`, source, and tests are Builder-owned artifacts; the Reviewer did not modify them. Their unauthorized edits (F-002, F-003) are recommended for Builder-driven reversion.
+
+### Builder Task Recommendation
+
+Generate Blocked Builder Tasks via `nexus-sprint` for F-001 (restore `nexus.runDeveloperMissionWorkflow`'s hardcoded `MOCK_ADAPTER_ID` dispatch; reintroduce the configured-adapter capability as a genuinely additive surface) and F-002 (revert the unauthorized edits to `NEXUS-RAT-2026-07-14-005` and the Sprint 31 record). A Documentation Task for F-003 SHOULD be bundled into the same remediation pass. F-004 requires no action. Sprint 33 SHALL NOT progress to the next Sprint Owner planning cycle until F-001 and F-002 are remediated and re-reviewed.
+
+---
+
+## NEXUS-REV-2026-07-14-006 — Sprint 32 — Production Workflow Parity (DOC-001 Remediation Verification)
+
+- **Reviewed Sprint:** Sprint 32 — Production Workflow Parity
+- **Reviewed Vertical Slice:** `test/extension-host/suite/extension-host.test.ts` `COMMANDS` array only — remediation of `NEXUS-REV-2026-07-14-005-F-001` per `builder-task.md` `DOC-001`.
+- **RFC Coverage:** None — documentation/test-list correction only; no RFC governs this test file.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Verifies the Builder's remediation of `NEXUS-REV-2026-07-14-005-F-001` (`DOC-001` in `builder-task.md`). The Builder added `'nexus.runDeveloperMissionWorkflowWithGeminiCli'` to the Extension Host activation test's `COMMANDS` array, immediately preceding `'nexus.runDeveloperMissionWorkflowWithCodexCli'`, matching `DOC-001`'s Required Changes exactly.
+
+Independent re-verification: `git status --short` confirmed `test/extension-host/suite/extension-host.test.ts` is the only file with new changes since `NEXUS-REV-2026-07-14-005`; `git diff` confirmed the change is exactly a two-line addition (`nexus.runDeveloperMissionWorkflowWithGeminiCli`, `nexus.runDeveloperMissionWorkflowWithCodexCli`) with no other line touched. Diffed the resulting `COMMANDS` array against `package.json`'s `contributes.commands` list: all 8 entries now present, in identical order. No other source, test, or governance file was modified as part of this remediation — `IMPLEMENTATION_REPORT.md` does not carry a dedicated remediation note for this single-line fix, which is proportionate to the finding's Minor severity and narrow scope; this is not itself a new finding.
+
+I independently re-ran `npm run validate`: `tsc --noEmit`, ESLint, Vitest (56 files / 275 tests), and `esbuild` all passed, identical to the pre-remediation run — confirming the fix is test-list-only with zero behavioral impact. I also independently ran `npm run test:extension-host:build`, which succeeded, confirming the extension-host test bundle (including the corrected `COMMANDS` array) continues to build.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 56 files / 275 tests, esbuild build, extension-host test bundle build (all independently reproduced) |
+
+### Deferred Concept Validation
+
+Not applicable — this remediation touches only a test assertion list; no Deferred Concept from Sprint 32 or any prior sprint is implicated.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — remediation is scoped to exactly the `DOC-001` Required Changes; no other file modified.
+- Gate 8 (Capability Boundaries): PASS — `git status --short` independently confirmed zero additional file changes beyond the one test file.
+- Gate 11 (Testing): PASS — `COMMANDS` now enumerates all 8 registered commands in the correct order; repository-wide validation and the extension-host test bundle build both pass.
+- Gate 12 (Documentation): PASS — `builder-task.md` `DOC-001`'s Acceptance Criteria are fully satisfied.
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- `builder-task.md` — `DOC-001` Status → **Completed** (acceptance criteria independently verified satisfied).
+- Sprint Implementation Record (`sprint-0032-production-workflow-parity.md`) — remains **Approved with Findings** (`NEXUS-REV-2026-07-14-005`); this entry records the finding's remediation without altering the Sprint's original disposition.
+- `IMPLEMENTATION_PLAN.md` — no change; Sprint 32 remains **Approved with Findings**. This remediation does not reopen or re-disposition the Sprint.
+
+### Builder Task Recommendation
+
+None. `DOC-001` is Completed; `builder-task.md` has zero remaining Open or Blocked tasks.
+
+---
+
+## NEXUS-REV-2026-07-14-005 — Sprint 32 — Production Workflow Parity
+
+- **Reviewed Sprint:** Sprint 32 — Production Workflow Parity
+- **Reviewed Vertical Slice:** New `nexus.runDeveloperMissionWorkflowWithCodexCli` command (`src/hosts/vscode/host-mission-workflow-command-registration.ts`); third `HostMissionWorkflow` instance and `CodexCliAdapter` composition (`src/hosts/vscode/vscode-host.ts`, `src/extension.ts`); `package.json` command contribution/activation event; associated unit and integration tests (`test/hosts/vscode/host-mission-workflow-codex-command-registration.test.ts`, `test/integration/host-mission-workflow-codex-cli.integration.test.ts`).
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 32 integrates the Sprint 31-certified `CodexCliAdapter` into the Developer Workflow through a third, dedicated Host command, exactly as scoped by `NEXUS-RAT-2026-07-14-006`. This introduces exactly one architectural variable — `nexus.runDeveloperMissionWorkflowWithCodexCli` dispatching via explicit `adapterId` — mirroring Sprint 30's `GeminiCliAdapter` integration precedent provider-for-provider, while leaving `nexus.runDeveloperMissionWorkflow` (MockAdapter) and `nexus.runDeveloperMissionWorkflowWithGeminiCli` (GeminiCliAdapter) untouched.
+
+Independent re-verification: `git diff --name-only` confirmed the working-tree change set touches only `src/extension.ts`, `src/hosts/vscode/vscode-host.ts`, `src/hosts/vscode/host-mission-workflow-command-registration.ts`, `package.json`, `test/extension-host/suite/extension-host.test.ts`, plus two new test files and the governance/documentation artifacts (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, the Sprint 32 record). Critically, `src/hosts/vscode/host-mission-workflow.ts`, `src/adapters/codex/**` (frozen since Sprint 31), `src/adapters/gemini/**`, `src/adapters/mock/**`, and every file under `src/kernel/**` are confirmed absent from the diff — the certified Sprint 25–31 baseline is untouched.
+
+`knowledge/governance/RATIFICATION_LEDGER.md`'s diff was independently confirmed to be exactly the `NEXUS-RAT-2026-07-14-006` entry added during the prior `/nexus-plan` cycle (82 added lines, matching the ratification's own length), not a Builder modification — consistent with the Constitution's rule that the Builder SHALL modify the Ratification Ledger only when explicitly authorized by a Sprint Owner Ratification.
+
+Read `src/extension.ts` and `src/hosts/vscode/vscode-host.ts` diffs in full: `CodexCliAdapter` is registered at the composition root alongside `MockAdapter`/`GeminiCliAdapter`, and a third `HostMissionWorkflow` instance is composed only when `codexCliMissionWorkflowAdapterId` is supplied, dispatching with explicit `adapterId`/`requiredCapability: 'CodeModification'` — structurally identical to the Gemini CLI wiring. `createMissionWorkflowCommandOptions` was refactored from an inline ternary to a small pure function to accommodate a third optional workflow; behavior for the two existing options is unchanged (verified: the function reduces to the prior ternary's output when `codexCliWorkflow` is `undefined`).
+
+I independently ran the targeted Sprint 32 test files (`test/hosts/vscode/host-mission-workflow-codex-command-registration.test.ts`, `test/integration/host-mission-workflow-codex-cli.integration.test.ts`): both use only the Sprint 31 deterministic test-double (`test/adapters/codex/codex-cli-test-double.cjs`), never a live `codex` CLI, and assert the full Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge event sequence plus deterministic failure-stop behavior without fabricating Task completion. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**56 files / 275 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test included and passing unmodified within that run.
+
+One documentation/test-coverage gap was identified: the Extension Host activation smoke test's command-discoverability list (`test/extension-host/suite/extension-host.test.ts`) omits `nexus.runDeveloperMissionWorkflowWithGeminiCli` even though 8 commands are now registered in `package.json`. This gap predates Sprint 32 (traced to Sprint 30, confirmed absent from the Sprint 30 review's reviewed vertical slice and never remediated since), and Sprint 32 — while touching this exact file to add the Codex entry — did not close it. It does not indicate any runtime defect: the Gemini CLI command is independently validated by its own Sprint 30 unit/integration tests, which are unaffected and still passing. Classified Category 4 (Documentation Drift), Minor, per `knowledge/implementation/review-classification.md`.
+
+### Findings
+
+#### NEXUS-REV-2026-07-14-005-F-001 — Extension Host activation test omits the Gemini CLI command from its discoverability list
+
+- **Category:** Category 4 — Documentation Drift
+- **Severity:** Minor
+- **Authority:** `knowledge/implementation/sprints/sprint-0028-vs-code-extension-installability.md` (Extension Host Validation Boundary: "validate installation, activation, command execution... only"); Sprint 28 Definition of Done ("All ... currently-implemented commands register and are discoverable after activation").
+- **Summary:** `test/extension-host/suite/extension-host.test.ts`'s `COMMANDS` array lists 7 command IDs but omits `nexus.runDeveloperMissionWorkflowWithGeminiCli`, even though `package.json` registers 8 commands (`git diff` confirms this file's only change in Sprint 32 was appending the new Codex CLI entry; the Gemini CLI entry was never present, including at Sprint 30/31 HEAD).
+- **Impact:** The Extension Host activation smoke test — whose documented purpose is validating that "all... currently-implemented commands register and are discoverable after activation" — would not detect a regression that silently de-registered the Gemini CLI Developer Workflow command (e.g. a future composition-root wiring defect omitting `geminiCliMissionWorkflowAdapterId`). No current functional defect exists; the command is registered and independently covered by Sprint 30's own unit/integration tests.
+- **Required Disposition:** Documentation Task — add `nexus.runDeveloperMissionWorkflowWithGeminiCli` to the `COMMANDS` array in `test/extension-host/suite/extension-host.test.ts`. Test-list correction only; no behavior change.
+- **Builder Action:** Update documentation/test coverage only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 1 |
+| Critical / Major / Minor / Informational | 0 / 0 / 1 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 56 files / 275 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: persisted adapter preferences, Workspace/User adapter settings, or any configuration subsystem for Adapter selection; Adapter Selection Policy, automatic provider routing, capability scoring, fallback, or multi-adapter coordination; Execution Model deepening (full RFC-0004 Execution State set, Execution Session, Review-gated execution progression); authentication management, credential storage, OAuth, `SecretStorage` integration; GitHub Copilot CLI Adapter, Claude CLI Adapter, or any fourth production Adapter; streaming responses, multi-provider coordination, background execution. No `src/kernel` file was modified.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (third Developer Workflow command); no Adapter Selection Policy, persisted configuration, or Execution Model change introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/RFC-0008/RFC-0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-006`'s Architectural Responsibilities followed exactly, mirroring `NEXUS-RAT-2026-07-14-004`'s Gemini CLI precedent provider-for-provider.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `HostMissionWorkflow`/`AdapterService`/`adapterId` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no Kernel aggregate touched; Host remains a thin orchestrator dispatching via explicit `adapterId`.
+- Gate 5 (Data Model): PASS — no data model changed; `HostMissionWorkflowInput`/`HostMissionWorkflowResult` shapes reused unchanged.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched; the reused workflow sequence publishes the identical, already-certified event set.
+- Gate 8 (Capability Boundaries): PASS — `git diff --name-only` independently confirmed zero `src/kernel`, `src/adapters/codex`, `src/adapters/gemini`, `src/adapters/mock`, or `host-mission-workflow.ts` changes; Sprint 18's boundary test unaffected and passing within the independently reproduced `npm run validate` run.
+- Gate 9 (Technology Compliance): PASS — new command and test files placed consistently with the Sprint 30 Gemini CLI precedent (`test/hosts/vscode/host-mission-workflow-codex-command-registration.test.ts`, `test/integration/host-mission-workflow-codex-cli.integration.test.ts`).
+- Gate 10 (Code Quality): PASS — `createMissionWorkflowCommandOptions` extraction is a minimal, deterministic refactor with no hidden behavior; verified equivalent to the prior inline ternary for the two pre-existing options.
+- Gate 11 (Testing): PASS — new command's automated coverage is fully deterministic and CI-safe, using only the Sprint 31 test-double; existing Sprint 25–31 tests pass unmodified.
+- Gate 12 (Documentation): PASS WITH FINDING — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 32 record are mutually consistent and accurately scoped; see F-001 for the pre-existing Extension Host test-list gap.
+- Gate 13 (Implementation Report): PASS — Sprint 32 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0032-production-workflow-parity.md`) — Status → **Approved with Findings**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 32 status set to **Approved with Findings** (`NEXUS-REV-2026-07-14-005`); Milestone 6 status line updated accordingly. No Sprint 33 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+Generate one Documentation Task via `nexus-sprint` for F-001 (add the missing `nexus.runDeveloperMissionWorkflowWithGeminiCli` entry to the Extension Host activation test's command list). This finding does not block Sprint 32's approval or progression to the next Sprint Owner planning cycle.
+
+---
+
+## NEXUS-REV-2026-07-14-004 — Sprint 31 — Codex CLI Adapter Runtime Integration
+
+- **Reviewed Sprint:** Sprint 31 — Codex CLI Adapter Runtime Integration
+- **Reviewed Vertical Slice:** `CodexCliAdapter` (`src/adapters/codex/codex-cli-adapter.ts`), constructor-injected with `LocalProcessRuntimeContract`; deterministic local test-double suite (`test/adapters/codex/codex-cli-adapter.test.ts`, `test/adapters/codex/codex-cli-test-double.cjs`); composition-time registration proof (`test/integration/codex-cli-adapter-runtime.integration.test.ts`); `ADAPTER_RUNTIME_INSTRUCTIONS.md` reconciliation.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Primary, Partial — second production implementation). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 31 implements Nexus's second production Adapter, `CodexCliAdapter`, exactly as scoped by `NEXUS-RAT-2026-07-14-005`, introducing exactly one architectural variable (`CodexCliAdapter` registered alongside, not replacing, `MockAdapter` and `GeminiCliAdapter`) while preserving every previously certified boundary. This is a clean, isolated repetition of the already-certified Sprint 29 pattern with the provider swapped from Gemini CLI to Codex CLI.
+
+Independent re-verification: `git diff --stat -- src/kernel src/hosts src/extension.ts package.json src/adapters/mock src/adapters/runtime src/adapters/gemini` confirmed **empty** — every previously certified component is untouched. `knowledge/governance/RATIFICATION_LEDGER.md`'s diff was independently confirmed to be exactly the `NEXUS-RAT-2026-07-14-005` entry added during the prior `/nexus-plan` cycle, not a Builder modification. A repository-wide grep confirmed `CodexCliAdapter` is referenced nowhere in `src/extension.ts` or `src/hosts/**`; neither existing Developer Workflow command's dispatch target changed.
+
+`CodexCliAdapter` was read in full and confirmed structurally identical to the certified `GeminiCliAdapter` (metadata shape, request/response translation, diagnostics, timeout handling), differing only in provider-specific invocation (`codex exec "<prompt>"` vs `gemini --prompt`) and diagnostic/attribution naming (`codex-cli-adapter.*`, `provider: 'codex-cli'`).
+
+I independently ran the targeted Sprint 31 suite (`test/adapters/codex`, `test/integration/codex-cli-adapter-runtime.integration.test.ts`): 2 files / 7 tests passed, matching the Builder's claim exactly. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**54 files / 272 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test included and passing unmodified within that run.
+
+Reviewed the deterministic test-double executable (`codex-cli-test-double.cjs`) in full: fully deterministic, driven only by an `executionConstraints` flag, with no network, filesystem, or authentication dependency — correctly satisfying the Automated Repository Validation tier's CI-safety requirement. Reviewed the `ADAPTER_RUNTIME_INSTRUCTIONS.md` diff: purely additive, extending the existing Gemini CLI guidance to explicitly cover Codex CLI (including its own Manual Production Verification section), without redefining the document's runtime-guidance-only scope or introducing any governance claim.
+
+Cross-checked the Builder's reported Manual Production Verification result (real `codex` CLI discovered at version `codex-cli 0.144.3`; a live smoke test outside the repository succeeded via `codex exec` stdin mode, returning a parseable JSON response matching the Adapter response contract) against `IMPLEMENTATION_REPORT.md` and the Sprint 31 record — both consistently document this as documented, non-automated evidence, correctly excluded from the CI-safe gate.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 54 files / 272 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Developer Workflow integration / any new Host command targeting `CodexCliAdapter`; any `HostMissionWorkflow`/Host-orchestration/`extension.ts` change; persisted Adapter-selection configuration surface; GitHub Copilot CLI / Claude CLI or any third production Adapter; Adapter Selection Policy, provider routing, provider preference, fallback, multi-adapter execution; authentication management, credential storage, OAuth, `SecretStorage`; streaming responses, multi-provider coordination, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (isolated second production Adapter implementation); no Developer Workflow coupling introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/RFC-0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-005`'s binding Critical Boundary, Authentication Model, and Two-Tier Acceptance Criteria followed exactly, mirroring `NEXUS-RAT-2026-07-14-003`'s Gemini CLI precedent.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `Adapter`/`AdapterRequest`/`AdapterResponse`/`AdapterMetadata` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; Adapter remains stateless per RFC-0008.
+- Gate 5 (Data Model): PASS — `AdapterResponse`'s existing shape preserved unchanged.
+- Gate 6 (State Machine): PASS — no state machine touched; `AdapterLifecycle` untouched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/hosts src/extension.ts package.json` independently re-confirmed empty; Sprint 18's boundary test unaffected; `CodexCliAdapter` independently confirmed absent from `src/hosts/**` and `src/extension.ts` via grep.
+- Gate 9 (Technology Compliance): PASS — `CodexCliAdapter` correctly placed under `src/adapters/codex/`, mirroring `GeminiCliAdapter`/`MockAdapter` precedent exactly.
+- Gate 10 (Code Quality): PASS — deterministic diagnostics, immutable request/response translation, no hidden behavior; structurally consistent with the certified Gemini CLI Adapter.
+- Gate 11 (Testing): PASS — Automated Repository Validation tier is fully deterministic and CI-safe; Manual Production Verification correctly documented and excluded from automation.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `ADAPTER_RUNTIME_INSTRUCTIONS.md`, and the Sprint 31 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 31 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0031-codex-cli-adapter-runtime-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 31 status set to **Approved** (`NEXUS-REV-2026-07-14-004`); Milestone 6 status line updated accordingly. No Sprint 32 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+None. Zero findings; nothing blocks or requires remediation. Per `NEXUS-RAT-2026-07-14-005`, only after this Sprint's independent certification (now recorded here) SHALL a future Sprint authorize Developer Workflow integration of `CodexCliAdapter` — that scoping decision remains the next Sprint Owner action via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-14-003 — Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
+
+- **Reviewed Sprint:** Sprint 30 — Developer Workflow Integration of GeminiCliAdapter
+- **Reviewed Vertical Slice:** New `nexus.runDeveloperMissionWorkflowWithGeminiCli` command (`src/hosts/vscode/host-mission-workflow-command-registration.ts`); second `HostMissionWorkflow` instance and `GeminiCliAdapter` composition (`src/hosts/vscode/vscode-host.ts`, `src/extension.ts`); `package.json` command contribution/activation event; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Primary, Partial). Referenced: RFC-0004 — Execution Model, RFC-0008 — Kernel Adapter Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 30 connects the certified, isolated `GeminiCliAdapter` (Sprint 29) to the Developer Workflow exactly as scoped by `NEXUS-RAT-2026-07-14-004`, introducing a second, dedicated Host command rather than a persisted Adapter-configuration surface, and leaving the existing `nexus.runDeveloperMissionWorkflow` command entirely frozen.
+
+Independent re-verification: `git diff --stat -- src/kernel src/adapters` confirmed **empty**, and a diff against every pre-existing Sprint 25–27 test file confirmed **empty** — the frozen `MockAdapter`-based baseline is genuinely untouched, not merely claimed. `host-mission-workflow.ts` itself has zero changes this sprint; the `adapterExecutionConstraints` field the command registration now threads through already existed from a prior commit, so the registration change is purely additive plumbing. `host-mission-workflow-command-registration.ts`'s diff shows the two existing command registrations pushed first, unchanged, with the new registration appended only when a `geminiCliWorkflow` option is supplied — existing behavior and command ordering preserved. `vscode-host.ts`'s new `HostMissionWorkflow` instance reuses the identical constructor signature and shared Kernel services as the existing instance, differing only in the explicit `adapterId` (`GEMINI_CLI_ADAPTER_ID` vs `MOCK_ADAPTER_ID`) — no duplicate orchestration pipeline was introduced.
+
+I independently ran the targeted Sprint 30 suite (`test/hosts/vscode/host-mission-workflow-gemini-command-registration.test.ts`, `test/integration/host-mission-workflow-gemini-cli.integration.test.ts`): 2 files / 3 tests passed, matching the Builder's claim exactly. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**52 files / 265 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test included and passing unmodified within that run.
+
+Reviewed both new test files in full: the integration test drives the real composed Kernel via `createKernelServices`, wiring `GeminiCliAdapter` to the deterministic Sprint 29 test-double executable (`process.execPath` + the `.cjs` test-double path) — never a live Gemini CLI — confirming both the success path (full Mission → MissionPlan → Task → Execution → Evidence → Review → Knowledge sequence, correct Domain Event ordering) and the deterministic failure-stop path (Adapter failure halts before `completeTask`, with correct diagnostics presentation and no fabricated state). The command-registration test independently proves the existing command's registration order and input handling are unaffected by the new command's addition.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 52 files / 265 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: persisted adapter preferences, Workspace/User adapter settings, or any Adapter-selection configuration subsystem; Adapter Selection Policy, automatic provider routing, capability scoring, fallback, multi-adapter coordination; authentication management, credential storage, OAuth, `SecretStorage`; any second production Adapter beyond `GeminiCliAdapter`; streaming responses, multi-provider coordination, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (one new Host command); no Adapter-selection subsystem introduced, matching the ratified refinement.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/0008/0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-004`'s binding Critical Boundary and Architectural Responsibilities followed exactly.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `HostMissionWorkflow`/`AdapterService`/`adapterId` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; both workflow instances interact only through existing public Kernel service contracts.
+- Gate 5 (Data Model): PASS — no request/response/snapshot shape changed; `adapterExecutionConstraints` was already part of `HostMissionWorkflowInput` prior to this sprint.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; the integration test confirms the identical, already-certified event ordering.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected (verified via the passing full Vitest run); the Kernel remains unaware of which command initiated execution, confirmed by both `HostMissionWorkflow` instances sharing identical Kernel service injection.
+- Gate 9 (Technology Compliance): PASS — new command mirrors the existing command's registration and composition pattern exactly.
+- Gate 10 (Code Quality): PASS — additive-only diffs; no duplicate orchestration; deterministic dispatch via explicit `adapterId`.
+- Gate 11 (Testing): PASS — new automated coverage is fully deterministic and CI-safe (test-double executable only); existing frozen tests independently confirmed untouched.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 30 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 30 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0030-developer-workflow-gemini-cli-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 30 status set to **Approved** (`NEXUS-REV-2026-07-14-003`); Milestone 5 status line updated accordingly. No Sprint 31 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+None. Zero findings; nothing blocks or requires remediation. Milestone 5's remaining Expected Outcome (Developer Workflow integration of `GeminiCliAdapter`) is now complete; scoping the next sprint remains the next Sprint Owner action via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-14-002 — Sprint 29 — Gemini CLI Adapter Runtime Integration
+
+- **Reviewed Sprint:** Sprint 29 — Gemini CLI Adapter Runtime Integration
+- **Reviewed Vertical Slice:** `GeminiCliAdapter` (`src/adapters/gemini/gemini-cli-adapter.ts`), constructor-injected with `LocalProcessRuntimeContract`; deterministic local test-double suite (`test/adapters/gemini/gemini-cli-adapter.test.ts`, `test/adapters/gemini/gemini-cli-test-double.cjs`); composition-time registration proof (`test/integration/gemini-cli-adapter-runtime.integration.test.ts`); `ADAPTER_RUNTIME_INSTRUCTIONS.md`.
+- **RFC Coverage:** RFC-0008 — Kernel Adapter Contract (Primary, Partial — first production implementation). Referenced: RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 29 implements Nexus's first production Adapter, `GeminiCliAdapter`, exactly as scoped by `NEXUS-RAT-2026-07-14-003` and `NEXUS-RAT-2026-07-14-002`, introducing exactly one architectural variable (`GeminiCliAdapter` registered alongside, not replacing, `MockAdapter`) while preserving every previously certified boundary.
+
+Independent re-verification: `git status`/`git diff --stat` confirmed zero `src/kernel` file changes — `adapter-capability.ts`'s `CLI` value and `adapter-request.ts`/`adapter-metadata.ts` all predate this sprint (Sprint 22/7) and are untouched. A repository-wide grep confirmed `GeminiCliAdapter` is referenced nowhere in `src/extension.ts` or `src/hosts/**`; `MockAdapter` remains the sole Developer Workflow dispatch target, unmodified. `GeminiCliAdapter` mirrors `MockAdapter`'s placement and contract shape (`Adapter.metadata`, `execute(request): Promise<AdapterResponse>`), consuming `LocalProcessRuntimeContract` by constructor injection only — no direct process API usage, consistent with RFC-0008 statelessness and RFC-0010's Adapter-layer boundary (Sprint 21 precedent).
+
+I independently ran the targeted Sprint 29 suite directly (`npx vitest run test/adapters/gemini test/integration/gemini-cli-adapter-runtime.integration.test.ts`): 2 files / 7 tests passed, matching the Builder's claim exactly. I then ran the full `npm run validate` pipeline independently: `tsc --noEmit`, ESLint, Vitest (**50 files / 262 tests**), and `esbuild` all passed cleanly, exactly matching the Builder's reported numbers, with the Sprint 18 kernel boundary certification test (`test/integration/kernel-boundary-certification.integration.test.ts`) included and passing unmodified within that run.
+
+Reviewed the deterministic test-double executable (`gemini-cli-test-double.cjs`) line-by-line: it is fully deterministic, driven only by an `executionConstraints` flag, with no network, filesystem, or authentication dependency — correctly satisfying the Automated Repository Validation tier's CI-safety requirement. Reviewed `package.json`'s diff: the `validate` script chain (`compile && lint && test && build`) is unchanged and correctly includes the Gemini test-double suite (not excluded, unlike `test/extension-host/**`), while the Manual Production Verification procedure is absent from any script, correctly excluded from automation per the binding Two-Tier Acceptance Criteria. `ADAPTER_RUNTIME_INSTRUCTIONS.md` was read in full: it is scoped strictly to runtime execution guidance (lifecycle, request construction, command invocation, response contract, diagnostics, manual verification steps) and makes no governance, Sprint-planning, or authority claims, correctly following `NEXUS-RAT-2026-07-14-002`'s naming and scope ratification.
+
+Cross-checked the Builder's reported Manual Production Verification result (real `gemini` CLI discovered at version `0.50.0`; live execution blocked by a provider-side `IneligibleTierError`/`UNSUPPORTED_CLIENT`, not a Nexus defect) against `IMPLEMENTATION_REPORT.md` and `ADAPTER_RUNTIME_INSTRUCTIONS.md` — both consistently document this as documented, non-automated evidence, correctly excluded from the CI-safe gate per the ratification.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 50 files / 262 tests, esbuild build (independently reproduced) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: Developer Workflow integration / replacement of `MockAdapter`; any `HostMissionWorkflow`/Host-orchestration/`extension.ts` change; GitHub Copilot CLI / Claude CLI / Codex CLI or any second production Adapter; Adapter Selection Policy, provider routing, provider preference, fallback, multi-adapter execution; authentication management, credential storage, OAuth, `SecretStorage`; streaming responses, multi-provider coordination, background execution.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (isolated production Adapter implementation); no Developer Workflow coupling introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/RFC-0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-003`'s binding Critical Boundary, Authentication Model, and Two-Tier Acceptance Criteria followed exactly.
+- Gate 3 (Terminology): PASS — no renamed concept; existing `Adapter`/`AdapterRequest`/`AdapterResponse`/`AdapterMetadata` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; Adapter remains stateless per RFC-0008.
+- Gate 5 (Data Model): PASS — `AdapterResponse`'s existing shape (`status`, `diagnostics`, `producedArtifacts`, `findings`, `executionMetadata`) preserved unchanged.
+- Gate 6 (State Machine): PASS — no state machine touched; `AdapterLifecycle` untouched.
+- Gate 7 (Event Compliance): PASS — no Domain Event introduced or touched.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel` independently re-confirmed empty; Sprint 18's boundary test unaffected (verified via the passing full Vitest run); `GeminiCliAdapter` independently confirmed absent from `src/hosts/**` and `src/extension.ts` via grep.
+- Gate 9 (Technology Compliance): PASS — `GeminiCliAdapter` correctly placed under `src/adapters/gemini/`, mirroring `MockAdapter`/`LocalProcessRuntime` precedent.
+- Gate 10 (Code Quality): PASS — deterministic diagnostics, immutable request/response translation, no hidden behavior.
+- Gate 11 (Testing): PASS — Automated Repository Validation tier is fully deterministic and CI-safe; Manual Production Verification correctly documented and excluded from automation.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, `ADAPTER_RUNTIME_INSTRUCTIONS.md`, and the Sprint 29 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 29 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0029-gemini-cli-adapter-runtime-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 29 status set to **Approved** (`NEXUS-REV-2026-07-14-002`); Milestone 5 status line updated accordingly. No Sprint 30 exists in the Implementation Plan to advance to Current — this remains a Sprint Owner action via `/nexus-plan`.
+
+### Builder Task Recommendation
+
+None. Zero findings; nothing blocks or requires remediation. Per `NEXUS-RAT-2026-07-14-003`, only after this Sprint's independent certification (now recorded here) SHALL a future Sprint authorize Developer Workflow integration of `GeminiCliAdapter` — that scoping decision remains the next Sprint Owner action via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-14-001 — Sprint 28 — VS Code Extension Installability
+
+- **Reviewed Sprint:** Sprint 28 — VS Code Extension Installability
+- **Reviewed Vertical Slice:** `package.json` packaging metadata (`activationEvents`, `icon`, `repository`, `license`); `.vscodeignore`; `.vscode/launch.json`; `esbuild.extension-host-test.js`; `test/extension-host/run-tests.ts` and `test/extension-host/suite/extension-host.test.ts`; `assets/nexus-icon.png`.
+- **RFC Coverage:** No Primary RFC — packaging/tooling and validation-only slice. Referenced: RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 28 productizes Nexus as a packageable, installable VS Code extension exactly as scoped by `NEXUS-RAT-2026-07-14-001`, without touching Kernel or Adapter architecture. `git diff --stat -- src/kernel src/adapters` is confirmed **empty**; the only `src/hosts`-adjacent files touched are packaging/tooling artifacts, not business logic.
+
+Independent re-validation reproduced every environment-independent claim exactly: `tsc --noEmit`, ESLint, and `npm run build` (esbuild) all passed cleanly; the existing Vitest suite (excluding the new extension-host target) passed **48 files / 255 tests**; `npm run package` produced a structurally correct `nexus-0.0.1.vsix` whose manifest listing matched the Builder's reported contents precisely (bundled `dist/extension.js`, correct `package.json`, icon, no `src/`/`test/` leakage). `package.json`'s `activationEvents` are correctly scoped to the six contributed commands, `.vscodeignore` correctly excludes dev-only tooling (`typescript`, `eslint`, `vitest`, `@typescript-eslint`, `@types`), and `.vscode/launch.json` correctly targets `extensionDevelopmentPath` without modifying `.vscode/settings.json`/`.vscode/extensions.json`. `test/extension-host/suite/extension-host.test.ts` was read line-by-line and stays precisely within the ratified Extension Host Validation Boundary: it asserts activation, all six command registrations, one full `nexus.runDeveloperMissionWorkflow` execution result, and history — it does not assert anything about internal Kernel state, aggregates, or event buses, correctly leaving Kernel integration ownership with the existing Vitest suite.
+
+I attempted to independently execute the automated Extension Host suite (`npm run test:extension-host`) against a locally installed VS Code (version 1.127.0, confirmed via `bin/code.cmd --version`) in this review environment. Both the Builder's actual `run-tests.ts` and a minimal, code-identical reproduction using the canonical, officially-documented `@vscode/test-electron` pattern (`extensionDevelopmentPath` only, no Nexus-specific code, with `--no-sandbox`/`--disable-gpu` added) failed identically with `Error: Cannot find module 'vscode'` thrown while requiring `dist/extension.js` inside the spawned host process. Diagnosing further: invoking `Code.exe --version` directly (as opposed to the `bin/code.cmd` CLI wrapper) anomalously returns a bare Node.js version string (`v24.15.0`) rather than a VS Code product version, on this AzureAD-joined, presumably endpoint-managed machine — strong evidence that raw `Code.exe` process launches are being intercepted, redirected, or otherwise altered by machine-level security tooling in this session, independent of anything in the Nexus repository. Because the identical failure reproduces with a zero-Nexus-code canonical minimal test, I attribute this to review-environment interference rather than an implementation defect, but I could not obtain an independent, conclusive PASS on this specific claim and am recording that honestly as a finding rather than certifying it silently.
+
+### Findings
+
+**Finding NEXUS-REV-2026-07-14-001-F-001**
+- **Category:** Observation (Category 6)
+- **Severity:** Informational
+- **Authority:** N/A — non-blocking recommendation.
+- **Summary:** The automated Extension Host validation (`npm run test:extension-host`) could not be independently reproduced as passing in this review environment; both the Builder's implementation and a minimal, code-free canonical `@vscode/test-electron` repro failed identically with `Cannot find module 'vscode'`, correlated with anomalous `Code.exe --version` behavior suggesting machine-level interception unrelated to Nexus.
+- **Evidence:** Direct reproduction attempts (see Executive Summary); `Code.exe --version` → `v24.15.0` vs. `bin/code.cmd --version` → `1.127.0`.
+- **Impact:** None on architectural compliance; this is a verification-confidence gap, not a code defect indicator, given the failure reproduces identically with zero Nexus code involved.
+- **Recommended Disposition:** No Builder action required. Recommend the Sprint Owner obtain one additional independent confirmation of `npm run test:extension-host` passing (e.g., via CI on a clean runner, or a different local machine) as due diligence before treating Sprint 28's Extension Host claim as fully cross-validated. Does not block approval.
+- **Builder Action:** None.
+
+**Finding NEXUS-REV-2026-07-14-001-F-002**
+- **Category:** Observation (Category 6)
+- **Severity:** Minor
+- **Authority:** N/A — quality/efficiency recommendation.
+- **Summary:** `npm run package` includes ~580 KB of raw `pino` (and transitive) `node_modules` source files in the VSIX even though `dist/extension.js` already bundles `pino` (only `vscode` is declared `external` in `esbuild.js`), making the runtime `node_modules` inclusion fully redundant. `vsce`'s own packaging output warns about this exact condition.
+- **Evidence:** `npm run package` output listing `node_modules/pino/` (195 files), `node_modules/@pinojs/`, etc. inside `nexus-0.0.1.vsix`; `esbuild.js:8` (`external: ['vscode']` only).
+- **Impact:** No functional defect — the extension still installs and activates correctly since `dist/extension.js` is self-contained — but the VSIX is unnecessarily larger than needed.
+- **Recommended Disposition:** Non-blocking. Suggest adding `node_modules/**` to `.vscodeignore` in a future documentation/cleanup pass, since bundling already makes it redundant.
+- **Builder Action:** None required now; optional future cleanup.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 2 |
+| Critical / Major / Minor | 0 / 0 / 1 (Informational: 1) |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 255 tests, esbuild build, `npm run package` (VSIX structurally verified) |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: GitHub Copilot CLI / Claude CLI / Gemini CLI / Codex CLI or any production Adapter; Adapter Selection, provider routing; authentication, credential management, OAuth, `SecretStorage`; streaming responses, multi-provider coordination; Visual Studio Marketplace publication, release automation; `COPILOT_INSTRUCTIONS.md`; any new Kernel/Adapter/Host business rule, command, or capability.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (packaging/tooling and real-host validation); no unrelated functionality introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0009/0010 correctly cited as Referenced only; `NEXUS-RAT-2026-07-14-001`'s binding Extension Host Validation Boundary and Packaging Scope followed exactly.
+- Gate 3 (Terminology): PASS — no renamed concept; existing command IDs and Host contract vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate touched; the new tests interact only through registered VS Code commands, which themselves call only existing public Host/Kernel entry points.
+- Gate 5 (Data Model): PASS — no request/response/snapshot shape changed.
+- Gate 6 (State Machine): PASS — no state machine touched.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; extension-host tests do not touch the event bus at all, correctly leaving that to the existing Vitest suite.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected (verified via the passing full Vitest run).
+- Gate 9 (Technology Compliance): PASS — new tooling correctly scoped to packaging/testing infrastructure (`@vscode/vsce`, `@vscode/test-electron`, `esbuild.extension-host-test.js`, `.vscodeignore`, `.vscode/launch.json`).
+- Gate 10 (Code Quality): PASS with Observation — deterministic, minimal-scope test assertions; see F-002 for a non-blocking packaging-bloat observation.
+- Gate 11 (Testing): PASS with Observation — the new extension-host suite is correctly scoped per the binding validation boundary; see F-001 regarding independent reproduction in this review environment.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 28 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 28 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0028-vs-code-extension-installability.md`) — Status → **Approved with Findings**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 28 status set to **Approved with Findings** (`NEXUS-REV-2026-07-14-001`); Milestone 5 status line updated accordingly.
+
+### Builder Task Recommendation
+
+None blocking. Both findings are Observations (Category 6): F-001 recommends the Sprint Owner obtain one additional independent confirmation of the Extension Host test passing in an uncorrelated environment as due diligence, and F-002 suggests an optional future `.vscodeignore` cleanup. Neither requires Builder action now. Per `NEXUS-RAT-2026-07-14-001`, only after independent certification of this Sprint SHALL the repository proceed to the first production Adapter implementation — that remains the next Sprint Owner decision via `/nexus-plan`, with provider choice, authentication model, and `COPILOT_INSTRUCTIONS.md` activation still unresolved and reserved for that cycle.
+
+---
+
+## NEXUS-REV-2026-07-13-028 — Sprint 27 — Developer Workflow Completion
+
+- **Reviewed Sprint:** Sprint 27 — Developer Workflow Completion
+- **Reviewed Vertical Slice:** `HostMissionWorkflow` extension inserting `EvidenceService.registerEvidence` → `ReviewService.startReview` → `ReviewService.publishFinding` → `ReviewService.finalizeReviewOutcome` → `KnowledgeService.captureKnowledge` immediately after `completeMission()` (`src/hosts/vscode/host-mission-workflow.ts`); composition-root wiring in `vscode-host.ts`; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Partial, Primary). Referenced: RFC-0002 — Evidence Model, RFC-0006 — Engineering Assessment Model, RFC-0007 — Knowledge Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 27 completes the provider-independent Developer Workflow exactly as scoped by `NEXUS-RAT-2026-07-13-014`. `git diff --stat -- src/kernel src/adapters` is confirmed **empty** — this sprint touches no Kernel or Adapter source file; all changes are additive within `src/hosts/vscode/` (`vscode-host.ts`'s diff is additive `resolveService` wiring only, mirroring the Sprint 25/26 pattern).
+
+`host-mission-workflow.ts` was read line-by-line: the new private `completeDeveloperWorkflow` method is invoked immediately after the existing `completeMission()` call and executes exactly `EvidenceService.registerEvidence` → `ReviewService.startReview` → `ReviewService.publishFinding` → `ReviewService.finalizeReviewOutcome` → `KnowledgeService.captureKnowledge`, in that order, with no duplicate or alternate orchestration — confirmed by a dedicated unit test asserting the full 21-call sequence. The ratification's most consequential — and most easily violated — requirement is the ban on Host-side logic equivalent to `if (reviewAccepted) { captureKnowledge(); }`. Code inspection confirms `captureKnowledge()` is called unconditionally immediately after `finalizeReviewOutcome()`, with no branch on the `outcome` value in between (`host-mission-workflow.ts:429-436`); a dedicated test (`'calls Knowledge capture unconditionally and stops on Kernel Knowledge rejection'`) proves this directly by injecting a Kernel-thrown Knowledge rejection *after* a successful `Accepted` outcome and confirming `KnowledgeService.captureKnowledge` was still called and the workflow still stopped deterministically — the only way that assertion can pass is if the call is unconditional. This satisfies the ratification's binding clarification precisely: eligibility is enforced solely by the Kernel's own `KnowledgeCapturePreconditionError`, not by Host business logic.
+
+The other necessary technical accommodation — that the frozen Sprint 9 `FinalizeReviewOutcomeCommand` requires an explicit caller-supplied `outcome`, which the Review domain does not derive from Findings — is handled exactly as the ratification's binding clarification prescribes: `MissionWorkflowCompletionServices.reviewOutcome` is an optional, deterministic, fixed input (`completion.reviewOutcome ?? 'Accepted'`), supplied the same way Sprint 26 already supplies a deterministic default `roleId`. This is command data, not Review-outcome interpretation; the Host never inspects Finding content or Review semantics beyond passing the fixed value through. The real-Kernel integration test (`'composes with real Kernel services and completes a single-Task Mission'`) independently confirms the full event sequence through the actual composed `ReviewService`/`KnowledgeService`: `EvidenceCaptured, ReviewStarted, FindingCreated, ReviewCompleted, ReviewAccepted, KnowledgeCandidateCreated`, proving the Sprint 12 Knowledge capture preconditions (terminal accepted Review, supporting Evidence, completed Mission work) are genuinely satisfied by real Kernel-owned validation, not fabricated by the Host.
+
+Independent re-validation confirms the Builder's reported results exactly: `tsc --noEmit`, ESLint, and `npm run build` (esbuild) all pass cleanly, and Vitest reports **48 files / 255 tests**, all passing. Sprint 20's and Sprint 16's frozen integration tests are absent from the diff and pass unmodified. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 27 record are mutually consistent and accurately scoped. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 255 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: live AI Providers, production Adapter integration, Adapter Selection, provider routing; human review intervention, review retry workflows, AI/human-generated Review judgment; streaming execution, background workflow execution, workflow automation, multi-provider coordination; persistent/durable workflow, execution, review, or knowledge history; Policy Engine integration, Evidence indexing, Knowledge conflict resolution, Shared Reality visualization, Mission browser, dashboards; `COPILOT_INSTRUCTIONS.md`; any new Kernel/Adapter aggregate, repository, business rule, lifecycle transition, or Domain Event.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Developer Workflow completion via Evidence/Review/Knowledge integration); no unrelated functionality introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0002/0006/0007/0009/0010 correctly cited; `NEXUS-RAT-2026-07-13-014`'s binding Authorized Completion Workflow and Knowledge-eligibility clarification followed exactly.
+- Gate 3 (Terminology): PASS — no renamed Kernel concept; existing `EvidenceService`/`ReviewService`/`KnowledgeService` vocabulary (`ReviewOutcomeValue`, `KnowledgeStatusValue`, `FindingCategoryValue`, etc.) reused unchanged and with valid enumerated values (`'Accepted'`, `'Repository'`, `'Alignment'`, `'Informational'`).
+- Gate 4 (Aggregate Ownership): PASS — the Host instantiates no aggregate and touches no aggregate internals directly (`Evidence.register` is invoked only inside test doubles standing in for the real `EvidenceService`, never by the Host); all production interaction flows through the three public service contracts.
+- Gate 5 (Data Model): PASS — no `RegisterEvidenceRequest`/`StartReviewCommand`/`PublishFindingCommand`/`FinalizeReviewOutcomeCommand`/`KnowledgeCaptureRequest` shape changed.
+- Gate 6 (State Machine): PASS — no new Review, Finding, or Knowledge state introduced; the Review is driven Pending → In Progress → Completed and Knowledge lands at the correct `Candidate` status via existing, unmodified lifecycle rules.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; the composed-Kernel integration test's event sequence (`EvidenceCaptured, ReviewStarted, FindingCreated, ReviewCompleted, ReviewAccepted, KnowledgeCandidateCreated`) matches the existing catalog and Sprint 16's established ordering.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new orchestration code lives entirely in `src/hosts/vscode/`, reusing the existing `resolveService` composition pattern.
+- Gate 10 (Code Quality): PASS — deterministic; the ratification's central constraint (no `if (reviewAccepted)`-shaped Host logic) is verifiably honored by both code inspection and a test that specifically forces the branch-free path to be exercised; no dead code; no speculative abstraction.
+- Gate 11 (Testing): PASS — unit tests cover the full 21-call sequence, the unconditional-Knowledge-capture/Kernel-rejection stop path, command registration, and real `createKernelServices` composition with genuine Kernel-side Review/Knowledge validation; Sprint 16's and Sprint 20's existing tests continue to pass.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 27 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 27 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0027-developer-workflow-completion.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 27 status set to **Approved** (`NEXUS-REV-2026-07-13-028`); Milestone 4 status line updated accordingly. Additionally corrected a pre-existing, unrelated documentation defect discovered during this review: a duplicate, stale `## Future Sprint Planning (Milestone 4)` heading (with an incomplete Status line lacking Sprint 26/27) was orphaned immediately before the Sprint 26 section, left over from an earlier planning edit. Removed as Category 4 — Documentation Drift, Minor severity; no content was lost, since the correct, complete section already existed later in the file.
+
+### Builder Task Recommendation
+
+None. The Sprint 27 review cycle is complete with no open findings. This completes the provider-independent Developer Workflow ratified by `NEXUS-RAT-2026-07-13-014`. Per that ratification's Repository State section, the repository is now ready to begin **Milestone 5 — Production Adapter Integration** (the sole remaining substitution: `MockAdapter → Live Provider Adapter`, including the associated `COPILOT_INSTRUCTIONS.md` activation reserved by `NEXUS-RAT-2026-07-13-010`). Next step is a Sprint Owner action via `/nexus-plan`.
+
+---
+
+## NEXUS-REV-2026-07-13-027 — Sprint 26 — Developer Workflow Adapter Integration
+
+- **Reviewed Sprint:** Sprint 26 — Developer Workflow Adapter Integration
+- **Reviewed Vertical Slice:** `HostMissionWorkflow` extension inserting the Role Assignment → Execution Strategy readiness → Adapter dispatch sequence between `startTask` and `completeTask` (`src/hosts/vscode/host-mission-workflow.ts`); composition-root wiring in `vscode-host.ts`; `extension.ts` `missionWorkflowAdapterId` wiring; associated unit and integration tests.
+- **RFC Coverage:** RFC-0004 — Execution Model (Partial, Primary — extending Sprint 20's certified pipeline to a real Host trigger). Referenced: RFC-0008 — Kernel Adapter Contract, RFC-0009 — Host Contract, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-14
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 26 connects Sprint 25's Developer Workflow to Sprint 20's already-certified Adapter execution pipeline, exactly as scoped by `NEXUS-RAT-2026-07-13-013`. `git diff --stat -- src/kernel src/adapters` is confirmed **empty** — this sprint touches no Kernel or Adapter source file; all changes are additive within `src/hosts/vscode/` plus one line in `extension.ts` wiring `missionWorkflowAdapterId`.
+
+`host-mission-workflow.ts` was read line-by-line: the inserted sequence — `ExecutionStrategyService.createExecutionStrategy` → `RoleService.assignRole` → `ExecutionStrategyService.evaluateAssignmentReadiness` → `RoleService.retrieveRole` → `AdapterService.dispatch` — sits exactly between the existing `startTask` and `completeTask` calls, matching the Ratification's Authorized Execution Path verbatim, with no duplicate or alternate orchestration path. A dedicated unit test asserts the full sixteen-call sequence in order. The Host makes no role, readiness, or dispatch-outcome decision itself: every such call is a pass-through to `RoleService.assignRole`/`ExecutionStrategyService.evaluateAssignmentReadiness`/`AdapterService.dispatch` (confirmed against `role.service.ts`, `execution-strategy.service.ts`, and `adapter.service.ts`), and the Host's only branch (`adapterSnapshot.status !== 'Completed'`) reads the Adapter's own determination rather than computing one — satisfying the Critical Boundary's "Host SHALL NOT... determine execution success/failure" rule. Adapter dispatch uses the explicit `adapterId` supplied by Host composition (`vscode-host.ts`: `options.missionWorkflowAdapterId ?? 'mock-adapter'`), preserving `NEXUS-RAT-2026-07-13-011`'s explicit-dispatch-only guardrail; no selection, routing, or scoring logic was introduced.
+
+On a `Completed` Adapter response, the Task and Mission complete and results present, verified by the primary success test. On a non-`Completed` response, `failAdapterResponse` presents Adapter diagnostics, records the Task's true last-known Mission status, and does not call `completeTask` or fabricate a Task-failure state — verified by a dedicated test asserting the call sequence stops immediately after `AdapterService.dispatch`. Sprint 20's `test/integration/execution-pipeline-integration.integration.test.ts` is absent from the diff and passes unmodified; Sprint 18's `src/kernel` import-graph boundary test is unaffected. Independent re-validation confirms the Builder's reported results exactly: `tsc --noEmit`, ESLint, and `npm run build` (esbuild) all pass cleanly, and Vitest reports **48 files / 254 tests**, all passing. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 26 record are mutually consistent and accurately scoped. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 254 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: live AI provider integration; Adapter Selection Policy / routing / capability scoring / provider preference / fallback / load balancing / multi-adapter execution; background execution, workflow automation, retry policies, streaming, cancellation, progress callbacks beyond Sprint 24's existing `withProgress` markers; persistent execution history, Knowledge integration, Shared Reality visualization, Mission browser, execution dashboards; `COPILOT_INSTRUCTIONS.md`; any new Kernel/Adapter aggregate, repository, business rule, lifecycle transition, or Domain Event.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Developer Workflow → Adapter pipeline integration); no unrelated functionality introduced.
+- Gate 2 (Architectural Authority): PASS — RFC-0004/0008/0009/0010 correctly cited as Referenced only (no normative concept redefined); `NEXUS-RAT-2026-07-13-013`'s binding Authorized Execution Path followed exactly.
+- Gate 3 (Terminology): PASS — no renamed Kernel or Adapter concept; existing `RoleService`/`ExecutionStrategyService`/`AdapterService` vocabulary reused unchanged.
+- Gate 4 (Aggregate Ownership): PASS — the Host instantiates no aggregate and touches no aggregate internals; all interaction flows through the existing public service contracts.
+- Gate 5 (Data Model): PASS — no `AdapterRequest`/`AdapterResponse`/`RoleAssignment`/`ExecutionStrategy` shape changed; `AdapterRequest` construction mirrors Sprint 20's test construction pattern.
+- Gate 6 (State Machine): PASS — no new Task or Mission state introduced; non-`Completed` Adapter responses leave the Task at its existing `InProgress` state rather than inventing a failure state.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; the composed-Kernel integration test's event sequence matches Sprint 25's baseline unchanged.
+- Gate 8 (Capability Boundaries): PASS — `git diff --stat -- src/kernel src/adapters` independently re-confirmed empty; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new orchestration code lives entirely in `src/hosts/vscode/`, reusing existing `HostPresentationSurface`/`HostWorkspaceTrustSurface` abstractions.
+- Gate 10 (Code Quality): PASS — deterministic; the Host's only decision point is a pass-through status check; no dead code; no speculative abstraction; no Adapter Selection Policy introduced.
+- Gate 11 (Testing): PASS — unit tests cover the full pipeline call-order sequence, the non-`Completed` stop path, command registration, and real `createKernelServices` composition with `MockAdapter`; Sprint 20's and Sprint 25's existing tests continue to pass.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 26 record are mutually consistent and accurately scoped.
+- Gate 13 (Implementation Report): PASS — Sprint 26 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0026-developer-workflow-adapter-integration.md`) — Status → **Approved**; Reviewer Notes, Findings, Required Actions, and Final Disposition completed.
+- `IMPLEMENTATION_PLAN.md` — Sprint 26 status set to **Approved** (`NEXUS-REV-2026-07-13-027`); Milestone 4 status line updated accordingly. No Sprint 27 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 26 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan`. Per the Sprint 26 record's Expected Outcome, the only remaining architectural substitution anticipated is `MockAdapter → Live Provider Adapter`; that decision, along with `COPILOT_INSTRUCTIONS.md` activation (`NEXUS-RAT-2026-07-13-010`), remains open for Sprint Owner planning.
+
+---
+
+## NEXUS-REV-2026-07-13-026 — Sprint 25 — Developer Workflow Foundation
+
+- **Reviewed Sprint:** Sprint 25 — Developer Workflow Foundation
+- **Reviewed Vertical Slice:** `HostMissionWorkflow`, `HostMissionWorkflowError`, `HostMissionWorkflowCommandRegistration` (`src/hosts/vscode/host-mission-workflow*.ts`); composition-root wiring in `vscode-host.ts`; `package.json` command contributions; associated unit and integration tests.
+- **RFC Coverage:** RFC-0009 — Host Contract (Partial, Primary). Referenced: RFC-0001 — Mission Model, RFC-0004 — Execution Model, RFC-0010 — Kernel Boundaries.
+- **Review Date:** 2026-07-13
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Sprint 25 opens the Mission domain's Host entry point exactly as authorized, mirroring the twice-reviewed Adapter-domain pattern (Sprint 23/24) with no deviation. `git diff --stat HEAD -- src/kernel/ src/adapters/` and a diff against every Sprint 19–24 file are both confirmed **empty** — this sprint is purely additive within `src/hosts/vscode/`, touching no Kernel, Adapter, or prior Host file's behavior (`vscode-host.ts`'s diff is additive composition wiring only).
+
+`HostMissionWorkflow.runDeveloperMissionWorkflow` executes the authorized eleven-call sequence in the exact specified order — verified line-by-line against `host-mission-workflow.ts:104-148` and independently re-confirmed by a dedicated unit test asserting the call order array. Two independent tests (one unit-level composing real `createKernelServices`, one in `test/integration/host-mission-workflow.integration.test.ts`) both assert the resulting Domain Event sequence — `MissionCreated, MissionPlanCreated, MissionPlanned, TaskCreated, MissionReady, MissionStarted, TaskStarted, TaskCompleted, MissionReviewed, MissionCompleted` — which is a strict subset of, and consistent with, Sprint 16's certified golden-path event ordering (Sprint 16 additionally captures Evidence/Review/Knowledge, correctly out of scope here). Workspace Trust is checked as the *first* action in the method (`host-mission-workflow.ts:85`), before even identifier generation, and a dedicated test proves zero Kernel calls when untrusted. A dedicated Kernel-rejection test proves the workflow stops at the failing call (no retry, no continuation) and records the Mission's actual last-known status rather than fabricating one.
+
+Both Critical Boundary rules from the Sprint record are honored: the Host performs no Mission validation or business logic — it is a thin, structurally-typed caller of `MissionWorkflowMissionService`/`MissionWorkflowPlanningService`/`MissionWorkflowExecutionService`, satisfied in production by the real, unmodified `MissionService`/`MissionPlanningService`/`MissionExecutionService`; and session history is confirmed to store only `{missionId, objective, finalStatus}` with zero use of `vscode.Memento`/`globalState`/`workspaceState` (independently re-verified by `grep`). Independent re-validation confirms the Builder's reported results exactly: `npm run validate` passes — TypeScript compile, ESLint, Vitest **48 files / 253 tests**, esbuild build. `IMPLEMENTATION_REPORT.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` § Sprint 25 are mutually consistent and accurately scoped. **No architectural violations detected.**
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor | 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | PASS — `tsc --noEmit`, ESLint, Vitest 48 files / 253 tests, esbuild build |
+
+### Deferred Concept Validation
+
+Confirmed unimplemented and unapproximated: multiple Tasks per Mission, Task dependencies/graphs, Mission editing beyond the fixed single-task sequence; Evidence, Shared Reality, Review (domain), Knowledge capture; persistent/cross-session Mission history; live AI providers, Adapter dispatch, Adapter Selection Policy (this sprint touches no Adapter code at all); workflow automation, background execution, retry policies, scheduling; any new Kernel domain, aggregate, business rule, state, or event; `COPILOT_INSTRUCTIONS.md`.
+
+### Architectural Compliance Summary
+
+- Gate 1 (Scope): PASS — single vertical slice (Mission workflow Host entry point); no unrelated functionality.
+- Gate 2 (Architectural Authority): PASS — RFC-0009 Command Registration/User Interaction correctly cited; the Sprint record's Critical Boundary interpretation of "Host SHALL NOT create/plan Missions" (business-logic ownership, not invocation) is applied consistently and correctly — the Host contains zero Mission validation logic, confirmed by code inspection.
+- Gate 3 (Terminology): PASS — no renamed Kernel concept; `MissionService.reviewMission` (Mission-lifecycle transition) is correctly not confused with the Review domain anywhere in code or comments.
+- Gate 4 (Aggregate Ownership): PASS — no aggregate instantiated or touched by the Host; all interaction through the three public Mission services.
+- Gate 5 (Data Model): PASS — no Mission/MissionPlan/Task/MissionExecution request or response shape changed.
+- Gate 6 (State Machine): PASS — no state machine touched; the eleven-call sequence exactly matches Sprint 16's proven-legal transition order.
+- Gate 7 (Event Compliance): PASS — no new Domain Event type introduced; resulting event sequence independently verified against Sprint 16's baseline.
+- Gate 8 (Capability Boundaries): PASS — RFC-0010's Dependency Rule independently re-verified: zero `src/kernel`/`src/adapters` changes; Sprint 18's boundary test unaffected.
+- Gate 9 (Technology Compliance): PASS — new code correctly placed under `src/hosts/vscode/`, reusing existing `HostInputSurface`/`HostPresentationSurface`/`HostWorkspaceTrustSurface` abstractions rather than duplicating them.
+- Gate 10 (Code Quality): PASS — deterministic; fails-closed trust gating verified before any Kernel call; Kernel-rejection handling records true last-known state rather than fabricating success; no dead code; no speculative abstraction.
+- Gate 11 (Testing): PASS — unit tests cover the full call-order sequence, workspace-trust refusal with zero-calls proof, Kernel-rejection with partial-history proof, command registration, and cancellation; two independent tests compose the real `createKernelServices` Kernel and assert the true Domain Event sequence; full suite passes.
+- Gate 12 (Documentation): PASS — `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 25 record are mutually consistent and accurately scoped, correctly avoiding the Sprint 23 overstatement pattern this time.
+- Gate 13 (Implementation Report): PASS — Sprint 25 section present with Scope, RFC Coverage, Reference Documents, Assumptions, Limitations, and "No architectural deviations."
+
+No architectural violations detected.
+
+### Repository State Update
+
+- `REVIEW_HISTORY.md` — this entry added.
+- Sprint Implementation Record (`sprint-0025-developer-workflow-foundation.md`) — Status → **Approved**; Reviewer Notes and Final Disposition completed below.
+- `IMPLEMENTATION_PLAN.md` — Sprint 25 status set to **Approved** (`NEXUS-REV-2026-07-13-026`). No Sprint 26 exists in the Implementation Plan to advance to Current (Sprint Owner action required under the specification-first / provisional-sequencing workflow established for Milestone 4).
+
+### Builder Task Recommendation
+
+None. The Sprint 25 review cycle is complete with no open findings. Next step is a Sprint Owner action: plan the next Milestone 4 slice via `/nexus-plan` — both the Adapter-domain and Mission-domain Host entry points are now certified; live provider selection for the Adapter domain remains an open, separate decision.
+
+---
+
 ## NEXUS-REV-2026-07-13-025 — Sprint 24 — Host Runtime Completion
 
 - **Reviewed Sprint:** Sprint 24 — Host Runtime Completion

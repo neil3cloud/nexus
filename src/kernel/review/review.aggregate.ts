@@ -10,7 +10,7 @@ import {
 } from './review.events';
 import { ReviewCriteria } from './review-criteria';
 import { ReviewId } from './review-id';
-import type { ReviewSnapshot } from './review.types';
+import type { ReviewPlanRevisionReference, ReviewSnapshot } from './review.types';
 import { ReviewOutcome, ReviewStatus } from './review-values';
 import {
   DuplicateFindingError,
@@ -23,7 +23,7 @@ import {
 export interface CreateReviewInput {
   readonly id: ReviewId | string;
   readonly missionId: string;
-  readonly missionPlanRevision: string;
+  readonly missionPlanRevision: ReviewPlanRevisionReference;
   readonly reviewCriteria: readonly (ReviewCriteria | { readonly id: string; readonly description: string })[];
   readonly evidenceReferences: readonly string[];
 }
@@ -35,7 +35,7 @@ export class Review {
   private constructor(
     private readonly reviewId: ReviewId,
     private readonly missionIdValue: string,
-    private readonly missionPlanRevisionValue: string,
+    private readonly missionPlanRevisionValue: ReviewPlanRevisionReference,
     private readonly criteriaValues: readonly ReviewCriteria[],
     private readonly evidenceReferenceValues: readonly string[],
     private statusValue: ReviewStatus,
@@ -46,7 +46,7 @@ export class Review {
     return new Review(
       normalizeReviewId(input.id),
       normalizeNonEmptyString(input.missionId, 'Mission identity'),
-      normalizeNonEmptyString(input.missionPlanRevision, 'MissionPlan revision'),
+      normalizeReviewPlanRevisionReference(input.missionPlanRevision),
       normalizeCriteria(input.reviewCriteria),
       normalizeRequiredStringList(
         input.evidenceReferences,
@@ -62,7 +62,7 @@ export class Review {
     const review = new Review(
       ReviewId.fromString(snapshot.id),
       normalizeNonEmptyString(snapshot.missionId, 'Mission identity'),
-      normalizeNonEmptyString(snapshot.missionPlanRevision, 'MissionPlan revision'),
+      normalizeReviewPlanRevisionReference(snapshot.missionPlanRevision),
       normalizeCriteria(snapshot.reviewCriteria),
       normalizeRequiredStringList(
         snapshot.evidenceReferences,
@@ -99,8 +99,8 @@ export class Review {
     return this.missionIdValue;
   }
 
-  public get missionPlanRevision(): string {
-    return this.missionPlanRevisionValue;
+  public get missionPlanRevision(): ReviewPlanRevisionReference {
+    return normalizeReviewPlanRevisionReference(this.missionPlanRevisionValue);
   }
 
   public get status(): ReviewStatus {
@@ -181,7 +181,7 @@ export class Review {
     return Object.freeze({
       id: this.reviewId.toString(),
       missionId: this.missionIdValue,
-      missionPlanRevision: this.missionPlanRevisionValue,
+      missionPlanRevision: normalizeReviewPlanRevisionReference(this.missionPlanRevisionValue),
       status: this.statusValue.toString(),
       ...(this.outcomeValue === undefined ? {} : { outcome: this.outcomeValue.toString() }),
       reviewCriteria: Object.freeze(this.criteriaValues.map((criteria) => criteria.toSnapshot())),
@@ -331,4 +331,17 @@ function normalizeNonEmptyString(value: string, label: string): string {
   }
 
   return normalized;
+}
+
+function normalizeReviewPlanRevisionReference(reference: ReviewPlanRevisionReference): ReviewPlanRevisionReference {
+  const kind = reference.kind;
+
+  if (kind !== 'ExecutableMissionPlan' && kind !== 'ProposedPlanRevision') {
+    throw new InvalidReviewDefinitionError('ReviewPlanRevisionReference kind is invalid.');
+  }
+
+  return Object.freeze({
+    kind,
+    revisionId: normalizeNonEmptyString(reference.revisionId, 'MissionPlan revision'),
+  });
 }

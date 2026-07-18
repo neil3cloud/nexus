@@ -243,7 +243,7 @@ describe('Kernel cross-domain failure-path integration', () => {
       harness.knowledgeService.captureKnowledge(createKnowledgeRequest({
         id: workflow.knowledgeId,
         missionId: workflow.missionId,
-        missionPlanRevisionId: workflow.missionPlanRevision,
+        missionPlanRevisionId: workflow.missionPlanRevision.revisionId,
         evidenceId: workflow.evidenceId,
         reviewId: review.id,
         contributingEventIds: eventIds(harness, workflow.missionId),
@@ -261,7 +261,7 @@ describe('Kernel cross-domain failure-path integration', () => {
       harness.knowledgeService.captureKnowledge(createKnowledgeRequest({
         id: workflow.knowledgeId,
         missionId: workflow.missionId,
-        missionPlanRevisionId: workflow.missionPlanRevision,
+        missionPlanRevisionId: workflow.missionPlanRevision.revisionId,
         evidenceId: workflow.evidenceId,
         reviewId: review.id,
         contributingEventIds: eventIds(harness, workflow.missionId),
@@ -516,7 +516,10 @@ async function completeMissionWorkflow(
 ): Promise<{
   readonly missionId: string;
   readonly missionPlanId: string;
-  readonly missionPlanRevision: string;
+  readonly missionPlanRevision: {
+    readonly kind: 'ExecutableMissionPlan';
+    readonly revisionId: string;
+  };
   readonly evidenceId: string;
   readonly reviewId: string;
   readonly knowledgeId: string;
@@ -556,7 +559,10 @@ async function completeMissionWorkflow(
   return {
     missionId,
     missionPlanId,
-    missionPlanRevision: `revision-${readyPlan.revisionNumber}`,
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: `revision-${readyPlan.revisionNumber}`,
+    },
     evidenceId,
     reviewId,
     knowledgeId,
@@ -591,12 +597,18 @@ function createReviewCommand(input: {
   readonly id: string;
   readonly missionId: string;
   readonly evidenceId: string;
-  readonly missionPlanRevision?: string;
+  readonly missionPlanRevision?: {
+    readonly kind: 'ExecutableMissionPlan';
+    readonly revisionId: string;
+  };
 }) {
   return {
     id: input.id,
     missionId: input.missionId,
-    missionPlanRevision: input.missionPlanRevision ?? 'revision-1',
+    missionPlanRevision: input.missionPlanRevision ?? {
+      kind: 'ExecutableMissionPlan',
+      revisionId: 'revision-1',
+    },
     reviewCriteria: [
       {
         id: 'sprint-17-acceptance',

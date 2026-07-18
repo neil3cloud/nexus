@@ -5,13 +5,33 @@
   "version": "0.0.1",
   "private": true,
   "publisher": "nexus",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neil3cloud/nexus.git"
+  },
   "engines": {
     "vscode": "^1.92.0"
   },
   "categories": [
     "Other"
   ],
+  "icon": "assets/nexus-icon.png",
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:nexus.initializeWorkspace",
+    "onCommand:nexus.discoverAdapters",
+    "onCommand:nexus.dispatchAdapterRequest",
+    "onCommand:nexus.showHostCapabilities",
+    "onCommand:nexus.runDeveloperMissionWorkflow",
+    "onCommand:nexus.runDeveloperMissionWorkflowWithGeminiCli",
+    "onCommand:nexus.runDeveloperMissionWorkflowWithCodexCli",
+    "onCommand:nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
+    "onCommand:nexus.runBuilderMissionWorkflow",
+    "onCommand:nexus.runReviewerMissionWorkflow",
+    "onCommand:nexus.runDocumentationReviewerMissionWorkflow",
+    "onCommand:nexus.showMissionWorkflowHistory"
+  ],
   "contributes": {
     "commands": [
       {
@@ -29,14 +49,74 @@
       {
         "command": "nexus.showHostCapabilities",
         "title": "Nexus: Show Host Capabilities"
+      },
+      {
+        "command": "nexus.runDeveloperMissionWorkflowWithConfiguredAdapter",
+        "title": "Run Developer Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Developer Workflow"
+      },
+      {
+        "command": "nexus.runBuilderMissionWorkflow",
+        "title": "Run Builder Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Builder Workflow"
+      },
+      {
+        "command": "nexus.runReviewerMissionWorkflow",
+        "title": "Run Reviewer Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Reviewer Workflow"
+      },
+      {
+        "command": "nexus.runDocumentationReviewerMissionWorkflow",
+        "title": "Run Documentation Reviewer Workflow",
+        "category": "Nexus",
+        "shortTitle": "Run Documentation Reviewer Workflow"
+      },
+      {
+        "command": "nexus.runDeveloperMissionWorkflow",
+        "title": "Run Developer Workflow (Mock Adapter Compatibility)",
+        "category": "Nexus",
+        "shortTitle": "Run with Mock Adapter"
+      },
+      {
+        "command": "nexus.runDeveloperMissionWorkflowWithGeminiCli",
+        "title": "Run Developer Workflow (Gemini CLI Compatibility)",
+        "category": "Nexus",
+        "shortTitle": "Run with Gemini CLI"
+      },
+      {
+        "command": "nexus.runDeveloperMissionWorkflowWithCodexCli",
+        "title": "Run Developer Workflow (Codex CLI Compatibility)",
+        "category": "Nexus",
+        "shortTitle": "Run with Codex CLI"
+      },
+      {
+        "command": "nexus.showMissionWorkflowHistory",
+        "title": "Nexus: Show Mission Workflow History"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Nexus",
+      "properties": {
+        "nexus.developerWorkflow.defaultAdapterId": {
+          "type": "string",
+          "default": "mock-adapter",
+          "scope": "resource",
+          "markdownDescription": "Default Adapter identifier used by the recommended **Nexus: Run Developer Workflow** command (`nexus.runDeveloperMissionWorkflowWithConfiguredAdapter`). The VS Code Host resolves this value to an explicit `adapterId` before invoking the unchanged Kernel execution pipeline."
+        }
+      }
+    }
   },
   "scripts": {
     "build": "node esbuild.js",
     "compile": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
-    "test": "vitest run",
+    "package": "npm run build && vsce package --out nexus-0.0.1.vsix",
+    "test": "vitest run --exclude \"test/extension-host/**\"",
+    "test:extension-host:build": "node esbuild.extension-host-test.js",
+    "test:extension-host": "npm run package && npm run test:extension-host:build && node out/extension-host/run-tests.js",
     "validate": "npm run compile && npm run lint && npm run test && npm run build"
   },
   "devDependencies": {
@@ -44,6 +124,8 @@
     "@types/vscode": "^1.92.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.1",
     "eslint": "^8.57.0",
     "typescript": "^5.5.4",

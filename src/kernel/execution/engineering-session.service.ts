@@ -1,0 +1,747 @@
+import { randomUUID } from 'node:crypto';
+
+import { ServiceLifecycle } from '../common/service-lifecycle';
+import { AdapterRequest } from '../adapter/adapter-request';
+import type { AdapterService } from '../adapter/adapter.service';
+import type { EventBusContract } from '../common/event-bus-contract';
+import { KernelError } from '../common/kernel-error';
+import type { IGovernanceDecisionRepository } from '../governance/governance-decision.repository';
+import type { IReviewRepository } from '../review/review.repository';
+import type { IRecoveryRequirementRepository } from './recovery-requirement.repository';
+import { AdvancementTrigger } from './advancement-trigger';
+import type { AssignmentPolicyService } from './assignment-policy.service';
+import type { AssignmentPolicyEvaluationResult } from './assignment-policy.types';
+import { EngineeringSession } from './engineering-session';
+import { EngineeringSessionCheckpoint } from './engineering-session-checkpoint';
+import {
+  InMemoryEngineeringSessionCheckpointRepository,
+  type IEngineeringSessionCheckpointRepository,
+} from './engineering-session-checkpoint.repository';
+import type {
+  AdvanceEngineeringSessionWorkflowCommand,
+  AdvanceEngineeringSessionWorkflowAfterGovernanceDecisionCommand,
+  AdvanceEngineeringSessionWorkflowAfterReviewCommand,
+  AdvanceEngineeringSessionWorkflowOnTriggerCommand,
+  CloseEngineeringSessionCommand,
+  CreateEngineeringSessionCheckpointCommand,
+  CreateEngineeringSessionCommand,
+  EngineeringSessionServiceContract,
+  ExecuteCurrentWorkflowStepCommand,
+  RecoverEngineeringSessionFromCheckpointCommand,
+} from './engineering-session.contract';
+import { EngineeringSessionId } from './engineering-session-id';
+import {
+  EngineeringSessionCheckpointNotFoundError,
+  EngineeringSessionEventPublisherUnavailableError,
+  EngineeringSessionNotFoundError,
+  InvalidEngineeringSessionDefinitionError,
+} from './engineering-session.errors';
+import type { EngineeringSessionWorkflowAdvancementStrategy } from './engineering-session.events';
+import {
+  InMemoryEngineeringSessionRepository,
+  type IEngineeringSessionRepository,
+} from './engineering-session.repository';
+import type {
+  EngineeringSessionCheckpointSnapshot,
+} from './engineering-session-checkpoint.types';
+import type {
+  EngineeringSessionSnapshot,
+  EngineeringSessionWorkflowExecutionResult,
+} from './engineering-session.types';
+import type { ExecutionSessionService } from './execution-session.service';
+import type { ExecutionStrategyService } from './execution-strategy.service';
+import {
+  InMemoryWorkflowChainRepository,
+  type IWorkflowChainRepository,
+} from './workflow-chain.repository';
+import type { IMissionEngineeringGroupRepository } from './mission-engineering-orchestration.repository';
+import { ReviewOutcome } from '../review/review-values';
+import type { AssignmentReadinessResult } from './execution-strategy.types';
+
+type WorkflowExecutionReadinessEvaluation =
+  | {
+      readonly status: 'Ready';
+      readonly readiness: AssignmentReadinessResult;
+    }
+  | ReadinessRejectedWorkflowExecutionResult;
+
+type ReadinessRejectedWorkflowExecutionResult = EngineeringSessionWorkflowExecutionResult & {
+  readonly status: 'ReadinessRejected';
+};
+
+type AssignmentPolicyRejectedWorkflowExecutionResult = EngineeringSessionWorkflowExecutionResult & {
+  readonly status: 'AssignmentPolicyRejected';
+  readonly assignmentPolicy: AssignmentPolicyEvaluationResult;
+};
+
+type WorkflowExecutionAssignmentPolicyEvaluation =
+  | {
+      readonly status: 'Satisfied';
+      readonly assignmentPolicy: AssignmentPolicyEvaluationResult;
+    }
+  | AssignmentPolicyRejectedWorkflowExecutionResult;
+
+export class EngineeringSessionService
+  extends ServiceLifecycle
+  implements EngineeringSessionServiceContract
+{
+  public constructor(
+    private readonly repository: IEngineeringSessionRepository = new InMemoryEngineeringSessionRepository(),
+    private readonly workflowChainRepository: IWorkflowChainRepository = new InMemoryWorkflowChainRepository(),
+    private readonly createIdentity: () => string = randomUUID,
+    private readonly createTimestamp: () => string = () => new Date().toISOString(),
+    private readonly executionStrategyService?: Pick<
+      ExecutionStrategyService,
+      'evaluateAssignmentReadiness'
+    >,
+    private readonly adapterService?: Pick<AdapterService, 'dispatch'>,
+    private readonly executionSessionService?: Pick<
+      ExecutionSessionService,
+      'createExecutionSession'
+    >,
+    private readonly assignmentPolicyService?: Pick<
+      AssignmentPolicyService,
+      'evaluateAssignmentPolicy'
+    >,
+    private readonly checkpointRepository: IEngineeringSessionCheckpointRepository =
+      new InMemoryEngineeringSessionCheckpointRepository(),
+    private readonly governanceDecisionRepository?: Pick<IGovernanceDecisionRepository, 'getById'>,
+    private readonly reviewRepository?: Pick<IReviewRepository, 'getById'>,
+    private readonly recoveryRequirementRepository?: Pick<
+      IRecoveryRequirementRepository,
+      'findByAttributionKey'
+    >,
+    private readonly eventBus?: EventBusContract,
+    private readonly missionEngineeringGroupRepository?: Pick<
+      IMissionEngineeringGroupRepository,
+      'getMissionIdByEngineeringSessionId'
+    >,
+  ) {
+    super('EngineeringSessionService');
+  }
+
+  public async createEngineeringSession(
+    command: CreateEngineeringSessionCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const createdAt = this.createTimestamp();
+    const workflowChainId = normalizeCreationReference(
+      command.workflowChainId,
+      'EngineeringSession workflowChainId',
+    );
+    const currentWorkflowStepId = normalizeCreationReference(
+      command.currentWorkflowStepId,
+      'EngineeringSession currentWorkflowStepId',
+    );
+    const workflowChain = await this.workflowChainRepository.getById(workflowChainId);
+
+    const engineeringSession = EngineeringSession.create(
+      {
+        id: command.id ?? this.createIdentity(),
+        engineeringRuntimeContextReference: command.engineeringRuntimeContextReference,
+        activeEngineeringWorkflowReference: command.activeEngineeringWorkflowReference,
+        workflowChainId,
+        currentWorkflowStepId,
+        participatingRoleIds: command.participatingRoleIds,
+        workflowState: command.workflowState,
+        timeline: {
+          createdAt,
+        },
+        diagnostics: command.diagnostics ?? [],
+        collaborationMetadata: command.collaborationMetadata ?? {},
+      },
+      workflowChain,
+    );
+
+    await this.repository.create(engineeringSession);
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async closeEngineeringSession(
+    command: CloseEngineeringSessionCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+
+    engineeringSession.close(this.createTimestamp());
+    await this.repository.save(engineeringSession);
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflow(
+    command: AdvanceEngineeringSessionWorkflowCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'Direct',
+      (eventRecording) => engineeringSession.advanceWorkflow(workflowChain, eventRecording),
+    );
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflowOnTrigger(
+    command: AdvanceEngineeringSessionWorkflowOnTriggerCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const trigger = AdvancementTrigger.create(command.trigger);
+
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'Trigger',
+      (eventRecording) =>
+        engineeringSession.advanceWorkflowOnTrigger(trigger, workflowChain, eventRecording),
+    );
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflowAfterReview(
+    command: AdvanceEngineeringSessionWorkflowAfterReviewCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const reviewOutcome = ReviewOutcome.fromString(command.reviewOutcome);
+
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'ReviewGated',
+      (eventRecording) =>
+        engineeringSession.advanceWorkflowAfterReview(reviewOutcome, workflowChain, eventRecording),
+    );
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async advanceWorkflowAfterGovernanceDecision(
+    command: AdvanceEngineeringSessionWorkflowAfterGovernanceDecisionCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const governanceDecisionRepository = this.requireGovernanceDecisionRepository();
+    const reviewRepository = this.requireReviewRepository();
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const governanceDecisionId = normalizeCreationReference(
+      command.governanceDecisionId,
+      'EngineeringSession governanceDecisionId',
+    );
+    const governanceDecision = await governanceDecisionRepository.getById(governanceDecisionId);
+
+    if (governanceDecision === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        `EngineeringSession Governance-Gated Advancement requires a produced GovernanceDecision '${governanceDecisionId}'.`,
+      );
+    }
+
+    const governanceDecisionSnapshot = governanceDecision.toSnapshot();
+    const review = await reviewRepository.getById(governanceDecisionSnapshot.reviewId);
+    const reviewOutcome = review?.outcome;
+
+    if (reviewOutcome === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        `EngineeringSession Governance-Gated Advancement requires a completed Review '${governanceDecisionSnapshot.reviewId}'.`,
+      );
+    }
+
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const recoveryRequirement =
+      governanceDecisionSnapshot.value === 'Rejected' &&
+      this.recoveryRequirementRepository !== undefined
+        ? await this.recoveryRequirementRepository.findByAttributionKey({
+            missionId: governanceDecisionSnapshot.missionId,
+            engineeringSessionId: engineeringSession.id.toString(),
+            workflowStepId: normalizeCreationReference(
+              command.currentWorkflowStepId,
+              'EngineeringSession currentWorkflowStepId',
+            ),
+            governanceDecisionId: governanceDecisionSnapshot.id,
+          })
+        : undefined;
+
+    await this.advanceWorkflowWithEvent(
+      engineeringSession,
+      'GovernanceGated',
+      (eventRecording) =>
+        engineeringSession.advanceWorkflowAfterGovernanceDecision(
+          reviewOutcome,
+          governanceDecisionSnapshot,
+          workflowChain,
+          command.currentWorkflowStepId,
+          recoveryRequirement?.toSnapshot(),
+          eventRecording,
+        ),
+    );
+
+    return engineeringSession.toSnapshot();
+  }
+
+  public async executeCurrentWorkflowStep(
+    command: ExecuteCurrentWorkflowStepCommand,
+  ): Promise<EngineeringSessionWorkflowExecutionResult> {
+    const executionStrategyService = this.requireExecutionStrategyService();
+    const adapterService = this.requireAdapterService();
+    const executionSessionService = this.requireExecutionSessionService();
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const workflowChain = await this.workflowChainRepository.getById(engineeringSession.workflowChainId);
+    const executionTarget = engineeringSession.executeCurrentWorkflowStep(workflowChain);
+    const workflowStepRoleId = executionTarget.roleId;
+    const adapterId = normalizeCreationReference(command.adapterId, 'EngineeringSession adapterId');
+    const taskId = normalizeCreationReference(command.taskId, 'EngineeringSession taskId');
+    const contextPackageReference = normalizeCreationReference(
+      command.contextPackageReference,
+      'EngineeringSession contextPackageReference',
+    );
+    const consumedProjectionVersion = normalizeCreationReference(
+      command.consumedProjectionVersion,
+      'EngineeringSession consumedProjectionVersion',
+    );
+    const readiness = await this.evaluateReadiness(
+      command,
+      taskId,
+      workflowStepRoleId,
+      engineeringSession.toSnapshot(),
+      adapterId,
+      executionStrategyService,
+    );
+
+    if (readiness.status === 'ReadinessRejected') {
+      return readiness;
+    }
+
+    const readinessResult = readiness.readiness;
+    const assignmentPolicyEvaluation = await this.evaluateAssignmentPolicy(
+      command,
+      workflowStepRoleId,
+      engineeringSession.toSnapshot(),
+      taskId,
+      adapterId,
+    );
+
+    if (assignmentPolicyEvaluation?.status === 'AssignmentPolicyRejected') {
+      return assignmentPolicyEvaluation;
+    }
+
+    const startedAt = this.createTimestamp();
+    const adapterResponse = await adapterService.dispatch({
+      adapterId,
+      request: AdapterRequest.create({
+        engineeringRole: workflowStepRoleId,
+        taskId,
+        contextPackageReference,
+        ...(command.executionConstraints === undefined
+          ? {}
+          : { executionConstraints: command.executionConstraints }),
+        requestMetadata: {
+          ...(command.requestMetadata ?? {}),
+          executionStrategyId: readinessResult.executionStrategyId,
+          missionId: readinessResult.missionId,
+          missionPlanId: readinessResult.missionPlanId,
+          roleId: workflowStepRoleId,
+          workflowChainId: executionTarget.workflowChainId,
+          currentWorkflowStepId: executionTarget.currentWorkflowStepId,
+        },
+      }),
+    });
+    const completedAt = this.createTimestamp();
+    const executionSession = await executionSessionService.createExecutionSession({
+      engineeringSessionId: engineeringSession.id.toString(),
+      assignedRole: workflowStepRoleId,
+      assignedAdapter: adapterId,
+      startedAt,
+      completedAt,
+      consumedProjectionVersion,
+      producedArtifacts: adapterResponse.producedArtifacts,
+      executionOutcome: adapterResponse.status,
+    });
+
+    return Object.freeze({
+      status: adapterResponse.status,
+      engineeringSession: engineeringSession.toSnapshot(),
+      workflowChainId: executionTarget.workflowChainId,
+      currentWorkflowStepId: executionTarget.currentWorkflowStepId,
+      workflowStepRoleId,
+      taskId,
+      adapterId,
+      readiness: readinessResult,
+      ...(assignmentPolicyEvaluation === undefined
+        ? {}
+        : { assignmentPolicy: assignmentPolicyEvaluation.assignmentPolicy }),
+      adapterResponse: adapterResponse.toSnapshot(),
+      executionSession,
+      diagnostics: adapterResponse.diagnostics.map((diagnostic) =>
+        Object.freeze({
+          code: diagnostic.code,
+          message: diagnostic.message,
+          recordedAt: completedAt,
+        }),
+      ),
+    });
+  }
+
+  public async getEngineeringSession(engineeringSessionId: string): Promise<EngineeringSessionSnapshot> {
+    return (await this.requireEngineeringSession(engineeringSessionId)).toSnapshot();
+  }
+
+  public async createCheckpoint(
+    command: CreateEngineeringSessionCheckpointCommand,
+  ): Promise<EngineeringSessionCheckpointSnapshot> {
+    const engineeringSession = await this.requireEngineeringSession(command.engineeringSessionId);
+    const checkpoint = EngineeringSessionCheckpoint.create({
+      id: command.checkpointId ?? this.createIdentity(),
+      engineeringSession: engineeringSession.toSnapshot(),
+      capturedAt: this.createTimestamp(),
+    });
+
+    await this.checkpointRepository.create(checkpoint);
+
+    return checkpoint.toSnapshot();
+  }
+
+  public async recoverFromCheckpoint(
+    command: RecoverEngineeringSessionFromCheckpointCommand,
+  ): Promise<EngineeringSessionSnapshot> {
+    const checkpointId = normalizeCreationReference(
+      command.checkpointId,
+      'EngineeringSessionCheckpoint checkpointId',
+    );
+    const checkpoint = await this.checkpointRepository.getById(checkpointId);
+
+    if (checkpoint === undefined) {
+      throw new EngineeringSessionCheckpointNotFoundError(checkpointId);
+    }
+
+    return EngineeringSession.fromSnapshot(checkpoint.engineeringSession).toSnapshot();
+  }
+
+  public async enumerateEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]> {
+    return Object.freeze(
+      (await this.repository.enumerate()).map((engineeringSession) =>
+        engineeringSession.toSnapshot(),
+      ),
+    );
+  }
+
+  public async enumerateActiveEngineeringSessions(): Promise<readonly EngineeringSessionSnapshot[]> {
+    return Object.freeze(
+      (await this.repository.enumerate())
+        .filter((engineeringSession) => engineeringSession.status.toString() === 'Open')
+        .map((engineeringSession) => engineeringSession.toSnapshot()),
+    );
+  }
+
+  private async requireEngineeringSession(
+    engineeringSessionId: EngineeringSessionId | string,
+  ): Promise<EngineeringSession> {
+    const normalizedEngineeringSessionId =
+      typeof engineeringSessionId === 'string'
+        ? EngineeringSessionId.fromString(engineeringSessionId)
+        : engineeringSessionId;
+    const engineeringSession = await this.repository.getById(normalizedEngineeringSessionId);
+
+    if (engineeringSession === undefined) {
+      throw new EngineeringSessionNotFoundError(normalizedEngineeringSessionId.toString());
+    }
+
+    return engineeringSession;
+  }
+
+  private async advanceWorkflowWithEvent(
+    engineeringSession: EngineeringSession,
+    strategy: EngineeringSessionWorkflowAdvancementStrategy,
+    advance: (eventRecording?: {
+      readonly missionId: string;
+      readonly strategy: EngineeringSessionWorkflowAdvancementStrategy;
+      readonly metadata: ReturnType<EngineeringSessionService['createEventMetadata']>;
+    }) => boolean,
+  ): Promise<void> {
+    if (this.eventBus === undefined && this.missionEngineeringGroupRepository === undefined) {
+      advance(undefined);
+      await this.repository.save(engineeringSession);
+      return;
+    }
+
+    const eventBus = this.requireEventBus();
+    const missionId = await this.resolveMissionId(engineeringSession);
+    const advanced = advance({
+      missionId,
+      strategy,
+      metadata: this.createEventMetadata(),
+    });
+
+    if (!advanced) {
+      engineeringSession.pullDomainEvents();
+      return;
+    }
+
+    try {
+      await this.repository.save(engineeringSession);
+    } catch (error) {
+      engineeringSession.pullDomainEvents();
+      throw error;
+    }
+
+    await this.publishRecordedEvents(engineeringSession, eventBus);
+  }
+
+  private async resolveMissionId(engineeringSession: EngineeringSession): Promise<string> {
+    const missionEngineeringGroupRepository = this.requireMissionEngineeringGroupRepository();
+    const missionId = await missionEngineeringGroupRepository.getMissionIdByEngineeringSessionId(
+      engineeringSession.id,
+    );
+
+    return missionId.toString();
+  }
+
+  private requireEventBus(): EventBusContract {
+    if (this.eventBus === undefined) {
+      throw new EngineeringSessionEventPublisherUnavailableError();
+    }
+
+    return this.eventBus;
+  }
+
+  private requireMissionEngineeringGroupRepository(): Pick<
+    IMissionEngineeringGroupRepository,
+    'getMissionIdByEngineeringSessionId'
+  > {
+    if (this.missionEngineeringGroupRepository === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Domain Event publication requires MissionEngineeringGroup reverse lookup.',
+      );
+    }
+
+    return this.missionEngineeringGroupRepository;
+  }
+
+  private createEventMetadata(): {
+    readonly eventId: string;
+    readonly timestamp: string;
+  } {
+    return {
+      eventId: this.createIdentity(),
+      timestamp: this.createTimestamp(),
+    };
+  }
+
+  private async publishRecordedEvents(
+    engineeringSession: EngineeringSession,
+    eventBus: EventBusContract,
+  ): Promise<void> {
+    for (const event of engineeringSession.pullDomainEvents()) {
+      await eventBus.publish(event);
+    }
+  }
+
+  private async evaluateReadiness(
+    command: ExecuteCurrentWorkflowStepCommand,
+    taskId: string,
+    workflowStepRoleId: string,
+    engineeringSession: EngineeringSessionSnapshot,
+    adapterId: string,
+    executionStrategyService: Pick<ExecutionStrategyService, 'evaluateAssignmentReadiness'>,
+  ): Promise<WorkflowExecutionReadinessEvaluation> {
+    try {
+      const readiness = await executionStrategyService.evaluateAssignmentReadiness({
+        executionStrategyId: command.executionStrategyId,
+        missionPlanId: command.missionPlanId,
+        taskId,
+      });
+
+      if (readiness.roleId !== workflowStepRoleId) {
+        return this.createReadinessRejectedResult(
+          engineeringSession,
+          workflowStepRoleId,
+          taskId,
+          adapterId,
+          'engineering-session.workflow-step-role-mismatch',
+          `WorkflowStep Role '${workflowStepRoleId}' does not match Assignment Role '${readiness.roleId}'.`,
+        );
+      }
+
+      return Object.freeze({
+        status: 'Ready' as const,
+        readiness,
+      });
+    } catch (error) {
+      if (error instanceof KernelError) {
+        return this.createReadinessRejectedResult(
+          engineeringSession,
+          workflowStepRoleId,
+          taskId,
+          adapterId,
+          'engineering-session.readiness-rejected',
+          error.message,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  private createReadinessRejectedResult(
+    engineeringSession: EngineeringSessionSnapshot,
+    workflowStepRoleId: string,
+    taskId: string,
+    adapterId: string,
+    code: string,
+    message: string,
+  ): ReadinessRejectedWorkflowExecutionResult {
+    return Object.freeze({
+      status: 'ReadinessRejected',
+      engineeringSession,
+      workflowChainId: engineeringSession.workflowChainId,
+      currentWorkflowStepId: engineeringSession.currentWorkflowStepId,
+      workflowStepRoleId,
+      taskId,
+      adapterId,
+      diagnostics: Object.freeze([
+        Object.freeze({
+          code,
+          message,
+          recordedAt: this.createTimestamp(),
+        }),
+      ]),
+    });
+  }
+
+  private async evaluateAssignmentPolicy(
+    command: ExecuteCurrentWorkflowStepCommand,
+    workflowStepRoleId: string,
+    engineeringSession: EngineeringSessionSnapshot,
+    taskId: string,
+    adapterId: string,
+  ): Promise<WorkflowExecutionAssignmentPolicyEvaluation | undefined> {
+    if (command.assignmentPolicyId === undefined) {
+      return undefined;
+    }
+
+    if (command.assignmentPolicyEvaluationInput === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution Assignment Policy Evaluation requires assignmentPolicyEvaluationInput.',
+      );
+    }
+
+    const assignmentPolicyService = this.requireAssignmentPolicyService();
+    const assignmentPolicyId = normalizeCreationReference(
+      command.assignmentPolicyId,
+      'EngineeringSession assignmentPolicyId',
+    );
+    const assignmentPolicy = await assignmentPolicyService.evaluateAssignmentPolicy({
+      assignmentPolicyId,
+      input: {
+        requiredRole: workflowStepRoleId,
+        ...command.assignmentPolicyEvaluationInput,
+      },
+    });
+
+    if (assignmentPolicy.satisfied) {
+      return Object.freeze({
+        status: 'Satisfied' as const,
+        assignmentPolicy,
+      });
+    }
+
+    return Object.freeze({
+      status: 'AssignmentPolicyRejected',
+      engineeringSession,
+      workflowChainId: engineeringSession.workflowChainId,
+      currentWorkflowStepId: engineeringSession.currentWorkflowStepId,
+      workflowStepRoleId,
+      taskId,
+      adapterId,
+      assignmentPolicy,
+      diagnostics: Object.freeze([
+        Object.freeze({
+          code: 'engineering-session.assignment-policy-rejected',
+          message: `AssignmentPolicy '${assignmentPolicy.assignmentPolicyId}' was not satisfied for WorkflowStep Role '${workflowStepRoleId}'.`,
+          recordedAt: this.createTimestamp(),
+        }),
+      ]),
+    });
+  }
+
+  private requireExecutionStrategyService(): Pick<
+    ExecutionStrategyService,
+    'evaluateAssignmentReadiness'
+  > {
+    if (this.executionStrategyService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution requires ExecutionStrategyService.',
+      );
+    }
+
+    return this.executionStrategyService;
+  }
+
+  private requireAdapterService(): Pick<AdapterService, 'dispatch'> {
+    if (this.adapterService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution requires AdapterService.',
+      );
+    }
+
+    return this.adapterService;
+  }
+
+  private requireExecutionSessionService(): Pick<
+    ExecutionSessionService,
+    'createExecutionSession'
+  > {
+    if (this.executionSessionService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution requires ExecutionSessionService.',
+      );
+    }
+
+    return this.executionSessionService;
+  }
+
+  private requireAssignmentPolicyService(): Pick<
+    AssignmentPolicyService,
+    'evaluateAssignmentPolicy'
+  > {
+    if (this.assignmentPolicyService === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Workflow Chain Execution Assignment Policy Evaluation requires AssignmentPolicyService.',
+      );
+    }
+
+    return this.assignmentPolicyService;
+  }
+
+  private requireGovernanceDecisionRepository(): Pick<IGovernanceDecisionRepository, 'getById'> {
+    if (this.governanceDecisionRepository === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Governance-Gated Advancement requires GovernanceDecision repository.',
+      );
+    }
+
+    return this.governanceDecisionRepository;
+  }
+
+  private requireReviewRepository(): Pick<IReviewRepository, 'getById'> {
+    if (this.reviewRepository === undefined) {
+      throw new InvalidEngineeringSessionDefinitionError(
+        'EngineeringSession Governance-Gated Advancement requires Review repository.',
+      );
+    }
+
+    return this.reviewRepository;
+  }
+}
+
+function normalizeCreationReference(value: unknown, label: string): string {
+  if (typeof value !== 'string') {
+    throw new InvalidEngineeringSessionDefinitionError(`${label} must be a non-empty string.`);
+  }
+
+  const normalized = value.trim();
+
+  if (normalized.length === 0) {
+    throw new InvalidEngineeringSessionDefinitionError(`${label} must be a non-empty string.`);
+  }
+
+  return normalized;
+}

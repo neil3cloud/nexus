@@ -25,7 +25,10 @@ function createReview(): Review {
   return Review.create({
     id: ' review-1 ',
     missionId: ' mission-1 ',
-    missionPlanRevision: ' revision-1 ',
+    missionPlanRevision: {
+      kind: 'ExecutableMissionPlan',
+      revisionId: ' revision-1 ',
+    },
     reviewCriteria: [
       {
         id: 'architecture',
@@ -68,7 +71,10 @@ describe('Review', () => {
     expect(review.toSnapshot()).toEqual({
       id: 'review-1',
       missionId: 'mission-1',
-      missionPlanRevision: 'revision-1',
+      missionPlanRevision: {
+        kind: 'ExecutableMissionPlan',
+        revisionId: 'revision-1',
+      },
       status: 'Completed',
       outcome: 'Action Required',
       reviewCriteria: [
@@ -150,7 +156,10 @@ describe('Review', () => {
       Review.create({
         id: 'review-1',
         missionId: ' ',
-        missionPlanRevision: 'revision-1',
+        missionPlanRevision: {
+          kind: 'ExecutableMissionPlan',
+          revisionId: 'revision-1',
+        },
         reviewCriteria: [{ id: 'architecture', description: 'Architecture.' }],
         evidenceReferences: ['evidence-1'],
       }),
@@ -160,10 +169,25 @@ describe('Review', () => {
       Review.create({
         id: 'review-1',
         missionId: 'mission-1',
-        missionPlanRevision: 'revision-1',
+        missionPlanRevision: {
+          kind: 'ExecutableMissionPlan',
+          revisionId: 'revision-1',
+        },
         reviewCriteria: [],
         evidenceReferences: ['evidence-1'],
       }),
+    ).toThrow(InvalidReviewDefinitionError);
+
+    const bareMissionPlanRevision = String('revision-1') as never;
+
+    expect(() =>
+      Review.create({
+        id: 'review-1',
+        missionId: 'mission-1',
+        missionPlanRevision: bareMissionPlanRevision,
+        reviewCriteria: [{ id: 'architecture', description: 'Architecture.' }],
+        evidenceReferences: ['evidence-1'],
+      } as never),
     ).toThrow(InvalidReviewDefinitionError);
 
     expect(() =>

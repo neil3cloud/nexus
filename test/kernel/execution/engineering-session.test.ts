@@ -1,0 +1,831 @@
+import { describe, expect, it } from 'vitest';
+
+import { AdvancementTrigger } from '../../../src/kernel/execution/advancement-trigger';
+import {
+  EngineeringSession,
+  isGovernanceDecisionAdvancementEligible,
+} from '../../../src/kernel/execution/engineering-session';
+import {
+  InvalidEngineeringSessionDefinitionError,
+  InvalidEngineeringSessionLifecycleTransitionError,
+} from '../../../src/kernel/execution/engineering-session.errors';
+import { EngineeringSessionId } from '../../../src/kernel/execution/engineering-session-id';
+import { EngineeringSessionStatus } from '../../../src/kernel/execution/engineering-session-status';
+import type { EngineeringSessionInput } from '../../../src/kernel/execution/engineering-session.types';
+import type { RecoveryRequirementSnapshot } from '../../../src/kernel/execution/recovery-requirement.types';
+import { WorkflowChain } from '../../../src/kernel/execution/workflow-chain';
+import { WorkflowChainId } from '../../../src/kernel/execution/workflow-chain-id';
+import type { GovernanceDecisionSnapshot } from '../../../src/kernel/governance/governance.types';
+import { ReviewOutcome } from '../../../src/kernel/review/review-values';
+
+const workflowChain = WorkflowChain.create({
+  id: 'workflow-chain-1',
+  steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+});
+const advancementTrigger = AdvancementTrigger.create({
+  fact: 'workflow-position-eligible',
+});
+
+function createSession(): EngineeringSession {
+  return EngineeringSession.create({
+    id: ' session-1 ',
+    engineeringRuntimeContextReference: ' runtime-context-1 ',
+    activeEngineeringWorkflowReference: ' builder-workflow ',
+    workflowChainId: ' workflow-chain-1 ',
+    currentWorkflowStepId: ' 0 ',
+    participatingRoleIds: ['reviewer', 'builder'],
+    workflowState: 'active',
+    timeline: {
+      createdAt: '2026-07-14T00:00:00.000Z',
+    },
+    diagnostics: [
+      {
+        code: 'session-created',
+        message: 'Session created.',
+        recordedAt: '2026-07-14T00:00:00.000Z',
+      },
+    ],
+    collaborationMetadata: {
+      pair: 'human-builder',
+    },
+  }, workflowChain);
+}
+
+function createSessionInput(
+  overrides: Partial<EngineeringSessionInput> = {},
+): EngineeringSessionInput {
+  return {
+    id: 'session-1',
+    engineeringRuntimeContextReference: 'runtime-context-1',
+    activeEngineeringWorkflowReference: 'builder-workflow',
+    workflowChainId: 'workflow-chain-1',
+    currentWorkflowStepId: '0',
+    participatingRoleIds: ['builder'],
+    workflowState: 'active',
+    timeline: {
+      createdAt: '2026-07-14T00:00:00.000Z',
+    },
+    ...overrides,
+  };
+}
+
+describe('EngineeringSession domain', () => {
+  it('constructs immutable sessions with deterministic snapshots and equality', () => {
+    const session = createSession();
+    const equivalentSession = EngineeringSession.fromSnapshot(session.toSnapshot());
+
+    expect(session.toSnapshot()).toEqual({
+      id: 'session-1',
+      status: 'Open',
+      engineeringRuntimeContextReference: 'runtime-context-1',
+      activeEngineeringWorkflowReference: 'builder-workflow',
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      participatingRoleIds: ['builder', 'reviewer'],
+      workflowState: 'active',
+      timeline: {
+        createdAt: '2026-07-14T00:00:00.000Z',
+        statusTransitions: [
+          {
+            status: 'Open',
+            occurredAt: '2026-07-14T00:00:00.000Z',
+          },
+        ],
+      },
+      diagnostics: [
+        {
+          code: 'session-created',
+          message: 'Session created.',
+          recordedAt: '2026-07-14T00:00:00.000Z',
+        },
+      ],
+      collaborationMetadata: {
+        pair: 'human-builder',
+      },
+    });
+    expect(session.equals(equivalentSession)).toBe(true);
+    expect(EngineeringSessionId.fromString('session-1').equals(session.id)).toBe(true);
+    expect(EngineeringSessionStatus.open().equals(session.status)).toBe(true);
+    expect(session.engineeringRuntimeContextReference).toBe('runtime-context-1');
+    expect(session.activeEngineeringWorkflowReference).toBe('builder-workflow');
+    expect(WorkflowChainId.fromString('workflow-chain-1').equals(session.workflowChainId)).toBe(true);
+    expect(session.currentWorkflowStepId).toBe('0');
+    expect(session.participatingRoleIds.map((roleId) => roleId.toString())).toEqual([
+      'builder',
+      'reviewer',
+    ]);
+    expect(Object.isFrozen(session.toSnapshot())).toBe(true);
+    expect(Object.isFrozen(session.toSnapshot().timeline)).toBe(true);
+    expect(Object.isFrozen(session.toSnapshot().timeline.statusTransitions)).toBe(true);
+    expect(Object.isFrozen(session.toSnapshot().diagnostics)).toBe(true);
+    expect(Object.isFrozen(session.toSnapshot().collaborationMetadata)).toBe(true);
+  });
+
+  it('closes open sessions and rejects terminal lifecycle transitions', () => {
+    const session = createSession();
+
+    session.close('2026-07-14T01:00:00.000Z');
+
+    expect(session.toSnapshot()).toMatchObject({
+      status: 'Closed',
+      timeline: {
+        createdAt: '2026-07-14T00:00:00.000Z',
+        closedAt: '2026-07-14T01:00:00.000Z',
+        statusTransitions: [
+          {
+            status: 'Open',
+            occurredAt: '2026-07-14T00:00:00.000Z',
+          },
+          {
+            status: 'Closed',
+            occurredAt: '2026-07-14T01:00:00.000Z',
+          },
+        ],
+      },
+    });
+    expect(EngineeringSessionStatus.closed().equals(session.status)).toBe(true);
+    expect(() => session.close('2026-07-14T02:00:00.000Z')).toThrow(
+      InvalidEngineeringSessionLifecycleTransitionError,
+    );
+  });
+
+  it('advances exactly one WorkflowStep per invocation and detects terminal completion', () => {
+    const session = createSession();
+
+    expect(session.executeCurrentWorkflowStep(workflowChain)).toEqual({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+      roleId: 'builder',
+    });
+    expect(session.isWorkflowComplete(workflowChain)).toBe(false);
+
+    session.advanceWorkflow(workflowChain);
+
+    expect(session.currentWorkflowStepId).toBe('1');
+    expect(session.executeCurrentWorkflowStep(workflowChain)).toEqual({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '1',
+      roleId: 'reviewer',
+    });
+    expect(session.toSnapshot()).toMatchObject({
+      currentWorkflowStepId: '1',
+      status: 'Open',
+    });
+    expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+  });
+
+  it('records, orders, drains, and deduplicates EngineeringSessionWorkflowAdvanced events', () => {
+    const threeStepWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-1',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }, { roleId: 'builder' }],
+    });
+    const session = createSession();
+
+    session.advanceWorkflow(threeStepWorkflowChain, {
+      missionId: 'mission-1',
+      strategy: 'Direct',
+      metadata: {
+        eventId: 'event-1',
+        timestamp: '2026-07-16T00:00:00.000Z',
+      },
+    });
+    session.advanceWorkflowOnTrigger(advancementTrigger, threeStepWorkflowChain, {
+      missionId: 'mission-1',
+      strategy: 'Trigger',
+      metadata: {
+        eventId: 'event-2',
+        timestamp: '2026-07-16T00:01:00.000Z',
+      },
+    });
+
+    expect(session.pullDomainEvents()).toEqual([
+      {
+        eventId: 'event-1',
+        missionId: 'mission-1',
+        eventType: 'EngineeringSessionWorkflowAdvanced',
+        timestamp: '2026-07-16T00:00:00.000Z',
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: {
+          engineeringSessionId: 'session-1',
+          previousWorkflowStepId: '0',
+          newWorkflowStepId: '1',
+          strategy: 'Direct',
+        },
+      },
+      {
+        eventId: 'event-2',
+        missionId: 'mission-1',
+        eventType: 'EngineeringSessionWorkflowAdvanced',
+        timestamp: '2026-07-16T00:01:00.000Z',
+        causality: [],
+        attribution: {
+          missionId: 'mission-1',
+        },
+        payload: {
+          engineeringSessionId: 'session-1',
+          previousWorkflowStepId: '1',
+          newWorkflowStepId: '2',
+          strategy: 'Trigger',
+        },
+      },
+    ]);
+    expect(session.pullDomainEvents()).toEqual([]);
+  });
+
+  it('does not record EngineeringSession events during rehydration or rejected advancement', () => {
+    const rehydrated = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+    const terminalSession = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+
+    expect(rehydrated.pullDomainEvents()).toEqual([]);
+    expect(() =>
+      terminalSession.advanceWorkflow(workflowChain, {
+        missionId: 'mission-1',
+        strategy: 'Direct',
+        metadata: {
+          eventId: 'event-terminal',
+          timestamp: '2026-07-16T00:00:00.000Z',
+        },
+      }),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(terminalSession.pullDomainEvents()).toEqual([]);
+  });
+
+  it('advances on an AdvancementTrigger using existing Workflow Advancement semantics', () => {
+    const session = createSession();
+
+    session.advanceWorkflowOnTrigger(advancementTrigger, workflowChain);
+
+    expect(session.toSnapshot()).toMatchObject({
+      currentWorkflowStepId: '1',
+      status: 'Open',
+    });
+    expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+  });
+
+  it('advances after Non-Blocking Review Outcomes using existing Workflow Advancement semantics', () => {
+    for (const outcome of ['Accepted', 'Accepted With Observations']) {
+      const session = createSession();
+
+      session.advanceWorkflowAfterReview(ReviewOutcome.fromString(outcome), workflowChain);
+
+      expect(session.toSnapshot()).toMatchObject({
+        currentWorkflowStepId: '1',
+        status: 'Open',
+      });
+      expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+    }
+  });
+
+  it('rejects Blocking Review Outcomes without changing workflow position', () => {
+    for (const outcome of ['Action Required', 'Rejected']) {
+      const session = createSession();
+
+      expect(() =>
+        session.advanceWorkflowAfterReview(ReviewOutcome.fromString(outcome), workflowChain),
+      ).toThrow(InvalidEngineeringSessionDefinitionError);
+      expect(session.currentWorkflowStepId).toBe('0');
+    }
+  });
+
+  it('rejects advancement beyond the terminal WorkflowStep', () => {
+    const session = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+
+    expect(session.isWorkflowComplete(workflowChain)).toBe(true);
+    expect(() => session.advanceWorkflow(workflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(session.currentWorkflowStepId).toBe('1');
+  });
+
+  it('rejects trigger advancement using the same ineligible Advancement Failure semantics', () => {
+    const terminalSession = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+    const invalidCurrentStepSession = EngineeringSession.fromSnapshot({
+      ...createSession().toSnapshot(),
+      currentWorkflowStepId: '2',
+    });
+    const mismatchedWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-2',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+
+    expect(() => createSession().advanceWorkflowOnTrigger(advancementTrigger, undefined)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() => terminalSession.advanceWorkflowOnTrigger(advancementTrigger, workflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() =>
+      invalidCurrentStepSession.advanceWorkflowOnTrigger(advancementTrigger, workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      createSession().advanceWorkflowOnTrigger(advancementTrigger, mismatchedWorkflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(terminalSession.currentWorkflowStepId).toBe('1');
+    expect(invalidCurrentStepSession.currentWorkflowStepId).toBe('2');
+  });
+
+  it('rejects review-gated advancement using the same ineligible Advancement Failure semantics', () => {
+    const acceptedOutcome = ReviewOutcome.fromString('Accepted');
+    const terminalSession = EngineeringSession.create(
+      createSessionInput({ currentWorkflowStepId: '1' }),
+      workflowChain,
+    );
+    const invalidCurrentStepSession = EngineeringSession.fromSnapshot({
+      ...createSession().toSnapshot(),
+      currentWorkflowStepId: '2',
+    });
+    const mismatchedWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-2',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+
+    expect(() => createSession().advanceWorkflowAfterReview(acceptedOutcome, undefined)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() =>
+      terminalSession.advanceWorkflowAfterReview(acceptedOutcome, workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      invalidCurrentStepSession.advanceWorkflowAfterReview(acceptedOutcome, workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      createSession().advanceWorkflowAfterReview(acceptedOutcome, mismatchedWorkflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(terminalSession.currentWorkflowStepId).toBe('1');
+    expect(invalidCurrentStepSession.currentWorkflowStepId).toBe('2');
+  });
+
+  it('rejects advancement from invalid or unbound workflow positions', () => {
+    const invalidCurrentStepSession = EngineeringSession.fromSnapshot({
+      ...createSession().toSnapshot(),
+      currentWorkflowStepId: '2',
+    });
+    const mismatchedWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-2',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }],
+    });
+
+    expect(() => createSession().advanceWorkflow(undefined)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() => invalidCurrentStepSession.advanceWorkflow(workflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+    expect(() => createSession().advanceWorkflow(mismatchedWorkflowChain)).toThrow(
+      InvalidEngineeringSessionDefinitionError,
+    );
+  });
+
+  it('advances deterministically for equivalent workflow inputs', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+
+    left.advanceWorkflow(workflowChain);
+    right.advanceWorkflow(workflowChain);
+
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+    expect(left.equals(right)).toBe(true);
+  });
+
+  it('advances deterministically for equivalent trigger and EngineeringSession state', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+    const leftTrigger = AdvancementTrigger.create({
+      fact: 'workflow-position-eligible',
+    });
+    const rightTrigger = AdvancementTrigger.fromSnapshot(leftTrigger.toSnapshot());
+
+    left.advanceWorkflowOnTrigger(leftTrigger, workflowChain);
+    right.advanceWorkflowOnTrigger(rightTrigger, workflowChain);
+
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+    expect(left.equals(right)).toBe(true);
+  });
+
+  it('advances deterministically for equivalent ReviewOutcome and EngineeringSession state', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+    const leftOutcome = ReviewOutcome.fromString('Accepted With Observations');
+    const rightOutcome = ReviewOutcome.fromString(leftOutcome.toString());
+
+    left.advanceWorkflowAfterReview(leftOutcome, workflowChain);
+    right.advanceWorkflowAfterReview(rightOutcome, workflowChain);
+
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+    expect(left.equals(right)).toBe(true);
+  });
+
+  it('rejects review-gated advancement deterministically for equivalent Blocking Review Outcomes', () => {
+    const left = createSession();
+    const right = EngineeringSession.fromSnapshot(createSession().toSnapshot());
+
+    expect(() =>
+      left.advanceWorkflowAfterReview(ReviewOutcome.fromString('Rejected'), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      right.advanceWorkflowAfterReview(ReviewOutcome.fromString('Rejected'), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(left.toSnapshot()).toEqual(right.toSnapshot());
+  });
+
+  it('advances once for Non-Blocking Review and Governance decisions', () => {
+    const session = createSession();
+
+    session.advanceWorkflowAfterGovernanceDecision(
+      ReviewOutcome.fromString('Accepted'),
+      createGovernanceDecisionSnapshot('Approved'),
+      workflowChain,
+      '0',
+    );
+
+    expect(session.currentWorkflowStepId).toBe('1');
+  });
+
+  it.each(['Rejected', 'Deferred', 'Escalation Required'] as const)(
+    'rejects Blocking Governance Decision %s with a uniform Advancement Failure',
+    (governanceDecisionValue) => {
+      const session = createSession();
+
+      expect(() =>
+        session.advanceWorkflowAfterGovernanceDecision(
+          ReviewOutcome.fromString('Accepted'),
+          createGovernanceDecisionSnapshot(governanceDecisionValue),
+          workflowChain,
+          '0',
+        ),
+      ).toThrow(
+        new InvalidEngineeringSessionDefinitionError(
+          'EngineeringSession Governance-Gated Advancement requires a Non-Blocking Governance Decision.',
+        ),
+      );
+      expect(session.currentWorkflowStepId).toBe('0');
+    },
+  );
+
+      it('treats Approved GovernanceDecision as eligible regardless of RecoveryRequirement state', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Approved'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Open'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(true);
+      });
+
+      it('treats a Rejected GovernanceDecision with missing RecoveryRequirement as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with Open RecoveryRequirement as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Open'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with Withdrawn RecoveryRequirement as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Withdrawn'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with Resolved RecoveryRequirement missing acceptedOutcomeReference as blocking', () => {
+        const malformedResolvedRequirement = {
+          ...createRecoveryRequirementSnapshot('Resolved'),
+          resolution: undefined,
+        } as unknown as RecoveryRequirementSnapshot;
+
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+            recoveryRequirement: malformedResolvedRequirement,
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats a Rejected GovernanceDecision with exact Resolved RecoveryRequirement and acceptedOutcomeReference as eligible', () => {
+        const session = createSession();
+        const governanceDecision = createGovernanceDecisionSnapshot('Rejected');
+
+        session.advanceWorkflowAfterGovernanceDecision(
+          ReviewOutcome.fromString('Accepted'),
+          governanceDecision,
+          workflowChain,
+          '0',
+          createRecoveryRequirementSnapshot('Resolved'),
+        );
+
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision,
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(true);
+        expect(session.currentWorkflowStepId).toBe('1');
+      });
+
+      it('treats Deferred GovernanceDecision as blocking regardless of RecoveryRequirement state', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Deferred'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('treats Escalation Required GovernanceDecision as blocking regardless of RecoveryRequirement state', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: createGovernanceDecisionSnapshot('Escalation Required'),
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it.each([
+        ['missionId', { missionId: 'mission-2' }],
+        ['engineeringSessionId', { engineeringSessionId: 'session-2' }],
+        ['workflowStepId', { workflowStepId: '1' }],
+        ['governanceDecisionId', { governanceDecisionId: 'governance-decision-2' }],
+      ] as const)(
+        'treats mismatched RecoveryRequirement %s attribution as absent for Rejected GovernanceDecision eligibility',
+        (_field, recoveryRequirementOverride) => {
+          expect(
+            isGovernanceDecisionAdvancementEligible({
+              governanceDecision: createGovernanceDecisionSnapshot('Rejected'),
+              recoveryRequirement: {
+                ...createRecoveryRequirementSnapshot('Resolved'),
+                ...recoveryRequirementOverride,
+              },
+              expectedAttribution: createExpectedRecoveryAttribution(),
+            }),
+          ).toBe(false);
+        },
+      );
+
+      it('treats mismatched GovernanceDecision Mission attribution as blocking', () => {
+        expect(
+          isGovernanceDecisionAdvancementEligible({
+            governanceDecision: {
+              ...createGovernanceDecisionSnapshot('Rejected'),
+              missionId: 'mission-2',
+            },
+            recoveryRequirement: createRecoveryRequirementSnapshot('Resolved'),
+            expectedAttribution: createExpectedRecoveryAttribution(),
+          }),
+        ).toBe(false);
+      });
+
+      it('evaluates Recovery-Gated Re-Advancement eligibility deterministically without repository access', () => {
+        const governanceDecision = createGovernanceDecisionSnapshot('Rejected');
+        const recoveryRequirement = createRecoveryRequirementSnapshot('Resolved');
+        const expectedAttribution = createExpectedRecoveryAttribution();
+        const first = isGovernanceDecisionAdvancementEligible({
+          governanceDecision,
+          recoveryRequirement,
+          expectedAttribution,
+        });
+        const second = isGovernanceDecisionAdvancementEligible({
+          governanceDecision,
+          recoveryRequirement,
+          expectedAttribution,
+        });
+
+        expect(first).toBe(true);
+        expect(second).toBe(true);
+      });
+
+  it('rejects Governance approval without Review-Gated eligibility', () => {
+    const session = createSession();
+
+    expect(() =>
+      session.advanceWorkflowAfterGovernanceDecision(
+        ReviewOutcome.fromString('Action Required'),
+        createGovernanceDecisionSnapshot('Approved'),
+        workflowChain,
+        '0',
+      ),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(session.currentWorkflowStepId).toBe('0');
+  });
+
+  it('treats duplicate GovernanceDecisionRecorded delivery as idempotent for the governed WorkflowStep', () => {
+    const session = createSession();
+    const governanceDecision = createGovernanceDecisionSnapshot('Approved');
+
+    session.advanceWorkflowAfterGovernanceDecision(
+      ReviewOutcome.fromString('Accepted'),
+      governanceDecision,
+      workflowChain,
+      '0',
+    );
+    session.advanceWorkflowAfterGovernanceDecision(
+      ReviewOutcome.fromString('Accepted'),
+      governanceDecision,
+      workflowChain,
+      '0',
+    );
+
+    expect(session.currentWorkflowStepId).toBe('1');
+  });
+
+  it('rejects invalid session definitions deterministically', () => {
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ id: '' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ participatingRoleIds: [] }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(
+        createSessionInput({ participatingRoleIds: ['builder', 'builder'] }),
+        workflowChain,
+      ),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(
+        createSessionInput({
+          timeline: {
+          createdAt: '2026-07-14T00:00:00.000Z',
+          statusTransitions: [
+            {
+              status: 'Closed',
+              occurredAt: '2026-07-14T00:00:00.000Z',
+            },
+          ],
+          closedAt: '2026-07-14T00:00:00.000Z',
+        },
+        }),
+        workflowChain,
+      ),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.fromSnapshot({
+        ...createSession().toSnapshot(),
+        status: 'Closed',
+      }),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('validates WorkflowChain binding at construction', () => {
+    expect(createSession().toSnapshot()).toMatchObject({
+      workflowChainId: 'workflow-chain-1',
+      currentWorkflowStepId: '0',
+    });
+    expect(() =>
+      EngineeringSession.create(createSessionInput(), undefined),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ workflowChainId: 'missing-chain' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ currentWorkflowStepId: '2' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(
+        createSessionInput({
+          currentWorkflowStepId: '0',
+        }),
+        WorkflowChain.create({
+          id: 'workflow-chain-1',
+          steps: [{ roleId: 'documentation-reviewer' }, { roleId: 'reviewer' }],
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ currentWorkflowStepId: '-1' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+    expect(() =>
+      EngineeringSession.create(createSessionInput({ currentWorkflowStepId: 'builder' }), workflowChain),
+    ).toThrow(InvalidEngineeringSessionDefinitionError);
+  });
+
+  it('binds repeated-role WorkflowChain positions independently', () => {
+    const repeatedRoleWorkflowChain = WorkflowChain.create({
+      id: 'workflow-chain-1',
+      steps: [{ roleId: 'builder' }, { roleId: 'reviewer' }, { roleId: 'builder' }],
+    });
+
+    expect(
+      EngineeringSession.create(
+        createSessionInput({ id: 'session-position-0', currentWorkflowStepId: '0' }),
+        repeatedRoleWorkflowChain,
+      ).toSnapshot(),
+    ).toMatchObject({
+      currentWorkflowStepId: '0',
+    });
+    expect(
+      EngineeringSession.create(
+        createSessionInput({ id: 'session-position-1', currentWorkflowStepId: '1' }),
+        repeatedRoleWorkflowChain,
+      ).toSnapshot(),
+    ).toMatchObject({
+      currentWorkflowStepId: '1',
+    });
+    expect(
+      EngineeringSession.create(
+        createSessionInput({ id: 'session-position-2', currentWorkflowStepId: '2' }),
+        repeatedRoleWorkflowChain,
+      ).toSnapshot(),
+    ).toMatchObject({
+      currentWorkflowStepId: '2',
+    });
+  });
+
+  function createGovernanceDecisionSnapshot(
+    value: GovernanceDecisionSnapshot['value'],
+  ): GovernanceDecisionSnapshot {
+    return Object.freeze({
+      id: 'governance-decision-1',
+      missionId: 'mission-1',
+      value,
+      repositoryPolicyId: 'repository-policy-1',
+      repositoryPolicyVersion: 1,
+      reviewId: 'review-1',
+      reviewStateReference: 'review-state-1',
+      policyEvaluationId: 'policy-evaluation-1',
+      evaluationKey: 'repository-policy-1:1:mission-1:review-1:review-state-1',
+      criterionResults: Object.freeze([]),
+      evaluatedAt: '2026-07-16T00:00:00.000Z',
+      explanationCodes: Object.freeze(['governance-decision.test']),
+    });
+  }
+
+  function createExpectedRecoveryAttribution(): {
+    readonly missionId: string;
+    readonly engineeringSessionId: string;
+    readonly workflowStepId: string;
+    readonly governanceDecisionId: string;
+  } {
+    return Object.freeze({
+      missionId: 'mission-1',
+      engineeringSessionId: 'session-1',
+      workflowStepId: '0',
+      governanceDecisionId: 'governance-decision-1',
+    });
+  }
+
+  function createRecoveryRequirementSnapshot(
+    status: RecoveryRequirementSnapshot['status'],
+  ): RecoveryRequirementSnapshot {
+    return Object.freeze({
+      id: 'recovery-requirement-1',
+      missionId: 'mission-1',
+      engineeringSessionId: 'session-1',
+      workflowStepId: '0',
+      governanceDecisionId: 'governance-decision-1',
+      createdAt: '2026-07-16T01:00:00.000Z',
+      creationCausality: Object.freeze(['event-governance-decision-recorded']),
+      status,
+      ...(status === 'Resolved'
+        ? {
+            resolution: Object.freeze({
+              acceptedOutcomeReference: 'review-outcome:accepted-remediation',
+              resolvedAt: '2026-07-16T02:00:00.000Z',
+              attribution: 'builder:primary',
+              causality: Object.freeze(['event-recovery-requirement-created']),
+            }),
+          }
+        : {}),
+      ...(status === 'Withdrawn'
+        ? {
+            withdrawal: Object.freeze({
+              authoritativeDecisionReference: 'NEXUS-RAT-2026-07-16-999',
+              reason: 'Superseded.',
+              withdrawnAt: '2026-07-16T02:00:00.000Z',
+              attribution: 'sprint-owner',
+              causality: Object.freeze(['event-recovery-requirement-created']),
+            }),
+          }
+        : {}),
+    });
+  }
+});

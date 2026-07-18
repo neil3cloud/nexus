@@ -24,7 +24,7 @@ export function createReviewStartedEvent(
 ): ReviewDomainEvent {
   return createReviewEvent('ReviewStarted', review, metadata, {
     reviewId: review.id.toString(),
-    missionPlanRevision: review.missionPlanRevision,
+    missionPlanRevision: review.missionPlanRevision.revisionId,
   });
 }
 
@@ -90,7 +90,7 @@ function createReviewEvent(
     ...(metadata.correlationId === undefined ? {} : { correlationId: metadata.correlationId }),
     attribution: {
       missionId: review.missionId,
-      missionPlanRevisionId: review.missionPlanRevision,
+      missionPlanRevisionId: review.missionPlanRevision.revisionId,
     },
     payload,
   };

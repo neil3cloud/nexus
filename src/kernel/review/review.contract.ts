@@ -3,6 +3,7 @@ import type {
   FindingSnapshot,
   ReviewCriteriaSnapshot,
   ReviewOutcomeValue,
+  ReviewPlanRevisionReference,
   ReviewSnapshot,
   SeverityValue,
 } from './review.types';
@@ -10,7 +11,7 @@ import type {
 export interface StartReviewCommand {
   readonly id?: string;
   readonly missionId: string;
-  readonly missionPlanRevision: string;
+  readonly missionPlanRevision: ReviewPlanRevisionReference;
   readonly reviewCriteria: readonly ReviewCriteriaSnapshot[];
   readonly evidenceReferences: readonly string[];
 }

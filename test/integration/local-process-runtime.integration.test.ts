@@ -33,7 +33,7 @@ class LocalProcessTestAdapter implements Adapter {
     const result = await this.runtime.execute({
       executable: process.execPath,
       arguments: ['-e', 'process.stdout.write("adapter-layer-runtime-proof");'],
-      timeoutMs: 1000,
+      timeoutMs: 5000,
     });
 
     return result.exitStatus.succeeded

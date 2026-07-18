@@ -25,6 +25,17 @@ export type FindingCategoryValue = (typeof findingCategories)[number];
 export const findingStatuses = ['Created', 'Accepted', 'Resolved', 'Dismissed'] as const;
 export type FindingStatusValue = (typeof findingStatuses)[number];
 
+export const reviewPlanRevisionReferenceKinds = [
+  'ExecutableMissionPlan',
+  'ProposedPlanRevision',
+] as const;
+export type ReviewPlanRevisionReferenceKind = (typeof reviewPlanRevisionReferenceKinds)[number];
+
+export interface ReviewPlanRevisionReference {
+  readonly kind: ReviewPlanRevisionReferenceKind;
+  readonly revisionId: string;
+}
+
 export interface ReviewCriteriaSnapshot {
   readonly id: string;
   readonly description: string;
@@ -46,7 +57,7 @@ export interface FindingSnapshot {
 export interface ReviewSnapshot {
   readonly id: string;
   readonly missionId: string;
-  readonly missionPlanRevision: string;
+  readonly missionPlanRevision: ReviewPlanRevisionReference;
   readonly status: ReviewStatusValue;
   readonly outcome?: ReviewOutcomeValue;
   readonly reviewCriteria: readonly ReviewCriteriaSnapshot[];

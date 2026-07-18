@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import type { EventBusContract } from './event-bus-contract';
 import type { Adapter } from '../adapter/adapter.contract';
 import { AdapterService } from '../adapter/adapter.service';
@@ -5,18 +7,57 @@ import { InMemoryAdapterRegistry } from '../adapter/adapter-registry';
 import { ProtocolVersion } from '../adapter/protocol-version';
 import { InMemoryEvidenceRepository } from '../evidence/evidence.repository';
 import { EvidenceService } from '../evidence/evidence.service';
+import { InMemoryAssignmentPolicyRepository } from '../execution/assignment-policy.repository';
+import { AssignmentPolicyService } from '../execution/assignment-policy.service';
+import { createDefaultEngineeringRoleProfiles } from '../execution/default-engineering-role-profiles';
+import { InMemoryEngineeringRoleProfileRegistry } from '../execution/engineering-role-profile-registry';
+import { EngineeringRoleProfileService } from '../execution/engineering-role-profile.service';
+import { InMemoryEngineeringSessionCheckpointRepository } from '../execution/engineering-session-checkpoint.repository';
+import { InMemoryEngineeringSessionRepository } from '../execution/engineering-session.repository';
+import { EngineeringSessionService } from '../execution/engineering-session.service';
+import { InMemoryEngineeringSessionStateProjectionRepository } from '../execution/engineering-session-state-projection.repository';
+import { EngineeringSessionStateProjectionService } from '../execution/engineering-session-state-projection.service';
+import { InMemoryEngineeringDecisionCorrelationRepository } from '../execution/engineering-decision-correlation.repository';
+import { EngineeringDecisionCorrelationService } from '../execution/engineering-decision-correlation.service';
+import { GovernanceGatedWorkflowAdvancementConsumer } from '../execution/governance-gated-workflow-advancement.consumer';
+import { InMemoryExecutionSessionRepository } from '../execution/execution-session.repository';
+import { ExecutionSessionService } from '../execution/execution-session.service';
 import { InMemoryExecutionStrategyRepository } from '../execution/execution-strategy.repository';
 import { ExecutionStrategyService } from '../execution/execution-strategy.service';
 import { ExecutionService } from '../execution/execution.service';
+import {
+  InMemoryEngineeringSessionHandoffRepository,
+  InMemoryMissionEngineeringGroupRepository,
+} from '../execution/mission-engineering-orchestration.repository';
+import { MissionEngineeringOrchestrationService } from '../execution/mission-engineering-orchestration.service';
+import { RecoveryRequirementGovernanceDecisionConsumer } from '../execution/recovery-requirement-governance-decision.consumer';
+import { InMemoryRecoveryRequirementRepository } from '../execution/recovery-requirement.repository';
+import { RecoveryRequirementService } from '../execution/recovery-requirement.service';
 import { InMemoryRoleAssignmentRepository } from '../execution/role-assignment.repository';
 import { InMemoryRoleRegistry } from '../execution/role-registry';
 import { RoleService } from '../execution/role.service';
+import { InMemoryWorkflowChainRepository } from '../execution/workflow-chain.repository';
+import { WorkflowChainService } from '../execution/workflow-chain.service';
 import { InMemoryKnowledgeRepository } from '../knowledge/knowledge.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
+import { InMemoryGovernanceDecisionRepository } from '../governance/governance-decision.repository';
+import { GovernanceService } from '../governance/governance.service';
+import { InMemoryGovernanceStateProjectionRepository } from '../governance/governance-state-projection.repository';
+import { GovernanceStateProjectionService } from '../governance/governance-state-projection.service';
+import { InMemoryRatificationAuthoritySnapshotRepository } from '../governance/ratification-authority.repository';
+import { RatificationAttributionValidationService } from '../governance/ratification-attribution-validation';
+import { InMemoryRepositoryPolicyRepository } from '../governance/repository-policy.repository';
+import { RepositoryPolicyService } from '../governance/repository-policy.service';
 import { MissionExecutionService } from '../mission/mission-execution.service';
+import { GovernanceGatedMissionCompletionCoordinator } from '../mission/governance-gated-mission-completion.coordinator';
 import { MissionPlanningService } from '../mission/mission-planning.service';
 import { InMemoryMissionRepository } from '../mission/mission.repository';
 import { MissionService } from '../mission/mission.service';
+import { InMemoryPlanningCorrelationRepository } from '../planning/planning-correlation.repository';
+import { PlanningCorrelationService } from '../planning/planning-correlation.service';
+import { PlanningActivationService } from '../planning/planning-activation.service';
+import { InMemoryProposedMissionPlanRepository } from '../planning/proposed-mission-plan.repository';
+import { PlanningService } from '../planning/planning.service';
 import { InMemoryReviewRepository } from '../review/review.repository';
 import { ReviewService } from '../review/review.service';
 import { ProjectionService } from '../shared-reality/projection.service';
@@ -35,25 +76,169 @@ export function createKernelServices(
   const evidenceRepository = new InMemoryEvidenceRepository();
   const reviewRepository = new InMemoryReviewRepository();
   const knowledgeRepository = new InMemoryKnowledgeRepository();
+  const proposedMissionPlanRepository = new InMemoryProposedMissionPlanRepository();
+  const planningCorrelationRepository = new InMemoryPlanningCorrelationRepository();
+  const repositoryPolicyRepository = new InMemoryRepositoryPolicyRepository();
+  const governanceDecisionRepository = new InMemoryGovernanceDecisionRepository();
+  const governanceStateProjectionRepository = new InMemoryGovernanceStateProjectionRepository();
+  const ratificationAuthoritySnapshotRepository = new InMemoryRatificationAuthoritySnapshotRepository();
   const roleRegistry = new InMemoryRoleRegistry();
+  const engineeringRoleProfileRegistry = new InMemoryEngineeringRoleProfileRegistry(
+    createDefaultEngineeringRoleProfiles(),
+  );
   const roleAssignmentRepository = new InMemoryRoleAssignmentRepository();
+  const engineeringSessionRepository = new InMemoryEngineeringSessionRepository();
+  const engineeringSessionCheckpointRepository = new InMemoryEngineeringSessionCheckpointRepository();
+  const engineeringSessionStateProjectionRepository =
+    new InMemoryEngineeringSessionStateProjectionRepository();
+  const missionEngineeringGroupRepository = new InMemoryMissionEngineeringGroupRepository();
+  const engineeringSessionHandoffRepository = new InMemoryEngineeringSessionHandoffRepository();
+  const recoveryRequirementRepository = new InMemoryRecoveryRequirementRepository();
+  const engineeringDecisionCorrelationRepository =
+    new InMemoryEngineeringDecisionCorrelationRepository();
+  const executionSessionRepository = new InMemoryExecutionSessionRepository();
+  const workflowChainRepository = new InMemoryWorkflowChainRepository();
+  const assignmentPolicyRepository = new InMemoryAssignmentPolicyRepository();
   const executionStrategyRepository = new InMemoryExecutionStrategyRepository();
+  const adapterService = new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0'));
+  const executionSessionService = new ExecutionSessionService(executionSessionRepository);
+  const assignmentPolicyService = new AssignmentPolicyService(assignmentPolicyRepository);
+  const repositoryPolicyService = new RepositoryPolicyService(repositoryPolicyRepository);
+  const ratificationAttributionValidationService = new RatificationAttributionValidationService(
+    ratificationAuthoritySnapshotRepository,
+  );
+  const governanceService = new GovernanceService(
+    repositoryPolicyRepository,
+    reviewRepository,
+    governanceDecisionRepository,
+    randomUUID,
+    ratificationAttributionValidationService,
+    eventBus,
+  );
+  const executionStrategyService = new ExecutionStrategyService(
+    executionStrategyRepository,
+    roleAssignmentRepository,
+    missionRepository,
+  );
+  const engineeringSessionService = new EngineeringSessionService(
+    engineeringSessionRepository,
+    workflowChainRepository,
+    randomUUID,
+    () => new Date().toISOString(),
+    executionStrategyService,
+    adapterService,
+    executionSessionService,
+    assignmentPolicyService,
+    engineeringSessionCheckpointRepository,
+    governanceDecisionRepository,
+    reviewRepository,
+    recoveryRequirementRepository,
+    eventBus,
+    missionEngineeringGroupRepository,
+  );
+  const missionEngineeringOrchestrationService = new MissionEngineeringOrchestrationService(
+    missionEngineeringGroupRepository,
+    engineeringSessionHandoffRepository,
+    engineeringSessionRepository,
+    randomUUID,
+    () => new Date().toISOString(),
+  );
+  const recoveryRequirementService = new RecoveryRequirementService(
+    recoveryRequirementRepository,
+    eventBus,
+  );
+  const engineeringDecisionCorrelationService = new EngineeringDecisionCorrelationService(
+    engineeringDecisionCorrelationRepository,
+    missionEngineeringGroupRepository,
+    reviewRepository,
+    governanceDecisionRepository,
+    randomUUID,
+    () => new Date().toISOString(),
+  );
+  const missionExecutionService = new MissionExecutionService(
+    missionRepository,
+    eventBus,
+    randomUUID,
+    () => new Date().toISOString(),
+    governanceDecisionRepository,
+    engineeringDecisionCorrelationRepository,
+    recoveryRequirementRepository,
+  );
+  const governanceStateProjectionService = new GovernanceStateProjectionService(
+    governanceStateProjectionRepository,
+    eventBus,
+  );
+  const engineeringSessionStateProjectionService = new EngineeringSessionStateProjectionService(
+    engineeringSessionStateProjectionRepository,
+    eventBus,
+  );
+  const governanceGatedMissionCompletionCoordinator =
+    new GovernanceGatedMissionCompletionCoordinator(
+      eventBus,
+      governanceStateProjectionService,
+      missionExecutionService,
+    );
+  const governanceGatedWorkflowAdvancementConsumer =
+    new GovernanceGatedWorkflowAdvancementConsumer(
+      engineeringSessionService,
+      governanceDecisionRepository,
+      engineeringDecisionCorrelationService,
+      eventBus,
+    );
+  const reviewService = new ReviewService(reviewRepository, eventBus);
+  const planningCorrelationService = new PlanningCorrelationService(
+    proposedMissionPlanRepository,
+    planningCorrelationRepository,
+    reviewService,
+    randomUUID,
+    governanceService,
+    repositoryPolicyRepository,
+    governanceDecisionRepository,
+  );
 
   return [
-    new AdapterService(adapterRegistry, ProtocolVersion.fromString('1.0')),
+    adapterService,
     new MissionService(missionRepository, eventBus),
     new MissionPlanningService(missionRepository, eventBus),
-    new MissionExecutionService(missionRepository, eventBus),
+    missionExecutionService,
+    governanceGatedMissionCompletionCoordinator,
     new EvidenceService(evidenceRepository, eventBus),
     new ProjectionService(missionRepository, evidenceRepository),
     new RoleService(roleRegistry, roleAssignmentRepository),
-    new ExecutionStrategyService(
-      executionStrategyRepository,
-      roleAssignmentRepository,
-      missionRepository,
+    new EngineeringRoleProfileService(engineeringRoleProfileRegistry),
+    engineeringSessionService,
+    engineeringSessionStateProjectionService,
+    governanceGatedWorkflowAdvancementConsumer,
+    missionEngineeringOrchestrationService,
+    recoveryRequirementService,
+    engineeringDecisionCorrelationService,
+    new RecoveryRequirementGovernanceDecisionConsumer(
+      governanceDecisionRepository,
+      recoveryRequirementService,
+      engineeringDecisionCorrelationService,
+      engineeringSessionService,
+      eventBus,
     ),
+    executionSessionService,
+    new WorkflowChainService(workflowChainRepository),
+    assignmentPolicyService,
+    repositoryPolicyService,
+    governanceService,
+    governanceStateProjectionService,
+    ratificationAttributionValidationService,
+    executionStrategyService,
     new ExecutionService(),
-    new ReviewService(reviewRepository, eventBus),
+    reviewService,
+    new PlanningService(proposedMissionPlanRepository),
+    planningCorrelationService,
+    new PlanningActivationService(
+      proposedMissionPlanRepository,
+      planningCorrelationRepository,
+      reviewService,
+      governanceDecisionRepository,
+      missionRepository,
+      eventBus,
+    ),
     new KnowledgeService(
       knowledgeRepository,
       reviewRepository,

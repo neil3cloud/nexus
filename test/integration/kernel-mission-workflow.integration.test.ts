@@ -171,7 +171,10 @@ describe('Kernel end-to-end Mission workflow integration', () => {
     const review = await reviewService.startReview({
       id: reviewId,
       missionId,
-      missionPlanRevision: `revision-${readyPlan.revisionNumber}`,
+      missionPlanRevision: {
+        kind: 'ExecutableMissionPlan',
+        revisionId: `revision-${readyPlan.revisionNumber}`,
+      },
       reviewCriteria: [
         {
           id: 'sprint-16-acceptance',
@@ -188,7 +191,7 @@ describe('Kernel end-to-end Mission workflow integration', () => {
     const knowledge = await knowledgeService.captureKnowledge({
       id: knowledgeId,
       missionId,
-      missionPlanRevisionId: review.missionPlanRevision,
+      missionPlanRevisionId: review.missionPlanRevision.revisionId,
       summary: 'Sprint 16 validated the composed Kernel Mission workflow.',
       scope: 'Repository',
       supportingEvidenceIds: [evidence.id.toString()],
