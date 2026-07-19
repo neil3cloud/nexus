@@ -1,5 +1,92 @@
 # Nexus Implementation Report
 
+## Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation
+
+### Implemented Slice
+
+Implemented Milestone 12 Initial Capability Sequence Step 1 as authorized by `NEXUS-RAT-2026-07-19-009`.
+
+Implemented scope:
+
+- Added RFC-0002 v1.2 Exact Content Evidence value objects for the exact six-field `representedContentReference`, `contentDigestAlgorithm`, `contentDigest`, and explicit `SnapshotContent`/`DerivedContent` classification.
+- Added the `ExactOctetStream`/`"1"` canonicalization profile as a zero-transformation byte identity profile.
+- Added a production `InMemoryExactContentResolver` with exact six-field lookup, duplicate binding rejection, missing-binding failure, and defensive copies on registration and resolution.
+- Added stateless recursive Resolution Verification with resolver echo comparison across all six fields, canonicalization, SHA-256 digest computation, digest comparison, exact-version DerivedContent source resolution, invocation-local cycle detection, and immutable `VerificationResult` output.
+- Extended `Evidence` snapshots/rehydration with an optional Exact Content Evidence block while preserving legacy Evidence without that block.
+- Implemented the version-aware Evidence repository and service contract from `NEXUS-RAT-2026-07-19-007`, including exact `(EvidenceId, EvidenceVersion)` storage/retrieval, exact duplicate rejection, distinct-version acceptance, identity-wide `exists`, exact `existsByIdAndVersion`, ambiguous identity-only lookup failure, and `retrieveEvidenceVersion`.
+
+Out of scope and not implemented:
+
+- No RFC-0013 concept.
+- No Initial Capability Sequence Step 2-6 behavior.
+- No multi-source DerivedContent combination or ordering semantics.
+- No canonicalization profile beyond `ExactOctetStream`/`"1"`.
+- No current, active, authoritative, applicability, acceptance, or readiness state on `Evidence`.
+- No external content acquisition from filesystem, Git, Hosts, Adapters, or repositories.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0002 v1.2 — Evidence Model, § Exact Content Evidence and Canonicalization Profile Registry.
+
+Referenced, read-only:
+
+- RFC-0001.
+- RFC-0005.
+
+Deferred Concepts:
+
+- Multi-source DerivedContent combination and ordering semantics.
+- Any canonicalization profile beyond `ExactOctetStream`/`"1"`.
+- Current/active/authoritative Evidence applicability.
+- RFC-0013 concepts.
+- Milestone 12 Initial Capability Sequence Steps 2-6.
+- `CorpusReviewContextProfile`.
+- Corpus Readiness Acceptance Repository Policy.
+- External content acquisition and resolver population from real sources.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-19-006`, `NEXUS-RAT-2026-07-19-007`, `NEXUS-RAT-2026-07-19-008`, `NEXUS-RAT-2026-07-19-009`).
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/implementation/sprints/sprint-0078-rfc-0002-v1.2-exact-content-evidence-implementation.md`.
+
+### Architectural Assumptions
+
+- The in-memory resolver is populated by external callers with already-acquired bytes; Sprint 78 performs no acquisition.
+- Resolution Verification proves exact content resolution and digest equality only; applicability, authority, readiness, acceptance, and currentness remain external and deferred.
+
+### Known Limitations
+
+- Durable persistence remains outside Sprint 78.
+- Multi-source DerivedContent remains fail-closed pending future RFC-0002 amendment.
+- Historical integration guard tests from earlier sprints inspect unstaged `src` diffs and therefore require a temporary validation-only Git index when validating an authorized later sprint with source changes.
+
+### Validation Summary
+
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint -- --quiet`.
+- Focused Evidence test suite passed: `npx vitest run test\kernel\evidence` (51/51 tests across 8/8 files).
+- Full repository validation was first run with the normal worktree/index: `npm run validate` compiled and linted cleanly, then failed only two historical integration guard tests that inspect unstaged `src` diffs from older sprints; all other tests in that run passed (713/715).
+- Final full repository validation passed using a temporary validation-only Git index containing the authorized Sprint 78 source/test changes and leaving the repository index/worktree unmodified: `npm run validate` (`npm run compile`, `npm run lint`, `npm run test`, `npm run build`).
+- Extension-host test bundle build passed: `npm run test:extension-host:build`.
+- Full non-extension-host Vitest suite passed in final validation: 715/715 tests across 100/100 files.
+
+### Deviations
+
+No architectural deviations.
+
+### Sprint Status
+
+✅ Approved with Findings — `NEXUS-REV-2026-07-19-001` (`PASS_WITH_FINDINGS`). Implementation review is closed; the single documentation drift finding (`NEXUS-REV-0078-DOC-001`) is resolved by `DOC-078-002`. The unrelated dirty-file observation (`NEXUS-REV-0078-OBS-001`) remains non-blocking and outside Sprint 78 scope.
+
+---
+
 ## Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure
 
 ### Implemented Slice

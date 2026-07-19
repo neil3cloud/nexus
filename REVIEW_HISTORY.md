@@ -2,6 +2,66 @@
 
 ---
 
+## NEXUS-REV-2026-07-19-001 — Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation
+
+- **Reviewed Sprint:** Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation (Milestone 12 Initial Capability Sequence Step 1).
+- **Reviewed Change:** Exact Content Evidence implementation under `src/kernel/evidence/`, focused Evidence tests under `test/kernel/evidence/`, and Sprint 78 completion-time governance artifacts. This review records the independent assessment-only re-review from run `20260719T122035Z-93082b5c` into the repository governance history.
+- **RFC Coverage:** RFC-0002 v1.2 — Evidence Model, § Exact Content Evidence and Canonicalization Profile Registry, including `ExactOctetStream`/`"1"` (Primary). RFC-0001 and RFC-0005 referenced read-only.
+- **Review Date:** 2026-07-19
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS_WITH_FINDINGS
+
+### Executive Summary
+
+Sprint 78 is independently verified as architecturally conformant to RFC-0002 v1.2 and the Sprint Implementation Record. The implementation remains confined to the authorized Evidence-domain surface, preserves the frozen `EvidenceType` enum, introduces no RFC-0013 concept, and does not begin Milestone 12 Initial Capability Sequence Steps 2-6.
+
+Validation evidence from the independent re-review:
+
+- `npx tsc --noEmit -p .` passed.
+- `npx eslint --quiet src/kernel/evidence test/kernel/evidence` passed.
+- `npx vitest run test/kernel/evidence` passed: 51/51 tests across 8/8 files.
+- `git diff --stat -- src/kernel/evidence/evidence-type.ts src/adapters src/hosts` was empty, confirming prohibited surfaces were untouched.
+
+The review identified no implementation-blocking finding and no architectural violation. One documentation drift finding required completion-time governance synchronization and is recorded below as resolved by `DOC-078-002`. One unrelated worktree observation remains non-blocking and outside Sprint 78 scope.
+
+### Findings
+
+#### NEXUS-REV-0078-DOC-001 — Documentation Drift
+
+- **Category:** Documentation Drift
+- **Severity:** Major
+- **Disposition:** Resolved by `DOC-078-002`
+- **Summary:** Sprint 78's governance-of-record artifacts had not been synchronized to record the Reviewer's `PASS_WITH_FINDINGS` disposition.
+- **Resolution:** `REVIEW_HISTORY.md`, the Sprint Implementation Record, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and `builder-task.md` now record Sprint 78 as Approved with Findings / closed under this review disposition.
+
+#### NEXUS-REV-0078-OBS-001 — Unrelated pre-existing dirty files outside Sprint 78 scope
+
+- **Category:** Observation
+- **Severity:** Observation
+- **Disposition:** Non-blocking; no Builder Task required for Sprint 78 closure.
+- **Summary:** `.github/copilot-instructions.md` and `GEMINI.md` remain modified in the worktree outside Sprint 78 scope.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 2 |
+| Critical / Major / Minor / Observation | 0 / 1 / 0 / 1 |
+| Architectural Violations | 0 |
+| Validation | TypeScript compile clean; ESLint clean; focused Evidence suite 51/51; prohibited surface diff empty |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0013 concepts; Milestone 12 Initial Capability Sequence Steps 2-6; multi-source DerivedContent combination and ordering semantics; canonicalization profiles beyond `ExactOctetStream`/`"1"`; current/active/authoritative Evidence applicability; `CorpusReviewContextProfile`; Corpus Readiness Acceptance Repository Policy; external content acquisition and resolver population from filesystem, Git, Hosts, Adapters, or repositories.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. Sprint 78 is Approved with Findings. The finding is limited to governance synchronization and does not affect implementation conformance. Milestone 12 remains Active; no subsequent Sprint is activated by this review record.
+
+### Builder Task Recommendation
+
+`DOC-078-002` SHALL be marked Completed. `BT-078-001` remains Resolved. No open Builder Task, open Documentation Task, blocked Builder Task, or blocked Documentation Task remains for Sprint 78.
+
 ## NEXUS-REV-2026-07-18-005 — Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure (Own Scope; Milestone 11 Closure)
 
 - **Reviewed Sprint:** Sprint 77 — Autonomous Planning Integration Validation and Milestone 11 Closure. This cycle reviews Sprint 77's own five Authorized Concepts (`NEXUS-RAT-2026-07-18-002`), resumed after the Planning Correlation lineage corrective work was independently certified Resolved (`NEXUS-REV-2026-07-18-004`, PASS). This cycle does not re-review the corrective work itself.

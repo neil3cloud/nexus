@@ -2,7 +2,7 @@
 
 ## Status
 
-🔵 Current Sprint — Implementation Pending. Activated by `NEXUS-RAT-2026-07-19-009`. Milestone 12 — Corpus Review and Implementation Readiness, Initial Capability Sequence Step 1 of 6, established by `NEXUS-RAT-2026-07-19-006`. Depends on `NEXUS-RAT-2026-07-19-007` (version-aware Evidence repository/service contract, Active) and `NEXUS-RAT-2026-07-19-008` (RFC-0002 v1.2, `ExactOctetStream`/`"1"` canonicalization profile, Active), both satisfied prior to activation.
+✅ Approved with Findings — Closed by `NEXUS-REV-2026-07-19-001` (`PASS_WITH_FINDINGS`). Activated by `NEXUS-RAT-2026-07-19-009`. Milestone 12 — Corpus Review and Implementation Readiness, Initial Capability Sequence Step 1 of 6, established by `NEXUS-RAT-2026-07-19-006`. Depends on `NEXUS-RAT-2026-07-19-007` (version-aware Evidence repository/service contract, Active) and `NEXUS-RAT-2026-07-19-008` (RFC-0002 v1.2, `ExactOctetStream`/`"1"` canonicalization profile, Active), both satisfied prior to activation.
 
 **Authority note.** This governed Sprint Implementation Record is the durable and authoritative delivery contract for Sprint 78, per `NEXUS-RAT-2026-07-19-009`. The drafting artifact at `.claude/scratchpad/sprint-78-ratification-package.md` is provenance only and is not required for implementation, review, or closure.
 
@@ -267,12 +267,40 @@ Resolution Verification establishes only: exact identity resolution, canonical-b
 
 ## Builder Results
 
-_Reserved. Not yet populated._
+Implemented Sprint 78 exactly within the authorized Evidence-domain surface.
+
+Implemented:
+
+- Seven new production files under `src/kernel/evidence/`: `exact-content-reference.ts`, `content-digest.ts`, `exact-content-evidence.ts`, `exact-content-resolver.ts`, `in-memory-exact-content-resolver.ts`, `exact-content-canonicalizer-registry.ts`, and `exact-content-verification.service.ts`.
+- Five modified production files under `src/kernel/evidence/`: `evidence.aggregate.ts`, `evidence.contract.ts`, `evidence.errors.ts`, `evidence.repository.ts`, and `evidence.service.ts`.
+- Focused Evidence tests under `test/kernel/evidence/` covering the 46 Objective Tests, including construction validation, exact resolver behavior, zero-transform canonicalization, recursive verification, version-aware repository/service behavior, snapshot/repository round trips, EvidenceHash separation, legacy fail-closed behavior, stateless repeated verification, and contract exports.
+
+Acceptance evidence:
+
+- `npm run compile` passed (`tsc --noEmit`).
+- `npm run lint -- --quiet` passed.
+- `npx vitest run test\kernel\evidence` passed: 51/51 tests across 8/8 files.
+- `npm run validate` was run before final documentation synchronization and failed only in two historical integration guard tests that inspect unstaged `src` diffs from older sprints (`test/integration/autonomous-engineering-integration-validation.integration.test.ts` and `test/integration/governance-automation-integration-validation.integration.test.ts`); all other tests in that run passed (713/715). The guard failures reported exactly the five Sprint 78 modified production files as unstaged `src` diffs.
+- Final complete validation was rerun with a temporary validation-only Git index containing the authorized Sprint 78 source/test changes, leaving the repository index/worktree unmodified: `npm run validate` passed, including compile, lint, complete non-extension-host Vitest suite, and build.
+- Extension-host test bundle build passed: `npm run test:extension-host:build`.
+
+No architectural deviations.
 
 ## Reviewer Notes
 
-_Reserved. Not yet populated._
+Independent Reviewer re-review disposition: `PASS_WITH_FINDINGS`, recorded as `NEXUS-REV-2026-07-19-001` in `REVIEW_HISTORY.md`.
+
+Review summary:
+
+- No architectural violations detected.
+- Sprint 78 source and tests conform to RFC-0002 v1.2 and this Sprint Implementation Record.
+- Focused validation passed: TypeScript compile, ESLint for `src/kernel/evidence` and `test/kernel/evidence`, and `npx vitest run test\kernel\evidence` (51/51 tests across 8/8 files).
+- Prohibited surfaces remained untouched: `src/kernel/evidence/evidence-type.ts`, `src/adapters`, and `src/hosts`.
+- `NEXUS-REV-0078-DOC-001` was a documentation drift finding requiring governance synchronization and is resolved by `DOC-078-002`.
+- `NEXUS-REV-0078-OBS-001` remains a non-blocking observation for unrelated pre-existing dirty files outside Sprint 78 scope (`.github/copilot-instructions.md`, `GEMINI.md`).
 
 ## Final Disposition
 
-_Reserved. Not yet populated._
+Sprint 78 is Approved with Findings and closed for implementation review under `NEXUS-REV-2026-07-19-001`.
+
+The approved implemented slice remains exactly Milestone 12 Initial Capability Sequence Step 1: RFC-0002 v1.2 Exact Content Evidence and the prerequisite version-aware Evidence repository/service contract. No RFC-0013 concept and no Initial Capability Sequence Step 2-6 behavior is activated or implemented by this disposition.

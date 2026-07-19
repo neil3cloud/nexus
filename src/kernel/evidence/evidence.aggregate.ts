@@ -6,6 +6,8 @@ import type { EvidenceMetadataInput, EvidenceMetadataSnapshot } from './evidence
 import { EvidenceSource } from './evidence-source';
 import { EvidenceType } from './evidence-type';
 import { EvidenceVersion } from './evidence-version';
+import { ExactContentEvidence } from './exact-content-evidence';
+import type { ExactContentEvidenceInput, ExactContentEvidenceSnapshot } from './exact-content-evidence';
 import type { EvidenceDomainEvent } from './evidence.events';
 import { createEvidenceCapturedEvent } from './evidence.events';
 import { Provenance } from './provenance';
@@ -20,6 +22,7 @@ export interface CreateEvidenceInput {
   readonly hash: EvidenceHash;
   readonly metadata: EvidenceMetadata;
   readonly provenance: Provenance;
+  readonly exactContent?: ExactContentEvidence;
 }
 
 export interface RegisterEvidenceRequest {
@@ -30,6 +33,7 @@ export interface RegisterEvidenceRequest {
   readonly hash: string;
   readonly metadata: EvidenceMetadataInput;
   readonly provenance: ProvenanceInput;
+  readonly exactContent?: ExactContentEvidenceInput;
 }
 
 export interface EvidenceSnapshot {
@@ -41,6 +45,7 @@ export interface EvidenceSnapshot {
   readonly hash: string;
   readonly metadata: EvidenceMetadataSnapshot;
   readonly provenance: ProvenanceSnapshot;
+  readonly exactContent?: ExactContentEvidenceSnapshot;
 }
 
 export class Evidence {
@@ -54,6 +59,7 @@ export class Evidence {
     private readonly evidenceHash: EvidenceHash,
     private readonly evidenceMetadata: EvidenceMetadata,
     private readonly evidenceProvenance: Provenance,
+    private readonly exactContentEvidence: ExactContentEvidence | undefined,
   ) {
     Object.freeze(this);
   }
@@ -67,6 +73,7 @@ export class Evidence {
       input.hash,
       input.metadata,
       input.provenance,
+      input.exactContent,
     );
   }
 
@@ -79,6 +86,9 @@ export class Evidence {
       hash: EvidenceHash.fromString(input.hash),
       metadata: EvidenceMetadata.create(input.metadata),
       provenance: Provenance.create(input.provenance),
+      ...(input.exactContent === undefined
+        ? {}
+        : { exactContent: ExactContentEvidence.create(input.exactContent) }),
     });
   }
 
@@ -91,6 +101,9 @@ export class Evidence {
       hash: EvidenceHash.fromString(snapshot.hash),
       metadata: EvidenceMetadata.fromSnapshot(snapshot.metadata),
       provenance: Provenance.fromSnapshot(snapshot.provenance),
+      ...(snapshot.exactContent === undefined
+        ? {}
+        : { exactContent: ExactContentEvidence.fromSnapshot(snapshot.exactContent) }),
     });
   }
 
@@ -126,6 +139,18 @@ export class Evidence {
     return this.evidenceProvenance;
   }
 
+  public get exactContent(): ExactContentEvidence {
+    if (this.exactContentEvidence === undefined) {
+      throw new InvalidEvidenceException('Evidence does not contain Exact Content Evidence.');
+    }
+
+    return this.exactContentEvidence;
+  }
+
+  public hasExactContent(): boolean {
+    return this.exactContentEvidence !== undefined;
+  }
+
   public recordCaptured(metadata: DomainEventMetadata): void {
     this.recordedEvents.push(createEvidenceCapturedEvent(this, metadata));
   }
@@ -148,6 +173,9 @@ export class Evidence {
       hash: this.evidenceHash.toString(),
       metadata: this.evidenceMetadata.toSnapshot(),
       provenance: this.evidenceProvenance.toSnapshot(),
+      ...(this.exactContentEvidence === undefined
+        ? {}
+        : { exactContent: this.exactContentEvidence.toSnapshot() }),
     };
   }
 }

@@ -3,13 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { EventBus } from '../../../src/kernel/events/event-bus';
 import type { KernelLogger } from '../../../src/kernel/common/kernel-logger';
 import type { RegisterEvidenceRequest } from '../../../src/kernel/evidence/evidence.contract';
+import { Evidence } from '../../../src/kernel/evidence/evidence.aggregate';
 import {
+  AmbiguousEvidenceVersionException,
   DuplicateEvidenceException,
   EvidenceEventPublisherUnavailableError,
   EvidenceNotFoundException,
+  EvidenceVersionNotFoundException,
   InvalidEvidenceException,
 } from '../../../src/kernel/evidence/evidence.errors';
 import { EvidenceId } from '../../../src/kernel/evidence/evidence-id';
+import { EvidenceVersion } from '../../../src/kernel/evidence/evidence-version';
 import { InMemoryEvidenceRepository } from '../../../src/kernel/evidence/evidence.repository';
 import { EvidenceService } from '../../../src/kernel/evidence/evidence.service';
 
@@ -35,13 +39,13 @@ function sequence(values: readonly string[]): () => string {
   };
 }
 
-function evidenceRequest(id = 'evidence-1'): RegisterEvidenceRequest {
+function evidenceRequest(id = 'evidence-1', version = 1): RegisterEvidenceRequest {
   return {
     id,
     missionId: 'mission-1',
     type: 'TestResult',
-    version: 1,
-    hash: `sha256:${id}`,
+    version,
+    hash: `sha256:${id}:${version}`,
     metadata: {
       capturedAt: '2026-07-12T00:00:00.000Z',
       attributes: {
@@ -73,6 +77,80 @@ describe('EvidenceService', () => {
 
     expect(evidence.id.toString()).toBe('evidence-1');
     await expect(repository.exists(evidence.id)).resolves.toBe(true);
+  });
+
+  it('registers distinct versions while rejecting exact-pair duplicates', async () => {
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      new EventBus(new TestLogger()),
+      sequence(['event-captured-1', 'event-captured-2']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.registerEvidence(evidenceRequest('evidence-1', 1));
+    await expect(service.registerEvidence(evidenceRequest('evidence-1', 2))).resolves.toMatchObject({
+      version: EvidenceVersion.fromNumber(2),
+    });
+    await expect(service.registerEvidence(evidenceRequest('evidence-1', 2))).rejects.toThrow(
+      DuplicateEvidenceException,
+    );
+  });
+
+  it('validates exact Evidence pairs and permits distinct versions', async () => {
+    const repository = new InMemoryEvidenceRepository();
+    const service = new EvidenceService(
+      repository,
+      new EventBus(new TestLogger()),
+      sequence(['event-captured-1']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.registerEvidence(evidenceRequest('evidence-1', 1));
+
+    await expect(service.validateEvidence(Evidence.register(evidenceRequest('evidence-1', 2)))).resolves.toBeUndefined();
+    await expect(service.validateEvidence(Evidence.register(evidenceRequest('evidence-1', 1)))).rejects.toThrow(
+      DuplicateEvidenceException,
+    );
+  });
+
+  it('retrieves exact Evidence versions with service-layer missing identity translation', async () => {
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      new EventBus(new TestLogger()),
+      sequence(['event-captured-1']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.registerEvidence(evidenceRequest('evidence-1', 1));
+
+    await expect(service.retrieveEvidenceVersion('evidence-1', 1)).resolves.toMatchObject({
+      id: EvidenceId.fromString('evidence-1'),
+      version: EvidenceVersion.fromNumber(1),
+    });
+    await expect(service.retrieveEvidenceVersion('missing-evidence', 1)).rejects.toThrow(
+      EvidenceNotFoundException,
+    );
+    await expect(service.retrieveEvidenceVersion('evidence-1', 2)).rejects.toThrow(
+      EvidenceVersionNotFoundException,
+    );
+  });
+
+  it('preserves identity-only retrieval behavior except for multi-version ambiguity', async () => {
+    const service = new EvidenceService(
+      new InMemoryEvidenceRepository(),
+      new EventBus(new TestLogger()),
+      sequence(['event-captured-1', 'event-captured-2']),
+      () => '2026-07-12T00:00:00.000Z',
+    );
+
+    await service.registerEvidence(evidenceRequest('evidence-1', 1));
+    await expect(service.retrieveEvidence('evidence-1')).resolves.toMatchObject({
+      version: EvidenceVersion.fromNumber(1),
+    });
+    await service.registerEvidence(evidenceRequest('evidence-1', 2));
+    await expect(service.retrieveEvidence('evidence-1')).rejects.toThrow(
+      AmbiguousEvidenceVersionException,
+    );
   });
 
   it('validates duplicate identifiers before registration', async () => {

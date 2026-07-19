@@ -10,6 +10,7 @@ import {
   EvidenceNotFoundException,
 } from './evidence.errors';
 import { EvidenceId } from './evidence-id';
+import { EvidenceVersion } from './evidence-version';
 import { InMemoryEvidenceRepository } from './evidence.repository';
 import type { IEvidenceRepository } from './evidence.repository';
 
@@ -36,8 +37,8 @@ export class EvidenceService extends ServiceLifecycle {
   }
 
   public async validateEvidence(evidence: Evidence): Promise<void> {
-    if (await this.repository.exists(evidence.id)) {
-      throw new DuplicateEvidenceException(evidence.id.toString());
+    if (await this.repository.existsByIdAndVersion(evidence.id, evidence.version)) {
+      throw new DuplicateEvidenceException(evidence.id.toString(), evidence.version.toNumber());
     }
   }
 
@@ -45,6 +46,26 @@ export class EvidenceService extends ServiceLifecycle {
     const normalizedEvidenceId =
       typeof evidenceId === 'string' ? EvidenceId.fromString(evidenceId) : evidenceId;
     const evidence = await this.repository.getById(normalizedEvidenceId);
+
+    if (evidence === undefined) {
+      throw new EvidenceNotFoundException(normalizedEvidenceId.toString());
+    }
+
+    return evidence;
+  }
+
+  public async retrieveEvidenceVersion(
+    evidenceId: EvidenceId | string,
+    evidenceVersion: EvidenceVersion | number,
+  ): Promise<Evidence> {
+    const normalizedEvidenceId =
+      typeof evidenceId === 'string' ? EvidenceId.fromString(evidenceId) : evidenceId;
+    const normalizedEvidenceVersion =
+      typeof evidenceVersion === 'number' ? EvidenceVersion.fromNumber(evidenceVersion) : evidenceVersion;
+    const evidence = await this.repository.getByIdAndVersion(
+      normalizedEvidenceId,
+      normalizedEvidenceVersion,
+    );
 
     if (evidence === undefined) {
       throw new EvidenceNotFoundException(normalizedEvidenceId.toString());
