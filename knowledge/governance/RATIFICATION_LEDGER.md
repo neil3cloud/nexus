@@ -10533,3 +10533,62 @@ None yet. Prerequisite for Sprint 78's own Sprint-scope ratification, alongside 
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-19-009
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-009
+
+## Date
+
+2026-07-19
+
+## Subject
+
+Sprint 78 Activation — RFC-0002 v1.2 Exact Content Evidence Implementation (Milestone 12 Initial Capability Sequence Step 1). Authorizes Sprint 78 as the repository's Current Sprint, authorizes generation of its Sprint Implementation Record and Builder Task, and authorizes Builder work to begin under the exact scope already established by Sprint 78 Revision 6 (`.claude/scratchpad/sprint-78-ratification-package.md`, Document 3 of 3) and its two satisfied prerequisites, `NEXUS-RAT-2026-07-19-007` and `NEXUS-RAT-2026-07-19-008` (both Active). This ratification redesigns no scope: it activates exactly what was already approved.
+
+## Originating Request
+
+Following Sprint Owner approval and application of `NEXUS-RAT-2026-07-19-007` (version-aware Evidence repository/service contract) and `NEXUS-RAT-2026-07-19-008` (RFC-0002 v1.2, `ExactOctetStream`/`"1"` canonicalization profile) — both Active in this Ledger — the Sprint Owner directed that Sprint 78 proceed to its separate Sprint-scope activation ratification, instructing that this ratification authorize the Sprint, its Implementation Record, and Builder Task without redesigning the already-approved scope.
+
+## Governance Decision
+
+Active. Applied as follows.
+
+1. **Sprint 78 is activated** as the repository's 🔵 Current Sprint, Milestone 12 Initial Capability Sequence Step 1.
+2. **Scope is exactly and only** Sprint 78 Revision 6 as recorded in `.claude/scratchpad/sprint-78-ratification-package.md` (Document 3 of 3): the seven new production files, five modified production files, and their tests, under `src/kernel/evidence/` and `test/kernel/evidence/` exclusively; the 46 Objective Tests; the 10 Builder Stop Conditions; the Acceptance Evidence requirements — all reproduced verbatim into the Sprint Implementation Record this ratification authorizes. This ratification adds no new concept, removes no constraint, and narrows nothing already agreed.
+3. **Authority clarification.** Upon generation, the governed Sprint Implementation Record is the durable and authoritative delivery contract for Sprint 78. The git-ignored scratchpad package remains drafting provenance only and SHALL NOT be required for future implementation, review, or closure.
+4. **Authorizes generation** of `knowledge/implementation/sprints/sprint-0078-rfc-0002-v1.2-exact-content-evidence-implementation.md` — the Sprint Implementation Record — reproducing Revision 6's Objective, RFC Coverage, Ratification references (`NEXUS-RAT-2026-07-19-006`, `-007`, `-008`, `-009`), Implemented Concepts, Deferred Concepts, Forecasted Implementation Surface, all 46 Objective Tests, all 10 Builder Stop Conditions, and Acceptance Evidence requirements, with reserved, empty Builder Results, Reviewer Notes, and Final Disposition sections.
+5. **Authorizes generation of the Builder Task / handoff** in `builder-task.md`, reproducing the same scope as the Builder's implementation contract, per the standing convention: *"Implement the Current Sprint according to the Sprint Implementation Record."*
+6. **Authorizes** the following, and only the following, additional documentation updates: `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` Sprint 78 entries change from "does not exist" to "🔵 Current Sprint — Implementation Pending," citing this ratification and its two prerequisites; the Milestone 12 Initial Capability Sequence Step 1 line is annotated "activated by `NEXUS-RAT-2026-07-19-009`," with no other change to the six-step sequence, dependency graph, or named exclusions established by `NEXUS-RAT-2026-07-19-006`.
+
+This ratification does NOT authorize: any change to Sprint 78's scope as recorded in Revision 6; any RFC amendment; any Milestone 12 Objective/Architectural Boundary change; any Initial Capability Sequence Step 2–6 work; `CorpusReviewContextProfile` or Corpus Readiness Acceptance Repository Policy work.
+
+## Deferred Concepts
+
+Everything Revision 6 itself defers: multi-source DerivedContent; any canonicalization profile beyond `ExactOctetStream`/`"1"`; current/active/authoritative applicability; RFC-0013 concepts; Initial Capability Sequence Steps 2–6; the Corpus Readiness Acceptance Repository Policy; `CorpusReviewContextProfile`.
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this ratification appended, `Current Status: Active`.
+- `knowledge/implementation/sprints/sprint-0078-rfc-0002-v1.2-exact-content-evidence-implementation.md` — new, per item 4 above.
+- `builder-task.md` — rewritten to the Sprint 78 Builder handoff, per item 5 above.
+- `IMPLEMENTATION_PLAN.md` — Sprint 78 entry activated; Milestone 12 Step 1 annotation only.
+- `IMPLEMENTATION_MANIFEST.md` — same.
+
+No source file. No test file. No RFC. No other Sprint's record. No Builder Task for any other Sprint.
+
+## Related Sprint(s) / Related Review(s)
+
+Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation (this ratification's own subject; no Review exists yet, since implementation has not begun).
+
+## Full Ratification Text
+
+> Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation (Milestone 12 Initial Capability Sequence Step 1) is activated as the repository's Current Sprint, on the strength of `NEXUS-RAT-2026-07-19-006` (binding sequence establishment), `NEXUS-RAT-2026-07-19-007` (version-aware repository/service contract, Active), and `NEXUS-RAT-2026-07-19-008` (RFC-0002 v1.2 `ExactOctetStream`/`"1"` canonicalization profile, Active). Scope is exactly Sprint 78 Revision 6 as recorded in `.claude/scratchpad/sprint-78-ratification-package.md`, reproduced unchanged into a newly authorized Sprint Implementation Record at `knowledge/implementation/sprints/sprint-0078-rfc-0002-v1.2-exact-content-evidence-implementation.md`, with reserved Builder Results, Reviewer Notes, and Final Disposition sections. Upon generation, that governed Sprint Implementation Record is the durable and authoritative delivery contract for Sprint 78; the git-ignored scratchpad package remains drafting provenance only and SHALL NOT be required for future implementation, review, or closure. A corresponding Builder Task is authorized in `builder-task.md`. `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are updated to reflect Sprint 78 as Current Sprint and to annotate the Milestone 12 Initial Capability Sequence's Step 1 entry as activated, with no other change to that sequence. This ratification introduces no new domain concept, RFC amendment, or scope beyond what Revision 6, `NEXUS-RAT-2026-07-19-007`, and `NEXUS-RAT-2026-07-19-008` already establish.
+
+## Current Status
+
+Active
+
+---
