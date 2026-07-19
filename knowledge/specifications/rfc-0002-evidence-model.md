@@ -1,11 +1,13 @@
 # RFC-0002 — Evidence Model
 
 **Status:** Final (Amended)
-**Version:** 1.1
+**Version:** 1.2
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
 Amended to v1.1 by `NEXUS-RAT-2026-07-18-005`, adding an additive, optional Exact Content Evidence contract (Evidence Type, content-representation classification, `representedContentReference`, `contentDigestAlgorithm`, `contentDigest`, deterministic derivation-source semantics, and fail-closed resolution). Evidence not consumed as Exact Content Evidence is unaffected.
+
+Amended to v1.2 by `NEXUS-RAT-2026-07-19-008`: establishes the Canonicalization Profile Registry and registers the `ExactOctetStream`/`"1"` profile — canonical bytes equal the exact resolver-returned octets, byte-for-byte, with no transformation of any kind. No other normative text changed.
 
 ---
 
@@ -220,6 +222,22 @@ Every Exact Content Evidence instance SHALL record:
 Both fields SHALL be immutable.
 
 Construction SHALL fail closed when either is absent, empty, malformed, or uses an unauthorized algorithm identifier.
+
+## Canonicalization Profile Registry
+
+The canonical byte representation for a given `evidenceTypeIdentity`/`evidenceTypeVersion` pair SHALL be defined by exactly one registered Canonicalization Profile in this Registry. Canonicalization SHALL fail closed for any `evidenceTypeIdentity`/`evidenceTypeVersion` pair without a registered profile. Each future profile is registered by its own separate amendment to this specification; no implementation SHALL define a canonicalization rule not registered here.
+
+### `ExactOctetStream`, version `"1"`
+
+For Evidence Type identity `ExactOctetStream`, version `"1"`: the canonical byte representation SHALL be the exact octet sequence returned by content resolution, unchanged. No UTF-8 or other decoding, no Unicode normalization, no line-ending normalization, no whitespace transformation, no content parsing, and no omission or addition of any byte SHALL be applied. `contentDigest` SHALL be the SHA-256 digest of that exact octet sequence.
+
+An octet sequence of zero length is valid represented content under this profile, provided every other requirement of `representedContentReference` and content resolution is satisfied; emptiness is not itself a failure condition. Octets that do not form valid UTF-8 are likewise valid input under this profile — no decoding is attempted, so no UTF-8 validity requirement applies — and SHALL be hashed exactly as received.
+
+Evidence Provenance for content resolved under this profile SHALL identify how the exact octets were acquired — acquisition method, source, and verification status establishing that those octets, and no others, are the represented content — per this specification's existing § Evidence Provenance, unmodified.
+
+Because this profile performs no transformation, any byte-level difference in represented content — including whitespace, line-ending (for example, CRLF versus LF), or Unicode normalization form (for example, NFC versus NFD) differences — SHALL produce a different canonical input and, absent a SHA-256 collision, a different `contentDigest`. This is the canonicalization profile of exact revision identity: it never treats two byte-distinct representations as equivalent.
+
+Any `evidenceTypeIdentity`/`evidenceTypeVersion` pair other than `("ExactOctetStream", "1")` remains unsupported and SHALL fail closed until registered by its own future amendment.
 
 ## SnapshotContent Requirements
 
@@ -469,3 +487,4 @@ Failure to satisfy these guarantees constitutes non-conformance with this specif
 
 - v1.0 — Final.
 - v1.1 — Amended by `NEXUS-RAT-2026-07-18-005`. Adds the optional, backward-compatible Exact Content Evidence contract: Evidence Type (identity/version, canonical byte representation), content-representation classification, `representedContentReference`, `contentDigestAlgorithm` (SHA-256 only), `contentDigest` (64 lowercase hex), SnapshotContent and DerivedContent requirements, and fail-closed handling. No existing Evidence instance, relationship, lifecycle stage, or conformance guarantee is invalidated. Implementation, including `EvidenceHash` reconciliation, is deferred and separately authorized.
+- v1.2 — Registers the `ExactOctetStream`/`"1"` Canonicalization Profile and establishes the Canonicalization Profile Registry as the mechanism for all future profile registration, ratified by `NEXUS-RAT-2026-07-19-008`. No other normative text changed. No implementation or Sprint activation authorized.

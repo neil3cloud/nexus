@@ -10149,3 +10149,387 @@ None. No Sprint exists within Milestone 12. No Review has been performed against
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-19-005
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-005
+
+## Date
+
+2026-07-19
+
+## Subject
+
+RFC-0013 Final Ratification. RFC-0013 — Corpus Review Model advances from Draft v0.7 to **Final Version 1.0**. No substantive normative architectural change; this ratification authorizes the bounded documentation changes required to record Final status and synchronizes Milestone 12's status text in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`, following seven versioned drafts (v0.1 through v0.7) and independent verification that every cross-RFC citation in v0.7 resolves against the actual current, Final text of RFC-0002 v1.1, RFC-0003 v1.1, RFC-0006 v1.2, and RFC-0011 v1.2.
+
+## Originating Request
+
+`nexus-plan`, acting in its Repository Planning Authority role, performed the final-ratification review directed by the Sprint Owner: a full read of RFC-0013 v0.7's normative body (Purpose through Conformance) and independent verification, by direct grep against each cited specification file, that `representedContentReference`/`contentDigest` (RFC-0002 v1.1), `PackageScope`/`MissionScoped`/`RepositoryScoped`/`profilePayload` (RFC-0003 v1.1), `CorpusReviewBasis`/`SubjectElementTarget`/`AssessmentSubjectTarget` (RFC-0006 v1.2), and `CorpusReadinessAcceptanceEvaluationInput`/`CurrentProjectionApplicabilityReference` (RFC-0011 v1.2) are real, existing, Final-status constructs in those specifications — not draft, not fabricated, not stale — across seven versioned drafts, v0.1 through v0.7. No internal contradiction, dangling reference, Boundaries/Non-Goals violation, or unresolved amendment-history concern was found. The Sprint Owner subsequently directed that Final ratification be documented as more than a header change: the RFC-0013 preamble's active "awaits Sprint Owner final verification" sentence must be replaced with exact Final-v1.0 lineage, an Amendment History entry must be appended after v0.7, and Milestone 12's status text in the Implementation Layer must be synchronized to reflect RFC-0013 Final v1.0 while continuing to state explicitly that no Initial Capability Sequence, Sprint 78, or implementation is authorized.
+
+## Governance Decision
+
+**APPROVED.** RFC-0013 — Corpus Review Model is ratified **Final, Version 1.0**, effective on Sprint Owner approval of this Ratification.
+
+This ratification authorizes exactly the following bounded documentation changes, and no other:
+
+**In `knowledge/specifications/rfc-0013-corpus-review-model.md`:**
+- `Status: Draft` → `Status: Final`
+- `Version: 0.7` → `Version: 1.0`
+- Replace the active preamble sentence stating that v0.7 "awaits Sprint Owner final verification before Final ratification" (and the adjacent implementation-authorization disclaimer sentence) with exact Final-v1.0 ratification lineage citing `NEXUS-RAT-2026-07-19-005`, preserving the substance of the implementation-authorization disclaimer.
+- Append one new Amendment History entry, `v1.0 — Final`, after the v0.7 entry, citing this Ratification, stating that Final ratification effects no substantive normative architectural change relative to v0.7, and that every preceding v0.1–v0.7 historical entry remains preserved unchanged.
+- No other line of this document changes. No section body — Purpose, Domain Ownership, Dependencies, Corpus Review Aggregate, Lifecycle, Readiness Result, Boundaries, Non-Goals, Conformance, or any other normative section — is added, removed, or reworded.
+
+**In `knowledge/governance/RATIFICATION_LEDGER.md`:**
+- Append this Ratification in full, per standard Ledger convention.
+
+**In `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` (Milestone 12 sections only):**
+- Update the RFC Coverage / RFC-0013 status reference to "RFC-0013 — Corpus Review Model (Final v1.0, ratified by `NEXUS-RAT-2026-07-19-005`)".
+- Continue to state explicitly, unchanged in substance: the Milestone 12 Initial Capability Sequence is **not established**; no Sprint 78 or any other Milestone 12 Sprint **exists or is activated**; and **no implementation is authorized** by RFC-0013's Final status.
+- No Milestone 12 Objective, Architectural Boundary, or any Milestone 1–11 / Sprint 1–77 content changes.
+
+This ratification does NOT authorize: any Sprint 78 or other Milestone 12 Sprint; any Milestone 12 Initial Capability Sequence; implementation of any capability described by RFC-0013; runtime construction or use of `CorpusReviewContextProfile` or any other RFC-0013 concept; or any change to RFC-0001, RFC-0002, RFC-0003, RFC-0004, RFC-0005, RFC-0006, RFC-0007, RFC-0008, RFC-0011, or RFC-0012. It authorizes no change to source code, tests, `IMPLEMENTATION_REPORT.md`, any Sprint Implementation Record, `builder-task.md`, or any RFC other than RFC-0013's Status/Version/preamble/Amendment-History fields named above.
+
+## Deferred Concepts
+
+All RFC-0013 implementation of any kind; Milestone 12's Initial Capability Sequence (requires its own, separate ratification); Sprint 78 or any Milestone 12 Sprint; the Corpus Readiness Acceptance Repository Policy referenced by RFC-0013's Downstream Readiness-Gate Boundary (its authoring and ratification remain separately authorized future work, per RFC-0013 itself).
+
+## Related Sprint(s) / Related Review(s)
+
+None. No Sprint exists within Milestone 12. This ratification is documentation-only: it advances RFC-0013's Status/Version/preamble/Amendment-History and synchronizes Milestone 12's status text in the Implementation Layer; it introduces no Sprint, no Review, and no implementation change.
+
+## Full Ratification Text
+
+> RFC-0013 — Corpus Review Model is ratified Final, Version 1.0, on the strength of seven versioned drafts (v0.1 through v0.7) and this Ratification's independent verification that every cross-RFC construct RFC-0013 v0.7 cites by name — RFC-0002 v1.1's `representedContentReference` and `contentDigest`; RFC-0003 v1.1's `PackageScope`, `MissionScoped`, `RepositoryScoped`, and `profilePayload`; RFC-0006 v1.2's `CorpusReviewBasis` subject kind, `SubjectElementTarget`, and `AssessmentSubjectTarget`; and RFC-0011 v1.2's dormant `CorpusReadinessAcceptanceEvaluationInput` and `CurrentProjectionApplicabilityReference` contract — resolves against the actual, current, Final text of those four specifications, each confirmed Final at exactly the version RFC-0013 v0.7 cites. No RFC-0013 normative architectural text is changed by this ratification. This Ratification authorizes exactly: updating RFC-0013's header from `Status: Draft` / `Version: 0.7` to `Status: Final` / `Version: 1.0`; replacing the preamble's active "awaits Sprint Owner final verification before Final ratification" sentence and its adjacent implementation-authorization disclaimer sentence with exact Final-v1.0 lineage citing this Ratification, while preserving the disclaimer's substance that no implementation is authorized by RFC-0013 status alone; appending one new `v1.0 — Final` Amendment History entry after v0.7 citing this Ratification and stating no substantive normative change occurred, with every preceding v0.1–v0.7 historical entry preserved unchanged; and updating the Milestone 12 RFC-0013 status references in `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` to read Final v1.0 under this Ratification, while both documents continue to state explicitly that the Milestone 12 Initial Capability Sequence remains unestablished, no Sprint 78 or other Milestone 12 Sprint exists or is activated, and no implementation is authorized. This ratification authorizes no implementation, no runtime use of any RFC-0013 concept, no Sprint of any kind, and no Milestone 12 Initial Capability Sequence — each remains separately authorized future work, consistent with this repository's established two-step pattern (specification Final ratification, then independent Sprint-sequencing ratification) previously applied to RFC-0012 (`NEXUS-RAT-2026-07-17-010`, followed by `NEXUS-RAT-2026-07-17-011` et seq.). No source file, test file, `IMPLEMENTATION_REPORT.md`, Sprint Implementation Record, Builder Task, or RFC other than RFC-0013's named fields is authorized to change by this Ratification.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-19-006
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-006
+
+## Date
+
+2026-07-19
+
+## Subject
+
+Milestone 12 Binding, Planning-Only Initial Capability Sequence Establishment. Defines a six-step sequence whose dependency order and certification gates are binding, while authorizing no Sprint or implementation: two prerequisite-implementation steps (RFC-0002 v1.1, RFC-0006 v1.2 amendment deltas — verified absent from `src/` by direct source search) followed by four Corpus Review domain steps decomposing RFC-0013 v1.0, with `CorpusReadinessResult` construction owned exclusively by the completion step and Assessment Binding/readiness-derivation logic implemented and validated separately, without constructing, persisting, or exposing a Result. Names RFC-0003 v1.1 Context Package implementation as the blocker for `CorpusReviewContextProfile`, excluded from this sequence. Binds compatibility gates on Steps 1 and 2 protecting the frozen Sprint 5 Evidence and Sprint 9/74–77 Review/Planning surfaces from destructive reinterpretation.
+
+## Originating Request
+
+Following Sprint Owner approval of `NEXUS-RAT-2026-07-19-005` (RFC-0013 Final v1.0), the Sprint Owner directed `nexus-plan` to draft Milestone 12's Initial Capability Sequence as a separate proposal. Three drafting rounds were corrected: the first for failing to reconcile that RFC-0013's consumed RFC-0002 v1.1/RFC-0006 v1.2 additions have no delivered runtime implementation, and for a Step 2/Step 3 completion contradiction; the second for mischaracterizing the sequence as "non-binding" when its dependency order and certification gates are intended to bind, for allowing an intermediate step to construct a final `CorpusReadinessResult` ahead of the completion step that alone should own it, and for omitting binding compatibility protection for the frozen Sprint 5 Evidence and Sprint 9/74–77 Review/Planning surfaces; the third for Step 5's atomic-operation wording, which sequenced "construct and attach... persist... and set status to Completed" in a way that could be read as permitting persistence before the status became Completed. `nexus-plan` independently verified, by reading `src/kernel/evidence/evidence-hash.ts`, that the delivered `EvidenceHash` is an opaque unvalidated string lacking algorithm, length, and canonical-content-binding semantics, corroborating the compatibility gate bound on Step 1.
+
+## Governance Decision
+
+**APPROVED, with the named Step 5 atomic-operation wording correction.** Milestone 12 — Corpus Review and Implementation Readiness adopts the following **binding, planning-only Initial Capability Sequence**: its dependency order, certification gates, and per-step compatibility gates are binding on every future Sprint scoped against it; it authorizes no Sprint, no Builder implementation, and no Sprint Implementation Record by itself. Each step still requires its own future Sprint scope ratification before any Builder work may begin.
+
+### Dependency graph
+
+```
+Step 1 (RFC-0002 v1.1)
+   |
+   v
+Step 2 (RFC-0006 v1.2) ---------+
+   |                            |
+   v                            |
+Step 3 (Corpus Review           |
+  Structural Foundation) <------+
+   |
+   v
+Step 4 (Assessment Binding and
+  Readiness Derivation Foundation
+  — validation/derivation only,
+  no CorpusReadinessResult)
+   |
+   v
+Step 5 (Completion, Withdrawal,
+  Projection Snapshot Lifecycle,
+  and Readiness Result Construction
+  — sole owner of Result construction)
+   |
+   v
+Step 6 (Integration Validation
+  and Foundation Closure)
+```
+
+### Step 1 — RFC-0002 v1.1 Exact Content Evidence Implementation
+
+Extends the approved, frozen Sprint 5 Evidence Foundation, per RFC-0002 v1.1. Implements: `representedContentReference`, content-representation classification, `contentDigestAlgorithm`, `contentDigest`, canonical byte representation, SnapshotContent/DerivedContent semantics, and derivation-source semantics. Introduces no RFC-0013 concept. Blocking prerequisite for Steps 3 and 4.
+
+**Binding compatibility gates (Step 1):**
+- The delivered `EvidenceHash` (`src/kernel/evidence/evidence-hash.ts` — an opaque, unvalidated non-empty string with no algorithm, length, canonical-content-binding, or representation semantics) SHALL NOT be treated as satisfying RFC-0002 v1.1 `contentDigest`.
+- Existing Evidence identities, constructors, snapshots, repositories, persisted records, provenance, and version behavior SHALL NOT be destructively reinterpreted.
+- The future Step 1 Sprint proposal SHALL specify the additive/versioned representation and any migration or compatibility handling before Builder work is authorized.
+- Existing Evidence records without the v1.1 exact-content contract SHALL remain distinguishable and SHALL fail closed wherever RFC-0013 requires v1.1 Exact Content Evidence.
+
+### Step 2 — RFC-0006 v1.2 Assessment Amendment Implementation
+
+Extends the implemented Sprint 9 Review/Finding domain, per RFC-0006 v1.2. Implements: the generalized `AssessmentSubjectReference` (preserving existing `ExecutableMissionPlan`/`ProposedPlanRevision` discriminators unchanged, `ReviewPlanRevisionReference` retained as deprecated alias), the exact `AssessmentCriterion`/`AssessmentCriteriaSet` model with closed applicability vocabulary and fingerprint protocol, Corpus-scoped `AssessmentCoverage`, the Corpus-scoped Finding affected-target model (`SubjectElementTarget`/`AssessmentSubjectTarget`), the Corpus-scoped recorded RFC-0003 Projection basis, and Evidence-expectation enforcement consuming Step 1 (read-only). Depends on Step 1. Introduces no RFC-0013 concept and does not itself activate the `CorpusReviewBasis` subject-kind variant for Corpus Review consumption. Blocking prerequisite for Steps 3 and 4.
+
+**Binding compatibility gates (Step 2):**
+- Existing `ReviewPlanRevisionReference` wire discriminator values and existing consumers SHALL be preserved unchanged.
+- Existing Review/Assessment records SHALL NOT be rewritten into `CorpusReviewBasis`.
+- Generalized Assessment subjects, Coverage, Criteria Sets, target models, and recorded Projection basis SHALL be additive or explicitly migrated only under the future Step 2 Sprint's own authorization.
+- The future Step 2 Sprint proposal SHALL include compatibility tests covering existing Sprint 9 and Sprint 74–77 Review/Planning consumers.
+
+### Step 3 — Corpus Review Structural Foundation
+
+The immutable `CorpusReview` aggregate skeleton: Corpus Review Purpose, Corpus Review Contract — including its Mandatory Assessment Criteria Set Reference, consuming Step 2's `AssessmentCriteriaSet` model — Corpus Review Scope, Corpus Artifact Reference and Exact Evidence-Anchored Artifact Binding against Step 1's additions (read-only), Active Evidence Applicability against the already-implemented base RFC-0003 Projection/Active Evidence Set (Sprint 6, unmodified, read-only), the nine-component Corpus Review Basis and Basis Fingerprint, Mission Relationship, Corpus Review Opening Attribution, the Canonical Fingerprint Protocol, and the `Open` state only. Depends on Steps 1 and 2. Excludes Assessment Binding, Completion, Withdrawal, Corpus Readiness Result, and Reproducible Context Integration.
+
+### Step 4 — Assessment Binding and Readiness Derivation Foundation
+
+MAY implement and unit-test, against supplied inputs, in isolation from any lifecycle transition: Assessment Binding validation against a supplied terminal RFC-0006 v1.2 Assessment for the exact Corpus Review Basis (read-only, consuming Step 2); `CorpusFindingReference` resolution and complete-set validation; the pure four-way Classification Derivation; deterministic Finding-set fingerprint computation; validation of the sixteen required Corpus Readiness Result inputs; five-way historical-bound Projection equality validation; and fail-closed diagnostics for invalid prospective Result inputs.
+
+**Step 4 SHALL NOT:** allocate a `corpusReadinessResultId`; construct a final `CorpusReadinessResult`; attach or persist a Result to a Corpus Review; expose a Result from an `Open` or `Withdrawn` review; or implement or activate the `Open → Completed` transition.
+
+This step produces validated derivation logic and diagnostics only — no stored artifact, no lifecycle effect. Depends on Step 3.
+
+### Step 5 — Corpus Review Completion, Withdrawal, Projection Snapshot Lifecycle, and Readiness Result Construction
+
+Step 5 is the **sole owner of `CorpusReadinessResult` construction**. Implements completion exactly once, with its complete RFC-0013 v1.0 semantics — no partial or temporary rule: Corpus Review Completion Attestation (Human-only origin); all four Review Completion Preconditions; the atomic `Open → Completed` transition, which SHALL validate every completion precondition before mutation; stage the Human Completion Attestation, exactly one Corpus Readiness Result (invoking Step 4's validated derivation logic), and the Completed status transition together; then persist the fully completed aggregate exactly once as one atomic commit, with no partial state or Result exposure on any failure; the `Open → Withdrawn` transition and Corpus Review Withdrawal Attribution; and the complete ten-rule Projection Snapshot Lifecycle in full, including snapshot-preserving completion after the bound Projection becomes stale (rule 4) and the no-rebasing prohibition (rule 10); and Staleness and Applicability Semantics. Depends on Step 4. This is the sole step that implements or modifies `Completed`-transition behavior or constructs a Result; no earlier or later step does either.
+
+### Step 6 — Corpus Review Domain Integration Validation and Foundation Closure
+
+One end-to-end integration test exercising the complete `Open → Completed` and `Open → Withdrawn` lifecycles through real, non-mocked Kernel-composed collaborators only — real `CorpusReview` aggregate/service/repository, real RFC-0006 v1.2 Review/Assessment (Step 2), real RFC-0003 Projection (base, unmodified), real RFC-0002 v1.1 Evidence (Step 1) — mirroring the integration-validation pattern used to close Milestone 9 (Sprint 62), Milestone 10 (Sprint 70), and Milestone 11 (Sprint 77). Introduces no new domain capability. Depends on Step 5. Closes only the six-step Corpus Review structural/lifecycle foundation; does not itself close Milestone 12.
+
+### Named blocking dependencies, excluded from this sequence (not numbered steps)
+
+- **Reproducible Context Integration (`CorpusReviewContextProfile`)** — instantiates RFC-0003 v1.1's Context Package Profile contract, still specification-only and unauthorized for implementation (`NEXUS-RAT-2026-07-19-001`/`-002`/`-003`). SHALL NOT be scoped into any Milestone 12 Sprint, including Step 6, until a separate ratification authorizes RFC-0003 v1.1 Context Package implementation and that implementation is Reviewer-certified.
+- **Corpus Readiness Acceptance Repository Policy** (RFC-0011 v1.2's dormant `CorpusReadinessAcceptanceEvaluationInput` contract) — remains RFC-0013's own named future, separately authorized work.
+
+### Sequencing and certification gating (binding)
+
+No step's Sprint SHALL be authorized, and no Builder work SHALL begin on it, before every step it depends on has received an independent Reviewer PASS or Approved disposition. A step ratified for Sprint activation out of this order, or before its dependency is certified, is a governance violation of this Ratification. The Step 1 and Step 2 binding compatibility gates above apply in addition to, not instead of, this ordering.
+
+This ratification does NOT authorize: Sprint 78 or any other Milestone 12 Sprint; any Builder implementation of any kind; any Sprint Implementation Record; any RFC amendment; Corpus Readiness Acceptance Repository Policy work; `CorpusReviewContextProfile` implementation; or any Milestone 12 Objective/Architectural Boundary change (both remain exactly as set by `NEXUS-RAT-2026-07-18-004`).
+
+## Deferred Concepts
+
+Every concept named "Excludes" within each step above; `CorpusReadinessResult` construction, persistence, or exposure prior to Step 5 (explicitly withheld from Step 4); Reproducible Context Integration / `CorpusReviewContextProfile` (blocked pending separate RFC-0003 v1.1 implementation authorization and certification); the Corpus Readiness Acceptance Repository Policy; RFC-0004/RFC-0005/RFC-0007/RFC-0008/RFC-0012 integration with Corpus Review (RFC-0013 v1.0 Non-Goals, unmodified); Sprint 78 and every other Milestone 12 Sprint; all implementation of any kind; any destructive reinterpretation of existing Evidence or Review/Assessment records (Steps 1–2 compatibility gates).
+
+## Related Sprint(s) / Related Review(s)
+
+None. No Sprint exists within Milestone 12. This ratification is sequencing-only.
+
+## Full Ratification Text
+
+> Milestone 12 — Corpus Review and Implementation Readiness adopts a six-step, **binding, planning-only** Initial Capability Sequence — its dependency order and certification gates bind every future Sprint scoped against it, while it authorizes no Sprint or implementation itself: (1) RFC-0002 v1.1 Exact Content Evidence Implementation, extending the approved Sprint 5 Evidence Foundation, verified absent from `src/` by direct source search, bound by compatibility gates preventing `EvidenceHash` from being treated as `contentDigest`, prohibiting destructive reinterpretation of existing Evidence records, and requiring the future Sprint proposal to specify additive/versioned representation and fail-closed distinguishability for pre-v1.1 records; (2) RFC-0006 v1.2 Assessment Amendment Implementation, extending the implemented Sprint 9 Review/Finding domain, depending on Step 1, bound by compatibility gates preserving existing `ReviewPlanRevisionReference` discriminators and consumers, prohibiting rewriting existing Review/Assessment records into `CorpusReviewBasis`, and requiring the future Sprint proposal to include compatibility tests covering Sprint 9 and Sprint 74–77 consumers; (3) Corpus Review Structural Foundation — Purpose, Contract, Scope, Basis, Mission Relationship, Opening Attribution, `Open` state only, depending on Steps 1–2; (4) Assessment Binding and Readiness Derivation Foundation — Assessment Binding validation, `CorpusFindingReference` resolution, the pure Classification Derivation, Finding-set fingerprint computation, sixteen-field Result-input validation, five-way Projection equality validation, and fail-closed diagnostics, implemented and unit-tested against supplied inputs only, explicitly prohibited from allocating a `corpusReadinessResultId`, constructing or persisting a final `CorpusReadinessResult`, exposing a Result from a non-`Completed` review, or implementing `Open → Completed`, depending on Step 3; (5) Corpus Review Completion, Withdrawal, Projection Snapshot Lifecycle, and Readiness Result Construction — the sole owner of `CorpusReadinessResult` construction, implementing completion exactly once with its complete Final-v1.0 semantics via one atomic `Open → Completed` operation that SHALL validate every completion precondition before mutation, stage the Human Completion Attestation, exactly one Corpus Readiness Result, and the Completed status transition together, then persist the fully completed aggregate exactly once as one atomic commit, with no partial state or Result exposure on any failure, together with `Open → Withdrawn`, Withdrawal Attribution, the complete ten-rule Projection Snapshot Lifecycle, and Staleness and Applicability Semantics, depending on Step 4; (6) Corpus Review Domain Integration Validation and Foundation Closure — one end-to-end integration test through real Kernel-composed collaborators only, introducing no new domain capability, depending on Step 5. Reproducible Context Integration (`CorpusReviewContextProfile`) and the Corpus Readiness Acceptance Repository Policy are named, explicitly excluded from every step including Step 6, and SHALL NOT be scoped into any step of this sequence. No step's Sprint SHALL be authorized before its named dependency step(s) are Reviewer-certified Approved and, for Steps 1–2, before their binding compatibility gates are satisfied. Milestone 12's Objective and Architectural Boundary, as set by `NEXUS-RAT-2026-07-18-004`, are unmodified. This ratification authorizes no Sprint, no Builder implementation, no Sprint Implementation Record, no Sprint 78 activation, no RFC amendment, and no Corpus Readiness Acceptance Repository Policy or `CorpusReviewContextProfile` work.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-19-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-007
+
+## Date
+
+2026-07-19
+
+## Subject
+
+Version-Aware Evidence Repository and Service Contract — binding implementation-contract prerequisite for Sprint 78 (Milestone 12 Initial Capability Sequence Step 1, RFC-0002 Exact Content Evidence). Defines the exact `(EvidenceId, EvidenceVersion)`-keyed repository contract, the corrected `EvidenceService.validateEvidence`/`registerEvidence` duplicate-detection behavior, the new `retrieveEvidenceVersion` service method, and the exceptions and exports required to implement all of it. This ratification authorizes no implementation, no source modification, and no Sprint activation by itself — it is the binding contract specification a future, separately-activated Sprint SHALL implement exactly.
+
+## Originating Request
+
+`nexus-plan` verified directly against `src/kernel/evidence/evidence.repository.ts` (60 lines) and `evidence.service.ts` (83 lines): the current repository stores exactly one `EvidenceSnapshot` per `EvidenceId` in a `Map<string, EvidenceSnapshot>` and rejects every later registration under that identity via `DuplicateEvidenceException`, regardless of version — no overwrite ever occurs, because no second registration is ever accepted. `EvidenceService.validateEvidence(evidence)` calls `repository.exists(evidence.id)`, which checks identity alone; even after the repository is corrected to store by exact `(EvidenceId, EvidenceVersion)`, this existing service method would continue rejecting every second version under an existing identity unless it is itself corrected. RFC-0002 requires historical Evidence versions to remain preserved and addressable, and RFC-0002 v1.1's DerivedContent source references identify an exact `EvidenceId` and exact `EvidenceVersion` pair — neither is resolvable against the current repository or the current service's duplicate-detection logic. The Sprint Owner directed a full contract correction covering both the repository and the service, with exact exception, export, and enumeration-ordering behavior specified in advance, to remove every internal inconsistency identified across prior drafting rounds before any prerequisite ratification is applied.
+
+## Governance Decision
+
+**APPROVED.** `IEvidenceRepository`/`InMemoryEvidenceRepository` and `EvidenceService` are extended additively, exactly as follows.
+
+### Repository contract
+
+**Storage.** Evidence is stored by the exact pair `(EvidenceId, EvidenceVersion)`. Every distinct version under an identity is preserved permanently; no version is ever replaced or overwritten.
+
+**`register(evidence)`.**
+- Rejects only an already-stored exact `(EvidenceId, EvidenceVersion)` pair, via `DuplicateEvidenceException`.
+- Permits a distinct `EvidenceVersion` under an existing `EvidenceId`.
+- Never replaces or overwrites an existing version.
+- `DuplicateEvidenceException`'s diagnostic is corrected to identify the exact rejected `(EvidenceId, EvidenceVersion)` pair — an identity-only message is no longer sufficient once two Evidence instances can legitimately share an identity. This is the minimum change needed to make the diagnostic unambiguous; it does not otherwise alter `DuplicateEvidenceException`'s existing callers or its status as `EvidenceDomainException`.
+
+**`getByIdAndVersion(evidenceId, evidenceVersion): Promise<Evidence | undefined>`** (new).
+- Identity absent entirely → return `undefined`. The repository SHALL NOT throw `EvidenceNotFoundException` for a wholly absent identity — that translation is a service-layer concern (see `retrieveEvidenceVersion`, below).
+- Identity present, requested version absent → throw `EvidenceVersionNotFoundException`.
+- Exact pair present → return that exact Evidence, unchanged.
+
+**`getById(evidenceId): Promise<Evidence | undefined>`** (existing signature, corrected behavior).
+- Zero stored versions → return `undefined`.
+- Exactly one stored version → return it, unchanged — byte-for-byte identical to Sprint 5 behavior.
+- Two or more stored versions → throw `AmbiguousEvidenceVersionException`.
+- Never infers a latest, current, highest, newest, active, or authoritative version under any condition.
+
+**`exists(evidenceId): Promise<boolean>`** (existing signature and meaning, unchanged). Returns `true` when at least one version exists for that identity, `false` when none exists.
+
+**`existsByIdAndVersion(evidenceId: EvidenceId, evidenceVersion: EvidenceVersion): Promise<boolean>`** (new).
+- Returns `true` only when the exact pair exists.
+- Returns `false` for a missing identity.
+- Returns `false` when the identity exists but that exact version does not.
+- Never throws a not-found or ambiguity exception, under any input.
+
+**`enumerate(): Promise<readonly Evidence[]>`** (existing signature, corrected behavior).
+- Identities enumerate in **first-registration (insertion) order** — never sorted lexically or by any other key.
+- Versions within an identity enumerate by **ascending numeric order**, compared via `EvidenceVersion.toNumber()`, never lexical string ordering.
+- No latest/current inference of any kind.
+- When every identity has exactly one stored version, `enumerate()`'s output is byte-for-byte identical to Sprint 5's, in both content and order.
+
+### Service contract
+
+**`validateEvidence(evidence): Promise<void>`** (existing public method, corrected behavior). SHALL apply `existsByIdAndVersion(evidence.id, evidence.version)` semantics instead of identity-only `exists(evidence.id)`: rejects (via `DuplicateEvidenceException`) only when the exact `(EvidenceId, EvidenceVersion)` pair already exists; permits validation of a distinct version under an existing identity. Every other existing validation behavior is preserved unchanged. **This directly resolves the identity-only validation defect verified in the Originating Request.**
+
+**`registerEvidence(request): Promise<Evidence>`** (existing public signature, unchanged). Without any signature change: successfully registers a distinct Evidence version under an existing identity; still rejects an exact-pair duplicate (via the corrected `validateEvidence`); preserves existing event-publication (`EvidenceCaptured`) and lifecycle behavior exactly; never infers latest/current semantics anywhere in its flow.
+
+**`retrieveEvidenceVersion(evidenceId: EvidenceId | string, evidenceVersion: EvidenceVersion | number): Promise<Evidence>`** (new, additive).
+- Normalizes identity and version through the existing domain value objects (`EvidenceId.fromString`, `EvidenceVersion.fromNumber`), mirroring the existing `retrieveEvidence` method's normalization pattern.
+- Missing identity → throws `EvidenceNotFoundException` (the service translates the repository's `getByIdAndVersion` `undefined` return into this exception; the repository itself never throws it).
+- Existing identity with missing version → propagates `EvidenceVersionNotFoundException` from the repository, unmodified.
+- Exact pair present → returns it, unchanged.
+- This signature mirrors the existing `retrieveEvidence(evidenceId: EvidenceId | string)` method's accept-string-or-value-object pattern exactly, extended additively with a second, symmetrically-typed parameter; it introduces no new normalization rule beyond what `EvidenceId`/`EvidenceVersion`'s existing static factories already enforce, and remains unambiguous with every existing method.
+
+Every other existing `EvidenceService` method and signature (`registerEvidence`'s parameter/return shape, `retrieveEvidence`, `enumerateEvidence`, constructor parameters) remains unchanged.
+
+### Required exceptions and exports
+
+This ratification explicitly authorizes the definition and export, through `evidence.contract.ts`, of:
+
+- **`EvidenceVersionNotFoundException`** — thrown when an Evidence identity exists but the exact requested version does not. Diagnostic SHALL deterministically identify both the Evidence identity and the requested version.
+- **`AmbiguousEvidenceVersionException`** — thrown when an identity-only lookup (`getById`) encounters more than one stored version. Diagnostic SHALL deterministically identify the Evidence identity and state that multiple versions exist (without needing to enumerate them, though doing so is permitted).
+- **`DuplicateEvidenceException`** (existing, minimum update authorized) — diagnostic corrected to identify the exact rejected `(EvidenceId, EvidenceVersion)` pair for an exact-pair conflict, rather than identity alone.
+
+Both new exception classes SHALL extend `EvidenceDomainException`, consistent with every existing Evidence exception in `evidence.errors.ts` (currently 36 lines: `EvidenceDomainException`, `DuplicateEvidenceException`, `InvalidEvidenceException`, `EvidenceNotFoundException`, `EvidenceEventPublisherUnavailableError`).
+
+### Authorized implementation surfaces
+
+This ratification authorizes the minimum implementation surfaces a future, separately-activated Sprint (Sprint 78) SHALL touch to implement this contract, and no others:
+
+- `src/kernel/evidence/evidence.repository.ts`
+- `src/kernel/evidence/evidence.service.ts`
+- `src/kernel/evidence/evidence.errors.ts`
+- `src/kernel/evidence/evidence.contract.ts`
+- Corresponding Evidence repository, service, error, and contract tests (`test/kernel/evidence/evidence.repository.test.ts`, `test/kernel/evidence/evidence.service.test.ts`, and any new test files needed for the new exceptions/exports).
+
+**This prerequisite ratification still authorizes no source modification by itself.** It defines the exact contract that a later, separately-activated Sprint SHALL implement, unmodified from what is specified here.
+
+## Deferred Concepts
+
+Multi-version query/search beyond exact-version and full-enumeration retrieval; version supersession, "current version," or authoritative-version semantics (remain permanently external to this ratification); durable persistence; any change to `Evidence`, `EvidenceId`, `EvidenceVersion`, `EvidenceHash`, `EvidenceType`, `EvidenceMetadata`, or `Provenance`; any RFC-0002 amendment (that is the separate subject of `NEXUS-RAT-2026-07-19-008`); any RFC-0013 concept; Sprint 78 activation or any Builder work of any kind.
+
+## Compatibility Guarantee
+
+- A repository populated exclusively through the Sprint 5 registration pattern (one version per identity) behaves identically, byte-for-byte, to the frozen Sprint 5 implementation across every method.
+- `getById` behavior is identical to Sprint 5 whenever exactly one version exists for the requested identity.
+- `exists`'s existing signature and meaning are unchanged.
+- Existing identity enumeration order is unchanged.
+- No existing stored Evidence version is ever overwritten, under any code path.
+- The only newly-observable behavior is: exact-version retrieval via `getByIdAndVersion`/`retrieveEvidenceVersion`; acceptance of a distinct version under an existing identity (previously always rejected); exact-pair existence checking via `existsByIdAndVersion`; and `AmbiguousEvidenceVersionException` on identity-only lookup when multiple versions exist (a state that was previously impossible to reach).
+
+## Authorized Implementation Surfaces
+
+(Reproduced as its own top-level section for traceability — identical to the list under Governance Decision above.)
+
+- `src/kernel/evidence/evidence.repository.ts`
+- `src/kernel/evidence/evidence.service.ts`
+- `src/kernel/evidence/evidence.errors.ts`
+- `src/kernel/evidence/evidence.contract.ts`
+- Corresponding Evidence repository, service, error, and contract tests.
+
+No source modification is authorized by this ratification alone.
+
+## Required Verification
+
+A future implementing Sprint SHALL prove, at minimum:
+
+1. An exact duplicate `(EvidenceId, EvidenceVersion)` pair is rejected by repository registration.
+2. A distinct version under an existing identity is accepted by repository registration.
+3. An exact duplicate is rejected through `EvidenceService.registerEvidence`.
+4. A distinct version is accepted through `EvidenceService.registerEvidence`.
+5. `validateEvidence` rejects only an exact pair, not a distinct version under an existing identity.
+6. `exists` remains identity-wide (true if any version exists).
+7. `existsByIdAndVersion` is exact and never throws.
+8. `getByIdAndVersion` distinguishes missing identity (`undefined`), missing version (`EvidenceVersionNotFoundException`), and exact hit (returned unchanged).
+9. `getById` distinguishes zero versions (`undefined`), one version (returned unchanged), and multiple versions (`AmbiguousEvidenceVersionException`).
+10. Enumeration preserves identity first-registration/insertion order.
+11. Versions within an identity enumerate using ascending numeric ordering (`EvidenceVersion.toNumber()`), not lexical string ordering.
+12. Single-version-per-identity enumeration matches Sprint 5 behavior exactly, in content and order.
+13. `retrieveEvidenceVersion` distinguishes missing identity, missing version, and exact hit, exactly per the specified translation rules.
+14. `EvidenceVersionNotFoundException`, `AmbiguousEvidenceVersionException`, and the corrected `DuplicateEvidenceException` diagnostic are exported through `evidence.contract.ts` and produce deterministic diagnostics identifying the relevant identity and version (or, for ambiguity, the identity and the fact that multiple versions exist).
+
+## Related Sprint(s) / Related Review(s)
+
+None yet. This is a binding contract prerequisite for Sprint 78's own, not-yet-drafted Sprint-scope ratification.
+
+## Full Ratification Text
+
+> `IEvidenceRepository` is extended to store and retrieve Evidence by the exact `(EvidenceId, EvidenceVersion)` pair, permanently preserving every distinct version under an identity and never overwriting any of them. `register()` rejects only an exact-pair duplicate, with a corrected `DuplicateEvidenceException` diagnostic identifying both the identity and the version. `getByIdAndVersion(evidenceId, evidenceVersion)` returns `undefined` for a wholly absent identity (never throwing `EvidenceNotFoundException` at the repository layer), throws `EvidenceVersionNotFoundException` for an identity present but the requested version absent, and returns the exact match otherwise. `getById(evidenceId)` returns `undefined` for zero versions, the unchanged Sprint 5 value for exactly one version, and throws `AmbiguousEvidenceVersionException` for two or more — never inferring latest, current, highest, newest, active, or authoritative version. `exists(evidenceId)` is unchanged in signature and meaning. A new `existsByIdAndVersion(evidenceId, evidenceVersion)` returns `true` only for an exact-pair match, `false` otherwise, and never throws. `enumerate()` preserves first-registration identity order and ascending numeric version order within each identity — never lexical identity sorting — byte-for-byte identical to Sprint 5 whenever every identity has exactly one version. `EvidenceService.validateEvidence(evidence)` is corrected to apply `existsByIdAndVersion` semantics instead of identity-only `exists`, rejecting only an exact-pair duplicate and permitting a distinct version under an existing identity; `registerEvidence`'s public signature, event publication, and lifecycle behavior are otherwise unchanged. A new, additive `EvidenceService.retrieveEvidenceVersion(evidenceId, evidenceVersion)` normalizes both parameters through the existing `EvidenceId`/`EvidenceVersion` value objects, throws `EvidenceNotFoundException` for a missing identity, propagates `EvidenceVersionNotFoundException` for a missing version of an existing identity, and returns the exact match otherwise. `EvidenceVersionNotFoundException` and `AmbiguousEvidenceVersionException` are newly defined, both extending `EvidenceDomainException`, and are exported through `evidence.contract.ts` alongside the corrected `DuplicateEvidenceException`. Authorized implementation surfaces are limited to `evidence.repository.ts`, `evidence.service.ts`, `evidence.errors.ts`, `evidence.contract.ts`, and their corresponding tests. This ratification is a binding contract specification only — it authorizes no source modification, no Builder work, and no Sprint activation by itself; a future, separately-activated Sprint SHALL implement this contract exactly as specified, with no Builder-invented deviation.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-19-008
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-008
+
+## Date
+
+2026-07-19
+
+## Subject
+
+RFC-0002 v1.2 Amendment — Canonicalization Profile Registry and the `ExactOctetStream`/`"1"` Profile. RFC-0002 advances from Final (Amended) Version 1.1 to Final (Amended) Version 1.2. Establishes the Canonicalization Profile Registry as the normative mechanism by which an `evidenceTypeIdentity`/`evidenceTypeVersion` pair's canonical byte representation is defined, and registers exactly one profile: `ExactOctetStream`, version `"1"` — canonical bytes equal the exact resolver-returned octet sequence, byte-for-byte, with no transformation whatsoever. Documentation and specification only; no implementation, no Sprint activation. Supersedes the withdrawn `PlainTextArtifact`/`"1"` (text-normalizing) proposal considered in an earlier drafting round.
+
+## Originating Request
+
+Sprint Owner review of the prior `PlainTextArtifact`/`"1"` proposal (a text-normalizing profile applying UTF-8/NFC/line-ending transforms) directed replacement with a zero-transformation, byte-exact profile, and directed that this be ratified as a proper RFC-0002 amendment rather than an implementation-layer-only ratification — since a canonicalization rule is genuinely RFC-0002-normative content, not registry metadata. Cross-references to `NEXUS-RAT-2026-07-19-007` reflect that ratification's final, Active form.
+
+## Governance Decision
+
+**APPROVED.** RFC-0002 — Evidence Model is amended to Version 1.2, adding a new normative "Canonicalization Profile Registry" subsection under § Exact Content Evidence, and registering the `ExactOctetStream`/`"1"` profile within it, exactly as specified in `knowledge/specifications/rfc-0002-evidence-model.md` following application of this ratification.
+
+This ratification authorizes **only**: RFC-0002 header metadata (Status/Version, unchanged tier — still Final (Amended)); the normative profile text; the Amendment History entry; this `RATIFICATION_LEDGER.md` entry; and documentation-only version-string synchronization wherever "RFC-0002 v1.1" is cited specifically in connection with Sprint 78/Milestone 12 (`IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`). It authorizes **no** implementation of any kind and **no** Sprint activation.
+
+The frozen `EvidenceType` enum (`evidence-type.ts`) is unrelated to and unmodified by this amendment — `ExactOctetStream`/`"1"` is an `evidenceTypeIdentity`/`evidenceTypeVersion` pair on `representedContentReference`, never a value added to that enum.
+
+## Deferred Concepts
+
+Any second Canonicalization Profile (text-normalizing or otherwise); multi-source DerivedContent combination identity/ordering (remains its own, separately deferred future RFC-0002 amendment, excluded from Sprint 78 rather than declared permanently impossible); Sprint 78 activation; any implementation.
+
+## Changed-File List (exact)
+
+- `knowledge/specifications/rfc-0002-evidence-model.md` — header Status/Version, amendment-preamble line, new "Canonicalization Profile Registry" subsection, Amendment History entry.
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this ratification, `Current Status: Active`.
+- `IMPLEMENTATION_PLAN.md` — Milestone 12 Step 1 governing citation synchronized from "RFC-0002 v1.1" to "RFC-0002 v1.2," documentation-only; the six-step sequence and its dependency ordering are otherwise unchanged; no Sprint 78 activation is authorized by this synchronization.
+- `IMPLEMENTATION_MANIFEST.md` — same synchronization, same limits.
+
+No other file. No source file. No test file. No Sprint Implementation Record. No Builder Task.
+
+## Related Sprint(s) / Related Review(s)
+
+None yet. Prerequisite for Sprint 78's own Sprint-scope ratification, alongside `NEXUS-RAT-2026-07-19-007`.
+
+## Full Ratification Text
+
+> RFC-0002 — Evidence Model is amended to Version 1.2. A new normative Canonicalization Profile Registry is established under § Exact Content Evidence: the canonical byte representation for any `evidenceTypeIdentity`/`evidenceTypeVersion` pair SHALL be defined by exactly one registered profile, and canonicalization SHALL fail closed absent a registration. Exactly one profile is registered by this amendment: `ExactOctetStream`, version `"1"` — canonical bytes equal the exact resolver-returned octet sequence, byte-for-byte, with no decoding, normalization, whitespace transformation, parsing, or byte omission/addition of any kind; a zero-length octet sequence is valid content under this profile when otherwise satisfied, and octets that are not valid UTF-8 are likewise valid input, hashed exactly as received; `contentDigest` is the SHA-256 of the exact octet sequence; Evidence Provenance under this profile SHALL identify exact-octet acquisition per the existing, unmodified § Evidence Provenance. This profile guarantees exact revision identity: any byte-level difference, including line-ending or Unicode normalization form differences, produces a different canonical input. Every other `evidenceTypeIdentity`/`evidenceTypeVersion` pair remains unsupported pending its own future amendment; the multi-source DerivedContent combination contract remains separately deferred and is not addressed by this amendment. The frozen `EvidenceType` enum is unmodified. This ratification authorizes only the RFC-0002 header, the normative text, the Amendment History entry, the Ledger entry, and documentation-only version-string synchronization in `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`'s Milestone 12 Step 1 citation; it authorizes no implementation and no Sprint activation.
+
+## Current Status
+
+Active
+
+---
