@@ -1,9 +1,16 @@
 # RFC-0008 — Kernel Adapter Contract
 
 **Status:** Final
-**Version:** 1.0
+**Version:** 1.1
 **Authority:** Normative
 **Normative Language:** RFC 2119
+
+---
+
+# Amendment History
+
+- v1.0 — Original specification.
+- v1.1 — Adds exact reproducible Context Package consumption (Sprint Owner Ratification `NEXUS-RAT-2026-07-19-002`). Introduces a new, structurally separate `AdapterRequestV1` request type (`Legacy` | `ReproducibleContextBound` discriminated union) alongside the unmodified delivered `AdapterRequest`; historical requests remain valid under their exact original schema, with no added field and no default value assigned to them. The `ReproducibleContextBound` variant carries exactly one `reproducibleContextPackageReference` — RFC-0003 v1.1's `ContextPackageReference`, reused unmodified, carrying the mandatory `pinnedVerificationResultId` — and requires exact pre-consumption resolution verification before provider dispatch. Cites RFC-0003 v1.1 only; introduces no dependency on RFC-0004 or RFC-0013. Depends on `NEXUS-RAT-2026-07-19-001` (RFC-0003 v1.1). No other section of this specification is modified.
 
 ---
 
@@ -199,6 +206,27 @@ Every Adapter Request SHALL include:
 - applicable policies
 
 Requests SHALL remain immutable.
+
+## Reproducible Context Package Consumption (v1.1)
+
+The delivered `AdapterRequest` type carries `engineeringRole`, `taskId`, `contextPackageReference` (an opaque string reference, not a structured object), `executionConstraints`, and `requestMetadata`, and no discriminator field. This amendment does not modify that type; the delivered `AdapterRequest` schema remains valid under its exact original shape forever, with no added field and no default value assigned to it.
+
+This amendment defines a separate, new, explicitly discriminated request type, `AdapterRequestV1`, carrying a required `adapterRequestContractKind` discriminator with exactly two values, used only when a caller explicitly opts into the v1.1 contract for a new request:
+
+- **`Legacy` variant** — `adapterRequestContractKind = "Legacy"`, plus `engineeringRole`, `taskId`, `contextPackageReference` (string), `executionConstraints`, `requestMetadata` — field-compatible with, but not identical to, the delivered `AdapterRequest` type.
+- **`ReproducibleContextBound` variant** — `adapterRequestContractKind = "ReproducibleContextBound"`, plus `engineeringRole`, `taskId`, exactly one `reproducibleContextPackageReference` (RFC-0003 v1.1 `ContextPackageReference`, reused unmodified, carrying the mandatory `pinnedVerificationResultId`), `executionConstraints`, `requestMetadata`.
+
+Invocation of `ReproducibleContextBound` SHALL NOT be inferred from field presence, absence, provider behavior, or conversational context — only from the discriminator's exact value on a request that explicitly uses the `AdapterRequestV1` type.
+
+### Pre-Consumption Resolution Verification (`ReproducibleContextBound` only)
+
+Before provider consumption, resolution SHALL verify, in order, failing closed at first failure: (1) `contextPackageId` and `contextPackageVersion` resolve to an existing package; (2) `contextPackageProfileId` and `contextPackageProfileVersion` identify a profile this Adapter supports; (3) `canonicalSerializationProtocolId` and version match a supported NCCS protocol version; (4) recomputing RFC-0003 v1.1's fingerprint computation over the resolved Semantic Payload equals `packageFingerprint` exactly; (5) every `Required`-classified Durable Source Reference resolves; (6) the Verification Result identified by `pinnedVerificationResultId` is resolved and has `verificationOutcome: Verified` — there is no other selection path; a reference with an unresolvable `pinnedVerificationResultId` fails closed; (7) `packageApplicabilityState` is compatible with the Adapter Request's declared task.
+
+Adapters SHALL NOT independently assemble missing context, infer missing governed state from conversational history, substitute a newer package or a different Verification Result for the exact pinned one, silently accept an unsupported profile, reinterpret identities, mutate the Context Package, select another provider, dispatch themselves, or advance workflow. Fail closed on: missing discriminator on an `AdapterRequestV1`; a `ReproducibleContextBound` request with zero or more than one `reproducibleContextPackageReference`; unresolved package; unresolved `pinnedVerificationResultId`; unsupported profile; malformed reference; stale-as-current applicability; incomplete manifest; fingerprint mismatch.
+
+Every historical request built under the delivered `AdapterRequest` schema remains valid under that exact schema, permanently, with no added field and no default value assigned to it. `AdapterRequestV1` is a separate, additional type for newly constructed requests; its `Legacy` variant is field-compatible with, but never described as byte-for-byte identical to, the delivered type, because it structurally includes one additional required field the delivered type does not have.
+
+This subsection cites RFC-0003 v1.1 only. It introduces zero references to RFC-0004, RFC-0013, Handoff, Engineering Session, or Checkpoint.
 
 ---
 

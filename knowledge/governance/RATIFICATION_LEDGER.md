@@ -9981,3 +9981,171 @@ None. No Sprint exists within Milestone 12. No Review has been performed against
 Active
 
 ---
+
+# NEXUS-RAT-2026-07-19-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-001
+
+## Date
+
+2026-07-19
+
+## Subject
+
+RFC-0003 v1.1 Amendment — Reproducible Context Package Contract. Formalizes RFC-0003 v1.0's existing narrative Context Package definition into an exact structural contract: a fixed nine-field Semantic Payload, a required closed `PackageScope` tagged union (`MissionScoped` | `RepositoryScoped`), a fingerprinted `profilePayload` mechanism, the NCCS-1 canonical serialization protocol, content-addressed Context Package identity, the Durable Source Reference, a generic Context Package Profile contract, and a pinned-only, content-addressed Context Package Verification Result with no sequence-number or "most recent" selection authority. Root of the dependency graph for this coordinated amendment group; zero references to RFC-0013, RFC-0004, or RFC-0008.
+
+## Originating Request
+
+A coordinated cross-RFC proposal package (prepared as a transient, unapplied review artifact under `.claude/scratchpad/`, never itself an authority) requested a reproducible, content-addressed Context Package contract to support future RFC-0008 Adapter Request binding, RFC-0004 Engineering Session Handoff binding, and RFC-0013 Corpus Review Context Package export, without introducing any of those three domains' vocabulary into RFC-0003 itself. The proposal underwent four rounds of Owner-Delegate precision review, correcting: a conditionally-omitted `missionId` into a required closed `PackageScope` union; an incomplete `profilePayload` export mapping; a "most recent" Verification Result selection ambiguity into a mandatory pinned-only identity; false "byte-for-byte identical" claims about delivered types into accurate "field-compatible, not identical" language; and a missing generic `RepositoryScoped` positive-evidence gap. The Sprint Owner directed application of the corrected proposal.
+
+## Governance Decision
+
+**APPROVED.** RFC-0003 — Shared Reality Projection Model is amended to Version 1.1, adding the Reproducible Context Package Contract as specified in the Amendment History (v1.1) and the "Reproducible Context Package Contract (v1.1)" subsection of the Context Package section.
+
+No Builder implementation, event publication, or runtime construction is authorized by this ratification. RFC-0003 v1.0's existing narrative Context Package contract remains fully valid wherever a consumer does not explicitly require the v1.1 structural contract; no existing package is reinterpreted, rewritten, or retroactively assigned an identity.
+
+## Deferred Concepts
+
+Implementation of any capability described here; runtime construction, transmission, or verification of a Context Package under this contract; any Sprint or Milestone activation; RFC-0008, RFC-0004, or RFC-0013 consumption of this contract (each requires its own separate ratification, see `-002`, `-003`, `-004`).
+
+## Related Sprint(s) / Related Review(s)
+
+None. No Sprint exists that implements this contract. This ratification is specification-only.
+
+## Full Ratification Text
+
+> RFC-0003 — Shared Reality Projection Model is amended to Version 1.1, adding a Reproducible Context Package Contract as an exact structural contract for the existing, unmodified narrative Context Package concept. A Context Package satisfying this contract SHALL be represented in three distinct byte domains — Semantic Payload, Envelope, and Context Package Verification Result — which SHALL NOT be conflated. The Semantic Payload SHALL be a fixed nine-field record, all fields always present unconditionally: `contextPackageVersion`, `contextPackageProfileId`, `contextPackageProfileVersion`, `canonicalSerializationProtocolId`, `canonicalSerializationProtocolVersion`, `sourceManifest` (ordered, non-empty list of Durable Source Reference), `packageScope` (a required closed `PackageScope` tagged union of exactly `MissionScoped` or `RepositoryScoped`, never omitted), `profilePayload` (ordered, uniqueness-declared list of Profile Payload Entry, MAY be empty), and `packageApplicabilityState`. `producingComponentAttribution` is excluded from the Semantic Payload and lives in the Envelope only. A Context Package Verification Result is identified solely by content-addressing over an exact eight-field Verification Payload; there is no sequence number, no "most recent" concept, and no deterministic-current-result fallback of any kind — a consuming contract SHALL carry an exact `pinnedVerificationResultId` and resolve precisely that record. Each Verification Payload's `perSourceResolutionResults` SHALL be an ordered list of two-field Per-Source Resolution Result entries (`durableSourceReferenceFingerprint`, `resolutionOutcome`), in exactly `sourceManifest` order, with duplicate, missing, extra, reordered, or mismatched entries each failing closed. A Durable Source Reference SHALL be a fixed ten-field record. A Context Package Profile is a closed, versioned specification identified by `contextPackageProfileId` and `contextPackageProfileVersion`; this amendment defines only the generic profile contract, no concrete profile, no concrete `sourceRole` or `entryKey` values, and no concrete sort key. `ContextPackageReference` is a fixed nine-field record, owned exclusively by RFC-0003, reused by citation only. The Canonical Serialization Protocol (NCCS-1, protocol identity `"nccs"`, version `"1"`) governs UTF-8 encoding, NFC string normalization, line-ending normalization, ordered- and order-insensitive-collection encoding (order-insensitive collections, including `diagnostics`, canonically sorted ascending by encoded-byte value), uniqueness and duplicate detection, fixed-schema record encoding, and SHA-256 fingerprint computation, with an enumerated set of fail-closed conditions. This amendment introduces zero occurrences of "Corpus," "Handoff," "Adapter Request," or "Checkpoint" as normative subjects, and RFC-0003 v1.0's existing narrative Context Package contract remains fully valid wherever a consumer does not explicitly require this v1.1 contract. Specification only; no implementation, event publication, Sprint activation, or runtime construction is authorized.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-19-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-002
+
+## Date
+
+2026-07-19
+
+## Subject
+
+RFC-0008 v1.1 Amendment — Exact Reproducible Context Package Consumption. Introduces a new, structurally separate `AdapterRequestV1` type (`Legacy` | `ReproducibleContextBound` discriminated union) alongside the unmodified delivered `AdapterRequest`. Historical requests remain valid under their exact original schema with no added field and no default. `ReproducibleContextBound` carries a mandatory `pinnedVerificationResultId` via RFC-0003 v1.1's `ContextPackageReference`. No sibling dependency on RFC-0004 or RFC-0013.
+
+## Originating Request
+
+Companion to `NEXUS-RAT-2026-07-19-001`, from the same coordinated cross-RFC proposal package. Requests that Adapter dispatch be capable of consuming a reproducible, content-addressed Context Package without touching the delivered `AdapterRequest` type or its existing callers, and without claiming the new type is "byte-for-byte identical plus a discriminator" to the delivered type — corrected during Owner-Delegate precision review to the accurate "field-compatible, not identical" characterization.
+
+## Governance Decision
+
+**APPROVED, dependent on `NEXUS-RAT-2026-07-19-001`.** RFC-0008 — Kernel Adapter Contract is amended to Version 1.1, adding the "Reproducible Context Package Consumption (v1.1)" subsection of the Adapter Request section.
+
+No dispatch, provider selection, or implementation is authorized by this ratification. The delivered `AdapterRequest` type remains fully valid, unmodified, permanently, with no added field and no default value assigned to it.
+
+## Deferred Concepts
+
+Implementation of `AdapterRequestV1` construction or consumption; Adapter dispatch under the `ReproducibleContextBound` variant; any Sprint or Milestone activation.
+
+## Related Sprint(s) / Related Review(s)
+
+None. This ratification is specification-only.
+
+## Full Ratification Text
+
+> RFC-0008 — Kernel Adapter Contract is amended to Version 1.1. The delivered `AdapterRequest` type (`engineeringRole`, `taskId`, `contextPackageReference` as an opaque string, `executionConstraints`, `requestMetadata`, no discriminator) is unmodified and remains valid under its exact original schema forever. A new, structurally separate `AdapterRequestV1` type is introduced, carrying a required `adapterRequestContractKind` discriminator with exactly two values: `Legacy` (field-compatible with, but not identical to, the delivered type) and `ReproducibleContextBound` (`engineeringRole`, `taskId`, exactly one `reproducibleContextPackageReference` — RFC-0003 v1.1's `ContextPackageReference`, reused unmodified, mandatory `pinnedVerificationResultId` included — `executionConstraints`, `requestMetadata`). Invocation of `ReproducibleContextBound` SHALL NOT be inferred from field presence, absence, provider behavior, or conversational context. Before provider consumption, resolution SHALL verify, in order, failing closed at first failure: package and version resolution; profile support; protocol version support; fingerprint recomputation equality; resolution of every `Required`-classified Durable Source Reference; resolution of the pinned Verification Result with `verificationOutcome: Verified`; and applicability-state compatibility with the declared task. Adapters SHALL NOT independently assemble missing context, substitute a newer package or a different Verification Result for the exact pinned one, or otherwise deviate from the pinned reference. This amendment cites RFC-0003 v1.1 only, introducing zero references to RFC-0004, RFC-0013, Handoff, Engineering Session, or Checkpoint. Specification only; no dispatch, provider selection, or implementation authorized.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-19-003
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-003
+
+## Date
+
+2026-07-19
+
+## Subject
+
+RFC-0004 v1.17 Amendment — Reproducible Engineering Session Handoff Binding. Introduces a new, structurally separate `EngineeringSessionHandoffV1` type (`StructuralOnly` | `ReproducibleContextBound`) alongside the unmodified delivered `EngineeringSessionHandoff`. Historical Handoff snapshots remain valid under their exact original schema with no added field and no default. No new `EngineeringSessionHandoffStatus` lifecycle value added. `ReproducibleContextBound` carries a mandatory `pinnedVerificationResultId`. No sibling dependency on RFC-0008 or RFC-0013. Binds an explicit Builder Stop Condition on Handoff persistence-layer compatibility.
+
+## Originating Request
+
+Companion to `NEXUS-RAT-2026-07-19-001`, from the same coordinated cross-RFC proposal package. Requests that an Engineering Session Handoff be capable of carrying a reproducible, content-addressed Context Package reference without touching the delivered `EngineeringSessionHandoff` type, its existing callers, or its closed `EngineeringSessionHandoffStatus` enumeration. Owner-Delegate precision review identified that the actual persistence layer's ability to store two structurally distinct Handoff record shapes side by side was not resolved by the proposal; rather than treating this as a ratification blocker, the review directed a binding Builder Stop Condition requiring that verification before implementation begins.
+
+## Governance Decision
+
+**APPROVED, dependent on `NEXUS-RAT-2026-07-19-001`.** RFC-0004 — Execution Model is amended to Version 1.17, adding the "Reproducible Context Package Binding (v1.17)" subsection of the Multi-Agent Engineering Orchestration Foundation section, including the binding Builder Stop Condition on Handoff persistence.
+
+No implementation, event publication, provider switching, dispatch, or automatic orchestration is authorized by this ratification. The delivered `EngineeringSessionHandoff` type and `EngineeringSessionHandoffStatus` enumeration remain fully valid, unmodified, permanently.
+
+## Deferred Concepts
+
+Implementation of `EngineeringSessionHandoffV1` construction, persistence, or consumption; resolution of the persistence-layer question bound by the Builder Stop Condition below; any Sprint or Milestone activation.
+
+## Related Sprint(s) / Related Review(s)
+
+None. This ratification is specification-only. A future Sprint implementing this amendment SHALL satisfy the Builder Stop Condition below before proceeding.
+
+## Full Ratification Text
+
+> RFC-0004 — Execution Model is amended to Version 1.17. The delivered `EngineeringSessionHandoff` type (`id`, `missionId`, `sourceEngineeringSessionId`, `sourceRoleId`, `targetEngineeringSessionId`, `targetRoleId`, `recordedAt`, `status`) and the delivered `EngineeringSessionHandoffStatus` closed enumeration (`Recorded` only) are unmodified and remain valid under their exact original schema forever. A new, structurally separate `EngineeringSessionHandoffV1` type is introduced, carrying a required `handoffContractKind` discriminator with exactly two values: `StructuralOnly` (field-compatible with, but not identical to, the delivered type) and `ReproducibleContextBound` (all `StructuralOnly` fields plus exactly one `reproducibleContextPackageReference` — RFC-0003 v1.1's `ContextPackageReference`, mandatory `pinnedVerificationResultId` included — and an optional `sourceCheckpointId`, owned by Session Recovery/Checkpointing v1.8, unmodified). No new `EngineeringSessionHandoffStatus` lifecycle value is added. A Handoff, in either shape, SHALL NOT embed or duplicate Context Package content, mutate either Engineering Session, recover the target session automatically, select a provider, invoke an Adapter, dispatch execution, advance workflow, or confer authority. Recovery remains exclusively owned by Session Recovery/Checkpointing (v1.8); a Context Package cannot substitute for a Checkpoint. **Builder Stop Condition (binding):** before implementing this amendment, the Builder SHALL verify that the selected persistence boundary can store and resolve the delivered `EngineeringSessionHandoff` shape and the additive `EngineeringSessionHandoffV1` variants without ambiguity, destructive rewriting, or identity loss; if it cannot, implementation SHALL stop for a separately authorized persistence-schema or migration decision. This amendment cites RFC-0003 v1.1 only, introducing zero references to RFC-0008 or its resolution procedure. Specification only; no implementation, event publication, provider switching, dispatch, or automatic orchestration authorized.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-19-004
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-19-004
+
+## Date
+
+2026-07-19
+
+## Subject
+
+RFC-0013 Draft v0.7 Amendment — Corpus Review Reproducible Context Integration. Defines the concrete `CorpusReviewContextProfile` instantiation of RFC-0003 v1.1's generic Context Package Profile contract: a `MissionScoped`-only scope constraint, a state-specific source-role cardinality table forbidding `CorpusFindingReference` in both `Open` and `Withdrawn`, and a matching state-specific `profilePayload` export matrix with a closed, separately-typed applicable-RFC-set partition. RFC-0003 itself gains no Corpus vocabulary. Does not ratify RFC-0013 Final.
+
+## Originating Request
+
+Companion to `NEXUS-RAT-2026-07-19-001`, from the same coordinated cross-RFC proposal package, consistent with Milestone 12's Objective (`NEXUS-RAT-2026-07-18-004`) and RFC-0013 v0.6's ownership relocation (`NEXUS-RAT-2026-07-18-008`). Owner-Delegate precision review, across four rounds, corrected: a conditionally-omitted `missionId` into a `MissionScoped`-only requirement forbidding `RepositoryScoped` for this profile; a `sourceManifest` cardinality inconsistency between `CorpusFindingReference` (previously optional in `Open`) and `RFC0006Assessment` (forbidden in `Open`) into identical forbidden status for both; a combined `"<version>|<ratificationId>"` `profilePayload` value into two separately typed entries per applicable RFC; and imprecise "RFC-0011 ratifies the terminal Result" language into an accurate acceptance-only ownership boundary.
+
+## Governance Decision
+
+**APPROVED — RFC-0013 DRAFT v0.7, dependent on `NEXUS-RAT-2026-07-19-001`.** RFC-0013 — Corpus Review Model is amended to Draft Version 0.7, adding the "Reproducible Context Integration (v0.7)" section, and corresponding Diagnostics and Conformance entries.
+
+This ratification does NOT authorize: RFC-0013 Final ratification; any implementation of any RFC; any runtime use of `CorpusReviewContextProfile`; Sprint 78 or any Milestone 12 Sprint; or any Milestone 12 Initial Capability Sequence.
+
+## Deferred Concepts
+
+All RFC-0013 implementation, including any `CorpusReviewContextProfile` construction or consumption; every Milestone 12 Sprint; Final RFC-0013 status; RFC-0004 or RFC-0008 integration with `CorpusReviewContextProfile` (neither is introduced by this amendment).
+
+## Related Sprint(s) / Related Review(s)
+
+None. No Sprint exists within Milestone 12. No Review has been performed against RFC-0013 v0.7.
+
+## Full Ratification Text
+
+> RFC-0013 v0.6 is amended to Draft v0.7, adding the concrete `CorpusReviewContextProfile` instantiation of RFC-0003 v1.1's generic Context Package Profile contract (`contextPackageProfileId = "CorpusReviewContextProfile"`, `contextPackageProfileVersion = "1"`). Every `CorpusReviewContextProfile` package SHALL carry `packageScope` as `MissionScoped` only; `RepositoryScoped` is forbidden for this profile and SHALL fail closed at construction. The source-role cardinality table requires exactly `CorpusReviewBasis`/`CorpusReviewScope`/`CorpusReviewContract` in `Open` and `Withdrawn`, forbids `RFC0006Assessment`, `HumanCompletionAttestation`, `CorpusReadinessResult`, and `CorpusFindingReference` in both of those states, and requires the complete assessment-lineage set — including a non-empty `CorpusFindingReference` set when Coverage requires Findings — only in `Completed`. `sourceManifest` entries are constructed in a fixed deterministic order. `packageApplicabilityState` values `InProgress`/`HistoricalCompleted`/`Withdrawn` map to Corpus Review status `Open`/`Completed`/`Withdrawn`, a mapping RFC-0003 v1.1 itself does not know. The `profilePayload` export matrix presents an entry if and only if its correlated `sourceRole` is required in that state, with absence as the exact canonical representation of non-applicability. Every applicable RFC is represented by two separately typed entries, `applicableRfcVersion.<rfcId>` and `applicableRfcRatificationId.<rfcId>`, drawn from the closed set `{rfc-0002, rfc-0003, rfc-0006, rfc-0011, rfc-0013}`, partitioned into a base set (`rfc-0002`, `rfc-0003`, `rfc-0013`) present in every state and a terminal/full set (`rfc-0006`, `rfc-0011`) present only in `Completed`. RFC-0011 governs deterministic Governance acceptance of an existing terminal Corpus Readiness Result and does not ratify, produce, own, or mutate it; RFC-0013 remains the exclusive owner of the Result and its readiness classification. This amendment introduces zero normative references to RFC-0004 or RFC-0008, redefines no RFC-0003 field, and is additive only — every v0.6 record and rule is preserved unchanged. It does not create `CorpusProjectionSnapshot`, a second Context Package aggregate, a Session Compactor, an Artifact Package, a Handoff Contract, a Decision Ledger, an execution model, or a provider model. Draft v0.7 specification text only; no RFC-0013 Final ratification, no implementation, no Sprint 78, no Milestone 12 Initial Capability Sequence.
+
+## Current Status
+
+Active
+
+---
