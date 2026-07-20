@@ -1,13 +1,15 @@
 # RFC-0002 — Evidence Model
 
 **Status:** Final (Amended)
-**Version:** 1.2
+**Version:** 1.3
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
 Amended to v1.1 by `NEXUS-RAT-2026-07-18-005`, adding an additive, optional Exact Content Evidence contract (Evidence Type, content-representation classification, `representedContentReference`, `contentDigestAlgorithm`, `contentDigest`, deterministic derivation-source semantics, and fail-closed resolution). Evidence not consumed as Exact Content Evidence is unaffected.
 
 Amended to v1.2 by `NEXUS-RAT-2026-07-19-008`: establishes the Canonicalization Profile Registry and registers the `ExactOctetStream`/`"1"` profile — canonical bytes equal the exact resolver-returned octets, byte-for-byte, with no transformation of any kind. No other normative text changed.
+
+Amended to v1.3 by `NEXUS-RAT-2026-07-21-001`: closes the Evidence Confidence classification vocabulary to exactly five values, establishes their total ordering, comparison and threshold-satisfaction semantics, and canonical encoding; and establishes `EvidenceVerificationStatus` as a closed, totally ordered provenance vocabulary distinguished from legacy data by the serialization-stable `verificationStatusSemantics = "EvidenceVerificationStatus/v1"` marker. Evidence recorded before this amendment is preserved exactly as recorded, is never coerced or defaulted, and is treated as unrankable — including any pre-amendment verification status string that happens to match a governed vocabulary value by spelling alone, which remains legacy opaque and unrankable regardless of that match. No other normative text changed. No implementation and no Sprint activation authorized.
 
 ---
 
@@ -287,7 +289,10 @@ Resolution SHALL fail closed — never guess, default, or silently resolve — o
 
 Evidence SHALL declare its confidence classification.
 
-Minimum classifications SHALL include:
+## Closed Classification Vocabulary
+
+The confidence classification vocabulary is CLOSED. It consists of exactly
+these five values and no others:
 
 - Verified
 - Accepted
@@ -295,7 +300,78 @@ Minimum classifications SHALL include:
 - Inferred
 - Unverified
 
-Kernel policies MAY determine acceptable confidence thresholds for specific workflows.
+No implementation, policy, host, adapter, or other specification SHALL add,
+remove, rename, alias, or reinterpret a value in this vocabulary. Any value
+outside it is not a confidence classification.
+
+## Canonical Encoding
+
+Each value SHALL be encoded, in every serialized representation and every
+fingerprint input, as the exact ASCII string shown above, in the exact case
+shown, with no leading or trailing whitespace, no punctuation, no separator
+substitution, and no case folding. Encoding is byte-stable and SHALL NOT vary
+by host, locale, adapter, or serialization format.
+
+## Total Ordering
+
+The vocabulary is TOTALLY ORDERED by strength of engineering claim, from
+strongest to weakest:
+
+    Verified > Accepted > Observed > Inferred > Unverified
+
+This ordering is normative, complete, antisymmetric, and transitive. Every pair
+of classifications is comparable. No two distinct classifications are of equal
+strength.
+
+The ordering is a property of the vocabulary itself. It SHALL NOT be
+reconfigured, inverted, extended, or overridden by policy, workflow, host, or
+implementation. The ordinal positions are an artifact of the ordering and SHALL
+NOT be persisted, transmitted, or used as an identity; only the canonical string
+is authoritative.
+
+## Comparison Semantics
+
+Comparison is defined only between two classifications drawn from the closed
+vocabulary. For any such pair, exactly one of these holds: the first is
+stronger, the second is stronger, or they are the same classification.
+
+## Threshold Satisfaction
+
+A Kernel policy MAY require a minimum confidence threshold, which SHALL itself
+be a value from the closed vocabulary.
+
+Evidence satisfies a threshold if and only if its declared classification is the
+threshold classification or is stronger than it under the total ordering above.
+
+## Unrankable Confidence
+
+Evidence whose confidence classification is ABSENT is UNRANKABLE.
+
+An unrankable confidence SHALL NOT be defaulted, inferred, substituted,
+back-filled, or otherwise supplied. It SHALL remain absent.
+
+Unrankable confidence SHALL NOT satisfy any threshold, including a threshold of
+Unverified.
+
+A threshold evaluation against unrankable confidence SHALL be reported as
+UNDETERMINED, distinctly from a determinate evaluation of ranked-but-insufficient
+confidence. Consumers SHALL fail closed on an undetermined result and SHALL NOT
+treat it as satisfaction.
+
+## Construction and Reconstitution
+
+Evidence newly constructed after this amendment SHALL declare a confidence
+classification from the closed vocabulary. Construction with an absent value, or
+with a value outside the vocabulary, SHALL fail closed.
+
+Evidence reconstituted from a representation recorded before this amendment SHALL
+be preserved exactly as recorded. Where confidence is absent it SHALL remain
+absent and unrankable. Reconstitution SHALL NOT fail on account of that absence,
+SHALL NOT supply a value, and SHALL NOT rewrite, migrate, or re-serialize the
+record to add one.
+
+Confidence classification, once declared, is immutable, consistent with
+§ Evidence Immutability. A correction SHALL create a new Evidence version.
 
 ---
 
@@ -381,6 +457,143 @@ Verification mechanisms MAY include:
 
 Unverified Evidence SHALL remain explicitly classified.
 
+## Evidence Verification Status
+
+The verification status required by § Evidence Provenance SHALL be an
+EvidenceVerificationStatus.
+
+The EvidenceVerificationStatus vocabulary is CLOSED. It consists of exactly these
+three values and no others:
+
+- Verified
+- Unverified
+- VerificationFailed
+
+Verified SHALL mean that a verification mechanism named in this section was
+applied and succeeded. VerificationFailed SHALL mean that such a mechanism was
+applied and did not succeed. Unverified SHALL mean that no such mechanism has
+been applied. VerificationFailed SHALL NOT be recorded as Unverified, and
+Unverified SHALL NOT be recorded as VerificationFailed; the distinction between
+an unattempted and a failed verification is normative.
+
+Canonical encoding follows § Evidence Confidence — the exact ASCII string, exact
+case, no whitespace, byte-stable.
+
+The vocabulary is TOTALLY ORDERED, strongest to weakest:
+
+    Verified > Unverified > VerificationFailed
+
+A policy MAY require a minimum verification status. Satisfaction, comparison, and
+undetermined-result semantics follow § Evidence Confidence exactly.
+
+EvidenceVerificationStatus is a distinct concept from the outcome of any single
+verification operation. It is the immutable provenance record of the verification
+state of the Evidence at acquisition, not a re-evaluable result. In particular it
+is NOT the per-operation exact-content digest verification outcome established
+under § Exact Content Evidence, and the two SHALL NOT be conflated, unified,
+substituted for one another, or share an identifier.
+
+## Verification Status Semantics Marker — Legacy/Governed Distinction
+
+A persisted verification status value alone, by spelling, is never sufficient to
+establish that it is a governed EvidenceVerificationStatus. Rank is established
+only by an accompanying, serialization-stable semantic marker field named
+`verificationStatusSemantics`.
+
+The only governed marker value is the exact string `EvidenceVerificationStatus/v1`.
+
+Exactly two persisted representations are valid:
+
+- **Legacy opaque representation**: `verificationStatus` present as an arbitrary
+  string, and `verificationStatusSemantics` absent. This representation SHALL
+  be treated as legacy opaque and UNRANKABLE regardless of what the
+  `verificationStatus` string spells — including a string that is byte-identical
+  to `Verified`, `Unverified`, or `VerificationFailed`. Spelling alone SHALL NOT
+  confer rank.
+- **Governed representation**: `verificationStatus` present as exactly one of
+  the three closed EvidenceVerificationStatus values, and
+  `verificationStatusSemantics` present as exactly `EvidenceVerificationStatus/v1`.
+  This representation alone is RANKABLE.
+
+No other combination is valid. A record presenting a marker with a status value
+outside the closed vocabulary, a marker value other than
+`EvidenceVerificationStatus/v1`, an empty or unknown marker, a marker with a
+missing status, or any additional or conflicting status representation is
+malformed. Construction of a malformed representation SHALL fail closed.
+Reconstitution of a persisted malformed representation SHALL fail closed and
+SHALL NOT produce a Provenance value. The persisted bytes SHALL remain
+unchanged and SHALL NOT be repaired, normalized, migrated, or discarded.
+
+### Construction
+
+Provenance newly constructed after this amendment SHALL use the governed
+representation: it SHALL provide exactly one closed EvidenceVerificationStatus
+value together with the exact marker `EvidenceVerificationStatus/v1`. The
+new-construction path SHALL expose the governed type, not a bare string. A bare
+verification-status string presented without the marker SHALL NOT be accepted
+by the new-construction path, even if it spells a closed vocabulary value. The
+legacy opaque representation SHALL NOT be reachable through new construction; it
+exists solely for reconstitution and preservation of pre-amendment data.
+
+### Reconstitution
+
+A persisted pre-v1.3 snapshot containing `verificationStatus` and no
+`verificationStatusSemantics` marker SHALL be classified as legacy opaque,
+regardless of the string's spelling, and reconstituted without modification.
+Reconstitution SHALL preserve both the exact string and the absence of the
+marker. Re-serialization of an unchanged legacy snapshot SHALL NOT add the
+marker, normalize the string, or otherwise migrate the record. Reconstitution
+of a governed representation SHALL preserve both fields exactly and remains
+rankable.
+
+### Ranking and Thresholds
+
+Only a value accompanied by the exact `EvidenceVerificationStatus/v1` marker is
+rankable. A bare string SHALL NOT be ranked by spelling under any
+circumstance. Threshold helpers SHALL accept only a governed semantic value,
+never an untagged string. Evaluation of a legacy opaque status SHALL return
+UNDETERMINED, distinct from a determinate insufficiency, and consumers SHALL
+fail closed. A legacy record may acquire a governed verification status only
+through a new Evidence version created under the normal immutable Evidence
+lifecycle, following an applicable verification action; the old Evidence
+version, including its legacy opaque provenance, SHALL remain unchanged.
+
+### Serialization and Identity
+
+`verificationStatusSemantics` SHALL be included wherever the governed
+Provenance representation is serialized, canonically encoded, fingerprinted, or
+compared. The exact marker spelling and case are normative and
+locale-independent. Marker absence is semantically meaningful for legacy
+preservation and SHALL remain absent when that legacy representation is
+reserialized. The marker SHALL NOT be conflated with, and SHALL NOT share an
+identifier with, Sprint 78's existing exact-content
+`VerificationStatus = 'Verified' | 'Failed'` operation-outcome type.
+
+## Unrankable Verification Status
+
+Every pre-amendment verification status is legacy opaque and UNRANKABLE,
+without exception and without regard to spelling, per the Legacy/Governed
+Distinction above. This applies identically to an out-of-vocabulary legacy
+string and to a legacy string that happens to match `Verified`, `Unverified`,
+or `VerificationFailed`.
+
+An unrankable verification status SHALL NOT be mapped, coerced, normalized,
+approximated, or migrated to a governed vocabulary value, and SHALL NOT be
+discarded.
+
+Unrankable verification status SHALL NOT satisfy any verification requirement,
+including a requirement of VerificationFailed. Evaluation against it SHALL be
+UNDETERMINED and consumers SHALL fail closed.
+
+Provenance newly constructed after this amendment SHALL record a governed
+verification status per the Construction rule above; any other value SHALL
+fail closed at construction. Reconstitution of pre-amendment provenance SHALL
+NOT fail on account of an out-of-vocabulary value, a matching-by-spelling
+value, or the absence of the marker.
+
+Provenance remains immutable per § Evidence Provenance. Verification status
+SHALL NOT be updated in place; a change SHALL produce a new Evidence version.
+
 ---
 
 # Evidence Immutability
@@ -447,6 +660,19 @@ Implementations SHALL:
 - preserve Evidence Type identity and version
 - preserve the represented content reference
 - preserve content-representation classification, contentDigestAlgorithm, and contentDigest for Exact Content Evidence
+- preserve confidence classification exactly, including its absence in
+  pre-amendment Evidence, without defaulting or back-filling
+- preserve verification status exactly, including out-of-vocabulary and
+  vocabulary-matching pre-amendment values, without mapping or coercion
+- evaluate confidence and verification thresholds by the normative total
+  orderings, and fail closed on any undetermined result
+- persist and evaluate verification status only through the closed
+  legacy-opaque/governed representations defined by the
+  `verificationStatusSemantics` marker, never by inspecting or ranking a bare
+  `verificationStatus` string's spelling
+- expose a governed-only construction API for verification status that rejects
+  any bare string lacking the exact `EvidenceVerificationStatus/v1` marker,
+  even when that string spells a closed vocabulary value
 
 Implementation details remain outside the scope of this specification.
 
@@ -478,6 +704,16 @@ A Kernel implementation conforms to RFC-0002 only if it:
 - enables explainable engineering reasoning
 - for Exact Content Evidence, preserves Evidence Type, content-representation classification, representedContentReference, contentDigestAlgorithm, and contentDigest
 - fails closed on digest mismatch, unresolvable represented content, or ambiguous derived-Evidence source resolution
+- treats the confidence classification and EvidenceVerificationStatus
+  vocabularies as closed, encodes them canonically, and applies their normative
+  total orderings for every threshold evaluation
+- preserves pre-amendment Evidence exactly, never fabricating an absent
+  confidence classification and never coercing an out-of-vocabulary or
+  vocabulary-matching verification status, and fails closed rather than
+  satisfying a threshold on unrankable input
+- ranks a verification status only when it carries the exact
+  `verificationStatusSemantics = "EvidenceVerificationStatus/v1"` marker, and
+  treats every marker-less legacy value as unrankable regardless of spelling
 
 Failure to satisfy these guarantees constitutes non-conformance with this specification.
 
@@ -488,3 +724,4 @@ Failure to satisfy these guarantees constitutes non-conformance with this specif
 - v1.0 — Final.
 - v1.1 — Amended by `NEXUS-RAT-2026-07-18-005`. Adds the optional, backward-compatible Exact Content Evidence contract: Evidence Type (identity/version, canonical byte representation), content-representation classification, `representedContentReference`, `contentDigestAlgorithm` (SHA-256 only), `contentDigest` (64 lowercase hex), SnapshotContent and DerivedContent requirements, and fail-closed handling. No existing Evidence instance, relationship, lifecycle stage, or conformance guarantee is invalidated. Implementation, including `EvidenceHash` reconciliation, is deferred and separately authorized.
 - v1.2 — Registers the `ExactOctetStream`/`"1"` Canonicalization Profile and establishes the Canonicalization Profile Registry as the mechanism for all future profile registration, ratified by `NEXUS-RAT-2026-07-19-008`. No other normative text changed. No implementation or Sprint activation authorized.
+- v1.3 — Amended by `NEXUS-RAT-2026-07-21-001`. Closes the Evidence Confidence vocabulary to exactly five values; establishes their canonical encoding, normative total ordering (Verified > Accepted > Observed > Inferred > Unverified), comparison and threshold-satisfaction semantics; and establishes `EvidenceVerificationStatus` as a closed, totally ordered three-value provenance vocabulary (Verified > Unverified > VerificationFailed) distinct from the § Exact Content Evidence per-operation verification outcome. Introduces the serialization-stable `verificationStatusSemantics` marker (governed value: `EvidenceVerificationStatus/v1`) as the sole basis for rank: any persisted verification status lacking the exact marker is legacy opaque and unrankable regardless of spelling, including a string that matches a governed vocabulary value; a malformed representation fails closed at both construction and reconstitution, producing no Provenance value while leaving persisted bytes unchanged. Pre-amendment Evidence is preserved exactly: absent confidence remains absent and unrankable, every pre-amendment verification status is preserved byte-for-byte and unrankable without exception, and threshold evaluation over unrankable input is undetermined and fails closed. No existing Evidence instance, provenance record, version, relationship, or lifecycle stage is invalidated, rewritten, or migrated. No implementation and no Sprint activation authorized.
