@@ -1,5 +1,100 @@
 # Nexus Implementation Report
 
+## Sprint 80 — Milestone 12 Initial Capability Sequence Step 2A — RFC-0006 v1.3 Structural Foundation
+
+### Implemented Slice
+
+Implemented Milestone 12 Initial Capability Sequence Step 2A as authorized by `NEXUS-RAT-2026-07-21-007`.
+
+Implemented scope:
+
+- Added the exact eight authorized structural source files under `src/kernel/review/`.
+- Added `AssessmentSubjectReference` with exactly the three RFC-0006 v1.3 discriminants: `ExecutableMissionPlan`, `ProposedPlanRevision`, and `CorpusReviewBasis`.
+- Added opaque structural identity value objects for `SubjectElementReference`, `CanonicalSubjectElementKind`, and `CorpusReviewBasisFingerprint`.
+- Added the closed four-variant `AssessmentCriterionApplicability` model and deterministic canonical encoding.
+- Added the closed four-variant `EvidenceExpectation` model and deterministic expectation-set canonical encoding.
+- Added `AssessmentCriterion`, exact immutable criterion-reference structural validation, `AssessmentCriteriaSet`, and SHA-256 fingerprint computation.
+- Added `AssessmentCoveragePair`, `StructuralSubjectElementDescriptor`, `AssessmentCoverage.open()`, immutable `recordDisposition()`, and `CoverageDisposition`.
+- Added `FindingAffectedTarget` as a standalone closed structural type, not wired to live `Finding`.
+- Added `evaluateCoveragePair()` as a pure function over supplied `AssessmentCoverage`, pair, and baseline-resolution inputs.
+- Added the exact eight mirrored test files under `test/kernel/review/`.
+
+Out of scope and not implemented:
+
+- No modification to `Review`, `ReviewSnapshot`, `StartReviewCommand`, or existing Review runtime files.
+- No change to `review.events.ts`.
+- No Review-related host/service/repository wiring change.
+- No runtime Corpus Assessment entry point.
+- No construction, persistence, completion, or publication of Findings from a `CorpusReviewBasis` Review.
+- No re-export from `review.contract.ts` or any `index.ts` runtime barrel.
+- No RFC-0003, RFC-0005, or RFC-0013 concept implementation.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0006 v1.3 — Engineering Assessment Model structural subset only.
+
+Referenced, read-only:
+
+- RFC-0002 v1.3 — `ConfidenceClassification`, `EvidenceVerificationStatus`, and Exact Content Evidence integrity semantics, consumed unchanged.
+- RFC-0013 — structurally referenced only through the opaque `CorpusReviewBasis` discriminant and `CorpusReviewBasisFingerprint`.
+
+Deferred Concepts:
+
+- Conversion of `ReviewPlanRevisionReference` into an `AssessmentSubjectReference` derived alias.
+- Runtime `Review.create` / `fromSnapshot` handling of `CorpusReviewBasis`.
+- Real baseline Evidence resolution against a live Basis or Projection.
+- Constructing a real `Finding` from `FindingRequired`, resolving `FindingProduced`, and verifying target match.
+- Live resolution of `SubjectElementReference` and `CanonicalSubjectElementKind`.
+- Exact immutable criterion reference resolution authority.
+- RFC-0013 Corpus Review aggregate and Corpus Artifact Reference identity semantics.
+- Step 3A's four independently ratified stop conditions.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/implementation/sprints/sprint-0080-step-2a-rfc-0006-structural-foundation.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-21-006`, `NEXUS-RAT-2026-07-21-007`).
+
+### Architectural Assumptions
+
+- Step 2A structural identity validation is intentionally limited to non-empty, structurally valid opaque values; live RFC-0013 resolution remains deferred.
+- `CoverageDisposition.FindingProduced` validates only a non-empty structural Finding reference; existence, ownership, and target matching remain deferred to Step 3A.
+- `evaluateCoveragePair()` assumes the caller-supplied baseline-resolution input already represents the governed resolution outcome; no repository or live-domain lookup occurs in this Sprint.
+
+### Known Limitations
+
+- The pure evaluation function cannot detect caller misrepresentation of real Basis, Projection, or Evidence records.
+- Exact immutable criterion references are structurally validated and fingerprinted but not resolved against external governed artifacts.
+- Coverage completion checks only one immutable disposition per pair; terminal Assessment Outcome validation remains future runtime scope.
+
+### Validation Summary
+
+- TypeScript compile passed: `npm run compile -- --pretty false`.
+- ESLint passed: `npm run lint -- --quiet`.
+- Targeted Sprint 80 Vitest coverage passed: 26/26 tests across the exact eight new mirrored test files.
+- Full non-extension Vitest suite passed: 757/757 tests across 111/111 files.
+- Build passed: `npm run build`.
+
+### Deviations
+
+No architectural deviations.
+
+### Sprint Status
+
+Implemented — Pending Reviewer Validation.
+
+---
+
 ## Sprint 79 — Corrective Prerequisite 1A — RFC-0002 v1.3 Evidence Confidence and Verification Status Integration
 
 ### Implemented Slice

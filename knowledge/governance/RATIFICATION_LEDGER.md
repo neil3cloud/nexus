@@ -10973,3 +10973,333 @@ Activates Sprint 79. Prerequisite for Step 2's own future activation ratificatio
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-21-006
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-21-006
+
+## Date
+
+2026-07-21
+
+## Subject
+
+Amends Milestone 12's Initial Capability Sequence to separate RFC-0006 v1.3 structural preparation (Step 2A,
+dormant runtime) from runtime Corpus Assessment construction (new Step 3A, activated only after Step 3's governed
+Corpus Review Basis producer exists and after four named stop conditions are independently resolved). Also
+reconciles stale Sprint 79 (Corrective Prerequisite 1A) status text at all six live locations across
+`IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`: `IMPLEMENTATION_MANIFEST.md` previously read
+"Implemented — Pending Reviewer Validation" at each location; `IMPLEMENTATION_PLAN.md` previously read "Approved
+with Findings — `NEXUS-REV-2026-07-21-001`" at each location, omitting that both findings from that review were
+subsequently resolved and independently verified PASS by `NEXUS-REV-2026-07-21-002`. Both documents are corrected
+to one consistent statement of Sprint 79's actual, fully-closed outcome. Supersedes the withdrawn Sprint 80
+Activation Package (Revisions 1–3) and every withdrawn sequence-amendment draft that preceded this entry in
+full. No Sprint is activated by this record. No prior Sprint (78, 79) or its findings are reopened. RFC-0006,
+RFC-0013, RFC-0002, RFC-0003, and the Kernel Canon are unmodified.
+
+## Originating Review Finding(s)
+
+Sprint Owner Final Owner Reviews on the Sprint 80 Activation Package and its successor sequence-amendment
+drafts (2026-07-21): an unauthorized standalone `AssessmentSession` aggregate; an internally impossible
+`AssessmentCoverage` lifecycle; under-specified Evidence-evaluation inputs; a non-atomic Finding/disposition
+recording path; unresolved Finding affected-target validation ownership; Basis authenticity and durable
+Projection-identity resolution gaps that cannot be closed without a governed `CorpusReview` Basis producer and a
+separate RFC-0003 resolution contract; an ungoverned Finding classification rule; and, in this record's own
+drafting history, an incomplete Sprint 79 status reconciliation (2 of 6 locations) and a Finding Category concept
+incorrectly attributed to RFC-0006 v1.3, both corrected in this final applied text.
+
+## RFC Coverage
+
+- RFC-0006 v1.3 — Engineering Assessment Model (planning-sequence scope only; no implementation authorized;
+  Step 2A's future Sprint implements only the pure/structural subset named below; RFC-0006 is also the owning
+  specification for Step 3A stop conditions 3 and 4 — see § Ownership Model. RFC-0006 v1.3 owns exactly two
+  Finding classification concepts, Severity and Intent — it does not own, define, or reference a Finding
+  Category concept.)
+- RFC-0013 — Corpus Review Model, Final v1.0 (Step 3's `CorpusReview` aggregate remains the sole producer of a
+  governed Corpus Review Basis; unaffected by this record; owns the Basis/snapshot lineage stop condition 4
+  consumes)
+- RFC-0003 — Shared Reality Projection Model (Referenced Only — durable Projection resolution is stop condition 1)
+- RFC-0005 — Domain Event Model (Referenced Only — discriminated event attribution is stop condition 2)
+- RFC-0002 v1.3 — Evidence Model (Referenced Only, read-only consumption unchanged)
+
+## Deferred Concepts
+
+- Any live `CorpusReviewBasis`-kinded `Review`/Assessment construction, persistence, completion, or event
+  publication (deferred to Step 3A, gated on its four stop conditions).
+- Any widening of `Review`, `ReviewSnapshot`, `StartReviewCommand`, or `review.events.ts`, and the conversion of
+  `ReviewPlanRevisionReference` into a derived alias of `AssessmentSubjectReference` (all deferred to Step 3A —
+  Step 2A touches none of these).
+- Any RFC-0003 durable Projection identity/version resolution design (Step 3A stop condition 1, its own future
+  ratification, RFC-0003-owned).
+- Any RFC-0005 discriminated assessment-subject attribution design (Step 3A stop condition 2, its own future
+  ratification, RFC-0005-owned).
+- Any Finding severity/intent derivation rule (Step 3A stop condition 3, RFC-0006-owned — see § Ownership Model).
+  A Finding Category concept is not established by RFC-0006 v1.3 and remains out of scope for this rule unless a
+  separately ratified category concept is later established.
+- Any Basis-resolution/snapshot-migration contract (Step 3A stop condition 4, an RFC-0006 consumer contract
+  against RFC-0013's owned Basis and snapshot lineage — see § Ownership Model).
+- `CorpusReadinessResult` construction, `Open → Completed`/`Withdrawn` lifecycle (Step 5, unaffected).
+
+## Ownership Model
+
+- RFC-0006 (Engineering Assessment: `AssessmentSubjectReference`, `AssessmentCriterion`/`AssessmentCriteriaSet`,
+  `AssessmentCoverage`, Finding/Finding-target structure, Assessment Outcome) remains exclusively owned by
+  RFC-0006, implemented across Step 2A (structural) and Step 3A (runtime) — an implementation-sequencing split
+  only, not a change to RFC-0006's own concept ownership.
+- **Stop condition 3 (Finding classification rule) is owned by RFC-0006, and covers exactly Severity and Intent**
+  — RFC-0006 exclusively owns "Finding Severity" and "Finding Intent" (§§ of the same name); any derivation rule
+  mapping an Evidence Expectation Enforcement result to a severity/intent value is an RFC-0006-owned normative or
+  implementation-layer decision. RFC-0006 v1.3 defines no Finding Category concept; none is assumed, referenced,
+  or required by this stop condition, and none may be introduced under it without its own separate ratification.
+- **Stop condition 4 (Basis-resolution/snapshot-migration contract) is an RFC-0006 consumer contract evaluated
+  against RFC-0013's owned Basis and snapshot lineage** — RFC-0013 exclusively owns the Corpus Review Basis and
+  its Fingerprint (produced by Step 3's `CorpusReview` aggregate); RFC-0006 exclusively owns the Assessment
+  Session that consumes that Basis (§ Recorded Projection Basis and Snapshot-Preserving Completion). Stop
+  condition 4 is the contract by which RFC-0006's consuming side validates itself against RFC-0013's producing
+  side — it does not relocate ownership of either concept.
+- RFC-0003 (Projection, Projection Version, Projection Freshness) remains exclusively owned by RFC-0003; stop
+  condition 1's durable-resolution design is itself an RFC-0003-owned design, ratified separately.
+- RFC-0005 (Domain Event Model, event catalog) remains exclusively owned by RFC-0005; stop condition 2's
+  attribution design is itself an RFC-0005-owned design, ratified separately.
+- This record introduces no new domain, no new aggregate ownership, and no reassignment of any concept between
+  specifications — it is a sequencing amendment plus one documentation reconciliation, and nothing else.
+
+## Governance Decision
+
+APPROVED — MILESTONE 12 INITIAL CAPABILITY SEQUENCE AMENDMENT AND SPRINT 79 STATUS RECONCILIATION.
+
+### Part 1 — Sequence amendment
+
+#### Replacement sequence
+
+Old (established `NEXUS-RAT-2026-07-19-006`, amended `NEXUS-RAT-2026-07-21-003`):
+
+> Step 1 → Corrective Prerequisite 1A → Step 2 (RFC-0006 v1.3 Assessment Amendment Implementation) → Step 3
+> (Corpus Review Structural Foundation) → Step 4 (Assessment Binding and Readiness Derivation Foundation) →
+> Step 5 (Completion/Withdrawal/Readiness Result) → Step 6 (Integration Validation).
+
+New:
+
+> Step 1 → Corrective Prerequisite 1A → **Step 2A (RFC-0006 v1.3 Structural Foundation — dormant runtime)** →
+> Step 3 (Corpus Review Structural Foundation, unchanged) → **Step 3A (Corpus Assessment Runtime Foundation —
+> gated on four explicit stop conditions)** → Step 4 (Assessment Binding and Readiness Derivation Foundation,
+> dependency sentence corrected, all other text verbatim) → Step 5 (unchanged) → Step 6 (unchanged).
+
+The complete corrected text for Step 2A, Step 3, Step 3A, and Step 4 is applied verbatim to
+`IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`'s Milestone 12 § Initial Capability Sequence by this
+same application — see § Changed-File List, below, for the exact sections touched. Steps 5–6 are unchanged.
+
+### Part 2 — Sprint 79 status reconciliation (all six locations)
+
+Authorizes correcting all six live Sprint 79 status locations across `IMPLEMENTATION_PLAN.md` and
+`IMPLEMENTATION_MANIFEST.md` (three each: Status line, sequence-introduction sentence, activation annotation) to
+one consistent statement: "Sprint 79 is Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both
+prior findings resolved; zero remaining findings)." This is a documentation-accuracy correction only — no scope,
+contract, file inventory, or Reviewer finding of Sprint 79 is reopened or altered.
+
+## Authorized Builder Scope
+
+None. This is a sequence/planning amendment and documentation reconciliation only. No Sprint is activated. No
+file inventory, Sprint Implementation Record, or `builder-task.md` change is authorized by this record. A future
+Step 2A Sprint Ratification is required before any Builder work begins.
+
+## Scope Restrictions
+
+Does not reopen Sprint 78 or Sprint 79's scope, contract, file inventory, or Reviewer findings — reconciles
+status wording only, citing `NEXUS-REV-2026-07-21-002`. Does not modify RFC-0006, RFC-0013, RFC-0002, RFC-0003,
+RFC-0005, or the Kernel Canon. Does not resolve any of Step 3A's four stop conditions. Does not itself define
+Step 2A's or Step 3A's Builder-ready Sprint scope in file-level detail. Does not introduce a Finding Category
+concept anywhere.
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this entry, `Current Status: Active`.
+- `IMPLEMENTATION_PLAN.md` — Milestone 12 § Status line; § RFC Coverage's RFC-0006 v1.3 bullet; § Ratification
+  (one bullet appended); § Initial Capability Sequence introduction sentence and dependency-order sentence;
+  Corrective Prerequisite 1A's closing activation annotation; the former Step 2/3/4 block replaced with Step 2A/
+  3/3A/4.
+- `IMPLEMENTATION_MANIFEST.md` — identical sections to `IMPLEMENTATION_PLAN.md`, updated identically.
+
+No source file. No test file. No Sprint Implementation Record. No `builder-task.md` change. Source and test
+changes belong to a future Builder under a future Step 2A Sprint Implementation Record this entry does not
+create.
+
+## Related Sprint(s) / Related Review(s)
+
+No Sprint activated. Supersedes the withdrawn Sprint 80 Activation Package (Revisions 1–3) and every withdrawn
+sequence-amendment draft that preceded this entry. Related Review: `NEXUS-REV-2026-07-21-002` (Sprint 79 status
+basis).
+
+## Full Ratification Text
+
+> Milestone 12's Initial Capability Sequence is amended: Step 2 (RFC-0006 v1.3 Assessment Amendment
+> Implementation) is replaced by Step 2A (RFC-0006 v1.3 Structural Foundation), scoped exclusively to structural
+> types, deterministic canonicalization, immutable value models, pure Coverage operations, and the pure
+> evaluation result, defining `AssessmentSubjectReference` in a new standalone file that leaves the existing
+> `ReviewPlanRevisionReference` declaration in `review.types.ts` completely untouched, with runtime Corpus
+> Assessment construction explicitly and exhaustively prohibited per six named prohibitions (including no
+> re-export from any existing runtime barrel). A new Step 3A (Corpus Assessment Runtime Foundation) is inserted
+> between Step 3 and the dependency-corrected Step 4, depending exactly on Step 1 + Corrective Prerequisite 1A +
+> Step 2A + Step 3, and may not be activated as a Sprint until all four named stop conditions — durable RFC-0003
+> Projection resolution (RFC-0003-owned), discriminated RFC-0005 event attribution (RFC-0005-owned), an
+> authoritative RFC-0006-owned Finding severity/intent derivation rule (Severity and Intent only; RFC-0006 v1.3
+> defines no Finding Category concept), and an exact RFC-0006 consumer/RFC-0013 Basis-lineage resolution and
+> snapshot-migration contract — are each independently ratified. Step 4's text is reproduced verbatim from the
+> existing Plan, with only its dependency sentence corrected to Step 3A; Steps 3, 5, and 6 are otherwise
+> unchanged. Separately, this record authorizes correcting all six live Sprint 79 status locations across
+> `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` to one consistent statement of Sprint 79's actual
+> `NEXUS-REV-2026-07-21-002` outcome: Approved and fully closed, both prior findings resolved, zero remaining
+> findings. No Sprint is activated; no RFC is amended; no prior Sprint's scope, contract, file inventory, or
+> findings are reopened.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-21-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-21-007
+
+## Date
+
+2026-07-21
+
+## Subject
+
+Activates Milestone 12 Initial Capability Sequence Step 2A (RFC-0006 v1.3 Structural Foundation) as Sprint 80,
+per the Sprint 80 Proposal Revision 7 (Sprint Owner Final Owner Review: APPROVE). Authorizes the Builder to
+implement, within an exact sixteen-file inventory (eight new source files, eight mirrored new test files, all
+under `src/kernel/review/` and `test/kernel/review/`), the structural types, deterministic canonicalization,
+immutable value models, pure Coverage operations, and the pure evaluation result required by RFC-0006 v1.3:
+`AssessmentSubjectReference`; the opaque `SubjectElementReference`/`CanonicalSubjectElementKind`/
+`CorpusReviewBasisFingerprint` identity types; `StructuralSubjectElementDescriptor`; `AssessmentCriterion`/
+`AssessmentCriteriaSet` and its SHA-256 fingerprint protocol; the closed four-variant
+`AssessmentCriterionApplicability` and `EvidenceExpectation` vocabularies; the closed `AssessmentCoveragePair`
+pair-identity type; `AssessmentCoverage.open()` universe construction and `recordDisposition`; the closed
+Exact-Content Qualification union; the closed Precondition-Failure Vocabulary; `FindingAffectedTarget`'s type;
+and `evaluateCoveragePair(coverage, pair, baselineResolution)`, whose criterion resolution and pair binding are
+sourced exclusively from the supplied `AssessmentCoverage`'s own retained state. Runtime Corpus Assessment
+construction, live Finding construction, and all six of Step 2A's named prohibitions remain exactly as
+established by `NEXUS-RAT-2026-07-21-006` — this record activates the Sprint; it does not alter Step 2A's
+scope, its prohibitions, or Step 3A's four independent stop conditions.
+
+## Originating Review Finding(s)
+
+Sprint Owner Final Owner Reviews across seven revisions of the Sprint 80 Proposal (2026-07-21): missing
+dependency identity (Step 1 misidentified); incomplete Activation file scope; an under-specified pure
+evaluation contract (tag-only disposition results, no threshold-failure detail, no attributable
+`UnableToEvaluate` reason); conflation of a non-persistable evaluation outcome with a recordable Coverage
+disposition; deferred RFC-0013 resolution authority appearing inside Step 2A acceptance criteria; an
+under-specified Corpus Artifact Reference ownership boundary; a Boolean-plus-optional-classification
+Exact-Content-Evidence shape permitting contradictory states; a caller-asserted (rather than computed)
+applicability-selection input; a missing `AssessmentCoverage.open()` universe-construction contract; an
+undefined closed Coverage-pair identity representation; precondition-failure reasons carrying no structured
+identifying evidence; and, in the final round, `evaluateCoveragePair` lacking access to the Coverage state
+needed to resolve its criterion and verify pair membership. Each finding was resolved in the revision
+identified in the Sprint 80 Proposal Revision 7 text (`sprint-80-proposal-v7.md`); Revision 7 received APPROVE
+with no remaining Blocking or Major findings.
+
+## RFC Coverage
+
+- RFC-0006 v1.3 — Engineering Assessment Model (Primary; structural subset only, per § Subject, above; binding
+  function name `evaluateCoveragePair`).
+- RFC-0002 v1.3 — Evidence Model (Secondary, read-only: `ConfidenceClassification`, `EvidenceVerificationStatus`,
+  and Exact Content Evidence integrity rules consumed unchanged).
+- RFC-0013 — Corpus Review Model, Final v1.0 (structurally referenced only via the opaque `CorpusReviewBasis`
+  discriminant and `CorpusReviewBasisFingerprint`; no RFC-0013 concept implemented; ownership unaffected).
+- RFC-0003, RFC-0005 — not in coverage.
+
+## Deferred Concepts
+
+- Conversion of `ReviewPlanRevisionReference` into an `AssessmentSubjectReference` derived alias — Step 3A.
+- All runtime `Review.create`/`fromSnapshot` handling of a `CorpusReviewBasis` subject — Step 3A.
+- Real resolution of the baseline qualifying Evidence set against a live Basis/Projection — Step 3A.
+- Constructing a real `Finding` from a `FindingRequired` outcome, and thereby obtaining the reference a
+  `FindingProduced` disposition requires; resolving that reference and verifying target match — Step 3A.
+- Live resolution/recognition of a `SubjectElementReference` or `CanonicalSubjectElementKind` against a real
+  subject — Step 3A.
+- Resolution authority for the Exact Immutable Criterion Reference (existence, mutability, supersession,
+  ambiguity, fingerprint matching) — Step 3A.
+- Any RFC-0013 `CorpusArtifactReference` identity semantics or live resolution — Step 3 (identity) / Step 3A
+  (resolution).
+- RFC-0003 durable Projection resolution; RFC-0005 discriminated event attribution; RFC-0006 Finding
+  severity/intent derivation rule; the RFC-0006/RFC-0013 Basis-resolution/snapshot-migration contract — Step
+  3A's four independent stop conditions, none resolved by this record, unchanged from `NEXUS-RAT-2026-07-21-006`.
+
+## Governance Decision
+
+APPROVED — SPRINT 80 ACTIVATED (MILESTONE 12 STEP 2A: RFC-0006 v1.3 STRUCTURAL FOUNDATION).
+
+Sprint 80 is activated as Current Sprint on the strength of the Sprint 80 Proposal Revision 7, approved without
+Blocking or Major finding. `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are synchronized at the
+sites identified in § Changed-File List, below, recording Step 2A's activation. The complete Sprint
+Implementation Record is created at
+`knowledge/implementation/sprints/sprint-0080-step-2a-rfc-0006-structural-foundation.md`, reproducing Revision
+7's complete scope, RFC Coverage, Implemented/Deferred Concepts, Acceptance Criteria, and forecasted file
+inventory verbatim, with Builder Results, Reviewer Notes, and Final Disposition reserved. `builder-task.md` is
+updated to record Sprint 80 as the open Builder Task.
+
+## Authorized Builder Scope
+
+Exactly the sixteen-file inventory named in § Subject, above and reproduced in full in the Sprint 80
+Implementation Record: eight new source files under `src/kernel/review/`, eight mirrored new test files under
+`test/kernel/review/`. No consolidation, split, or renaming of this inventory is authorized without a prior
+Sprint Owner approval. No pre-existing file under `src/kernel/review/` (including `README.md`), no
+`src/kernel/common/create-kernel-services.ts`, no host wiring file, and no `index.ts` runtime barrel may change.
+
+## Scope Restrictions
+
+Does not alter Step 2A's scope, its six prohibitions, or any text of `NEXUS-RAT-2026-07-21-006` beyond the
+Milestone 12 status/annotation synchronization named in § Changed-File List. Does not resolve, narrow, or
+otherwise affect any of Step 3A's four independent stop conditions. Does not activate Step 3 or Step 3A. Does
+not amend RFC-0006, RFC-0002, RFC-0013, RFC-0003, RFC-0005, or the Kernel Canon. Does not modify
+`IMPLEMENTATION_REPORT.md` or `REVIEW_HISTORY.md`. Does not itself constitute Builder implementation — no
+source or test file is created or modified by this record.
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this entry, `Current Status: Active`.
+- `IMPLEMENTATION_PLAN.md` — Milestone 12 § Status line; § Ratification (one bullet appended); § Initial
+  Capability Sequence introduction sentence; Step 2A's closing activation annotation. Four sites.
+- `IMPLEMENTATION_MANIFEST.md` — Milestone 12 § Status line; § Initial Capability Sequence introduction
+  sentence; Step 2A's closing activation annotation. Three sites (no `## Ratification` section exists in this
+  document).
+- `knowledge/implementation/sprints/sprint-0080-step-2a-rfc-0006-structural-foundation.md` — new file, the
+  complete Sprint 80 Implementation Record.
+- `builder-task.md` — updated to record Sprint 80 as the open Builder Task.
+
+No source file. No test file. No RFC. No `IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`.
+
+## Related Sprint(s) / Related Review(s)
+
+Activates Sprint 80. Depends on `NEXUS-RAT-2026-07-21-006` (Milestone 12 sequence amendment establishing Step
+2A) and, transitively, on Sprint 78 (`NEXUS-RAT-2026-07-19-009`) and Sprint 79
+(`NEXUS-RAT-2026-07-21-005`, closed `NEXUS-REV-2026-07-21-002`).
+
+## Full Ratification Text
+
+> Milestone 12 Initial Capability Sequence Step 2A (RFC-0006 v1.3 Structural Foundation) is activated as
+> Sprint 80, exactly per the Sprint 80 Proposal Revision 7: an exact sixteen-file forecasted implementation
+> inventory (eight new source files, eight mirrored new test files, all under `src/kernel/review/` and
+> `test/kernel/review/`); the pure evaluation function `evaluateCoveragePair(coverage, pair,
+> baselineResolution)`, whose criterion resolution and Coverage-pair binding are sourced exclusively from the
+> supplied `AssessmentCoverage`'s own retained, immutable state, never from an independently caller-supplied
+> value; `AssessmentCoverage.open(basisFingerprint, elements, criteria)` as the pure universe constructor; the
+> closed `AssessmentCoveragePair` pair-identity type; the closed Exact-Content Qualification union; and the
+> closed, structurally-payload-bearing Precondition-Failure Vocabulary. `IMPLEMENTATION_PLAN.md` and
+> `IMPLEMENTATION_MANIFEST.md` are synchronized to record this activation. The Sprint 80 Sprint Implementation
+> Record and `builder-task.md` are created/updated accordingly. Step 2A's six prohibitions and Step 3A's four
+> independent stop conditions, both established by `NEXUS-RAT-2026-07-21-006`, are unaffected and remain fully
+> binding. No RFC is amended. No source or test file is changed by this record.
+
+## Current Status
+
+Active

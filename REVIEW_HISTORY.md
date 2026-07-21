@@ -2,6 +2,110 @@
 
 ---
 
+## NEXUS-REV-2026-07-22-002 — Sprint 80 — `BT-080-002`/`BT-080-003`/`BT-080-004` Resolution Verification
+
+- **Reviewed Sprint:** Sprint 80 — Milestone 12 Initial Capability Sequence Step 2A — RFC-0006 v1.3 Structural Foundation. Follow-up cycle verifying `builder-task.md`'s three Open items, `BT-080-002`, `BT-080-003`, and `BT-080-004`, generated from `NEXUS-REV-2026-07-22-001`'s three findings.
+- **Reviewed Change:** `src/kernel/review/assessment-coverage.ts` (`BT-080-002`); `test/kernel/review/assessment-coverage.test.ts` (`BT-080-002` regression test); `test/kernel/review/evaluate-coverage-pair.test.ts` (`BT-080-003`, `BT-080-004`).
+- **RFC Coverage:** RFC-0006 v1.3 — Engineering Assessment Model, § Assessment Coverage (Corpus-scoped) line 387; § Required Evidence Expectations lines 265–266, 288 (corrective scope only, no new concept).
+- **Review Date:** 2026-07-22
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+All three `NEXUS-REV-2026-07-22-001` findings are verified fully resolved.
+
+`BT-080-002` (Major, Implementation Defect — `NEXUS-REV-0080-DEF-001`): `AssessmentCoverage`'s private `validateDisposition` method (`assessment-coverage.ts:214–223`) now derives `actualApplicability = this.getCriterionForPair(pair).applicability` and rejects a `NotApplicable` disposition whose `disposition.applicability` does not canonicalize (via `canonicalizeAssessmentCriterionApplicability`) to the same bytes as the pair's actual criterion applicability, throwing `InvalidReviewDefinitionError` on mismatch — closing exactly the structural-integrity gap the finding identified. Canonicalizing both sides before comparison is the correct approach given `AssessmentCriterionApplicability`'s nested value-object fields (`SubjectElementReference`/`CanonicalSubjectElementKind` instances), which do not support meaningful `===`/deep-equality comparison directly; this mirrors the same canonicalization technique already used elsewhere in Sprint 80 (`assessmentCoveragePairKey`). A new test, `'rejects NotApplicable dispositions with substituted applicability declarations'` (`assessment-coverage.test.ts:129–156`), asserts both the rejection of a substituted `applicability` (a `SubjectElementsOfKind`-selected pair's disposition constructed with an unrelated `AllSubjectElements` applicability) and continued acceptance of the correct one. No other `CoverageDisposition` variant's validation, `AssessmentCoverage.open()`, or `evaluateCoveragePair` was touched.
+
+`BT-080-003` (Minor, Test Coverage Gap — `NEXUS-REV-0080-TST-001`): a new `'any-exact'` criterion fixture declaring `requiredExactContent('AnyExactContent')` was added to `evaluate-coverage-pair.test.ts`'s shared criteria set, and the `'matches exact-content qualifications...'` test now asserts `Satisfied` against both `qualifiedSnapshotContent()` and `qualifiedDerivedContent()` evidence, and `FindingRequired` against `notExactContent()` evidence — covering all three `RequiredExactContent` classification values as Acceptance Criterion 66 requires.
+
+`BT-080-004` (Minor, Test Coverage Gap — `NEXUS-REV-0080-TST-002`): a new `'multi-type'` criterion declaring two distinct `RequiredEvidenceType` clauses was added, and a new test, `'satisfies multiple RequiredEvidenceType clauses with different baseline evidence items'` (`evaluate-coverage-pair.test.ts:145–161`), asserts `Satisfied` against a baseline of two evidence items, each independently satisfying exactly one clause — covering Acceptance Criterion 64.
+
+Validation performed during this cycle:
+
+- `npm run compile` (`tsc --noEmit`) passed.
+- `npm run lint --quiet` passed.
+- `npx vitest run` targeted at the exact eight-file Sprint 80 test inventory passed: 28/28 tests (26 from the prior cycle plus the 2 new tests: the `BT-080-002` regression test and the `BT-080-004` multi-clause test; `BT-080-003` extended an existing test rather than adding a new `it()`).
+- `npx vitest run` (full suite) passed: 759/759 across 111/111 non-extension files (the sole failing file requires the `vscode` module, expected outside the extension host).
+- `npm run build` (`node esbuild.js`) passed.
+- `git diff --stat` against every protected pre-existing `src/kernel/review/` file and `src/kernel/common/create-kernel-services.ts` confirmed zero changes; `git diff --stat` against every `index.ts` barrel and `src/hosts/` confirmed zero changes; a symbol-leakage grep confirmed no Sprint 80 file is imported outside `src/kernel/review/`.
+- No previously-approved Sprint 80 concept (fingerprint protocol, applicability/evidence-expectation vocabularies, `AssessmentCoverage.open()` universe construction, the `CoveragePairEvaluationOutcome`/`CoverageDisposition` separation) was reopened or modified beyond the three Implementation Targets.
+
+No new finding was identified. No architectural violation.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor / Observation | 0 / 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | TypeScript compile clean; ESLint clean; targeted Sprint 80 eight-file Vitest suite 28/28; full non-extension suite 759/759 across 111/111 files; `npm run build` clean; zero protected-file changes; zero new-symbol imports outside `src/kernel/review/`; zero `index.ts`/host-wiring changes |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-22-001`; this corrective cycle introduced no new concept, touched no deferred-concept boundary, and confirmed no deferred concept was approximated.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `BT-080-002`, `BT-080-003`, and `BT-080-004` are each resolved exactly within their authorized Implementation Targets. Sprint 80 is now Approved and fully closed — all three findings from `NEXUS-REV-2026-07-22-001` are resolved with no remaining open Builder Task.
+
+### Builder Task Recommendation
+
+`BT-080-002`, `BT-080-003`, and `BT-080-004` SHALL be marked Completed. No further Builder Task remains open for Sprint 80. Step 3 is the next planned step in the Milestone 12 Initial Capability Sequence and requires its own Sprint Owner Ratification before activation; this cycle authorizes none.
+
+---
+
+## NEXUS-REV-2026-07-22-001 — Sprint 80 — Milestone 12 Initial Capability Sequence Step 2A — RFC-0006 v1.3 Structural Foundation
+
+- **Reviewed Sprint:** Sprint 80 — Milestone 12 Initial Capability Sequence Step 2A — RFC-0006 v1.3 Structural Foundation. Activated by `NEXUS-RAT-2026-07-21-007`, sequence established by `NEXUS-RAT-2026-07-21-006`, between Corrective Prerequisite 1A (Sprint 79, Approved and fully closed) and Step 3.
+- **Reviewed Change:** the exact eight new source files under `src/kernel/review/` (`assessment-subject-reference.ts`, `subject-element-reference.ts`, `assessment-criterion-applicability.ts`, `evidence-expectation.ts`, `assessment-criterion.ts`, `assessment-coverage.ts`, `finding-affected-target.ts`, `evaluate-coverage-pair.ts`) and the exact eight mirrored test files under `test/kernel/review/`; `knowledge/implementation/sprints/sprint-0080-step-2a-rfc-0006-structural-foundation.md`; `IMPLEMENTATION_REPORT.md` Sprint 80 entry; `builder-task.md`.
+- **RFC Coverage:** RFC-0006 v1.3 — Engineering Assessment Model, structural-only subset (`AssessmentSubjectReference`, `AssessmentCriterion`/`AssessmentCriteriaSet` fingerprint protocol, `AssessmentCriterionApplicability`, `EvidenceExpectation`, `AssessmentCoverage`, `FindingAffectedTarget`, pure `evaluateCoveragePair`); RFC-0002 v1.3 (`ConfidenceClassification`, `EvidenceVerificationStatus`, Exact Content Evidence integrity), consumed read-only.
+- **Review Date:** 2026-07-22
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+Sprint 80's sixteen-file inventory was reviewed against the Sprint 80 Implementation Record's binding Pure Evaluation Contract and the 71 Acceptance Criteria, cross-checked against RFC-0006 v1.3 §§ Assessment Subject Reference, Assessment Criteria, Required Evidence Expectations, Assessment Criteria Set Fingerprint, Finding Affected Target, and Assessment Coverage (lines 160–432). Independent verification confirmed: `git diff --stat` shows zero changes to every protected pre-existing `src/kernel/review/` file and `src/kernel/common/create-kernel-services.ts`; no `index.ts` barrel or `src/hosts/` file changed; no symbol from the new files is imported outside `src/kernel/review/`; `npm run compile` and `npm run lint` pass clean; the targeted eight-file Sprint 80 suite passes 26/26; the full non-extension suite passes 757/757 across 111/111 files (the sole failing file requires the `vscode` module, expected outside the extension host); `npm run build` succeeds. The `AssessmentSubjectReference` wire shape was independently cross-checked against `review.types.ts`'s actual `ReviewPlanRevisionReference` (`kind: 'ExecutableMissionPlan' | 'ProposedPlanRevision'`, `revisionId: string`) and matches byte-for-byte without the new code importing it. The seven-field fingerprint protocol, the four-variant `AssessmentCriterionApplicability` and `EvidenceExpectation` vocabularies, the Cartesian-product/`SubjectWide` universe construction in `AssessmentCoverage.open()`, the `Satisfied`/`FindingRequired`/`NotApplicable`/`UnableToEvaluate` outcome split from the separately-typed, non-convertible `CoverageDisposition`, and the Precondition-Failure Vocabulary all conform to RFC-0006 v1.3 and the Sprint's own binding contract.
+
+One Major implementation defect and two Minor test-coverage gaps were found; none is a deferred-concept violation and none touches a protected file.
+
+### Findings
+
+- `NEXUS-REV-0080-DEF-001` (Major, Implementation Defect) — `AssessmentCoverage.recordDisposition()`'s `NotApplicable` validation (`assessment-coverage.ts:200–227`) never structurally compares the disposition's stored `applicability` field against `this.getCriterionForPair(pair).applicability`; the selection-gating check at line 217 re-derives applicability independently from the coverage's own retained `AssessmentCriteriaSet` rather than from `disposition.applicability`. RFC-0006 v1.3 line 387 requires a `NotApplicable` disposition to carry "the exact applicability declaration relied upon," but nothing in `validateDisposition` or the `notApplicableDisposition()` constructor (`assessment-coverage.ts:68–81`) enforces that the persisted `applicability` value actually is the one relied upon — a caller can persist a `NotApplicable` disposition whose recorded `applicability` field is a different, unrelated `AssessmentCriterionApplicability` value than the one that actually gated the pair, and `recordDisposition` accepts it. No test in the Sprint's suite constructs a `NotApplicable` disposition with a substituted/foreign `applicability` value, so the gap is unobserved by the current suite. This is squarely within Step 2A's own implemented scope (Acceptance Criteria 47–52), not a deferred Step 3A concept.
+- `NEXUS-REV-0080-TST-001` (Minor, Test Coverage Gap) — no test exercises `RequiredExactContent`'s `AnyExactContent` classification (`evaluate-coverage-pair.ts:266–280`, `exactContentQualificationSatisfies`), despite Acceptance Criterion 66 requiring "classification matching for all three values" and RFC-0006 v1.3 line 266 defining exactly three. `grep -rn "AnyExactContent" test/kernel/review/` returns zero matches. The implementation's `AnyExactContent` branch (satisfied by either `QualifiedSnapshotContent` or `QualifiedDerivedContent`) is correct on inspection but unverified by any test.
+- `NEXUS-REV-0080-TST-002` (Minor, Test Coverage Gap) — no test exercises two distinct `RequiredEvidenceType` clauses on one criterion, each satisfied by a different baseline item, despite Acceptance Criterion 64 and RFC-0006 v1.3 lines 265/288 explicitly describing this scenario. `evaluateExpectations`/`evidenceExpectationSatisfied` (`evaluate-coverage-pair.ts:199–230`) evaluate each `RequiredEvidenceType` clause independently and `createEvidenceExpectationSet` imposes no cardinality cap on this variant, so the behavior is implemented correctly on inspection but unverified.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 3 |
+| Critical / Major / Minor / Observation | 0 / 1 / 2 / 0 |
+| Architectural Violations | 0 |
+| Validation | TypeScript compile clean; ESLint clean; targeted Sprint 80 eight-file Vitest suite 26/26; full non-extension suite 757/757 across 111/111 files; `npm run build` clean; zero protected-file changes; zero new-symbol imports outside `src/kernel/review/`; zero `index.ts`/host-wiring changes |
+
+### Deferred Concept Validation
+
+Confirmed correctly excluded, with no approximation in the reviewed code: `ReviewPlanRevisionReference`→`AssessmentSubjectReference` alias conversion; runtime `Review.create`/`fromSnapshot` handling of a `CorpusReviewBasis` subject; real baseline Evidence resolution against a live Basis/Projection; construction of a real `Finding` from a `FindingRequired` outcome or resolution/target-verification of a `FindingProduced` reference; live resolution of `SubjectElementReference`/`CanonicalSubjectElementKind` against a real subject; exact immutable criterion reference resolution authority; any RFC-0013 `CorpusArtifactReference` identity semantics or `CorpusReview` aggregate concept; all four Step 3A stop conditions. No Step 2A prohibition (1–6) was violated: `git diff --stat` confirms zero changes to `Review`, `ReviewSnapshot`, `StartReviewCommand`, `review.events.ts`, any host/service/repository wiring file, and zero new barrel exports; no runtime Corpus Assessment entry point or Finding construction/persistence/publication from a `CorpusReviewBasis` Review exists in the reviewed code.
+
+### Architectural Compliance Summary
+
+Aggregate ownership, terminology, and architectural boundaries conform: the eight new files remain pure, standalone, and unwired to `Review`/`Finding`'s live aggregates; `AssessmentCoveragePair` is the sole pair-identity representation used throughout; `CoveragePairEvaluationOutcome` (non-persistable) and `CoverageDisposition` (recordable) remain separately typed with no conversion function between them, verified both by a compile-time `@ts-expect-error` fixture and a runtime rejection test (`evaluate-coverage-pair.test.ts:148–152`). Deterministic pair ordering, canonicalization framing, and the SHA-256 fingerprint protocol match RFC-0006 v1.3 §§ Assessment Criteria Set Fingerprint and Required Evidence Expectations — Canonical Encoding exactly. The one Major finding (`NEXUS-REV-0080-DEF-001`) is a structural-integrity gap in a persisted field's self-consistency, not an aggregate-ownership, event-catalog, or state-transition violation, and does not block approval given the sprint's currently pure, unwired usage — but SHALL be corrected before any future Sprint relies on `NotApplicable.applicability` for audit or explainability purposes.
+
+### Builder Task Recommendation
+
+- `NEXUS-REV-0080-DEF-001` → Builder Task: add a structural-equality check in `AssessmentCoverage.recordDisposition()`'s `NotApplicable` branch between `disposition.applicability` and `this.getCriterionForPair(pair).applicability`, failing closed on mismatch (`InvalidReviewDefinitionError`); add a regression test constructing a `NotApplicable` disposition with a substituted/foreign `applicability` value.
+- `NEXUS-REV-0080-TST-001` → Builder Task (optional; Minor, approval not blocked): add a test asserting `requiredExactContent('AnyExactContent')` is satisfied by both `qualifiedSnapshotContent()` and `qualifiedDerivedContent()` evidence.
+- `NEXUS-REV-0080-TST-002` → Builder Task (optional; Minor, approval not blocked): add a test with two `RequiredEvidenceType` clauses on one criterion, each satisfied by a different baseline evidence item.
+
+---
+
 ## NEXUS-REV-2026-07-21-002 — Sprint 79 — `BT-079-002`/`DOC-079-001` Resolution Verification
 
 - **Reviewed Sprint:** Sprint 79 — Corrective Prerequisite 1A — RFC-0002 v1.3 Evidence Confidence and Verification Status Integration (Milestone 12 Initial Capability Sequence, between Step 1 and Step 2). Follow-up cycle verifying `builder-task.md`'s two Open items, `BT-079-002` and `DOC-079-001`, generated from `NEXUS-REV-2026-07-21-001`'s two findings.
