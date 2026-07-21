@@ -456,6 +456,7 @@ export class HostMissionWorkflow {
           workflow: 'Developer Workflow Completion',
         },
       },
+      confidenceClassification: 'Observed',
       provenance: {
         source: 'vscode-host',
         acquisitionMethod: 'developer-workflow-completion',
@@ -463,6 +464,7 @@ export class HostMissionWorkflow {
         actor: 'builder',
         system: 'nexus',
         verificationStatus: 'Verified',
+        verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
       },
     });
     const review = await this.completion.reviewService.startReview({

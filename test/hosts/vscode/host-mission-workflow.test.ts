@@ -86,6 +86,15 @@ describe('HostMissionWorkflow', () => {
         supportingEvidenceIds: ['evidence-sprint-26-evidence'],
       },
     });
+    expect(recorder.evidenceRequests).toEqual([
+      expect.objectContaining({
+        confidenceClassification: 'Observed',
+        provenance: expect.objectContaining({
+          verificationStatus: 'Verified',
+          verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
+        }),
+      }),
+    ]);
     expect(recorder.calls).toEqual([
       'MissionService.createMission',
       'MissionPlanningService.createMissionPlan',
@@ -655,6 +664,7 @@ describe('HostMissionWorkflow', () => {
 
 class ServiceCallRecorder {
   public readonly calls: string[] = [];
+  public readonly evidenceRequests: unknown[] = [];
 }
 
 class RecordingMissionService implements MissionWorkflowMissionService {
@@ -812,6 +822,7 @@ function createRecordingCompletion(
     evidenceService: {
       async registerEvidence(request) {
         recorder.calls.push('EvidenceService.registerEvidence');
+        recorder.evidenceRequests.push(request);
 
         return Evidence.register(request);
       },

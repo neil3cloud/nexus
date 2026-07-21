@@ -52,6 +52,7 @@ function evidenceRequest(id = 'evidence-1', version = 1): RegisterEvidenceReques
         suite: 'unit',
       },
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: 'vitest',
       acquisitionMethod: 'test-run',
@@ -59,6 +60,7 @@ function evidenceRequest(id = 'evidence-1', version = 1): RegisterEvidenceReques
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   };
 }
@@ -242,6 +244,7 @@ describe('EvidenceService', () => {
           suite: 'unit',
         },
       },
+      confidenceClassification: 'Verified',
       provenance: {
         source: 'vitest',
         acquisitionMethod: 'test-run',
@@ -249,6 +252,7 @@ describe('EvidenceService', () => {
         actor: 'builder',
         system: 'nexus',
         verificationStatus: 'Verified',
+        verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
       },
     });
 

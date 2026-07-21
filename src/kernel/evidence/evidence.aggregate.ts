@@ -1,5 +1,6 @@
 import { EvidenceHash } from './evidence-hash';
 import { InvalidEvidenceException } from './evidence.errors';
+import { ConfidenceClassification } from './confidence-classification';
 import { EvidenceId } from './evidence-id';
 import { EvidenceMetadata } from './evidence-metadata';
 import type { EvidenceMetadataInput, EvidenceMetadataSnapshot } from './evidence-metadata';
@@ -11,7 +12,7 @@ import type { ExactContentEvidenceInput, ExactContentEvidenceSnapshot } from './
 import type { EvidenceDomainEvent } from './evidence.events';
 import { createEvidenceCapturedEvent } from './evidence.events';
 import { Provenance } from './provenance';
-import type { ProvenanceInput, ProvenanceSnapshot } from './provenance';
+import type { ProvenanceRegistrationInput, ProvenanceSnapshot } from './provenance';
 import type { DomainEventMetadata } from '../mission/mission.types';
 
 export interface CreateEvidenceInput {
@@ -22,6 +23,7 @@ export interface CreateEvidenceInput {
   readonly hash: EvidenceHash;
   readonly metadata: EvidenceMetadata;
   readonly provenance: Provenance;
+  readonly confidenceClassification: ConfidenceClassification;
   readonly exactContent?: ExactContentEvidence;
 }
 
@@ -32,7 +34,8 @@ export interface RegisterEvidenceRequest {
   readonly version: number;
   readonly hash: string;
   readonly metadata: EvidenceMetadataInput;
-  readonly provenance: ProvenanceInput;
+  readonly provenance: ProvenanceRegistrationInput;
+  readonly confidenceClassification: string;
   readonly exactContent?: ExactContentEvidenceInput;
 }
 
@@ -45,6 +48,7 @@ export interface EvidenceSnapshot {
   readonly hash: string;
   readonly metadata: EvidenceMetadataSnapshot;
   readonly provenance: ProvenanceSnapshot;
+  readonly confidenceClassification?: string;
   readonly exactContent?: ExactContentEvidenceSnapshot;
 }
 
@@ -59,6 +63,7 @@ export class Evidence {
     private readonly evidenceHash: EvidenceHash,
     private readonly evidenceMetadata: EvidenceMetadata,
     private readonly evidenceProvenance: Provenance,
+    private readonly evidenceConfidenceClassification: ConfidenceClassification | undefined,
     private readonly exactContentEvidence: ExactContentEvidence | undefined,
   ) {
     Object.freeze(this);
@@ -73,6 +78,7 @@ export class Evidence {
       input.hash,
       input.metadata,
       input.provenance,
+      requireConfidenceClassification(input.confidenceClassification),
       input.exactContent,
     );
   }
@@ -85,7 +91,8 @@ export class Evidence {
       version: EvidenceVersion.fromNumber(input.version),
       hash: EvidenceHash.fromString(input.hash),
       metadata: EvidenceMetadata.create(input.metadata),
-      provenance: Provenance.create(input.provenance),
+      provenance: Provenance.register(input.provenance),
+      confidenceClassification: ConfidenceClassification.fromString(input.confidenceClassification),
       ...(input.exactContent === undefined
         ? {}
         : { exactContent: ExactContentEvidence.create(input.exactContent) }),
@@ -93,18 +100,21 @@ export class Evidence {
   }
 
   public static fromSnapshot(snapshot: EvidenceSnapshot): Evidence {
-    return Evidence.create({
-      id: EvidenceId.fromString(snapshot.id),
-      ...(snapshot.missionId === undefined ? {} : { missionId: snapshot.missionId }),
-      type: EvidenceType.fromString(snapshot.type),
-      version: EvidenceVersion.fromNumber(snapshot.version),
-      hash: EvidenceHash.fromString(snapshot.hash),
-      metadata: EvidenceMetadata.fromSnapshot(snapshot.metadata),
-      provenance: Provenance.fromSnapshot(snapshot.provenance),
-      ...(snapshot.exactContent === undefined
-        ? {}
-        : { exactContent: ExactContentEvidence.fromSnapshot(snapshot.exactContent) }),
-    });
+    return new Evidence(
+      EvidenceId.fromString(snapshot.id),
+      normalizeOptionalString(snapshot.missionId, 'Evidence Mission identity'),
+      EvidenceType.fromString(snapshot.type),
+      EvidenceVersion.fromNumber(snapshot.version),
+      EvidenceHash.fromString(snapshot.hash),
+      EvidenceMetadata.fromSnapshot(snapshot.metadata),
+      Provenance.fromSnapshot(snapshot.provenance),
+      snapshot.confidenceClassification === undefined
+        ? undefined
+        : ConfidenceClassification.fromString(snapshot.confidenceClassification),
+      snapshot.exactContent === undefined
+        ? undefined
+        : ExactContentEvidence.fromSnapshot(snapshot.exactContent),
+    );
   }
 
   public get id(): EvidenceId {
@@ -137,6 +147,10 @@ export class Evidence {
 
   public get provenance(): Provenance {
     return this.evidenceProvenance;
+  }
+
+  public get confidenceClassification(): ConfidenceClassification | undefined {
+    return this.evidenceConfidenceClassification;
   }
 
   public get exactContent(): ExactContentEvidence {
@@ -173,6 +187,9 @@ export class Evidence {
       hash: this.evidenceHash.toString(),
       metadata: this.evidenceMetadata.toSnapshot(),
       provenance: this.evidenceProvenance.toSnapshot(),
+      ...(this.evidenceConfidenceClassification === undefined
+        ? {}
+        : { confidenceClassification: this.evidenceConfidenceClassification.toString() }),
       ...(this.exactContentEvidence === undefined
         ? {}
         : { exactContent: this.exactContentEvidence.toSnapshot() }),
@@ -192,4 +209,14 @@ function normalizeOptionalString(value: string | undefined, label: string): stri
   }
 
   return normalized;
+}
+
+function requireConfidenceClassification(
+  value: ConfidenceClassification | undefined,
+): ConfidenceClassification {
+  if (value === undefined) {
+    throw new InvalidEvidenceException('Evidence confidenceClassification is required.');
+  }
+
+  return value;
 }

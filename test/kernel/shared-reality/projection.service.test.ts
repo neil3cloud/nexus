@@ -92,6 +92,7 @@ function createEvidence(input: {
         summary: input.id,
       },
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: input.source ?? 'repository',
       acquisitionMethod: 'repository-inspection',
@@ -99,6 +100,7 @@ function createEvidence(input: {
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   });
 }

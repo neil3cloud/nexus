@@ -1,5 +1,100 @@
 # Nexus Implementation Report
 
+## Sprint 79 — Corrective Prerequisite 1A — RFC-0002 v1.3 Evidence Confidence and Verification Status Integration
+
+### Implemented Slice
+
+Implemented Milestone 12 Initial Capability Sequence Corrective Prerequisite 1A as authorized by `NEXUS-RAT-2026-07-21-005`.
+
+Implemented scope:
+
+- Added `ConfidenceClassification` as the RFC-0002 v1.3 five-value closed vocabulary (`Verified`, `Accepted`, `Observed`, `Inferred`, `Unverified`) with canonical string encoding, total ordering, comparison semantics, and three-way threshold satisfaction.
+- Added `EvidenceVerificationStatus` as the RFC-0002 v1.3 three-value closed vocabulary (`Verified`, `Unverified`, `VerificationFailed`) with canonical string encoding, total ordering, comparison semantics, and three-way threshold satisfaction.
+- Added `ThresholdSatisfactionResult = 'Satisfied' | 'Insufficient' | 'Undetermined'`; threshold helpers never return booleans.
+- Split Provenance construction into typed governed construction (`Provenance.create`) and raw registration validation (`Provenance.register`).
+- Added governed Provenance serialization with `verificationStatusSemantics: 'EvidenceVerificationStatus/v1'` and legacy marker-less Provenance reconstitution that preserves opaque status bytes as unrankable.
+- Added independent `Provenance.fromSnapshot` and `Evidence.fromSnapshot` reconstitution paths that do not delegate to governed construction or registration.
+- Added optional `EvidenceSnapshot.confidenceClassification` reconstitution semantics: absent confidence remains absent and unrankable; present invalid confidence fails closed.
+- Required new Evidence registration to supply both `confidenceClassification` and governed Provenance verification semantics.
+- Updated the authorized Host production Evidence registration caller to classify developer-workflow-completion Evidence as `Observed` and serialize governed verification semantics.
+- Updated Evidence registration fixtures and compatibility coverage for RFC-0002 v1.3 while preserving Sprint 78 Exact Content Evidence behavior.
+
+Out of scope and not implemented:
+
+- No RFC-0006 `AssessmentCriterion`, `AssessmentCriteriaSet`, or `EvidenceExpectation`.
+- No Initial Capability Sequence Step 2-6 behavior.
+- No RFC-0002 Evidence Relationships implementation.
+- No Evidence Type registry.
+- No Canonicalization Profile Registry generalization beyond Sprint 78's `ExactOctetStream`/`"1"` profile.
+- No durable persistence, indexing, search, or migration of legacy Evidence records.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0002 v1.3 — Evidence Model, § Evidence Confidence and § Evidence Verification Status.
+
+Referenced, read-only:
+
+- RFC-0002 v1.2 — Exact Content Evidence, preserved as Sprint 78 frozen behavior.
+- RFC-0006 v1.3 — referenced only as the future Step 2 consumer; no RFC-0006 concept was implemented.
+
+Deferred Concepts:
+
+- RFC-0006 v1.3 `AssessmentCriterion` and `EvidenceExpectation`.
+- RFC-0002 Evidence Relationships.
+- Evidence Type registry.
+- Canonicalization Profile Registry generalization beyond Sprint 78 Exact Content Evidence.
+- Corpus Review Structural Foundation and later Milestone 12 Steps 3-6.
+- Reproducible Context Integration (`CorpusReviewContextProfile`).
+- Corpus Readiness Acceptance Repository Policy.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/implementation/sprints/sprint-0079-corrective-prerequisite-1a-evidence-confidence-and-verification-status.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-21-003`, `NEXUS-RAT-2026-07-21-004`, `NEXUS-RAT-2026-07-21-005`).
+
+### Architectural Assumptions
+
+- Legacy marker-less Provenance records are opaque and unrankable even when their `verificationStatus` string spells a governed vocabulary value.
+- Absent Evidence confidence is valid only for reconstituted pre-v1.3 snapshots; new registration and construction fail closed without a governed confidence classification.
+- The Host developer-workflow-completion Evidence is `Observed` because the Host directly records adapter dispatch completion but does not independently review or human-accept that Evidence at the registration call site.
+
+### Known Limitations
+
+- Persistence remains in-memory and process-local.
+- Threshold helpers evaluate a single value against a single threshold; multi-item baseline-set aggregation remains future Step 2 scope.
+- Full validation requires the repository's existing validation-only Git index pattern because two historical integration guard tests intentionally inspect unstaged `src` diffs and fail when authorized current-sprint source changes are left unstaged in the normal worktree.
+
+### Validation Summary
+
+- TypeScript compile passed: `npm run compile`.
+- Targeted Evidence and integration coverage passed: 85/85 tests across 12 files.
+- Normal full validation compiled and linted cleanly, then failed only the two historical unstaged-diff guard tests that reject authorized current-sprint source changes in `src/kernel/evidence/*`; all other tests in that run passed (727/729).
+- Final full validation passed using a temporary validation-only Git index containing the authorized Sprint 79 source/test/documentation changes and leaving the repository index/worktree unmodified: `npm run validate` (`npm run compile`, `npm run lint`, `npm run test`, `npm run build`).
+- Full non-extension-host Vitest suite passed in final validation: 729/729 tests across 103/103 files.
+- Extension-host test bundle build passed: `npm run test:extension-host:build`.
+
+### Deviations
+
+No architectural deviations.
+
+Forecast deviation: the Sprint 79 Forecasted Source Files entry for `src/kernel/evidence/evidence.errors.ts` new exception types was not implemented; the implementation reused the existing `InvalidEvidenceException` for every new fail-closed confidence and verification-status path instead.
+
+### Sprint Status
+
+Implemented — Pending Reviewer Validation.
+
+---
+
 ## Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation
 
 ### Implemented Slice

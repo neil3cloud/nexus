@@ -3,6 +3,12 @@ export type {
   EvidenceSnapshot,
   RegisterEvidenceRequest,
 } from './evidence.aggregate';
+export {
+  ConfidenceClassification,
+  confidenceClassificationNames,
+  confidenceSatisfiesThreshold,
+} from './confidence-classification';
+export type { ConfidenceClassificationName } from './confidence-classification';
 export { ContentDigest, ContentDigestAlgorithm, contentDigestAlgorithm } from './content-digest';
 export type { ContentDigestAlgorithmName } from './content-digest';
 export { Evidence } from './evidence.aggregate';
@@ -15,6 +21,16 @@ export { EvidenceType } from './evidence-type';
 export type { EvidenceTypeName } from './evidence-type';
 export { supportedEvidenceTypes } from './evidence-type';
 export { EvidenceVersion } from './evidence-version';
+export {
+  EvidenceVerificationStatus,
+  evidenceVerificationStatusNames,
+  evidenceVerificationStatusSemantics,
+  verificationStatusSatisfiesThreshold,
+} from './evidence-verification-status';
+export type {
+  EvidenceVerificationStatusName,
+  GovernedVerificationStatusInput,
+} from './evidence-verification-status';
 export {
   AmbiguousEvidenceVersionException,
   ContentDigestMismatchException,
@@ -67,5 +83,11 @@ export type {
 } from './exact-content-reference';
 export { RepresentedContentReference } from './exact-content-reference';
 export type { ProvenanceInput, ProvenanceSnapshot } from './provenance';
+export type {
+  GovernedProvenanceSnapshot,
+  LegacyProvenanceSnapshot,
+  ProvenanceRegistrationInput,
+} from './provenance';
 export { Provenance } from './provenance';
+export type { ThresholdSatisfactionResult } from './threshold-satisfaction';
 export { EvidenceService } from './evidence.service';

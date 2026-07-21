@@ -3,6 +3,10 @@ import { createHash } from 'node:crypto';
 
 import { Evidence } from '../../../src/kernel/evidence/evidence.aggregate';
 import {
+  ConfidenceClassification,
+  confidenceSatisfiesThreshold,
+} from '../../../src/kernel/evidence/confidence-classification';
+import {
   DerivedContentMultiSourceDeferredException,
   DerivedContentZeroSourceException,
   DuplicateDerivedContentSourceException,
@@ -33,6 +37,7 @@ function evidenceRequest() {
         suite: 'unit',
       },
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: 'vitest',
       acquisitionMethod: 'test-run',
@@ -40,6 +45,7 @@ function evidenceRequest() {
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   };
 }
@@ -62,6 +68,7 @@ describe('Evidence', () => {
           suite: 'unit',
         },
       },
+      confidenceClassification: 'Verified',
       provenance: {
         source: 'vitest',
         acquisitionMethod: 'test-run',
@@ -69,6 +76,7 @@ describe('Evidence', () => {
         actor: 'builder',
         system: 'nexus',
         verificationStatus: 'Verified',
+        verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
       },
     });
   });
@@ -128,6 +136,49 @@ describe('Evidence', () => {
 
     expect(restored).not.toBe(evidence);
     expect(restored.toSnapshot()).toEqual(evidence.toSnapshot());
+  });
+
+  it('fails closed when new construction omits confidence classification', () => {
+    const request = evidenceRequest();
+    const withoutConfidence = { ...request };
+    delete (withoutConfidence as { confidenceClassification?: string }).confidenceClassification;
+
+    expect(() => Evidence.register(withoutConfidence as never)).toThrow(InvalidEvidenceException);
+    expect(() =>
+      Evidence.create({
+        id: Evidence.register(request).id,
+        type: Evidence.register(request).type,
+        version: Evidence.register(request).version,
+        hash: Evidence.register(request).hash,
+        metadata: Evidence.register(request).metadata,
+        provenance: Evidence.register(request).provenance,
+      } as never),
+    ).toThrow(InvalidEvidenceException);
+  });
+
+  it('preserves absent legacy confidence on reconstitution without backfill', () => {
+    const snapshot = Evidence.register(evidenceRequest()).toSnapshot();
+    const legacySnapshot = { ...snapshot };
+    delete (legacySnapshot as { confidenceClassification?: string }).confidenceClassification;
+    const restored = Evidence.fromSnapshot(legacySnapshot);
+
+    expect(restored.confidenceClassification).toBeUndefined();
+    expect(restored.toSnapshot()).not.toHaveProperty('confidenceClassification');
+    expect(
+      confidenceSatisfiesThreshold(
+        restored.confidenceClassification,
+        ConfidenceClassification.fromString('Unverified'),
+      ),
+    ).toBe('Undetermined');
+  });
+
+  it('fails closed when snapshot confidence is present but invalid', () => {
+    const snapshot = {
+      ...Evidence.register(evidenceRequest()).toSnapshot(),
+      confidenceClassification: 'Unknown',
+    };
+
+    expect(() => Evidence.fromSnapshot(snapshot)).toThrow(InvalidEvidenceException);
   });
 
   it('distinguishes legacy Evidence from Exact Content Evidence', () => {
@@ -290,6 +341,7 @@ describe('Evidence', () => {
           suite: 'unit',
         },
       },
+      confidenceClassification: 'Verified',
       provenance: {
         source: 'vitest',
         acquisitionMethod: 'test-run',
@@ -297,6 +349,7 @@ describe('Evidence', () => {
         actor: 'builder',
         system: 'nexus',
         verificationStatus: 'Verified',
+        verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
       },
     });
 

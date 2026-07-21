@@ -22,6 +22,7 @@ function createEvidence(id: string, version = 1): Evidence {
         suite: 'unit',
       },
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: 'vitest',
       acquisitionMethod: 'test-run',
@@ -29,6 +30,7 @@ function createEvidence(id: string, version = 1): Evidence {
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   });
 }

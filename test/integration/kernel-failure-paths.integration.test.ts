@@ -582,6 +582,7 @@ function createEvidenceRequest(id: string, missionId: string) {
         sprint: 'Sprint 17',
       },
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: 'vitest',
       acquisitionMethod: 'integration-test',
@@ -589,6 +590,7 @@ function createEvidenceRequest(id: string, missionId: string) {
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   } as const;
 }

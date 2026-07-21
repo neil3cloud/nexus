@@ -28,6 +28,7 @@ export function createEvidence(id = 'evidence-1'): Evidence {
         suite: 'knowledge',
       },
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: 'vitest',
       acquisitionMethod: 'test-run',
@@ -35,6 +36,7 @@ export function createEvidence(id = 'evidence-1'): Evidence {
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   });
 }

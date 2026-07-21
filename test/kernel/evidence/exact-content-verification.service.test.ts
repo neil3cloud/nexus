@@ -314,6 +314,7 @@ function baseEvidenceRequest(id: string, version: number) {
     metadata: {
       capturedAt: '2026-07-12T00:00:00.000Z',
     },
+    confidenceClassification: 'Verified',
     provenance: {
       source: 'vitest',
       acquisitionMethod: 'test-run',
@@ -321,6 +322,7 @@ function baseEvidenceRequest(id: string, version: number) {
       actor: 'builder',
       system: 'nexus',
       verificationStatus: 'Verified',
+      verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
     },
   };
 }

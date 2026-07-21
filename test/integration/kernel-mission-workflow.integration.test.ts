@@ -147,6 +147,7 @@ describe('Kernel end-to-end Mission workflow integration', () => {
           sprint: 'Sprint 16',
         },
       },
+      confidenceClassification: 'Verified',
       provenance: {
         source: 'vitest',
         acquisitionMethod: 'integration-test',
@@ -154,6 +155,7 @@ describe('Kernel end-to-end Mission workflow integration', () => {
         actor: 'builder',
         system: 'nexus',
         verificationStatus: 'Verified',
+        verificationStatusSemantics: 'EvidenceVerificationStatus/v1',
       },
     });
     const projection = await projectionService.project({

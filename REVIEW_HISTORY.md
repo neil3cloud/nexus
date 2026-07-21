@@ -2,6 +2,125 @@
 
 ---
 
+## NEXUS-REV-2026-07-21-002 — Sprint 79 — `BT-079-002`/`DOC-079-001` Resolution Verification
+
+- **Reviewed Sprint:** Sprint 79 — Corrective Prerequisite 1A — RFC-0002 v1.3 Evidence Confidence and Verification Status Integration (Milestone 12 Initial Capability Sequence, between Step 1 and Step 2). Follow-up cycle verifying `builder-task.md`'s two Open items, `BT-079-002` and `DOC-079-001`, generated from `NEXUS-REV-2026-07-21-001`'s two findings.
+- **Reviewed Change:** `src/kernel/evidence/confidence-classification.ts`, `src/kernel/evidence/evidence-verification-status.ts`, `test/kernel/evidence/confidence-classification.test.ts`, `test/kernel/evidence/evidence-verification-status.test.ts`; `knowledge/implementation/sprints/sprint-0079-corrective-prerequisite-1a-evidence-confidence-and-verification-status.md` § Implementation Deviations; `IMPLEMENTATION_REPORT.md` Sprint 79 § Deviations.
+- **RFC Coverage:** RFC-0002 v1.3 — Evidence Model, § Evidence Confidence, § Evidence Verification Status (Primary; corrective scope only, no new concept).
+- **Review Date:** 2026-07-21
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+Both `BT-079-002` and `DOC-079-001` are verified fully resolved, satisfying the acceptance criteria set by `NEXUS-REV-2026-07-21-001`.
+
+`BT-079-002` (Major, Implementation Defect — `NEXUS-REV-0079-DEF-001`): `.trim()` was removed from both `ConfidenceClassification.fromString` (`confidence-classification.ts:26`) and `EvidenceVerificationStatus.fromString` (`evidence-verification-status.ts:30`); both now compare the raw input string directly against the closed vocabulary with no normalization. A new `'rejects whitespace-padded canonical vocabulary strings'` test was added to each of the two test files, iterating every vocabulary value with leading-only, trailing-only, and both-sides padding, asserting `InvalidEvidenceException` in every case — closing exactly the Compatibility Test Matrix item 2 gap identified by the finding. No other file in either module was touched; the fix is minimal and confined to its Implementation Target list.
+
+`DOC-079-001` (Minor, Documentation Drift — `NEXUS-REV-0079-DOC-001`): both the Sprint 79 Sprint Implementation Record's § Implementation Deviations and `IMPLEMENTATION_REPORT.md`'s Sprint 79 § Deviations now state that the Forecasted Source Files' `evidence.errors.ts` new-exception-types entry was not implemented and that `InvalidEvidenceException` was reused instead — matching the required disclosure exactly.
+
+Validation performed during this cycle:
+
+- `npm run compile` (`tsc --noEmit`) passed.
+- `npx vitest run` targeted at the full Sprint 79 file-inventory suite (16 files) passed: 98/98 tests (96 from the prior cycle plus the 2 new whitespace-rejection regression tests).
+- `git status`/`git diff --stat` confirmed no file outside `BT-079-002`'s four Implementation Targets and `DOC-079-001`'s two Implementation Targets changed since `NEXUS-REV-2026-07-21-001`; no previously-approved Sprint 79 concept (Construction/Reconstitution Contract, closed `ProvenanceSnapshot` union, independent `fromSnapshot` reconstitution, the ten-site file inventory) was reopened or modified.
+
+No new finding was identified. No architectural violation.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 0 |
+| Critical / Major / Minor / Observation | 0 / 0 / 0 / 0 |
+| Architectural Violations | 0 |
+| Validation | TypeScript compile clean; targeted Sprint 79 file-inventory Vitest suite 98/98 across 16 files; no out-of-scope file change |
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-21-001`; this corrective cycle introduced no new concept and confirmed no deferred concept was approximated.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. `BT-079-002` and `DOC-079-001` are both resolved exactly within their authorized scope. Sprint 79 is now Approved with Findings resolved — both findings from `NEXUS-REV-2026-07-21-001` are closed with no remaining open Builder Task or Documentation Task.
+
+### Builder Task Recommendation
+
+`BT-079-002` and `DOC-079-001` SHALL be marked Completed. No further Builder Task or Documentation Task remains open for Sprint 79.
+
+---
+
+## NEXUS-REV-2026-07-21-001 — Sprint 79 — Corrective Prerequisite 1A — RFC-0002 v1.3 Evidence Confidence and Verification Status Integration
+
+- **Reviewed Sprint:** Sprint 79 — Corrective Prerequisite 1A — RFC-0002 v1.3 Evidence Confidence and Verification Status Integration (Milestone 12 Initial Capability Sequence, between Step 1 and Step 2). Activated by `NEXUS-RAT-2026-07-21-005`.
+- **Reviewed Change:** `src/kernel/evidence/confidence-classification.ts` (new), `src/kernel/evidence/evidence-verification-status.ts` (new), `src/kernel/evidence/threshold-satisfaction.ts` (new), `src/kernel/evidence/provenance.ts`, `src/kernel/evidence/evidence.aggregate.ts`, `src/kernel/evidence/evidence.contract.ts`, `src/hosts/vscode/host-mission-workflow.ts`, and the associated new/updated tests under `test/kernel/evidence/`, `test/hosts/vscode/`, `test/kernel/knowledge/`, `test/kernel/shared-reality/`, and `test/integration/`.
+- **RFC Coverage:** RFC-0002 v1.3 — Evidence Model, § Evidence Confidence, § Evidence Verification Status (Primary). RFC-0002 v1.2 § Exact Content Evidence (Referenced, compatibility gate only). RFC-0006 v1.3 (Referenced only; no concept implemented).
+- **Review Date:** 2026-07-21
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS_WITH_FINDINGS
+
+### Executive Summary
+
+Sprint 79 is independently verified as architecturally conformant to RFC-0002 v1.3 and the Sprint 79 Sprint Implementation Record's Binding Construction/Reconstitution Contract. `ConfidenceClassification` and `EvidenceVerificationStatus` are implemented as closed, immutable, totally-ordered value objects with byte-stable canonical encoding and three-way (`Satisfied`/`Insufficient`/`Undetermined`) threshold helpers, never a boolean. `Provenance.create`/`Provenance.register` and `Evidence.create`/`Evidence.register` correctly split typed-construction from raw-registration validation, and `Provenance.fromSnapshot`/`Evidence.fromSnapshot` are independent reconstitution paths that do not delegate to `create`/`register`, exactly as the Construction/Reconstitution Contract requires. The `LegacyProvenanceSnapshot`/`GovernedProvenanceSnapshot` closed union correctly uses `verificationStatusSemantics?: never` to exclude marker-bearing objects from the legacy branch, verified by a `@ts-expect-error` compile-time fixture and a runtime malformed-marker fail-closed test. Legacy pre-v1.3 snapshots reconstitute with absent confidence and marker-less verification status preserved byte-for-byte, unrankable, with no backfill on re-serialization. The one authorized production caller (`host-mission-workflow.ts`) was updated exactly as forecast, with `'Observed'` confidence and a stated rationale.
+
+Validation performed during this review:
+
+- `npm run compile` (`tsc --noEmit`) passed.
+- `npx vitest run` targeted at all Sprint 79 Forecasted File Inventory test files (16 files, including `test/kernel/evidence/`, the four integration suites, `knowledge.test-support.ts`, and `projection.service.test.ts`) passed: 96/96 tests.
+- Manual read of every changed production file (`confidence-classification.ts`, `evidence-verification-status.ts`, `threshold-satisfaction.ts`, `provenance.ts`, `evidence.aggregate.ts`, `evidence.contract.ts`, `host-mission-workflow.ts`) against the Binding Construction/Reconstitution Contract and RFC-0002 v1.3 normative text.
+- `git diff --stat` confirmed no change to Sprint 78's frozen Evidence Foundation fields (`representedContentReference`, content-representation classification, `contentDigestAlgorithm`, `contentDigest`) and no change outside the Sprint's declared file inventory other than expected governance-document synchronization.
+
+The review identified one Implementation Defect (Major) and one Documentation Drift (Minor). Neither is an architectural violation; both are correctable without redesign and do not block progression to Step 2.
+
+### Findings
+
+#### NEXUS-REV-0079-DEF-001 — `fromString` silently trims whitespace before vocabulary comparison, accepting non-canonical padded input
+
+- **Category:** Implementation Defect
+- **Severity:** Major
+- **Authority:** RFC-0002 v1.3 § Evidence Confidence § Canonical Encoding ("Encoding is byte-stable and SHALL NOT vary... no leading or trailing whitespace"); § Evidence Verification Status ("Canonical encoding follows § Evidence Confidence"); Sprint 79 Compatibility Test Matrix item 2 ("rejection of every invalid/out-of-vocabulary string").
+- **Evidence:** `src/kernel/evidence/confidence-classification.ts:26` and `src/kernel/evidence/evidence-verification-status.ts:30` both call `value.trim()` before validating against the closed vocabulary, so `fromString(' Verified ')` (or any other whitespace-padded but correctly-spelled variant) succeeds and returns a classification equal to the canonical `'Verified'` value. The two negative-test fixtures (`confidence-classification.test.ts:19`, `evidence-verification-status.test.ts:20`) only assert rejection of `' verified '` — lower-cased, which fails on case regardless of trimming — so the whitespace-acceptance behavior is untested and unnoticed by the Compatibility Test Matrix's own item 2 obligation.
+- **Impact:** A byte-string that is not the canonical encoding (padded with whitespace) is silently normalized and accepted as a valid, rankable classification, contradicting the RFC's "byte-stable... SHALL NOT vary" canonical-encoding requirement and the fail-closed construction requirement for any value outside the vocabulary. This is a narrow input-validation gap, not a data-integrity or reconstitution defect: canonical `toString()`/`toJSON()` output remains correctly unpadded, and no legacy-preservation guarantee is affected.
+- **Recommended Disposition:** Builder Task. Remove the `.trim()` normalization from both `fromString` implementations (or, if intentional leniency is desired, that must be a separate ratified decision, not a Builder default) and add a Compatibility Test Matrix item 2 regression case for a correctly-spelled, whitespace-padded value being rejected.
+- **Builder Action:** Fix.
+
+#### NEXUS-REV-0079-DOC-001 — Undisclosed deviation from Forecasted Source Files: no new exception types added
+
+- **Category:** Documentation Drift
+- **Severity:** Minor
+- **Authority:** Sprint 79 Sprint Implementation Record § Forecasted File Inventory ("`evidence.errors.ts` — new exceptions for malformed confidence/verification-status construction and reconstitution") and its own closing instruction ("Any deviation from this inventory SHALL be reported to the Reviewer in `IMPLEMENTATION_REPORT.md`").
+- **Evidence:** `git diff --stat` shows `src/kernel/evidence/evidence.errors.ts` was not modified; all Sprint 79 fail-closed paths in `provenance.ts` and `evidence.aggregate.ts` throw the pre-existing `InvalidEvidenceException`. `IMPLEMENTATION_REPORT.md`'s Sprint 79 entry (§ Deviations) states "No architectural deviations" and does not mention this forecast/actual divergence, and the Sprint Implementation Record's own § Implementation Deviations likewise omits it (it discloses only the `evidence.service.ts` non-change).
+- **Impact:** None to conformance — RFC-0002 v1.3 requires fail-closed behavior, not specific exception types, and `InvalidEvidenceException` satisfies every fail-closed acceptance criterion exercised by the test suite. This is a self-reporting completeness gap only.
+- **Recommended Disposition:** Documentation Task. Record this deviation in the Sprint 79 Sprint Implementation Record's § Implementation Deviations and `IMPLEMENTATION_REPORT.md`.
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+| Metric | Count |
+| --- | --- |
+| Findings | 2 |
+| Critical / Major / Minor / Observation | 0 / 1 / 1 / 0 |
+| Architectural Violations | 0 |
+| Validation | TypeScript compile clean; targeted Sprint 79 file-inventory Vitest suite 96/96 across 16 files; prohibited Sprint 78 Evidence Foundation surface diff empty |
+
+### Deferred Concept Validation
+
+Confirmed correctly deferred and not approximated: RFC-0006 v1.3 `AssessmentCriterion`/`EvidenceExpectation`; Milestone 12 Initial Capability Sequence Step 2 and Steps 3-6; RFC-0002 Evidence Relationships; Evidence Type registry; Canonicalization Profile Registry generalization beyond Sprint 78's `ExactOctetStream`/`"1"` profile; `CorpusReviewContextProfile`; Corpus Readiness Acceptance Repository Policy. No deferred concept was silently introduced.
+
+### Architectural Compliance Summary
+
+No architectural violations detected. Sprint 79 correctly implements the Construction/Reconstitution Contract's split typed/raw construction paths, the closed `ProvenanceSnapshot` union, and independent, non-delegating `fromSnapshot` reconstitution for both `Provenance` and `Evidence`. Sprint 78's frozen Evidence Foundation is unmodified. The two findings above are an implementation defect and a documentation gap, not architectural drift; Sprint 79 is Approved with Findings.
+
+### Builder Task Recommendation
+
+`nexus-sprint` SHALL generate one Builder Task from `NEXUS-REV-0079-DEF-001` (remove whitespace trimming from `ConfidenceClassification.fromString`/`EvidenceVerificationStatus.fromString`, add the corresponding Compatibility Test Matrix regression test) and one Documentation Task from `NEXUS-REV-0079-DOC-001` (record the `evidence.errors.ts` forecast deviation). Neither finding blocks Milestone 12 Initial Capability Sequence Step 2 activation.
+
+---
+
 ## NEXUS-REV-2026-07-19-001 — Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation
 
 - **Reviewed Sprint:** Sprint 78 — RFC-0002 v1.2 Exact Content Evidence Implementation (Milestone 12 Initial Capability Sequence Step 1).
