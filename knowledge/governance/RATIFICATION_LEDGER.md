@@ -11303,3 +11303,359 @@ Activates Sprint 80. Depends on `NEXUS-RAT-2026-07-21-006` (Milestone 12 sequenc
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-22-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-22-001
+
+## Date
+
+2026-07-22
+
+## Subject
+
+Amends the Milestone 12 Initial Capability Sequence established by `NEXUS-RAT-2026-07-19-006` and previously
+amended by `NEXUS-RAT-2026-07-21-006`: narrows Step 3 to exactly the RFC-0013-owned structural value objects
+that require neither an RFC-0003 Projection identity/freshness contract, Mission attribution, nor any external
+resolver boundary, and moves Active Evidence Applicability, the nine-component Corpus Review Basis and its
+Fingerprint, Mission Relationship (`missionId`), Assessment Binding, and `CorpusReview`/`Open`-state aggregate
+construction into Step 3A. Fixes the corrected proposed text's Evidence-input, artifact-binding, fingerprint
+(including the Contract/Basis Fingerprint conflation), authorization-wording, and inapplicable-test defects
+identified across successive Sprint Owner Final Owner Reviews. Defers the `Other` variant of both
+`CorpusReviewPurpose` and `CorpusArtifactKind`, and any external Evidence/Assessment Criteria Set resolver
+capability, each pending its own separately ratified architectural authorization. No Sprint is activated by this
+record. No prior Sprint (78, 79, 80) or its findings are reopened. RFC-0001, RFC-0002, RFC-0003, RFC-0006, and
+RFC-0013 are unmodified.
+
+## Originating Review Finding(s)
+
+Sprint Owner Final Owner Review, Sprint 81 Proposal Revision 2 (2026-07-22): RFC-0003 Projection identity/
+freshness gap — Step 3A stop condition 1, unchanged throughout.
+
+Sprint Owner Final Owner Review, Revision 3 (2026-07-22): Mission Relationship ownerless in Step 3; resolver-
+dependent construction without an authorized boundary; cross-Scope/Contract uniqueness requiring an aggregate
+Step 3 does not own; unratified `Other`-variant namespace grammar; and a verification-evidence path corrected to
+`src/kernel/shared-reality/`.
+
+Sprint Owner Final Owner Review, Revision 4 (2026-07-22, CLARIFICATION REQUIRED): an incoherent
+`EvidenceSnapshot | ExactContentEvidenceSnapshot` union replaced with a single reconstituted-`Evidence`-value
+contract; unenforced Exact Evidence-Anchored Artifact Binding corrected by deriving `artifactId` from
+`representedContentReference.contentId`; self-contradictory fingerprint wording; Proposed-versus-applied wording
+conflict; and an undefined duplicate-`corpusArtifactReferenceId` test-construction path resolved via this
+codebase's established caller-supplied-identity convention (`EvidenceId.fromString()`).
+
+Sprint Owner Final Owner Review, Revision 5 (2026-07-22, CLARIFICATION REQUIRED): the proposed Corpus Review
+Contract Fingerprint incorrectly included the Assessment Criteria Set's identity, version, and fingerprint —
+RFC-0013 defines these as separate components 5-7 of the nine-component Corpus Review Basis Fingerprint, distinct
+from the Contract Fingerprint's own authority-reference-only input set; "if and only if the digest changes"
+overstated SHA-256's guarantees; Step 3A's future-capability wording did not consistently require separate
+ratification for an `Other`-variant or an external resolver; and a Scope/Contract fingerprint timestamp-exclusion
+test was proposed against fingerprint inputs that carry no timestamp.
+
+Sprint Owner Final Owner Review, Revision 6/prior ratification text (2026-07-22, APPROVE WITH NAMED
+CORRECTIONS): the substantive architecture, ownership, fingerprint separation, constructors, scope, prohibitions,
+and file inventory were accepted without redesign. Two documentary corrections were required: (1) Sprint 81's
+proposal text deferred several acceptance criteria and the full file inventory to earlier revisions ("unchanged
+from Revision 5," "verified correct," "unchanged - no new type required") rather than reproducing them in full,
+leaving the proposal not self-contained; (2) the prerequisite Sprint certification evidence ("Approved and fully
+closed / Approved with Findings, as applicable") did not name each prerequisite Sprint's exact certifying Review.
+Both corrected in this record and the accompanying Sprint 81 proposal, reproduced in full below with no
+substantive change.
+
+## RFC Coverage
+
+- RFC-0013 - Corpus Review Model, Final v1.0 (Step 3 (Narrowed)'s structural value objects, including the
+  corrected Contract Fingerprint definition, which matches RFC-0013 exactly; Mission Relationship, the Basis, and
+  aggregate construction relocate to Step 3A; `Other`-variant support deferred)
+- RFC-0006 v1.3 - Engineering Assessment Model (Referenced Only, read-only: a concrete, caller-supplied
+  `AssessmentCriteriaSet` value; its `identity`/`version`/`fingerprint` are stored on the Contract and read
+  directly from that value, but do **not** participate in the Contract Fingerprint)
+- RFC-0002 v1.3 - Evidence Model (Referenced Only, read-only: a concrete, reconstituted `Evidence` domain value
+  with `hasExactContent()` true, whose `id`/`version`/`exactContent` fields are read directly; no snapshot
+  interface accepted as a substitute for a reconstituted value)
+- RFC-0003 - Shared Reality Projection Model (Referenced Only - durable Projection identity/freshness resolution
+  remains Step 3A stop condition 1)
+- RFC-0001 - Mission Model (Referenced Only - Mission Relationship/`missionId` relocated to Step 3A)
+
+## Deferred Concepts
+
+- Active Evidence Applicability, the nine-component Corpus Review Basis and Basis Fingerprint (which alone
+  incorporates the Assessment Criteria Set's identity/version/fingerprint, per RFC-0013), Mission
+  Relationship/`missionId`, Assessment Binding, and `CorpusReview`/`Open`-state aggregate construction - Step 3A.
+- External resolution of Evidence or an Assessment Criteria Set by identifier - Step 3 consumes only an
+  already-reconstituted concrete `Evidence` value and an already-constructed concrete `AssessmentCriteriaSet`
+  value, both supplied directly by the caller.
+- Cross-collection `corpusArtifactReferenceId` uniqueness - Step 3A.
+- The `Other` variant of `CorpusReviewPurpose` and `CorpusArtifactKind`, and any future external-resolver
+  capability - deferred pending their own **separate architectural ratification and subsequent Sprint
+  authorization**; neither `NEXUS-RAT-2026-07-21-006` nor this record pre-authorizes either.
+- `CorpusFindingReference`, Corpus Readiness Result, `corpusFindingReferenceSetFingerprint` - Steps 4-5.
+- Completion, Withdrawal, Projection Snapshot Lifecycle - Step 5.
+- Reproducible Context Integration - named blocking dependency, unaffected.
+
+## Ownership Model
+
+- RFC-0013 exclusively owns Corpus Review Purpose, Contract, Scope, Artifact Reference/Kind, the Basis and its
+  Fingerprint, Mission Relationship, and the aggregate. The Contract Fingerprint and the Basis Fingerprint are two
+  distinct RFC-0013-owned values with two distinct, non-overlapping input definitions; this record changes which
+  step implements which already-owned concept and corrects a proposed-text error that would have conflated the
+  two fingerprints - it does not alter either fingerprint's normative definition.
+- RFC-0002 v1.3 exclusively owns Evidence identity, version, Exact Content Evidence, digest, digest algorithm
+  (closed to SHA-256), and `representedContentReference`. Step 3's `CorpusArtifactReference` reads these directly
+  from a caller-supplied, reconstituted `Evidence` value and derives `artifactId` from
+  `representedContentReference.contentId`.
+- RFC-0006 v1.3 exclusively owns `AssessmentCriteriaSet` identity, version, and fingerprint. Step 3's Contract
+  reads these directly from a caller-supplied value and stores them on the Contract for Step 3A's future Basis
+  construction - they are not inputs to the Contract Fingerprint itself.
+- This record introduces no new domain, no new aggregate ownership, and no reassignment of any concept between
+  specifications, and establishes no equivalence between `CorpusArtifactKind` and RFC-0002's `contentType` field.
+
+## Governance Decision
+
+APPROVED - MILESTONE 12 INITIAL CAPABILITY SEQUENCE STEP 3/STEP 3A BOUNDARY CORRECTION.
+
+### Part 1 - Step 3 (Narrowed) final scope
+
+Step 3 owns exactly:
+
+- `CorpusReviewPurpose` - six core enumeration values, Canonical Purpose Key; `Other` deferred.
+- `CorpusArtifactKind` - fourteen core enumeration values, Canonical Artifact Kind Key; `Other` deferred.
+- `CorpusArtifactReference` - constructed from `{ corpusArtifactReferenceId, artifactKind, evidence, locator? }`:
+  `corpusArtifactReferenceId` is a caller-supplied, non-empty string (mirrors `EvidenceId.fromString()`'s
+  established convention); `evidence` is a concrete, already-reconstituted RFC-0002 `Evidence` domain value,
+  required to satisfy `evidence.hasExactContent()`; `artifactId` is **derived**, never independently accepted, as
+  `evidence.exactContent.representedContentReference.contentId` - this eliminates an artifact/Evidence identity
+  mismatch by construction; no separate equality check or independently-supplied `artifactId` parameter exists.
+  `evidenceId`, `evidenceVersion`, `contentDigest`, and the complete `representedContentReference` are derived
+  directly from `evidence`. Canonical exact identity tuple: `(artifactId, Canonical Artifact Kind Key,
+  contentDigest)`. No equivalence between `artifactKind` and `contentType`.
+- `CorpusReviewScope`/`CorpusReviewContract` - within-collection `corpusArtifactReferenceId` and canonical
+  exact-identity duplicate rejection only (cross-collection deferred to Step 3A); Contract's Assessment Criteria
+  Set reference reads `identity`/`version`/`fingerprint` directly from a caller-supplied `AssessmentCriteriaSet`
+  value.
+- Corpus Review Opening Attribution - unaffected.
+- Canonical Fingerprint Protocol, applied to Scope and Contract Fingerprints: each fingerprint's canonical
+  serialized input changes if a participating canonical exact identity component changes (`artifactId`,
+  Canonical Artifact Kind Key, or `contentDigest`, for Scope/Contract entries), and, for each tested
+  representative change, a different digest is produced under the deterministic protocol; each fingerprint's
+  input is unchanged by any change to `corpusArtifactReferenceId`, `locator`, timestamps, or input ordering, and
+  the Contract Fingerprint's input excludes the Assessment Criteria Set's `identity`, `version`, and
+  `fingerprint` entirely - matching RFC-0013's Contract Fingerprint definition exactly, distinct from the
+  separate nine-component Basis Fingerprint that alone incorporates those three values.
+
+### Part 2 - Step 3A expanded scope (confirmed, unchanged in dependency structure)
+
+Depends exactly on Step 1 + Corrective Prerequisite 1A + Step 2A + Step 3 (Narrowed). Once its four existing stop
+conditions are resolved: Mission Relationship, Active Evidence Applicability, the Basis and Basis Fingerprint
+(the only RFC-0013 fingerprint incorporating the Assessment Criteria Set's identity/version/fingerprint, per
+RFC-0013 Basis Fingerprint components 5-7), `CorpusReview`/`Open`-state construction, cross-Scope/Contract
+identifier uniqueness, and Assessment Binding. Step 3A does **not** thereby acquire authorization for an
+`Other`-variant implementation or an external-resolver capability: either requires its own separate architectural
+ratification and subsequent Sprint authorization, independent of and in addition to Step 3A's four existing stop
+conditions. This record pre-authorizes neither.
+
+Dependency order (unchanged): Step 1 -> Corrective Prerequisite 1A -> Step 2A -> Step 3 (Narrowed, final) -> Step
+3A (expanded, final) -> Step 4 -> Step 5 -> Step 6.
+
+## Authorized Builder Scope
+
+None. Sequencing and scope-boundary correction only.
+
+## Scope Restrictions
+
+- Does not resolve any of Step 3A's four stop conditions.
+- Does not ratify a namespace grammar for `Other`, and does not authorize `Other`-variant implementation under
+  Step 3A or any step without a separate architectural ratification and Sprint authorization.
+- Does not authorize an Evidence or Assessment Criteria Set resolver, repository, or lookup boundary under Step
+  3A or any step without a separate architectural ratification and Sprint authorization.
+- Does not establish an equivalence between `CorpusArtifactKind` and RFC-0002's `contentType`.
+- Does not alter the normative definition, input set, or computation of either the Corpus Review Contract
+  Fingerprint or the Corpus Review Basis Fingerprint as RFC-0013 defines them - it corrects a proposed-text
+  error that would have conflated the two.
+- Does not amend RFC-0001, RFC-0002, RFC-0003, RFC-0006, or RFC-0013.
+- Does not activate any Sprint.
+- Does not authorize a caller-asserted freshness Boolean, caller-asserted Projection identity, or any
+  RFC-0013-owned substitute for an RFC-0003 concept.
+- Does not reopen or narrow any previously Approved Sprint (78, 79, 80).
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` - this entry, appended once, with `Current Status: Active`.
+- `IMPLEMENTATION_PLAN.md` - Milestone 12 Status line; Ratification (one bullet appended); Initial Capability
+  Sequence introduction sentence; Step 3 entry text (final narrowed form, corrected Contract Fingerprint
+  definition); Step 3A entry text (final expanded form, corrected authorization wording).
+- `IMPLEMENTATION_MANIFEST.md` - identical sections, updated identically.
+
+No source file. No test file. No RFC. No `IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`.
+
+## Related Sprint(s) / Related Review(s)
+
+No Sprint activated by this record. Amends `NEXUS-RAT-2026-07-21-006`.
+
+**Prerequisite Sprint certification (governed `REVIEW_HISTORY.md` records - verified 2026-07-22):**
+
+- Sprint 78 (Step 1) - closed by `NEXUS-REV-2026-07-19-001`, Overall Disposition `PASS_WITH_FINDINGS` (recorded
+  in `IMPLEMENTATION_PLAN.md` as "Approved with Findings").
+- Sprint 79 (Corrective Prerequisite 1A) - Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS;
+  both prior findings resolved; zero remaining findings).
+- Sprint 80 (Step 2A) - Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings
+  from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings).
+
+**Originating corrections (session-level, not governed Ledger/Review-History records):** The corrections this
+record's Originating Review Finding(s) describes originated from a sequence of Sprint Owner Final Owner Reviews
+conducted directly against the unratified Sprint 81 Proposal during the current planning session. These Sprint
+Owner Final Owner Reviews are governance-directed corrections to draft text under `nexus-plan`; they are distinct
+from, and are not entries in, the governed `REVIEW_HISTORY.md` Review record set (which contains only
+post-implementation Engineering Review Reports such as the three `NEXUS-REV-*` citations directly above). No
+`NEXUS-REV-*` Review record originates or is otherwise associated with this Ratification.
+
+## Full Ratification Text
+
+> Milestone 12's Initial Capability Sequence Step 3 is finalized as "Corpus Review Structural Foundation
+> (Narrowed)": the six-value `CorpusReviewPurpose` and fourteen-value `CorpusArtifactKind` core enumerations
+> (`Other` deferred), `CorpusArtifactReference` constructed from a caller-supplied `corpusArtifactReferenceId`
+> string and a concrete, already-reconstituted RFC-0002 `Evidence` value with confirmed Exact Content Evidence,
+> deriving `artifactId` from that Evidence's `representedContentReference.contentId` (never independently
+> supplied) and every other anchored field directly from that same value, `CorpusReviewScope`/
+> `CorpusReviewContract` each enforcing only within-collection identifier and identity uniqueness,
+> `CorpusReviewContract`'s Assessment Criteria Set reference constructed from a caller-supplied concrete
+> `AssessmentCriteriaSet` value with all fields taken directly from it but explicitly excluded from the Contract
+> Fingerprint's input set, Corpus Review Opening Attribution unchanged, and the Canonical Fingerprint Protocol
+> applied to the Scope Fingerprint (over member canonical exact identities only) and the Contract Fingerprint
+> (over authority-reference canonical exact identities only, matching RFC-0013 exactly, with no Assessment
+> Criteria Set component). Step 3A is finalized as owning, in addition to its four existing stop conditions:
+> Mission Relationship, Active Evidence Applicability, the nine-component Basis and Basis Fingerprint (the sole
+> RFC-0013 fingerprint incorporating the Assessment Criteria Set's identity/version/fingerprint),
+> `CorpusReview`/`Open`-state construction, and cross-Scope/Contract identifier uniqueness; an `Other`-variant
+> implementation and any external-resolver capability each require their own separate architectural ratification
+> and subsequent Sprint authorization, neither pre-authorized here. No Sprint is activated; no RFC is amended; no
+> prior Sprint's scope, contract, file inventory, or findings are reopened.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-22-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-22-002
+
+## Date
+
+2026-07-22
+
+## Subject
+
+Activates Sprint 81 (Milestone 12 Initial Capability Sequence Step 3, Narrowed, Final) as Current Sprint, per the
+Sprint 81 Proposal Revision 6 (final, self-contained text; Sprint Owner Final Owner Review: APPROVE). Depends on
+`NEXUS-RAT-2026-07-22-001` (this same Ratification cycle's Step 3/Step 3A boundary correction, Active). Authorizes
+the exact sixteen-file forecasted implementation inventory, the Sprint 81 Sprint Implementation Record, and the
+Builder Task. Does not alter Step 3A's four independent stop conditions established by `NEXUS-RAT-2026-07-21-006`,
+does not authorize any `Other`-variant or external-resolver capability, and does not amend any RFC.
+
+## Originating Review Finding(s)
+
+Sprint Owner Final Owner Review (2026-07-22): "Disposition: APPROVE. ... Approve option (ii): ratify and
+activate, in strict dependency order." Approves the final, fully self-contained Sprint 81 Proposal Revision 6 and
+directs its activation as Sprint 81 immediately following application of `NEXUS-RAT-2026-07-22-001`.
+
+## RFC Coverage
+
+- RFC-0013 v1.0 - Corpus Review Model (Primary; the exact Implemented Concepts, Prohibitions, Acceptance
+  Criteria, and file inventory reproduced in full in the Sprint 81 Sprint Implementation Record)
+- RFC-0002 v1.3 - Evidence Model (Referenced, read-only)
+- RFC-0006 v1.3 - Engineering Assessment Model (Referenced, read-only)
+- RFC-0001, RFC-0003 - not consumed (Step 3A's responsibility)
+
+## Deferred Concepts
+
+Identical to those named in `NEXUS-RAT-2026-07-22-001` and the Sprint 81 Sprint Implementation Record's Deferred
+Concepts section: Mission Relationship/`missionId`, Active Evidence Applicability, the Basis and Basis
+Fingerprint, `CorpusReview`/`Open`-state construction, Assessment Binding, cross-Scope/Contract
+`corpusArtifactReferenceId` uniqueness (all Step 3A); the `Other` variant of `CorpusReviewPurpose`/
+`CorpusArtifactKind` and any external resolver capability (each requiring separate ratification); `CorpusFindingReference`,
+Corpus Readiness Result, `corpusFindingReferenceSetFingerprint` (Steps 4-5); Completion, Withdrawal, Projection
+Snapshot Lifecycle (Step 5); Reproducible Context Integration (excluded from the sequence).
+
+## Governance Decision
+
+APPROVED - SPRINT 81 ACTIVATED (MILESTONE 12 INITIAL CAPABILITY SEQUENCE STEP 3, NARROWED, FINAL).
+
+Sprint 81 is activated as Current Sprint on the strength of the Sprint 81 Proposal Revision 6 (final,
+self-contained text), approved without Blocking or Major finding remaining. `IMPLEMENTATION_PLAN.md` and
+`IMPLEMENTATION_MANIFEST.md` are synchronized at the sites identified in the Changed-File List, below, recording
+Step 3's activation as Sprint 81. The complete Sprint Implementation Record is created at
+`knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md`,
+reproducing Revision 6's complete scope, RFC Coverage, Implemented Concepts, Deferred Concepts, Prohibitions,
+Acceptance Criteria, and exact sixteen-file forecasted inventory in full, with Builder Results, Reviewer Notes,
+and Final Disposition reserved. `builder-task.md` is updated to record `BT-081-001` as the one Open Builder Task.
+
+## Authorized Builder Scope
+
+Exactly the sixteen-file inventory named in the Sprint 81 Sprint Implementation Record: eight new source files
+under `src/kernel/corpus-review/`, eight mirrored new test files under `test/kernel/corpus-review/`. No
+consolidation, split, or renaming of this inventory is authorized without a prior Sprint Owner approval. No
+pre-existing file under `src/kernel/review/`, `src/kernel/evidence/`, or `src/kernel/shared-reality/`, no
+`create-kernel-services.ts`, no host wiring file, and no `index.ts` runtime barrel may change.
+
+## Scope Restrictions
+
+Does not alter Step 3's narrowed scope, its fifteen prohibitions, or any text of `NEXUS-RAT-2026-07-22-001`
+beyond the Milestone 12 status/annotation synchronization named in the Changed-File List. Does not resolve,
+narrow, or otherwise affect any of Step 3A's four independent stop conditions. Does not activate Step 3A. Does
+not amend RFC-0001, RFC-0002, RFC-0003, RFC-0006, RFC-0013, or the Kernel Canon. Does not modify
+`IMPLEMENTATION_REPORT.md` or `REVIEW_HISTORY.md`. Does not itself constitute Builder implementation - no source
+or test file is created or modified by this record.
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` - this entry, `Current Status: Active`.
+- `IMPLEMENTATION_PLAN.md` - Milestone 12 Status line; Ratification (one bullet appended); Step 3's closing
+  activation annotation; line (formerly 4437) "both findings" corrected to "all three findings" for Sprint 80.
+- `IMPLEMENTATION_MANIFEST.md` - Milestone 12 Status line; Step 3's closing activation annotation; the three
+  Sprint 80 status locations (formerly lines 3212, 3229, 3250) corrected to record Sprint 80 as Approved and
+  fully closed under `NEXUS-REV-2026-07-22-002`.
+- `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md` - new
+  file, the complete Sprint 81 Implementation Record.
+- `knowledge/implementation/sprints/sprint-0080-step-2a-rfc-0006-structural-foundation.md` - Status section
+  "both findings" corrected to "all three findings" (Sprint 80's own Review Summary/Findings sections already
+  correctly enumerated all three; only the Status summary line was stale).
+- `builder-task.md` - updated to record Sprint 81 (`BT-081-001`) as the open Builder Task; prior Sprint 80/79
+  Resolved Builder Tasks carried forward for traceability.
+
+No source file. No test file. No RFC. No Kernel Canon change.
+
+## Related Sprint(s) / Related Review(s)
+
+Activates Sprint 81. Depends on `NEXUS-RAT-2026-07-22-001` (this same cycle) and, transitively, on Sprint 78
+(`NEXUS-RAT-2026-07-19-009`), Sprint 79 (`NEXUS-RAT-2026-07-21-005`, closed `NEXUS-REV-2026-07-21-002`), and
+Sprint 80 (`NEXUS-RAT-2026-07-21-007`, closed `NEXUS-REV-2026-07-22-002`).
+
+## Full Ratification Text
+
+> Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) is activated as Sprint 81, exactly per the
+> Sprint 81 Proposal Revision 6 (final, self-contained text): an exact sixteen-file forecasted implementation
+> inventory (eight new source files, eight mirrored new test files, all under `src/kernel/corpus-review/` and
+> `test/kernel/corpus-review/`); the `CorpusReviewPurpose`/`CorpusArtifactKind` core enumerations; `CorpusArtifactReference`
+> constructed from a caller-supplied `corpusArtifactReferenceId` and a concrete, reconstituted RFC-0002
+> `Evidence` value, deriving `artifactId` from `representedContentReference.contentId`; `CorpusReviewScope`/
+> `CorpusReviewContract` with within-collection uniqueness only; the Contract's stored, non-fingerprinted
+> Assessment Criteria Set reference; Corpus Review Opening Attribution; and the Canonical Fingerprint Protocol
+> applied to the Scope and Contract Fingerprints only, exactly per RFC-0013. `IMPLEMENTATION_PLAN.md` and
+> `IMPLEMENTATION_MANIFEST.md` are synchronized to record this activation and to correct the Sprint 80
+> "both findings"/"Pending Reviewer Validation" documentation drift identified across this Ratification cycle's
+> Sprint Owner Final Owner Reviews. The Sprint 81 Sprint Implementation Record and `builder-task.md` are
+> created/updated accordingly. Step 3A's four independent stop conditions, established by
+> `NEXUS-RAT-2026-07-21-006` and reaffirmed by `NEXUS-RAT-2026-07-22-001`, are unaffected and remain fully
+> binding. No RFC is amended. No source or test file is changed by this record.
+
+## Current Status
+
+Active

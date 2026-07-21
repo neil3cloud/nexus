@@ -2,6 +2,162 @@
 
 ---
 
+## NEXUS-REV-2026-07-22-005 — Sprint 81 — `DOC-081-002` Resolution Verification
+
+- **Reviewed Sprint:** Sprint 81 — Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) — Corpus Review Structural Foundation. Follow-up cycle verifying `builder-task.md`'s one Open item, `DOC-081-002`, generated from `NEXUS-REV-2026-07-22-004`'s one finding (`NEXUS-REV-0081-DOC-001`).
+- **Reviewed Change:** `IMPLEMENTATION_REPORT.md` (Sprint 81 § Validation Summary, § Deviations); `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md` (§ Validation Summary, § Implementation Deviations). Documentation only.
+- **RFC Coverage:** None (documentation-consistency correction only; no RFC-owned concept touched).
+- **Review Date:** 2026-07-22
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS
+
+### Executive Summary
+
+`NEXUS-REV-0081-DOC-001` is verified fully resolved. `IMPLEMENTATION_REPORT.md:90-91` and the Sprint 81 record's Validation Summary (`:353`) both now state the current counts — 24/24 targeted tests across 8/8 files, 783/783 full non-extension suite across 119/119 files — matching the actual reproduced `npx vitest run` output exactly. Both documents' Deviations sections (`IMPLEMENTATION_REPORT.md:98`; Sprint 81 record `:396`) now record `BT-081-002`'s corrective change (removal of `.trim()` from the three named closed-vocabulary parsers, plus three new regression tests), each citing `NEXUS-REV-2026-07-22-003`/`NEXUS-REV-0081-DEF-001`. No source or test file was touched — confirmed unchanged: the two remaining `.trim()` calls in the Sprint 81 inventory (`corpus-review-opening-attribution.ts:54`, `corpus-artifact-reference.ts:85`, both free-text `normalizeNonEmpty`) are identical to the prior cycle, and `npx vitest run test/kernel/corpus-review` reproduces the same 24/24 across 8/8 files. `npm run compile`, `npm run lint`, `npm run build`, and the full suite (783/783 across 119/119 non-extension files) all pass clean, independently reproduced.
+
+This cycle also reconciles the Sprint 81 Sprint Implementation Record's top-level `## Status` line (Reviewer-owned), which had not been updated since `NEXUS-REV-2026-07-22-003` and still referenced the then-open `NEXUS-REV-0081-DEF-001` — now updated to reflect full closure of both prior findings.
+
+No new finding was identified. No architectural violation.
+
+### Findings
+
+None.
+
+### Review Statistics
+
+- Files reviewed: 2 (both Builder-owned documentation).
+- Findings: 0.
+- Tests: 24/24 targeted; 783/783 full non-extension suite (unchanged from `NEXUS-REV-2026-07-22-004`, re-verified).
+- Source/test-file changes: 0 (confirmed byte-identical to the prior cycle).
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-22-003`/`-004`; this cycle touched documentation only.
+
+### Architectural Compliance Summary
+
+No architectural violation detected. `DOC-081-002` is resolved exactly within its authorized documentation-only Implementation Targets — no source, test, RFC, or Kernel Canon file was touched. Sprint 81 is now Approved and fully closed: both findings raised across this Sprint's review history (`NEXUS-REV-0081-DEF-001`, `NEXUS-REV-0081-DOC-001`) are resolved, with zero remaining open finding of any severity.
+
+### Builder Task Recommendation
+
+None. No further Builder or Documentation action is required for Sprint 81. Step 3A remains not activated pending its four independent stop conditions and its own separate architectural ratification, per `NEXUS-RAT-2026-07-21-006`/`NEXUS-RAT-2026-07-22-001`.
+
+---
+
+## NEXUS-REV-2026-07-22-004 — Sprint 81 — `BT-081-002` Resolution Verification
+
+- **Reviewed Sprint:** Sprint 81 — Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) — Corpus Review Structural Foundation. Follow-up cycle verifying `builder-task.md`'s one Open item, `BT-081-002`, generated from `NEXUS-REV-2026-07-22-003`'s one finding (`NEXUS-REV-0081-DEF-001`).
+- **Reviewed Change:** `src/kernel/corpus-review/corpus-review-purpose.ts`, `src/kernel/corpus-review/corpus-artifact-kind.ts`, `src/kernel/corpus-review/corpus-review-opening-attribution.ts` (`.trim()` removal); `test/kernel/corpus-review/corpus-review-purpose.test.ts`, `test/kernel/corpus-review/corpus-artifact-kind.test.ts`, `test/kernel/corpus-review/corpus-review-opening-attribution.test.ts` (new whitespace-padding regression tests).
+- **RFC Coverage:** RFC-0013 v1.0 — Corpus Review Model, §§ Corpus Review Purpose (Canonical Purpose Key), Corpus Artifact Kind (Canonical Artifact Kind Key), Corpus Review Opening Attribution (corrective scope only, no new concept).
+- **Review Date:** 2026-07-22
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+`NEXUS-REV-0081-DEF-001` is verified fully resolved. `CorpusReviewPurpose.fromString` (`corpus-review-purpose.ts:19-22`), `CorpusArtifactKind.fromString` (`corpus-artifact-kind.ts:40-43`), and `CorpusReviewOpeningAttribution`'s `normalizeOriginType` (`corpus-review-opening-attribution.ts:39-42`) no longer call `.trim()` before their closed-vocabulary comparison; each now compares the raw input directly against its respective closed set (`corpusReviewPurposeValues`, `corpusArtifactKindValues`, `corpusReviewOpeningOriginTypes`), exactly mirroring the `BT-079-002` precedent. The `.trim()` calls that remain in this inventory (`corpus-review-opening-attribution.ts:54`'s `normalizeNonEmpty`, for free-text `originId`; `corpus-artifact-reference.ts:85`'s `normalizeNonEmpty`, for free-text `corpusArtifactReferenceId`) are correctly untouched — those are not closed vocabularies and were explicitly out of `BT-081-002`'s scope. New regression tests — `'rejects whitespace-padded canonical purpose values'`, `'rejects whitespace-padded canonical artifact kind values'`, and `'rejects whitespace-padded canonical origin types'` — each iterate every value in their respective closed set with leading-, trailing-, and both-sides-padded variants and assert the corresponding named diagnostic. No other file in the sixteen-file Sprint 81 inventory was touched; `corpus-review.errors.ts` is byte-identical (no new exception type was needed, since the fix reuses the existing named diagnostics).
+
+Validation performed during this cycle:
+
+- `npm run compile` (`tsc --noEmit`) passed.
+- `npm run lint` passed.
+- `npx vitest run` targeted at `test/kernel/corpus-review` passed: 24/24 tests across 8/8 files (21 from the prior cycle plus the 3 new whitespace-padding tests).
+- `npx vitest run` (full suite) passed: 783/783 across 119/119 non-extension files (the sole failing file requires the `vscode` module, expected outside the extension host).
+- `npm run build` (`node esbuild.js`) passed.
+- `git diff --stat` against every protected `src/kernel/review/`, `src/kernel/evidence/`, `src/kernel/shared-reality/` file confirmed zero changes; confirmed zero Kernel composition/host/barrel changes; confirmed only the six named Implementation Target files changed, with every other file in the sixteen-file inventory byte-identical to the prior cycle.
+
+One new Minor finding was identified: `IMPLEMENTATION_REPORT.md`'s Sprint 81 § Validation Summary and the Sprint 81 Sprint Implementation Record's § Validation Summary (both Builder-owned) still report the pre-`BT-081-002` counts (21/21 targeted; 780/780 full suite) rather than the current 24/24 and 783/783, and neither document's § Implementation Deviations records that `BT-081-002`'s corrective change occurred. This is a documentation-consistency gap only; it does not affect the correctness of the fix, does not touch architecture, and does not block `BT-081-002`'s closure.
+
+### Findings
+
+#### `NEXUS-REV-0081-DOC-001` (Minor, Documentation Drift)
+
+- **Category:** Documentation Drift (Category 4, per `knowledge/implementation/review-classification.md`).
+- **Severity:** Minor.
+- **Authority:** Internal documentation-consistency requirement — the Sprint Implementation Record's own § Validation Summary and § Implementation Deviations are expected to reflect the Sprint's actual, current validation state, consistent with how `BT-080-002`–`BT-080-004`'s resolution was recorded in the Sprint 80 record.
+- **Evidence:**
+  - `IMPLEMENTATION_REPORT.md:90-91` — "Targeted Sprint 81 Vitest coverage passed: 21/21 tests... Full non-extension Vitest suite passed: 780/780 tests" — stale; actual current counts are 24/24 and 783/783.
+  - `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md:353` — Validation Summary table still states "21/21 tests across 8/8 files; ... 780/780 tests across 119/119 files" — same staleness.
+  - `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md:392-395` (§ Implementation Deviations) — contains no entry for `BT-081-002`'s corrective change.
+- **Impact:** A reader of either document would not learn, from those documents alone, that the whitespace-padding defect was found and corrected, or that three additional regression tests now exist. Purely informational; no runtime or architectural consequence.
+- **Recommended Disposition:** Documentation Task. Update `IMPLEMENTATION_REPORT.md` Sprint 81 § Validation Summary and the Sprint 81 record's § Validation Summary to the current counts (24/24 targeted; 783/783 full suite), and add a § Implementation Deviations entry to the Sprint 81 record (and a corresponding `IMPLEMENTATION_REPORT.md` note) recording `BT-081-002`'s `.trim()` removal and new regression tests, referencing `NEXUS-REV-2026-07-22-003`/`NEXUS-REV-0081-DEF-001`.
+- **Builder Action:** Update documentation only.
+
+### Review Statistics
+
+- Files reviewed: 6 changed (3 source, 3 test) plus re-verification of the unchanged remainder of the sixteen-file Sprint 81 inventory, `IMPLEMENTATION_REPORT.md`, and the Sprint 81 Sprint Implementation Record.
+- Findings: 0 Critical/Major; 1 Minor (Documentation Drift); 0 Observation.
+- Tests: 24/24 targeted; 783/783 full non-extension suite.
+- Protected-file changes: 0.
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-07-22-003`; this corrective cycle introduced no new concept and touched no deferred-concept boundary.
+
+### Architectural Compliance Summary
+
+No architectural violation detected. `BT-081-002` is resolved exactly within its authorized Implementation Targets, reusing the existing named diagnostics with no new exception type. Sprint 81 is now Approved and fully closed with respect to Implementation Defects — the sole finding from `NEXUS-REV-2026-07-22-003` (`NEXUS-REV-0081-DEF-001`) is resolved. One new Minor Documentation Drift finding (`NEXUS-REV-0081-DOC-001`) remains open as a non-blocking follow-up.
+
+### Builder Task Recommendation
+
+One follow-up Documentation Task should be generated (via `nexus-sprint`) against `NEXUS-REV-0081-DOC-001`: reconcile the Sprint 81 Validation Summary counts and add the missing Implementation Deviations entry in both `IMPLEMENTATION_REPORT.md` and the Sprint 81 Sprint Implementation Record. This finding does not require Sprint Owner ratification and does not block Sprint 81's closure or progression of the Milestone 12 Initial Capability Sequence.
+
+---
+
+## NEXUS-REV-2026-07-22-003 — Sprint 81 — Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) — Corpus Review Structural Foundation
+
+- **Reviewed Sprint:** Sprint 81 — Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) — Corpus Review Structural Foundation. Activated by `NEXUS-RAT-2026-07-22-002`, per the Sprint 81 Proposal Revision 6 (final, self-contained; Sprint Owner APPROVE). Sequence boundary corrected by `NEXUS-RAT-2026-07-22-001`.
+- **Reviewed Change:** the exact sixteen-file Sprint 81 inventory — eight new source files under `src/kernel/corpus-review/` (`corpus-review-purpose.ts`, `corpus-artifact-kind.ts`, `corpus-artifact-reference.ts`, `corpus-review-scope.ts`, `corpus-review-contract.ts`, `corpus-review-opening-attribution.ts`, `corpus-review-fingerprint-protocol.ts`, `corpus-review.errors.ts`) and eight mirrored new test files under `test/kernel/corpus-review/`.
+- **RFC Coverage:** RFC-0013 v1.0 — Corpus Review Model, §§ Corpus Review Purpose, Corpus Artifact Kind, Corpus Artifact Reference and Exact Revision Identity, Corpus Review Scope, Corpus Review Contract, Canonical Fingerprint Protocol (structural definitions only, per the Sprint 81 narrowed scope). RFC-0002 v1.3 (Evidence, consumed read-only) and RFC-0006 v1.3 (`AssessmentCriteriaSet`, consumed read-only, frozen) consumed as secondary, unmodified dependencies.
+- **Review Date:** 2026-07-22
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** PASS WITH FINDINGS
+
+### Executive Summary
+
+The Sprint 81 implementation conforms to the narrowed RFC-0013 vertical slice authorized by `NEXUS-RAT-2026-07-22-001`/`NEXUS-RAT-2026-07-22-002`. All fifteen explicit prohibitions in the Sprint 81 Sprint Implementation Record hold: no `missionId`, no `CorpusReviewBasis`/Basis Fingerprint, no `CorpusReview` aggregate, no Assessment Binding, no `CorpusFindingReference`, the Assessment Criteria Set's identity/version/fingerprint is verifiably excluded from the Contract Fingerprint (proven by test), no `Other` variant, no resolver/repository, no independently-supplied derived field, no cross-Scope/Contract uniqueness enforcement, no `artifactKind`/`contentType` equivalence, zero changes to any Sprint 78/79/80 frozen file or `src/kernel/shared-reality/`, zero Kernel composition/host/barrel changes, and no RFC amendment. `npm run compile`, `npm run lint`, the targeted 21/21-test Sprint 81 suite, the full 780/780-test non-extension suite (the one failing file requires the `vscode` module, expected outside the extension host), and `npm run build` all passed clean, matching the Sprint Implementation Record's Validation Summary exactly. `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_REPORT.md` Sprint 81 sections are consistent with the actual implementation and validation results.
+
+One Major Implementation Defect was identified: `CorpusReviewPurpose.fromString`, `CorpusArtifactKind.fromString`, and `CorpusReviewOpeningAttribution`'s `normalizeOriginType` each call `value.trim()` before comparing against their respective closed vocabularies, silently accepting a whitespace-padded but correctly-spelled value (e.g., `' Implementation '`, `' Human '`) as equal to the canonical value. This reintroduces, in new code, exactly the defect pattern already identified and corrected elsewhere in this codebase under `BT-079-002` (`NEXUS-REV-2026-07-21-001`/`-002`), where `ConfidenceClassification.fromString`/`EvidenceVerificationStatus.fromString` were fixed to compare raw input directly, without `.trim()`, against their closed vocabularies — and where regression tests now assert rejection of every vocabulary value padded with leading/trailing whitespace. No equivalent regression test exists for `CorpusReviewPurpose`, `CorpusArtifactKind`, or `CorpusReviewOpeningAttribution`'s `originType`. This finding does not block approval — it is not an RFC-0013 violation, not a breach of any of the fifteen explicit prohibitions, and not an architectural boundary violation.
+
+### Findings
+
+#### `NEXUS-REV-0081-DEF-001` (Major, Implementation Defect)
+
+- **Category:** Implementation Defect (Category 1, per `knowledge/implementation/review-classification.md`).
+- **Severity:** Major.
+- **Authority:** Repository convention established by `BT-079-002`'s resolution (`NEXUS-REV-2026-07-21-001` Finding, verified by `NEXUS-REV-2026-07-21-002`), applied to closed-vocabulary parsing generally in this codebase; Sprint 81 Sprint Implementation Record's Acceptance Criteria requiring each closed vocabulary to fail closed for "any string outside the closed set."
+- **Evidence:**
+  - `src/kernel/corpus-review/corpus-review-purpose.ts:20` — `const normalized = value.trim();` before the closed-set comparison in `CorpusReviewPurpose.fromString`.
+  - `src/kernel/corpus-review/corpus-artifact-kind.ts:41` — identical pattern in `CorpusArtifactKind.fromString`.
+  - `src/kernel/corpus-review/corpus-review-opening-attribution.ts:40` — identical pattern in `normalizeOriginType`.
+  - Contrast: `src/kernel/evidence/confidence-classification.ts` and `evidence-verification-status.ts` contain no `.trim()` before their closed-vocabulary comparisons (grep-confirmed absent), consistent with `BT-079-002`'s fix.
+  - `test/kernel/corpus-review/corpus-review-purpose.test.ts`, `corpus-artifact-kind.test.ts`, and `corpus-review-opening-attribution.test.ts` contain no test asserting rejection of a whitespace-padded vocabulary value, unlike `test/kernel/evidence/confidence-classification.test.ts` and `evidence-verification-status.test.ts`, which assert exactly this rejection for every vocabulary value.
+- **Impact:** A caller supplying a whitespace-padded but correctly-spelled value (for example, `' Implementation '`, `' Human '`, `' RFC '`) constructs a valid domain object silently, rather than being fail-closed rejected. This weakens the closed-set/fail-closed guarantee that is load-bearing for the Canonical Purpose Key and Canonical Artifact Kind Key used throughout fingerprinting and Contract Authority-Kind Eligibility, and reintroduces a defect class this repository has already identified and corrected once.
+- **Recommended Disposition:** Builder Task. Remove the `.trim()` normalization from `CorpusReviewPurpose.fromString`, `CorpusArtifactKind.fromString`, and `CorpusReviewOpeningAttribution`'s `normalizeOriginType`, comparing raw input directly against the closed vocabulary (consistent with `ConfidenceClassification`/`EvidenceVerificationStatus`); add regression tests asserting rejection of each vocabulary value padded with leading, trailing, and both-sides whitespace, mirroring the existing Evidence vocabulary tests.
+- **Builder Action:** Fix.
+
+### Review Statistics
+
+- Files reviewed: 16 (8 source, 8 test), plus `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint 81 Sprint Implementation Record.
+- Findings: 1 Major (Implementation Defect); 0 Critical; 0 Minor; 0 Observation.
+- Prohibitions verified: 15/15 held.
+- Tests: 21/21 targeted; 780/780 full non-extension suite.
+- Protected-file changes: 0 (`src/kernel/review/`, `src/kernel/evidence/`, `src/kernel/shared-reality/` unchanged; no Kernel/host/barrel change; no RFC amendment).
+
+### Deferred Concept Validation
+
+Confirmed absent from this Sprint's implementation and test inventory, exactly as the Sprint Implementation Record requires: Mission Relationship/`missionId`; Active Evidence Applicability; Corpus Review Basis and Basis Fingerprint; `CorpusReview` aggregate/`Open` state; Assessment Binding; cross-Scope/Contract `corpusArtifactReferenceId` uniqueness; the `Other` variant of `CorpusReviewPurpose`/`CorpusArtifactKind`; any Evidence or Assessment Criteria Set resolver; `CorpusFindingReference`/Corpus Readiness Result/`corpusFindingReferenceSetFingerprint`; Completion/Withdrawal/Projection Snapshot Lifecycle; Reproducible Context Integration; any Kernel composition, host, or runtime wiring.
+
+### Architectural Compliance Summary
+
+No architectural violation detected. `CorpusReviewContract`'s Contract Fingerprint is proven, by test, to exclude the Assessment Criteria Set's identity/version/fingerprint from its input set. The Canonical Fingerprint Protocol is a single shared implementation applied to exactly the two authorized fingerprints, using length-prefixed, sorted, duplicate-free UTF-8 framing digested with SHA-256, matching RFC-0013's Canonical Fingerprint Protocol definition. No pre-existing Sprint 78/79/80 file, `src/kernel/shared-reality/` file, Kernel composition file, host wiring file, or `index.ts` runtime barrel was touched.
+
+### Builder Task Recommendation
+
+One follow-up Builder Task should be generated (via the `nexus-sprint` workflow) against `NEXUS-REV-0081-DEF-001`: remove `.trim()` normalization from the three named closed-vocabulary parsers and add whitespace-padding regression tests. This finding does not require Sprint Owner ratification and does not block Sprint 81 approval.
+
+---
+
 ## NEXUS-REV-2026-07-22-002 — Sprint 80 — `BT-080-002`/`BT-080-003`/`BT-080-004` Resolution Verification
 
 - **Reviewed Sprint:** Sprint 80 — Milestone 12 Initial Capability Sequence Step 2A — RFC-0006 v1.3 Structural Foundation. Follow-up cycle verifying `builder-task.md`'s three Open items, `BT-080-002`, `BT-080-003`, and `BT-080-004`, generated from `NEXUS-REV-2026-07-22-001`'s three findings.

@@ -1,5 +1,108 @@
 # Nexus Implementation Report
 
+## Sprint 81 — Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) — Corpus Review Structural Foundation
+
+### Implemented Slice
+
+Implemented Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) as authorized by `NEXUS-RAT-2026-07-22-002`.
+
+Implemented scope:
+
+- Added the exact eight authorized structural source files under `src/kernel/corpus-review/`.
+- Added `CorpusReviewPurpose` with exactly the six authorized core values and identity Canonical Purpose Key derivation.
+- Added `CorpusArtifactKind` with exactly the fourteen authorized core values, identity Canonical Artifact Kind Key derivation, and the closed authority-bearing subset for Contract eligibility.
+- Added `CorpusArtifactReference`, constructed only from a caller-supplied `corpusArtifactReferenceId`, a core `CorpusArtifactKind`, and a concrete RFC-0002 `Evidence` value with Exact Content Evidence.
+- Derived `artifactId`, `evidenceId`, `evidenceVersion`, `contentDigest`, and `representedContentReference` directly from the supplied `Evidence`; no independently supplied anchored identity fields are accepted.
+- Added `CorpusReviewScope` with non-empty construction, within-Scope duplicate `corpusArtifactReferenceId` rejection, within-Scope duplicate canonical exact artifact identity rejection, and Scope Fingerprint computation over member canonical exact identities only.
+- Added `CorpusReviewContract` with non-empty construction, authority-kind eligibility, within-Contract duplicate `corpusArtifactReferenceId` rejection, within-Contract duplicate canonical exact artifact identity rejection, stored Assessment Criteria Set Reference derived from a concrete `AssessmentCriteriaSet`, and Contract Fingerprint computation over authority-reference canonical exact identities only.
+- Added standalone Corpus Review Opening Attribution with the closed `Human` / `Provider` / `DeterministicSystem` origin type set.
+- Added the shared Canonical Fingerprint Protocol for order-independent SHA-256 fingerprints with UTF-8 length-prefixed framing and lowercase hex digest output.
+- Added the exact eight mirrored test files under `test/kernel/corpus-review/`.
+
+Out of scope and not implemented:
+
+- No `missionId`, Mission Relationship type, or Mission-derived value.
+- No `CorpusReviewBasis`, Basis Fingerprint, RFC-0003 Projection identity/version, or Active Evidence Set.
+- No `CorpusReview` aggregate or `Open`-state representation.
+- No Assessment Binding field.
+- No `CorpusFindingReference`, Finding-set fingerprint, Completion, Withdrawal, Corpus Readiness Result, or Projection Snapshot Lifecycle.
+- No `Other` variant, delimiter, namespace normalization, or extension-kind support.
+- No Evidence or Assessment Criteria Set resolver, repository, identifier-based lookup, application service, Kernel composition wiring, host wiring, or runtime entry point.
+- No modification to Sprint 78/79 Evidence files, Sprint 80 review structural files, `src/kernel/shared-reality/`, RFCs, or runtime barrels.
+
+### RFC Coverage
+
+Primary:
+
+- RFC-0013 v1.0 — Corpus Review Model structural subset only: `CorpusReviewPurpose`, `CorpusArtifactKind`, `CorpusArtifactReference`, `CorpusReviewScope`, `CorpusReviewContract`, Corpus Review Opening Attribution, Scope Fingerprint, Contract Fingerprint, and the Canonical Fingerprint Protocol.
+
+Referenced, read-only:
+
+- RFC-0002 v1.3 — `Evidence` with Exact Content Evidence, consumed unchanged.
+- RFC-0006 v1.3 — `AssessmentCriteriaSet`, consumed unchanged to derive the stored Contract Assessment Criteria Set Reference.
+
+Deferred Concepts:
+
+- Mission Relationship / `missionId`.
+- Active Evidence Applicability.
+- Corpus Review Basis and Basis Fingerprint, including the nine-component Basis input set.
+- `CorpusReview` aggregate and `Open` state.
+- Assessment Binding.
+- Cross-Scope/Contract `corpusArtifactReferenceId` uniqueness.
+- `Other` variants for `CorpusReviewPurpose` and `CorpusArtifactKind`.
+- Evidence and Assessment Criteria Set resolver/repository/lookup behavior.
+- `CorpusFindingReference`, Corpus Readiness Result, and Finding-set fingerprint.
+- Completion Attestation, Completion/Withdrawal transitions, Withdrawal Attribution, Projection Snapshot Lifecycle, Staleness and Applicability Semantics.
+- Reproducible Context Integration.
+
+### Referenced Reference Documents
+
+- `IMPLEMENTATION_CONSTITUTION.md`.
+- `IMPLEMENTATION_PLAN.md`.
+- `IMPLEMENTATION_MANIFEST.md`.
+- `IMPLEMENTATION_GATE.md`.
+- `knowledge/canon/nexus-kernel-canon.md`.
+- `knowledge/specifications/rfc-0013-corpus-review-model.md`.
+- `knowledge/specifications/rfc-0002-evidence-model.md`.
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md`.
+- `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md`.
+- `knowledge/implementation/implementation-technology-standard.md`.
+- `knowledge/implementation/implementation-conventions.md`.
+- `knowledge/governance/RATIFICATION_LEDGER.md` (`NEXUS-RAT-2026-07-22-001`, `NEXUS-RAT-2026-07-22-002`).
+
+### Architectural Assumptions
+
+- The caller-supplied `Evidence` and `AssessmentCriteriaSet` values are already reconstituted and governed by their owning domains; this Sprint consumes them read-only and performs no resolver behavior.
+- `CorpusArtifactReference` eliminates artifact/Evidence identity mismatch by construction because `artifactId` is derived from `Evidence.exactContent.representedContentReference.contentId`.
+- Contract Assessment Criteria Set identity/version/fingerprint are retained as Contract state for future Step 3A Basis construction, but are excluded from the Contract Fingerprint by construction.
+
+### Known Limitations
+
+- Value objects are in-memory only and have no repository or persistence path.
+- No Kernel composition, host/service wiring, or runtime entry point exposes these types.
+- Step 3 alone cannot open, complete, withdraw, or evaluate a Corpus Review because Mission Relationship, Basis, aggregate construction, Assessment Binding, and completion behavior are deferred.
+- Cross-Scope/Contract duplicate `corpusArtifactReferenceId` validation is deferred to the future aggregate that owns both collections.
+
+### Validation Summary
+
+- TypeScript compile passed: `npm run compile`.
+- ESLint passed: `npm run lint`.
+- Targeted Sprint 81 Vitest coverage passed: 24/24 tests across the exact eight mirrored test files.
+- Full non-extension Vitest suite passed: 783/783 tests across 119/119 files.
+- Build passed: `npm run build`.
+
+### Deviations
+
+No architectural deviations.
+
+Implementation deviation: `BT-081-002`, generated from `NEXUS-REV-2026-07-22-003` / `NEXUS-REV-0081-DEF-001` and verified by `NEXUS-REV-2026-07-22-004`, removed `.trim()` normalization from `CorpusReviewPurpose.fromString`, `CorpusArtifactKind.fromString`, and `CorpusReviewOpeningAttribution`'s `normalizeOriginType`, and added three whitespace-padding regression tests for the closed vocabularies.
+
+### Sprint Status
+
+Implemented — Pending Reviewer Validation.
+
+---
+
 ## Sprint 80 — Milestone 12 Initial Capability Sequence Step 2A — RFC-0006 v1.3 Structural Foundation
 
 ### Implemented Slice

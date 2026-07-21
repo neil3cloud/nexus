@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved and fully closed under `NEXUS-REV-2026-07-22-002` (both findings from `NEXUS-REV-2026-07-22-001`
+Approved and fully closed under `NEXUS-REV-2026-07-22-002` (all three findings from `NEXUS-REV-2026-07-22-001`
 resolved; zero remaining findings). Activated by `NEXUS-RAT-2026-07-21-007`, per the Sprint 80 Proposal
 Revision 7 (Sprint Owner Final Owner Review: APPROVE). Milestone 12 — Corpus Review and Implementation
 Readiness, Initial Capability Sequence Step 2A, established by `NEXUS-RAT-2026-07-21-006` (Milestone 12 sequence
