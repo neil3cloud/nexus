@@ -11659,3 +11659,561 @@ Sprint 80 (`NEXUS-RAT-2026-07-21-007`, closed `NEXUS-REV-2026-07-22-002`).
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-28-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-28-001
+
+## Date
+
+2026-07-28
+
+## Subject
+
+Reconciles the three live Sprint 81 status locations in `IMPLEMENTATION_MANIFEST.md`, which read "Pending Reviewer
+Validation," to one consistent statement of Sprint 81's actual, fully-closed outcome under
+`NEXUS-REV-2026-07-22-005`, matching `IMPLEMENTATION_PLAN.md`'s existing text. Documentation-accuracy correction
+only. No Sprint is activated. No prior Sprint (78, 79, 80, 81) or its findings are reopened. RFC-0001, RFC-0002,
+RFC-0003, RFC-0005, RFC-0006, RFC-0013, and the Kernel Canon are unmodified. None of Step 3A's four independent stop
+conditions is resolved, narrowed, or otherwise affected.
+
+## Originating Review Finding(s)
+
+None. This entry originates from the `nexus-plan` Governance Scan dated 2026-07-28 (Ambiguity G-1), not from a
+`REVIEW_HISTORY.md` Engineering Review Report. No `NEXUS-REV-*` record originates or is otherwise associated with
+this Ratification.
+
+## RFC Coverage
+
+None. Documentation reconciliation of Implementation Layer planning text only; no RFC-owned concept is touched.
+
+## Deferred Concepts
+
+Unchanged in every respect from `NEXUS-RAT-2026-07-22-001` and `NEXUS-RAT-2026-07-22-002`. This entry defers nothing
+new and un-defers nothing.
+
+## Ownership Model
+
+Unchanged. This entry introduces no domain, no aggregate ownership, and no reassignment of any concept between
+specifications.
+
+## Governance Decision
+
+APPROVED — SPRINT 81 STATUS RECONCILIATION IN `IMPLEMENTATION_MANIFEST.md`.
+
+Authorizes correcting exactly three live Sprint 81 status locations in `IMPLEMENTATION_MANIFEST.md` to one consistent
+statement of Sprint 81's actual `NEXUS-REV-2026-07-22-005` outcome, matching `IMPLEMENTATION_PLAN.md`. This follows
+the precedent established by `NEXUS-RAT-2026-07-21-006` Part 2 (six Sprint 79 locations) and applied by
+`NEXUS-RAT-2026-07-22-002` (three Sprint 80 locations). No scope, contract, file inventory, or Reviewer finding of
+any Sprint is reopened or altered.
+
+Site 1 — Milestone 12 § Status line; Site 2 — § Initial Capability Sequence introduction sentence; Site 3 — Step 3
+closing activation annotation. Exact replacement text for each site is reproduced in the `nexus-plan` Governance
+Report Revision 2 (2026-07-28), § 6.2, and applied verbatim by this entry.
+
+## Authorized Builder Scope
+
+None. Documentation reconciliation only. No Sprint is activated. No Sprint Implementation Record is created. No
+`builder-task.md` change is authorized.
+
+## Scope Restrictions
+
+- Does not resolve, narrow, or otherwise affect any of Step 3A's four independent stop conditions.
+- Does not activate Step 3A or any other Sprint.
+- Does not reopen Sprint 78, 79, 80, or 81's scope, contract, file inventory, or Reviewer findings.
+- Does not amend RFC-0001, RFC-0002, RFC-0003, RFC-0005, RFC-0006, RFC-0013, or the Kernel Canon.
+- Does not modify `IMPLEMENTATION_REPORT.md`, `REVIEW_HISTORY.md`, or any Sprint Implementation Record.
+- Does not modify any source or test file.
+- Does not edit `NEXUS-RAT-2026-07-22-001` or `NEXUS-RAT-2026-07-22-002`.
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this entry, appended once, `Current Status: Active`.
+- `IMPLEMENTATION_MANIFEST.md` — three sites only, exactly as specified above.
+
+No source file. No test file. No RFC. No `IMPLEMENTATION_PLAN.md` change (already correct). No
+`IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`. No `builder-task.md`. No Kernel Canon change.
+
+## Related Sprint(s) / Related Review(s)
+
+No Sprint activated. Related Review: `NEXUS-REV-2026-07-22-005` (Sprint 81 status basis). Follows the precedent of
+`NEXUS-RAT-2026-07-21-006` Part 2 and `NEXUS-RAT-2026-07-22-002`.
+
+## Full Ratification Text
+
+> `IMPLEMENTATION_MANIFEST.md`'s three live Sprint 81 status locations — the Milestone 12 Status line, the Initial
+> Capability Sequence introduction sentence, and the Step 3 closing activation annotation — are corrected from
+> "Pending Reviewer Validation" to one consistent statement of Sprint 81's actual outcome: Approved and fully closed
+> under `NEXUS-REV-2026-07-22-005` (PASS), with both findings raised across that Sprint's review history —
+> `NEXUS-REV-0081-DEF-001` (Major, resolved via `BT-081-002`, verified by `NEXUS-REV-2026-07-22-004`) and
+> `NEXUS-REV-0081-DOC-001` (Minor, resolved via `DOC-081-002`, verified by `NEXUS-REV-2026-07-22-005`) — resolved and
+> independently verified, and zero remaining findings of any severity. This matches `IMPLEMENTATION_PLAN.md`'s
+> existing, already-correct text at the equivalent sites. Documentation-accuracy correction only: no Sprint is
+> activated, no RFC is amended, no source or test file is changed, no prior Sprint's scope, contract, file inventory,
+> or findings are reopened, and none of Step 3A's four independent stop conditions is resolved or affected.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-28-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-28-002
+
+## Date
+
+2026-07-28
+
+## Subject
+
+Narrow corrective ratification to `NEXUS-RAT-2026-07-28-001` (Active, not silently edited). Corrects one
+traceability defect in that entry: its § Governance Decision did not reproduce the three exact
+`IMPLEMENTATION_MANIFEST.md` replacement texts within the Ledger itself, instead stating "Exact replacement text for
+each site is reproduced in the `nexus-plan` Governance Report Revision 2 (2026-07-28), § 6.2, and applied verbatim by
+this entry" — a normative dependency on a transient, session-scoped scratchpad file that is not part of this
+repository's governed documentation and carries no durable identity or version history. This entry reproduces all
+three exact replacement texts in full within the Ledger, removing that dependency, so that `NEXUS-RAT-2026-07-28-001`
+together with this entry is fully self-contained. No source file, test file, RFC, or Sprint artifact is affected.
+No prior Sprint (78, 79, 80, 81) or its findings are reopened. Step 3A's four independent stop conditions remain
+wholly unaffected and unresolved.
+
+## Originating Review Finding(s)
+
+Sprint Owner Final Owner Review (2026-07-28), Disposition: RATIFICATION REQUIRED. Finding: "the applied ledger entry
+is not the complete Artifact 2 previously reviewed. It replaces the three permanent, exact replacement blocks with a
+reference to the transient scratchpad report... That violates the requirement that the Ratification Ledger remain
+the self-contained, permanent source of ratification authority. The scratchpad cannot carry part of the binding
+authorization." Named Correction: draft a corrective `NEXUS-RAT-2026-07-28-002` that identifies the traceability
+defect in `-001`, reproduces all three exact manifest replacement texts inside the Ledger, removes any normative
+dependency on the scratchpad, changes no file except the Ratification Ledger, and preserves `-001` as immutable
+history while stating its relationship to `-002`.
+
+## RFC Coverage
+
+None. Identical to `NEXUS-RAT-2026-07-28-001` — a Ledger traceability correction only; no RFC-owned concept is
+touched by either entry.
+
+## Deferred Concepts
+
+Unchanged in every respect from `NEXUS-RAT-2026-07-28-001`, `NEXUS-RAT-2026-07-22-001`, and
+`NEXUS-RAT-2026-07-22-002`. This entry defers nothing new and un-defers nothing.
+
+## Ownership Model
+
+Unchanged. This entry introduces no domain, no aggregate ownership, and no reassignment of any concept between
+specifications.
+
+## Governance Decision
+
+APPROVED — LEDGER TRACEABILITY CORRECTION TO `NEXUS-RAT-2026-07-28-001`.
+
+`NEXUS-RAT-2026-07-28-001` remains Active and is not edited by this entry — its own § Governance Decision, §
+Originating Review Finding(s), and § Full Ratification Text are unchanged and continue to state the Sprint Owner's
+original approval of the Sprint 81 status reconciliation. This entry corrects exactly one defect: it reproduces,
+verbatim and in full, the three exact `IMPLEMENTATION_MANIFEST.md` replacement texts that `NEXUS-RAT-2026-07-28-001`
+authorized and that were applied to the file on 2026-07-28, so the Ledger carries the complete, self-contained,
+permanent authorization without reference to any scratchpad. The reproduced text below is the exact text now present
+in `IMPLEMENTATION_MANIFEST.md` at each site — confirmed by direct read on 2026-07-28 — and is, retroactively and
+for all future reference, the authoritative replacement text `NEXUS-RAT-2026-07-28-001` authorizes at each site.
+
+### Site 1 — `IMPLEMENTATION_MANIFEST.md`, Milestone 12 § Status line (line 3212)
+
+Prior text (superseded):
+
+> Status: 🟡 ACTIVE (Sprint 78 Approved with Findings; Sprint 79 (Corrective Prerequisite 1A) Approved and fully
+> closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Initial
+> Capability Sequence amended by `NEXUS-RAT-2026-07-21-006`; Sprint 80 / Step 2A Approved and fully closed under
+> `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining
+> findings); Step 3/Step 3A boundary corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed, Step 3A expanded) and
+> Step 3 (Narrowed, Final) implemented as Sprint 81 — Pending Reviewer Validation; Step 3A not yet activated as a
+> Sprint, pending its four independent stop conditions)
+
+Authoritative replacement text (applied; reproduced verbatim from the current file):
+
+> Status: 🟡 ACTIVE (Sprint 78 Approved with Findings; Sprint 79 (Corrective Prerequisite 1A) Approved and fully
+> closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Initial
+> Capability Sequence amended by `NEXUS-RAT-2026-07-21-006`; Sprint 80 / Step 2A Approved and fully closed under
+> `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining
+> findings); Step 3/Step 3A boundary corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed, Step 3A expanded) and
+> Step 3 (Narrowed, Final) implemented as Sprint 81 — Approved and fully closed under `NEXUS-REV-2026-07-22-005`
+> (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` — `NEXUS-REV-0081-DEF-001` and
+> `NEXUS-REV-0081-DOC-001` — resolved and independently verified; zero remaining findings); Step 3A not yet
+> activated as a Sprint, pending its four independent stop conditions and its own separate architectural
+> ratification)
+
+### Site 2 — `IMPLEMENTATION_MANIFEST.md`, § Initial Capability Sequence introduction sentence (line 3229)
+
+Prior text (superseded, quoting only the changed clause; the sentence's opening and remainder are unchanged and
+reproduced in full in § Site 2 below):
+
+> ...and Step 3 (Narrowed, Final) was implemented as Sprint 81 by the Builder and is Pending Reviewer Validation.
+
+Authoritative replacement text (applied; the complete sentence, reproduced verbatim from the current file):
+
+> Established by `NEXUS-RAT-2026-07-19-006` as a **binding, planning-only** six-step sequence: its dependency order,
+> certification gates, and per-step compatibility gates bind every future Sprint scoped against it. Step 1 (Sprint
+> 78) was activated by `NEXUS-RAT-2026-07-19-009`; Corrective Prerequisite 1A was activated as Sprint 79 by
+> `NEXUS-RAT-2026-07-21-005` and is Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior
+> findings resolved; zero remaining findings); Step 2A was activated as Sprint 80 by `NEXUS-RAT-2026-07-21-007` and
+> is Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from
+> `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); the Step 3/Step 3A boundary was corrected by
+> `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed to exclude Mission Relationship, Active Evidence Applicability, the
+> Basis and Basis Fingerprint, and aggregate construction, all relocated to Step 3A) and Step 3 (Narrowed, Final) was
+> implemented as Sprint 81 by the Builder and is Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS;
+> both findings from `NEXUS-REV-2026-07-22-003`/`-004` resolved and independently verified; zero remaining
+> findings). The sequence otherwise authorizes no Sprint, no Builder implementation, and no Sprint Implementation
+> Record by itself. Step 3A is not activated and additionally requires all four named stop conditions resolved
+> first, plus its own separate architectural ratification and Sprint authorization for any `Other`-variant or
+> external-resolver capability.
+
+### Site 3 — `IMPLEMENTATION_MANIFEST.md`, Step 3 closing activation annotation (line 3254)
+
+Prior text (superseded):
+
+> **Implemented as Sprint 81 — Pending Reviewer Validation.** Activated by `NEXUS-RAT-2026-07-22-002`, per the
+> Sprint 81 Proposal Revision 6 (final, self-contained; Sprint Owner APPROVE). See
+> `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md` for the
+> complete Sprint Implementation Record, including the exact sixteen-file implemented inventory and the corrected
+> Contract/Basis Fingerprint separation.
+
+Authoritative replacement text (applied; reproduced verbatim from the current file):
+
+> **Activated as Sprint 81 by `NEXUS-RAT-2026-07-22-002`, per the Sprint 81 Proposal Revision 6 (final,
+> self-contained; Sprint Owner APPROVE); Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; zero
+> remaining findings).** `NEXUS-REV-2026-07-22-003` identified one Major Implementation Defect,
+> `NEXUS-REV-0081-DEF-001`, resolved via `BT-081-002` and independently verified by `NEXUS-REV-2026-07-22-004`,
+> which itself identified one Minor Documentation Drift finding, `NEXUS-REV-0081-DOC-001`, resolved via
+> `DOC-081-002` and independently verified by `NEXUS-REV-2026-07-22-005`. See
+> `knowledge/implementation/sprints/sprint-0081-step-3-corpus-review-structural-foundation-narrowed.md` for the
+> complete Sprint Implementation Record, including the exact sixteen-file implemented inventory and the corrected
+> Contract/Basis Fingerprint separation.
+
+No further site exists. No other word of `IMPLEMENTATION_MANIFEST.md`, and no word of `IMPLEMENTATION_PLAN.md`, is
+authorized or referenced by this entry.
+
+## Relationship to `NEXUS-RAT-2026-07-28-001`
+
+`NEXUS-RAT-2026-07-28-001` is preserved unedited as immutable history: its Ratification Identifier, Date, Subject,
+Originating Review Finding(s), RFC Coverage, Deferred Concepts, Ownership Model, Governance Decision, Authorized
+Builder Scope, Scope Restrictions, Changed-File List, Related Sprint(s)/Related Review(s), Full Ratification Text,
+and Current Status all remain exactly as recorded. `NEXUS-RAT-2026-07-28-001` is the entry that authorized the
+Sprint 81 status reconciliation and its Sprint Owner approval; `NEXUS-RAT-2026-07-28-002` (this entry) is the entry
+that supplies the reproduced, self-contained replacement text `-001`'s own § Governance Decision referenced by
+pointer instead of reproducing. Read together, `-001` and `-002` constitute the complete, self-contained Ledger
+authorization for the Sprint 81 status reconciliation, with no remaining dependency on any scratchpad or other
+non-Ledger document. Neither entry authorizes anything beyond what `-001` originally authorized: no Sprint
+activation, no RFC amendment, no source or test file change, no reopening of any prior Sprint.
+
+## Authorized Builder Scope
+
+None. Identical to `NEXUS-RAT-2026-07-28-001` — no Sprint is activated, no Sprint Implementation Record is created,
+no `builder-task.md` change is authorized.
+
+## Scope Restrictions
+
+- Does not edit, revoke, or supersede any substantive provision of `NEXUS-RAT-2026-07-28-001` — that entry's
+  Governance Decision, Scope Restrictions, and Full Ratification Text remain exactly as ratified.
+- Does not authorize any additional change to `IMPLEMENTATION_MANIFEST.md` beyond the three sites already applied
+  under `NEXUS-RAT-2026-07-28-001` (this entry reproduces text already applied; it does not apply anything new).
+- Does not modify `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_REPORT.md`, `REVIEW_HISTORY.md`, or any Sprint
+  Implementation Record.
+- Does not modify any source or test file.
+- Does not resolve, narrow, or otherwise affect any of Step 3A's four independent stop conditions.
+- Does not activate Step 3A or any other Sprint.
+- Does not reopen Sprint 78, 79, 80, or 81's scope, contract, file inventory, or Reviewer findings.
+- Does not amend RFC-0001, RFC-0002, RFC-0003, RFC-0005, RFC-0006, RFC-0013, or the Kernel Canon.
+
+## Changed-File List (exact)
+
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this entry, appended once, `Current Status: Active`.
+  `NEXUS-RAT-2026-07-28-001`'s own entry, immediately above, is unedited.
+
+No other file. `IMPLEMENTATION_MANIFEST.md` is not touched by this entry — its three sites were already corrected
+by `NEXUS-RAT-2026-07-28-001`'s original application on 2026-07-28, and the text reproduced above matches that
+already-applied text exactly (confirmed by direct read). No source file. No test file. No RFC. No
+`IMPLEMENTATION_PLAN.md`. No `IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`. No `builder-task.md`. No Kernel
+Canon change.
+
+## Related Sprint(s) / Related Review(s)
+
+No Sprint activated. Corrects the Ledger self-containment of `NEXUS-RAT-2026-07-28-001` only. Related Review:
+`NEXUS-REV-2026-07-22-005` (Sprint 81 status basis, unchanged from `-001`).
+
+## Full Ratification Text
+
+> `NEXUS-RAT-2026-07-28-001` (Active, unedited) is corrected for a Ledger traceability defect: its § Governance
+> Decision referenced the exact `IMPLEMENTATION_MANIFEST.md` replacement text for each of the three Sprint 81 status
+> sites by pointer to the `nexus-plan` Governance Report Revision 2 scratchpad rather than reproducing that text
+> within the Ledger, in violation of the requirement that the Ratification Ledger remain the self-contained,
+> permanent source of ratification authority. This entry reproduces, in full and verbatim, the exact prior and
+> authoritative replacement text for all three sites (Milestone 12 Status line, Initial Capability Sequence
+> introduction sentence, Step 3 closing activation annotation), matching what is already applied in
+> `IMPLEMENTATION_MANIFEST.md`, confirmed by direct read on 2026-07-28. `NEXUS-RAT-2026-07-28-001` is preserved
+> unedited as immutable history; this entry supplies the missing self-contained text and states that `-001` and
+> `-002` together constitute the complete Ledger authorization, with no remaining dependency on any scratchpad. No
+> file other than the Ratification Ledger is changed by this entry. No Sprint is activated. No RFC is amended. No
+> prior Sprint's scope, contract, file inventory, or findings are reopened. Step 3A's four independent stop
+> conditions remain wholly unresolved and unaffected.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-07-28-003
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-28-003
+
+## Date
+
+2026-07-28
+
+## Subject
+
+Amends RFC-0006 from Final v1.3 to Final v1.4: corrects the `FindingProduced` recording sentence to require a
+canonically encoded Recorded Failure Basis (Construction/Reconstitution separated, threshold comparisons
+additionally validated for non-empty identity and genuine weakness); adds a deterministic Finding Severity/Intent
+derivation; establishes such Findings are never Observations; and establishes a three-layer
+reconstitution-integrity rule (Layer 1 self-contained; Layer 2 a stated Evaluation Context Assembly contract whose
+no-lookup path is assigned to Stop Condition 4's own scope; Layer 3 a fully specified, resolver-free,
+two-explicit-parameter pure validator, explicitly not itself an authenticity guarantee). Resolves Step 3A Stop
+Condition 3. Introduces no Finding Category concept, no Severity total order, no resolver, and no fifth stop
+condition. Authorizes no implementation and no Sprint activation.
+
+## Originating Review Finding(s)
+
+Sprint Owner Final Owner Review, Revision 5 (2026-07-28, APPROVE WITH NAMED CORRECTIONS): two Major findings — the
+no-lookup Layer 2 path was not assigned to an existing stop-condition closure instrument, risking being read as an
+unauthorized fifth stop condition; and Layer 3's declared one-parameter interface omitted the persisted Recorded
+Failure Basis/Severity/Intent it must validate against, leaving ambiguous whether those were hidden receiver,
+closure, or global state. This entry corrects both: it assigns the no-lookup Evaluation Context Assembly path to
+Stop Condition 4's own future scope, explicitly stating this creates no fifth stop condition; and it defines Layer
+3's `validateFindingDerivation` function with exactly two explicit parameters —
+`persistedFindingDerivationState` and `evaluationContext` — with no hidden receiver, closure, repository, or
+global-state dependency. Sprint Owner Final Owner Review, Revision 6 (2026-07-28, APPROVE WITH NAMED CORRECTIONS):
+one Major finding — this Ledger entry's own text depended on scratchpad-local structure ("Part A," "Part B," "the
+Correction Log above"), which does not exist once this entry is the Ledger's own permanent record; and one Minor
+finding — a Scope Restriction claimed no "otherwise affect[ing]" of Stop Condition 4 while simultaneously assigning
+the no-lookup path into Stop Condition 4's own closure scope, an internal contradiction. This entry (the final,
+ratification-ready text below) corrects both: every reference to "Part A," "Part B," "above," and "the Correction
+Log" is replaced with a self-contained description of the exact superseded/replacement sentence, the exact new
+section name, and the exact Conformance/Amendment History changes; and the contradictory Scope Restriction is
+replaced with a precise statement that this entry clarifies, without resolving, narrowing, or pre-empting, Stop
+Condition 4's own future scope. Sprint Owner Final Owner Review, Revision 7 (2026-07-28, APPROVE): both corrections
+verified satisfactory; no remaining Blocking or Major findings.
+
+## RFC Coverage
+
+- RFC-0006 v1.3 → v1.4 — Engineering Assessment Model, § Evidence Expectation Enforcement — Disposition Rules
+  (Primary; one sentence amended), § Required Evidence Expectations — Construction and Resolution / Canonical
+  Encoding (Referenced Only, reused verbatim), § Assessment Criteria (Referenced Only; `boundCriterion`'s existing
+  fail-closed rule reused verbatim), § Required Evidence Expectations — Baseline Qualifying Evidence Set
+  (Referenced Only; `baselineEvidenceSet`'s existing five-part definition reused verbatim), § Finding Severity, §
+  Finding Intent, § Finding Affected Target (Corpus-scoped), § Actionable Findings (Referenced Only, not invoked),
+  § Recorded Projection Basis (Referenced Only), § Determinism (Referenced Only)
+- RFC-0002 v1.3 — Evidence Model (Referenced Only, unchanged; canonical ordering reused read-only for the
+  genuine-weakness rule)
+- RFC-0003 — Shared Reality Projection Model (Referenced Only — Layer 2's Active Evidence Set guarantee names an
+  RFC-0003-owned concept this entry consumes, not defines)
+- RFC-0013 v1.0 — Corpus Review Model (Referenced Only — Layer 2's no-lookup assembly path is explicitly assigned
+  to Stop Condition 4's future RFC-0006/RFC-0013 consumer contract, not created by this entry)
+
+## Deferred Concepts
+
+Unchanged from `NEXUS-RAT-2026-07-22-001`/`-002` and `NEXUS-RAT-2026-07-21-006` except Stop Condition 3 itself, as
+in prior revisions. **Refined by this revision:** Layer 2's no-lookup assembly path is explicitly deferred into,
+and becomes part of, Stop Condition 4's own future scope — not a new, fifth stop condition. The external-resolver
+alternative, if ever pursued, remains deferred to its own wholly separate future ratification, additional to Stop
+Condition 4.
+
+## Ownership Model
+
+RFC-0006 remains the exclusive owner of Finding Severity, Finding Intent, Assessment Finding structure, and the
+Recorded Failure Basis. RFC-0003 remains the exclusive owner of Projection identity/version resolution and the
+Active Evidence Set; RFC-0013 remains the exclusive owner of the Corpus Review Basis and its lineage. This entry
+states Layer 2 as an RFC-0006-stated *contract* over RFC-0003- and RFC-0013-owned concepts, consumed read-only,
+and explicitly assigns its no-lookup assembly path's future specification to Stop Condition 4's own
+RFC-0006/RFC-0013 consumer-contract scope, without itself assuming, redefining, or partially exercising either
+specification's own resolution authority, and without creating a new stop condition. The prohibition on an
+external Evidence or Assessment Criteria Set resolver is preserved exactly and is not lifted by Stop Conditions 1
+or 4's eventual resolution.
+
+## Governance Decision
+
+APPROVED — RFC-0006 v1.4 AMENDMENT: RECORDED FAILURE BASIS, THREE-LAYER RECONSTITUTION INTEGRITY (LAYER 2 ASSIGNED
+TO STOP CONDITION 4 / LAYER 3 EXPLICIT-PARAMETER RESOLVER-FREE PURE VALIDATOR), AND SEVERITY/INTENT DERIVATION
+(STOP CONDITION 3).
+
+Amends, verbatim, § Evidence Expectation Enforcement — Disposition Rules' `FindingProduced` bullet's second
+sentence, replacing "The Finding SHALL record the exact failing clause, or every failing `(EvidenceId,
+EvidenceVersion, actual value, required threshold)` comparison, and SHALL declare an affected-target variant
+matching the originating coverage pair's scope (§ Assessment Coverage (Corpus-scoped), § Finding Affected Target
+(Corpus-scoped))." with "The Finding SHALL record a Recorded Failure Basis (§ Finding Severity and Intent
+Derivation (Corpus-scoped)): every declared `EvidenceExpectation` clause not satisfied by the baseline qualifying
+Evidence set, if any, and every failing `(EvidenceId, EvidenceVersion, axis, actual value, required threshold)`
+comparison, if any — both, in full, when both occur; neither SHALL be omitted on account of the other being
+present. The Finding SHALL declare an affected-target variant matching the originating coverage pair's scope (§
+Assessment Coverage (Corpus-scoped), § Finding Affected Target (Corpus-scoped))." Adds, verbatim, a complete new
+section titled "Finding Severity and Intent Derivation (Corpus-scoped)" — defining the Recorded Failure Basis and
+its canonical Construction/Reconstitution procedures, the Evidence Expectation Failure Reason classification, the
+Severity and Intent derivation rules, the Observation-exclusion rule, and the three-layer reconstitution-integrity
+rule (Layer 1, Layer 2, Layer 3) — inserted immediately after § Finding Intent and immediately before §
+Observations. Appends two new bullets to § Conformance: one stating the Recorded Failure Basis persistence and
+Severity/Intent derivation guarantee; one stating the Layer 1/Layer 2/Layer 3 reconstitution-integrity guarantee.
+Updates the version header from 1.3 to 1.4 and appends one new Amendment History entry describing this amendment.
+No other word of RFC-0006 changes. This entry authorizes no implementation, no test, no Sprint Implementation
+Record, and no Sprint activation — it resolves only Stop Condition 3, and explicitly does not resolve, pre-empt, or
+narrow Stop Conditions 1 or 4, does not create a fifth stop condition, and does not authorize any external
+resolver.
+
+## Migration and Compatibility Effects
+
+- No implemented code is affected; no `CorpusReviewBasis` Finding exists yet.
+- `ExecutableMissionPlan`/`ProposedPlanRevision` Finding behavior is byte-for-byte unchanged.
+- Adds no new Finding Severity/Intent value, no Finding Category concept, no Severity total order, no resolver, no
+  fifth stop condition.
+- Once Step 3A is separately activated, its Sprint Implementation Record inherits the obligation to implement:
+  Recorded Failure Basis Construction/Reconstitution; the derivation; Layer 1; Layer 3 (fully specifiable and
+  testable now, independent of any future ratification, per its explicit two-parameter signature); and, separately,
+  whichever Layer 2 assembly path Stop Condition 4's own future ratification (or a wholly separate resolver
+  ratification) authorizes — this entry creates neither path and authorizes no ad hoc substitute.
+
+## Verification Evidence
+
+Distinguishing the three categories the Sprint Owner requires be kept separate:
+
+**A. Authoritative evaluation-context assembly** — not this entry's responsibility to test; assigned to Stop
+Condition 4's own future scope (or a separate resolver ratification). No test is required or possible against this
+entry alone.
+
+**B. Pure derivation validation relative to a given context (Layer 3)** — fully testable now, against hand-built
+fixture `persistedFindingDerivationState`/`evaluationContext` parameter pairs (not resolved):
+
+1. Singleton reason coverage (5 tests).
+2. Evaluation-to-reason tests against fixture contexts for each of the five single-cause scenarios (5 tests).
+3. Combined clause-and-threshold failures (2+ tests).
+4. All 31 non-empty reason subsets (31 cases).
+5. Unordered construction producing identical canonical bytes, both fields (2 tests).
+6. Non-canonical persisted ordering fails reconstitution, both fields (2 tests).
+7. Canonical zero-cardinality encoding (`0` only), both fields (2 tests).
+8. Conflicting comparison tuples sharing one semantic identity, rejected by Construction and Reconstitution (2
+   tests).
+9. Malformed/unauthorized expectation clauses (unknown variant, `NoAdditionalExpectation` present, duplicate
+   `RequiredEvidenceCount`/`RequiredExactContent`, invalid classification token, non-positive `minimumCount`,
+   missing/empty field), rejected by both procedures (≥7 malformation classes × 2 procedures).
+10. Empty or malformed `EvidenceId`/`EvidenceVersion` rejected by both Construction and Reconstitution (2 tests,
+    minimum).
+11. A comparison whose `actualValue` equals or is stronger than `requiredThreshold` rejected by both Construction
+    and Reconstitution, for both axes (4 tests, minimum).
+12. Finding persistence/reconstitution round trips (1 test, minimum).
+13. Rejection of tampered Severity or Intent, via `persistedFindingDerivationState` (Layer 1 and Layer 3 both) (2
+    tests).
+14. `UnableToEvaluate` produces no Failure Reason derivation (1 test, minimum, per distinct cause).
+15. Exhaustiveness over the closed five-value reason union and two-value axis union.
+16. **(revised)** `validateFindingDerivation`'s function signature accepts exactly two explicit parameters —
+    `persistedFindingDerivationState` and `evaluationContext` — and performs no identifier-based lookup, no
+    repository access, and reads no closure or module-level state of any kind (1 type-level test, plus 1 test
+    asserting identical results across two structurally distinct call sites sharing no closure state).
+
+**C. Exact canonical comparison between a persisted Recorded Failure Basis and the basis freshly recomputed from a
+Layer-2-satisfying context** — fully testable now using fixture contexts constructed to satisfy Layer 2's stated
+guarantees by direct construction (no real resolution machinery required): given fixed, fixture
+`evaluationContext` values, `validateFindingDerivation` fails closed when the `persistedFindingDerivationState`
+checked against them contains a clause absent from the fixture criterion's declared set, a comparison referencing
+Evidence outside the fixture baseline set, a wrong `actualValue`/`requiredThreshold`, an omitted real failure, an
+injected non-failure, or a jointly altered basis/Severity/Intent that remains internally Layer-1-consistent but
+diverges from the freshly recomputed basis (≥6 tests), plus the core positive-equality assertion across the
+scenarios in B.1–B.3. **These tests validate category B/C's own internal logic against fixture contexts; they do
+not, and cannot, validate category A, since category A's assembly mechanism is assigned to Stop Condition 4's own
+future scope and does not yet exist.**
+
+## Authorized Builder Scope
+
+None. Specification amendment only. Step 3A remains unactivated pending its other three stop conditions.
+
+## Scope Restrictions
+
+- Does not activate Step 3A or any other Sprint.
+- Does not resolve, narrow, or otherwise affect Stop Conditions 1 or 2.
+- Does not resolve, narrow, or pre-empt Stop Condition 4. It clarifies that Stop Condition 4's RFC-0006/RFC-0013
+  consumer contract must include the no-lookup Evaluation Context contract if that path is selected as the
+  assembly mechanism — this clarification does not itself resolve Stop Condition 4, and Stop Condition 4 remains
+  fully open pending its own future ratification.
+- Does not create a fifth stop condition.
+- Does not create, authorize, or imply any Evidence-by-identifier, Assessment-Criteria-Set-by-identifier, or
+  Projection-resolution lookup capability.
+- Does not treat Layer 3 in isolation as an authenticity or completeness guarantee.
+- Does not introduce a Finding Category concept, under any name, at any layer.
+- Does not add a new Finding Severity or Finding Intent vocabulary value, and does not define a Severity total
+  order beyond the specific two-way scoped rule stated in the new "Finding Severity and Intent Derivation
+  (Corpus-scoped)" section's own Severity Derivation subsection.
+- Does not invoke, extend, or satisfy the § Actionable Finding contract's Task-identification requirement.
+- Does not reassign Finding Severity, Finding Intent, or Assessment Coverage ownership away from RFC-0006, and does
+  not reassign Projection, Active Evidence Set, or Basis-lineage resolution ownership away from RFC-0003/RFC-0013.
+- Does not alter Assessment Coverage's four-value disposition vocabulary or any `UnableToEvaluate` triggering
+  condition.
+- Does not amend RFC-0001, RFC-0002, RFC-0003, RFC-0005, or RFC-0013.
+- Does not modify any source file, test file, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`,
+  `IMPLEMENTATION_REPORT.md`, `REVIEW_HISTORY.md`, or `builder-task.md`.
+
+## Changed-File List (exact)
+
+- `knowledge/specifications/rfc-0006-engineering-assessment-model.md` — version header (1.3 → 1.4); the
+  `FindingProduced` bullet's second sentence amended in § Evidence Expectation Enforcement — Disposition Rules
+  (exact superseded/replacement text stated in § Governance Decision, above); one new section, "Finding Severity
+  and Intent Derivation (Corpus-scoped)," inserted between § Finding Intent and § Observations; two Conformance
+  bullets appended; one Amendment History entry appended. No other line changes.
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this entry appended, `Current Status: Active`.
+
+No source file. No test file. No `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md` change. No
+`IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`. No `builder-task.md`.
+
+## Related Sprint(s) / Related Review(s)
+
+No Sprint activated. Resolves one of the four stop conditions established by `NEXUS-RAT-2026-07-21-006`. No
+`NEXUS-REV-*` Review record originates or is otherwise associated with this Ratification — it originates from
+seven successive Sprint Owner Final Owner Reviews conducted directly against successive `nexus-plan` drafts.
+
+## Full Ratification Text
+
+> RFC-0006 — Engineering Assessment Model is amended from Final v1.3 to Final v1.4. § Evidence Expectation
+> Enforcement — Disposition Rules' `FindingProduced` recording sentence is corrected to require a persisted,
+> canonically encoded Recorded Failure Basis, with Construction and Reconstitution specified as distinct
+> procedures for each of its two fields, and threshold comparisons additionally requiring non-empty Evidence
+> identity/version and an `actualValue` strictly weaker than `requiredThreshold` under RFC-0002's ordering. A new
+> section, "Finding Severity and Intent Derivation (Corpus-scoped)," is added between § Finding Intent and §
+> Observations, defining: the Recorded Failure Basis's complete canonical encoding; a closed, five-value,
+> recomputed-as-a-mathematical-set (never byte-claimed) Evidence Expectation Failure Reason classification; a
+> scoped Severity rule and a fixed Intent-precedence rule, both using only pre-existing vocabulary values; a new,
+> freestanding rule that a Corpus-scoped `FindingProduced` Finding SHALL NOT be an Observation; and a three-layer
+> reconstitution-integrity rule: Layer 1 (Finding-level, fully self-contained), Layer 2 (a stated contract of
+> Evaluation Context Assembly guarantees, whose no-lookup assembly path is explicitly assigned to Stop Condition
+> 4's own future RFC-0006/RFC-0013 consumer contract — not a fifth stop condition — with an external-resolver
+> alternative requiring its own separate ratification in addition to, not instead of, Stop Condition 4), and Layer
+> 3 (a fully specified, resolver-free pure derivation validator, `validateFindingDerivation`, taking exactly two
+> explicit parameters — `persistedFindingDerivationState` and `evaluationContext` — with no hidden receiver,
+> closure, repository, or global-state dependency, explicitly disclaimed as not itself an authenticity or
+> completeness guarantee absent a Layer-2-satisfying context) — full authenticity established only by the
+> composition Layer 2 ∘ Layer 3. Two Conformance bullets and one Amendment History entry are added accordingly. No
+> Finding Severity or Intent value is added; no Finding Category concept is introduced under any name; no Severity
+> total order is established; no Evidence, Assessment Criteria Set, or Projection resolver is created, chosen, or
+> authorized; no fifth stop condition is created. Finding Severity, Finding Intent, and Assessment Coverage
+> ownership remain exclusively RFC-0006's; Projection, Active Evidence Set, and Basis-lineage resolution ownership
+> remain exclusively RFC-0003's and RFC-0013's. This entry resolves Milestone 12 Initial Capability Sequence Step
+> 3A Stop Condition 3 only; Step 3A remains blocked pending Stop Conditions 1, 2, and 4. No implementation and no
+> Sprint activation is authorized by this entry.
+
+## Current Status
+
+Active

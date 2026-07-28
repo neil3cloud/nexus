@@ -1,7 +1,7 @@
 # RFC-0006 — Engineering Assessment Model
 
 **Status:** Final
-**Version:** 1.3
+**Version:** 1.4
 **Authority:** Normative
 **Normative Language:** RFC 2119
 
@@ -10,6 +10,8 @@ Amended to v1.1 by `NEXUS-RAT-2026-07-17-016`, correcting the Assessment Session
 Amended to v1.2 by `NEXUS-RAT-2026-07-18-006`: generalized `AssessmentSubjectReference` preserving the existing `ExecutableMissionPlan` and `ProposedPlanRevision` discriminator values unchanged (with `ReviewPlanRevisionReference` retained as a deprecated narrow alias); exact `AssessmentCriterion` / `Assessment Criteria Set` model, closed applicability vocabulary, and fingerprint protocol; Corpus-scoped `Assessment Coverage`; Corpus-scoped Finding affected-target model; Corpus-scoped recorded RFC-0003 Projection basis with snapshot-preserving completion; Evidence-expectation enforcement consuming RFC-0002 v1.1; conditional Execution attribution. The `CorpusReviewBasis` extension is dormant until `NEXUS-RAT-2026-07-18-008`.
 
 Amended to v1.3 by `NEXUS-RAT-2026-07-21-002`: closes the `required Evidence expectations` field to an RFC-0006-owned, closed, declarative, non-executable four-variant vocabulary (`NoAdditionalExpectation`, `RequiredEvidenceType`, `RequiredExactContent`, `RequiredEvidenceCount`), with `RequiredEvidenceType` defined as an exact immutable equality constraint on a well-formed Evidence Type identity/version pair, with no RFC-0002 registry dependency; defines a per-coverage-pair baseline qualifying Evidence set with deterministic matching and a fully enveloped canonical fingerprint encoding (expectation-set cardinality encoded as one length-framed canonical unsigned decimal ASCII field, followed by each sorted complete clause as one independently length-framed byte sequence, with clause fields remaining length-framed internally); binds the `AssessmentCriterion` required confidence threshold and required verification-status threshold fields to RFC-0002 v1.3's closed `ConfidenceClassification` and `EvidenceVerificationStatus` vocabularies, consumed read-only, requiring every baseline Evidence item to individually satisfy both thresholds for `Satisfied`; routes a baseline containing at least one rankable-but-insufficient item, with none unrankable or malformed, to `FindingProduced` recording every failing comparison; and routes any baseline containing an unrankable item, or any correlated malformed-Provenance item — unconditionally, regardless of other valid items present — to `UnableToEvaluate`, distinguishing malformed from legacy-opaque unrankable verification status throughout. Applies only where `AssessmentSubjectReference.kind` is `CorpusReviewBasis`, unchanged from v1.2; `ExecutableMissionPlan` and `ProposedPlanRevision` assessment behavior is byte-for-byte unchanged. Also synchronizes RFC-0006's live `RFC-0002 v1.1` Exact Content Evidence citations to `RFC-0002 v1.3`, the current version of the same unmodified normative text, with no semantic change to that consumption. No RFC-0002 Evidence Relationships concept, and no universal RFC-0002 Evidence Type registry, is referenced or assumed. No other normative text changed. No implementation and no Sprint activation authorized.
+
+Amended to v1.4 by `NEXUS-RAT-2026-07-28-003`: corrects § Evidence Expectation Enforcement — Disposition Rules' `FindingProduced` recording sentence to require a persisted, canonically encoded Recorded Failure Basis, with Construction and Reconstitution specified as distinct procedures per field, threshold comparisons additionally requiring non-empty Evidence identity/version and a genuinely-weaker `actualValue`; adds a deterministic, total Finding Severity and Finding Intent derivation for `CorpusReviewBasis` `FindingProduced` Findings via a closed, five-value, recomputed-as-a-mathematical-set (never byte-encoded) Evidence Expectation Failure Reason classification; establishes a new, freestanding rule that such a Finding SHALL NOT be an Observation; and establishes a three-layer reconstitution-integrity rule — Layer 1 (Finding-level, fully self-contained), Layer 2 (a stated contract of Evaluation Context Assembly guarantees, whose no-lookup assembly path is assigned to Stop Condition 4's own RFC-0006/RFC-0013 consumer contract — not a fifth stop condition — with an external-resolver alternative requiring its own separate ratification in addition to, not instead of, Stop Condition 4), and Layer 3 (a fully specified, resolver-free, two-explicit-parameter — `persistedFindingDerivationState`, `evaluationContext` — pure derivation validator with no hidden receiver, closure, or global state, explicitly disclaimed as not itself an authenticity or completeness guarantee absent a Layer-2-satisfying context) — with full authenticity established only by the composition Layer 2 ∘ Layer 3. Introduces no new Finding Severity or Intent value, no Finding Category concept, no Severity total order, no Evidence/Assessment-Criteria-Set resolver, and no fifth stop condition. Applies only to `CorpusReviewBasis` assessments. Resolves Milestone 12 Initial Capability Sequence Step 3A Stop Condition 3 (`NEXUS-RAT-2026-07-21-006`). No implementation and no Sprint activation authorized; Step 3A remains blocked on its other three stop conditions.
 
 ---
 
@@ -406,7 +408,7 @@ For every coverage pair, the following are common preconditions, evaluated befor
 ### Disposition Rules
 
 - **`Satisfied`** — the common validity preconditions hold, the baseline qualifying Evidence set is non-empty, every declared `EvidenceExpectation` clause is satisfied (§ Required Evidence Expectations — Matching Semantics), and every item in the baseline qualifying Evidence set individually satisfies both the required verification-status threshold and the required confidence threshold (§ Threshold Aggregation (RFC-0002 v1.3), below).
-- **`FindingProduced`** — the common validity preconditions hold and the baseline qualifying Evidence set is non-empty, but at least one declared `EvidenceExpectation` clause is not satisfied (expectation-mismatched, including a well-formed `RequiredEvidenceType` reference matched by no baseline item), or at least one baseline item is rankable but weaker than a required threshold while no baseline item is unrankable or malformed (§ Threshold Aggregation (RFC-0002 v1.3), below). The Finding SHALL record the exact failing clause, or every failing `(EvidenceId, EvidenceVersion, actual value, required threshold)` comparison, and SHALL declare an affected-target variant matching the originating coverage pair's scope (§ Assessment Coverage (Corpus-scoped), § Finding Affected Target (Corpus-scoped)).
+- **`FindingProduced`** — the common validity preconditions hold and the baseline qualifying Evidence set is non-empty, but at least one declared `EvidenceExpectation` clause is not satisfied (expectation-mismatched, including a well-formed `RequiredEvidenceType` reference matched by no baseline item), or at least one baseline item is rankable but weaker than a required threshold while no baseline item is unrankable or malformed (§ Threshold Aggregation (RFC-0002 v1.3), below). The Finding SHALL record a Recorded Failure Basis (§ Finding Severity and Intent Derivation (Corpus-scoped)): every declared `EvidenceExpectation` clause not satisfied by the baseline qualifying Evidence set, if any, and every failing `(EvidenceId, EvidenceVersion, axis, actual value, required threshold)` comparison, if any — both, in full, when both occur; neither SHALL be omitted on account of the other being present. The Finding SHALL declare an affected-target variant matching the originating coverage pair's scope (§ Assessment Coverage (Corpus-scoped), § Finding Affected Target (Corpus-scoped)).
 - **`UnableToEvaluate`** — the required evaluation cannot be established. This includes: the baseline qualifying Evidence set is empty; Evidence is ambiguous, conflicting, cross-Mission, cross-element, represented-content-mismatched, digest-mismatched, or unresolved-derivation; any baseline item has UNRANKABLE confidence (absent, per RFC-0002 v1.3 § Evidence Confidence); any baseline item has UNRANKABLE verification status (a valid, marker-less legacy Provenance representation, per RFC-0002 v1.3 § Verification Status Semantics Marker — Legacy/Governed Distinction); or any purported Consumed Evidence item correlated to the pair resolves to malformed Provenance, which unconditionally aborts the pair regardless of other valid items present (§ Required Evidence Expectations — Baseline Qualifying Evidence Set). `UnableToEvaluate` SHALL carry an attributable reason distinguishing which of these applied, per § Assessment Coverage (Corpus-scoped), line 333, and, for the confidence/verification-status cases, per § Threshold Aggregation (RFC-0002 v1.3), below. A well-formed `RequiredEvidenceType` reference matched by no baseline item is NOT a reason for `UnableToEvaluate`; it is a `FindingProduced` expectation-mismatch, above.
 - **`NotApplicable`** — unchanged. Remains governed exclusively by the existing § Assessment Coverage (Corpus-scoped) applicability rules; not addressed by this amendment.
 
@@ -497,6 +499,291 @@ Minimum intents SHALL include:
 - Documentation
 
 Intent SHALL guide Mission Evolution.
+
+---
+
+# Finding Severity and Intent Derivation (Corpus-scoped)
+
+This section applies only to a Finding produced by a `FindingProduced` Assessment Coverage disposition for a
+`CorpusReviewBasis` subject. It does not apply to, and imposes no requirement on, any Finding arising from an
+`ExecutableMissionPlan` or `ProposedPlanRevision` assessment.
+
+This section defines exactly two derived classification outputs — Finding Severity and Finding Intent — using
+only the vocabularies already defined by § Finding Severity and § Finding Intent. It introduces no third
+classification axis, no Finding Category concept, and no new Severity or Intent vocabulary member.
+
+Independently of, and without invoking, the Plan-Revision § Actionable Finding contract, every Finding this section
+applies to SHALL carry a Finding Intent, derived below, as this section's own independent requirement.
+
+**A Finding linked by a Corpus-scoped `FindingProduced` disposition SHALL NOT be an Observation.** This is a new,
+freestanding rule established by this amendment.
+
+## Recorded Failure Basis
+
+Per § Evidence Expectation Enforcement — Disposition Rules, as amended, a Corpus-scoped `FindingProduced`
+Finding SHALL persist a Recorded Failure Basis: an immutable value object comprising exactly two fields,
+`failingExpectationClauses` and `failingThresholdComparisons`, each specified by two distinct procedures —
+**Construction** (producing canonical bytes from an unordered semantic input) and **Reconstitution** (parsing
+already-serialized bytes back into a value, without normalizing them).
+
+### `failingExpectationClauses`
+
+**Semantic content.** The duplicate-free-by-content set of `EvidenceExpectation` clauses on the originating
+criterion not satisfied by the baseline qualifying Evidence set. Byte identity and semantic identity coincide for
+this field, per § Required Evidence Expectations — Canonical Encoding's existing injective encoding.
+
+**Construction.** Given an unordered collection of failing `EvidenceExpectation` clauses:
+
+1. Each clause SHALL independently satisfy § Required Evidence Expectations — Construction and Resolution's
+   existing fail-closed rules, reused verbatim: no unknown or unauthorized variant; no missing or structurally
+   empty required field; `NoAdditionalExpectation` SHALL NOT appear; at most one `RequiredExactContent` clause
+   among the stored set; at most one `RequiredEvidenceCount` clause among the stored set; a `RequiredExactContent`
+   classification token from its closed three-value set only; a `RequiredEvidenceCount.minimumCount` that is a
+   positive integer only.
+2. Construction SHALL reject an exact duplicate clause (identical complete encoded bytes).
+3. The accepted, duplicate-free, individually valid clause collection SHALL be deterministically sorted ascending
+   by each clause's own complete encoded bytes to produce the canonical form: cardinality (one length-framed
+   canonical unsigned decimal ASCII field, no sign, no leading zero; the literal single-character token `0` if and
+   only if the collection is empty) followed by each complete encoded clause, sorted ascending, each independently
+   length-framed. Construction accepts its semantic input in any order — the sort is Construction's own final,
+   deterministic step, not a precondition on its input.
+
+**Reconstitution.** Given already-serialized bytes purporting to be a canonical form:
+
+1. Parse the cardinality prefix and each length-framed element in the order the bytes present them.
+2. Fail closed, without re-sorting or otherwise normalizing the bytes, if: the cardinality prefix does not equal
+   the actual parsed element count; two or more parsed elements are exact duplicates; the parsed elements are not
+   in strictly ascending order by their own complete encoded bytes; or any parsed element fails the same §
+   Required Evidence Expectations — Construction and Resolution rules Construction step 1 requires.
+
+### `failingThresholdComparisons`
+
+**Semantic identity.** Each Failing Threshold Comparison tuple's semantic identity is exactly the triple
+`(EvidenceId, EvidenceVersion, axis)`. A given baseline Evidence item has exactly one real classification per axis
+at evaluation time, and a criterion declares exactly one required threshold per axis; consequently at most one
+authentic tuple can ever exist per semantic identity, and two or more tuples sharing one semantic identity —
+whether or not their `actualValue`/`requiredThreshold` agree — are definitionally inconsistent and SHALL be
+rejected.
+
+**Field content.** Each tuple SHALL carry, in fixed order: (1) `EvidenceId` — the exact RFC-0002-owned identity
+string, length-framed UTF-8, **SHALL be non-empty**; (2) `EvidenceVersion` — the exact RFC-0002-owned version
+string, length-framed UTF-8, **SHALL be non-empty**; (3) `axis` — exactly one token from the closed two-value set
+`Confidence` or `VerificationStatus`, length-framed; (4) `actualValue` — one RFC-0002 v1.3 canonical token from the
+axis-determined vocabulary (`ConfidenceClassification` or `EvidenceVerificationStatus`), rankable values only,
+length-framed; (5) `requiredThreshold` — encoded identically to `actualValue`'s rule, using the same axis-determined
+vocabulary, length-framed. **`actualValue` SHALL be strictly weaker than `requiredThreshold` under RFC-0002 v1.3's
+normative total ordering for that axis** — a tuple whose `actualValue` equals or is stronger than
+`requiredThreshold` records no genuine failure and SHALL be rejected; this comparison requires no external
+resolution, since it is a structural comparison of two already-present canonical tokens under RFC-0002's own
+closed, fully defined ordering. **Complete encoded comparison bytes** = these five fields, in order, each
+independently length-framed, concatenated.
+
+**Construction.** Given an unordered collection of failing threshold comparisons:
+
+1. Each tuple's `EvidenceId` and `EvidenceVersion` SHALL be non-empty; `axis` SHALL be a member of the closed
+   two-value set; `actualValue` and `requiredThreshold` SHALL each be a valid canonical token from the
+   axis-determined RFC-0002 v1.3 vocabulary (an axis/value-type mismatch is rejected); `actualValue` SHALL be
+   strictly weaker than `requiredThreshold` under that vocabulary's normative ordering.
+2. Construction SHALL reject the input in its entirety if two or more supplied tuples share one semantic identity
+   `(EvidenceId, EvidenceVersion, axis)`, regardless of value agreement.
+3. The accepted, semantic-identity-unique, individually valid tuple collection SHALL be deterministically sorted
+   ascending by each tuple's own complete encoded comparison bytes to produce the canonical form: cardinality (one
+   length-framed canonical unsigned decimal ASCII field, no sign, no leading zero; the literal token `0` if and
+   only if empty) followed by each complete encoded comparison, sorted ascending, each independently length-framed.
+   Construction accepts its semantic input in any order.
+
+**Reconstitution.** Given already-serialized bytes purporting to be a canonical form:
+
+1. Parse the cardinality prefix and each length-framed element in the order the bytes present them.
+2. Fail closed, without re-sorting or otherwise normalizing the bytes, if: the cardinality prefix does not equal
+   the actual parsed element count; two or more parsed elements share one semantic identity; the parsed elements
+   are not in strictly ascending order by their own complete encoded comparison bytes; or any parsed element fails
+   any field-content or ordering-strength rule Construction step 1 requires (non-empty identity/version, valid
+   axis, valid axis-matched tokens, `actualValue` strictly weaker than `requiredThreshold`).
+
+### Complete outer structure
+
+The Recorded Failure Basis's complete canonical encoding is the concatenation, in fixed order: (1) the canonical
+form of `failingExpectationClauses`; (2) the canonical form of `failingThresholdComparisons`. Construction SHALL
+additionally fail closed if both fields' semantic collections are empty simultaneously; Reconstitution SHALL
+independently re-check this same invariant against the parsed bytes.
+
+## Evidence Expectation Failure Reason
+
+The Evidence Expectation Failure Reason set for a Finding SHALL be recomputed — never independently persisted, and
+possessing no canonical byte encoding of its own — from its Recorded Failure Basis, as the non-empty,
+duplicate-free subset of the following five closed, mutually distinguishable reasons that holds:
+
+- `EvidenceCountDeficiency` — `failingExpectationClauses` contains the complete encoded bytes of a
+  `RequiredEvidenceCount` clause.
+- `EvidenceTypeAbsence` — `failingExpectationClauses` contains the complete encoded bytes of at least one
+  `RequiredEvidenceType` clause.
+- `RequiredExactContentDeficiency` — `failingExpectationClauses` contains the complete encoded bytes of a
+  `RequiredExactContent` clause. Applies only when every baseline item has satisfied the applicable RFC-0002 v1.3
+  Exact Content Evidence integrity rules but none satisfies the clause's declared content-representation
+  classification; excludes every represented-content mismatch, digest mismatch, or unresolved-derivation failure,
+  each of which is, and remains, `UnableToEvaluate`.
+- `ConfidenceThresholdDeficiency` — `failingThresholdComparisons` contains at least one tuple with `axis` =
+  `Confidence`.
+- `VerificationStatusThresholdDeficiency` — `failingThresholdComparisons` contains at least one tuple with `axis`
+  = `VerificationStatus`.
+
+`NoAdditionalExpectation` contributes no Failure Reason and can never appear in `failingExpectationClauses`.
+
+This set is a derivation-internal classification: it is not itself persisted, has no canonical byte encoding, and
+is **recomputed as the identical mathematical set** from the persisted Recorded Failure Basis every time it is
+needed — "byte for byte" equality is reserved exclusively for the canonically encoded Recorded Failure Basis
+itself, never for this unpersisted, uncoded set.
+
+## Severity Derivation
+
+Finding Severity is Major if the Evidence Expectation Failure Reason set contains any of `EvidenceTypeAbsence`,
+`RequiredExactContentDeficiency`, or `VerificationStatusThresholdDeficiency`; otherwise Finding Severity is Minor.
+Both are members of the existing § Finding Severity minimum vocabulary; no ordering among Severity values beyond
+this specific two-way scoped rule is asserted.
+
+## Intent Derivation
+
+Each Evidence Expectation Failure Reason maps to exactly one Finding Intent, from the existing § Finding Intent
+minimum vocabulary:
+
+| Evidence Expectation Failure Reason | Finding Intent |
+| --- | --- |
+| `RequiredExactContentDeficiency` | Correction |
+| `VerificationStatusThresholdDeficiency` | Risk Mitigation |
+| `ConfidenceThresholdDeficiency` | Risk Mitigation |
+| `EvidenceTypeAbsence` | Expansion |
+| `EvidenceCountDeficiency` | Expansion |
+
+When a Finding's Evidence Expectation Failure Reason set contains more than one reason mapping to different
+Intents, Finding Intent SHALL be resolved by the fixed precedence `Correction` > `Risk Mitigation` > `Expansion`,
+defined solely for this derivation.
+
+## Reconstitution Integrity
+
+This amendment establishes three distinct, independently stated integrity layers for a Corpus-scoped
+`FindingProduced` Finding. **Full authenticity and completeness of a Finding's Recorded Failure Basis is
+established only by the composition Layer 2 ∘ Layer 3 — never by Layer 3 alone.**
+
+### Layer 1 — Finding-level reconstitution (fully self-contained; locally enforceable now)
+
+At every reconstitution of a Corpus-scoped `FindingProduced` Finding, using only the Finding's own persisted bytes:
+
+- the persisted Recorded Failure Basis SHALL be parsed via § Recorded Failure Basis's Reconstitution procedure for
+  both fields, failing closed on any condition stated there (including the non-empty-identity, axis/value-type, and
+  strict-weakness rules for threshold comparisons);
+- the Evidence Expectation Failure Reason set SHALL be recomputed (as the identical mathematical set) from the
+  validated Recorded Failure Basis;
+- Finding Severity and Finding Intent SHALL be recomputed from that reason set exactly as specified above;
+- reconstitution SHALL fail closed if the recomputed Severity or Intent does not equal the Finding's persisted
+  Severity or Intent.
+
+Layer 1 proves the persisted Recorded Failure Basis is canonically well-formed and internally non-contradictory,
+and consistent with the persisted Severity and Intent. It does not prove the Recorded Failure Basis is authentic
+relative to the Finding's originating evaluation.
+
+### Layer 2 — Authoritative Evaluation Context Assembly (a required contract; assembly mechanism assigned to Stop Condition 4)
+
+Before Layer 3 can establish authenticity, an Evaluation Context SHALL be assembled satisfying every one of the
+following guarantees:
+
+- **`boundCriterion`** — the exact `AssessmentCriterion` whose owning Assessment Criteria Set's identity, version,
+  and fingerprint equal those bound into the referenced Corpus Review Basis, failing closed on mismatch — reusing
+  § Assessment Criteria's existing fail-closed rule verbatim, not a new check.
+- **`coveragePair`** — exact identity match to the Finding's own declared affected-target variant (§ Finding
+  Affected Target (Corpus-scoped)), so the assembled context concerns exactly the pair the Finding arose from.
+- **`baselineEvidenceSet`** — exactly the set defined by § Required Evidence Expectations — Baseline Qualifying
+  Evidence Set's existing five-part definition: resolves exactly; belongs to the bound Projection's Active
+  Evidence Set; correlates to the exact Subject Element or Subject-as-whole via `representedContentReference`;
+  possesses valid resolvable Provenance; satisfies exact-content integrity rules — **complete** (no qualifying item
+  omitted) and **exclusive** (no non-qualifying item included).
+- **`recordedProjectionIdentityVersion`** — equal to the Assessment's own already-recorded Projection identity and
+  version (§ Recorded Projection Basis and Snapshot-Preserving Completion (Corpus-scoped)).
+
+**This section states these guarantees as a mandatory contract. It does not itself specify the mechanism by which
+they are assembled.**
+
+**Assignment to Stop Condition 4 (not a fifth stop condition).** The no-lookup caller-supplied Evaluation Context
+contract — the path under which a caller constructs and attests to an Evaluation Context whose fields are already
+concrete, already-verified values, together with an independent validation procedure for that attestation, with no
+Evidence-by-identifier or Assessment-Criteria-Set-by-identifier lookup of any kind — **SHALL be specified and
+ratified as part of Stop Condition 4's own RFC-0006 consumer contract against RFC-0013's owned Corpus Review Basis
+and snapshot lineage** (`NEXUS-RAT-2026-07-21-006`). It is not a separate, fifth stop condition, and this entry
+(`NEXUS-RAT-2026-07-28-003`) does not create one. If, instead, an external Evidence or Assessment Criteria Set
+resolver is selected as the assembly mechanism, Stop Condition 4 remains independently required regardless — the
+external resolver does not substitute for it — and that resolver additionally, separately, requires its own
+architectural ratification and Sprint authorization, on top of, and independent from, Stop Condition 4.
+
+**Ownership boundaries, preserved exactly:** Stop Condition 1 governs RFC-0003-owned Projection identity/version
+resolution only. Stop Condition 4 governs the RFC-0006 consumer contract against RFC-0013's owned Basis and
+snapshot lineage, and now explicitly the no-lookup Evaluation Context contract, if that path is chosen. **Neither
+Stop Condition 1 nor Stop Condition 4 is, or silently becomes, an Evidence or Assessment Criteria Set resolver;**
+the prohibition on such a resolver (`NEXUS-RAT-2026-07-22-001`) is unaffected by either stop condition's eventual
+resolution and remains excluded pending its own separate ratification, if ever pursued.
+
+### Layer 3 — Pure Derivation Validation (fully specified now; two explicit parameters, no hidden state)
+
+Layer 3 is a **pure validation function**, fully specified by this entry and requiring no further ratification to
+be complete or testable. Its signature SHALL be:
+
+```text
+validateFindingDerivation(
+  persistedFindingDerivationState,
+  evaluationContext
+)
+```
+
+where:
+
+- `persistedFindingDerivationState` is an immutable record carrying exactly the Finding's own persisted Recorded
+  Failure Basis, Finding Severity, and Finding Intent — the complete set of values Layer 3 must check, supplied
+  explicitly, never read from a hidden receiver, closure, repository, or global state;
+- `evaluationContext` is an Evaluation Context already satisfying every Layer 2 guarantee, likewise supplied
+  explicitly.
+
+**Layer 3 SHALL have no hidden receiver, closure, repository, or global-state dependency of any kind; every input
+it consumes SHALL be named among its explicit parameters.**
+
+Given these two parameters, Layer 3 re-runs § Evidence Expectation Enforcement's own Disposition Rule evaluation
+against `evaluationContext` exactly as it would run at original construction time, producing a freshly recomputed
+Recorded Failure Basis via § Recorded Failure Basis's Construction procedure, recomputes Finding Severity and
+Finding Intent from it per this section's own derivation rules, and requires: exact canonical-byte equality between
+the freshly recomputed Recorded Failure Basis and `persistedFindingDerivationState`'s Recorded Failure Basis (via
+Reconstitution); and exact equality between the freshly recomputed Severity/Intent and
+`persistedFindingDerivationState`'s Severity/Intent. Layer 3 fails closed on either inequality.
+
+**Layer 3, satisfied in isolation, proves only that `persistedFindingDerivationState` is consistent with whatever
+`evaluationContext` it was given — it is not, by itself, an authenticity or completeness guarantee.** If Layer 3 is
+invoked against an `evaluationContext` that has not itself been verified to satisfy every Layer 2 guarantee, Layer
+3's success proves nothing about the Finding's authenticity relative to the Corpus Review Basis or Projection — it
+proves only self-consistency against that unverified candidate. The full guarantee — that a Finding's Recorded
+Failure Basis is authentic and complete — requires Layer 2's guarantees to already hold before Layer 3 is invoked.
+Layer 3 performs no external lookup and owns no resolver of any kind.
+
+## Totality and Determinism
+
+The Evidence Expectation Failure Reason set is non-empty for every valid Recorded Failure Basis; the Severity and
+Intent derivation rules are total. Finding Severity and Finding Intent are therefore deterministically and totally
+derived for every Corpus-scoped `FindingProduced` Finding whose Recorded Failure Basis passes Layer 1.
+Re-evaluating an identical coverage pair against an identical, Layer-2-satisfying `evaluationContext` SHALL always
+produce a canonically identical Recorded Failure Basis and therefore an identical (Severity, Intent) pair.
+
+## Scope and Non-Effect
+
+- Applies only where `AssessmentSubjectReference.kind` is `CorpusReviewBasis`.
+- Introduces no new Finding Severity value, no new Finding Intent value, and no Finding Category concept of any
+  kind.
+- Does not reassign Finding Severity or Finding Intent ownership away from RFC-0006.
+- Does not invoke or extend the § Actionable Finding contract's Task-identification requirement.
+- Adds exactly one new persisted structure to the Corpus-scoped Finding — the Recorded Failure Basis — plus the new
+  Observation-exclusion rule. The Evidence Expectation Failure Reason set remains unpersisted, with no canonical
+  byte encoding.
+- States Layer 2 as a mandatory contract of guarantees, assigning its no-lookup path explicitly to Stop Condition
+  4's own scope — not a fifth stop condition — and stating that an external-resolver alternative does not
+  substitute for Stop Condition 4 and requires its own separate ratification.
+- States Layer 3 as a complete, self-contained, resolver-free, two-explicit-parameter pure function with no hidden
+  state, explicitly not itself an authenticity or completeness guarantee absent a Layer-2-satisfying context.
+- Does not alter Assessment Coverage's four-value disposition vocabulary or the Threshold Aggregation rule.
 
 ---
 
@@ -702,6 +989,8 @@ A Kernel implementation conforms to RFC-0006 only if it:
 - records Execution attribution conditionally, never fabricating an Execution Session for a direct Human assessment, and never treating an Adapter as evaluator origin
 - for a `CorpusReviewBasis` subject, records the exact RFC-0003 Projection identity and Projection Version, permits snapshot-preserving completion against a stale-but-exactly-resolvable bound Projection, and never treats staleness alone as a fail-closed condition
 - applies Corpus-scoped Coverage, Finding affected targets, and Projection recording only to `CorpusReviewBasis` assessments, leaving Plan-Revision assessment behavior unchanged
+- for a `CorpusReviewBasis` subject, persists a canonically encoded Recorded Failure Basis on every `FindingProduced` Finding — with Construction and Reconstitution specified as distinct procedures per field, threshold comparisons additionally requiring non-empty Evidence identity/version and an `actualValue` strictly weaker than `requiredThreshold` — and deterministically derives Finding Severity and Finding Intent from it via a closed, five-reason Evidence Expectation Failure Reason classification (recomputed as the identical mathematical set, never claimed byte-for-byte), introducing no Finding Category concept and treating every such Finding as not an Observation
+- fails closed at Finding-level reconstitution (Layer 1) on any canonical malformation, unauthorized clause, conflicting-identity comparison, non-strictly-weaker comparison, or Severity/Intent inconsistency; states a mandatory Evaluation Context Assembly contract (Layer 2) whose no-lookup path is assigned to Stop Condition 4's own scope (not a fifth stop condition) and whose guarantees must hold before a two-explicit-parameter, resolver-free Derivation Validator (Layer 3, with no hidden receiver, closure, or global state) can establish, by their composition, that a persisted Recorded Failure Basis is authentic and complete, never by Layer 3 in isolation
 
 Failure to satisfy these guarantees constitutes non-conformance with this specification.
 
@@ -713,3 +1002,4 @@ Failure to satisfy these guarantees constitutes non-conformance with this specif
 - v1.1 — Amended by `NEXUS-RAT-2026-07-17-016`. Originates from `NEXUS-REV-2026-07-17-014-F-002` and `NEXUS-REV-2026-07-17-016-F-003` (Category 6, Observation): the implementation-layer `Review` model's revision-under-assessment field was an untyped, opaque string, ambiguously reused to reference either an RFC-0001 executable Mission Plan revision or an RFC-0012 Proposed Plan Revision, flagged as a risk to Sprint 76 (Approved Plan Activation), which treats this exact correlation as a precondition for an irreversible conversion into executable state. Corrects the Assessment Session's Mission Plan Revision record to an explicit, discriminated `ReviewPlanRevisionReference` (`kind: ExecutableMissionPlan | ProposedPlanRevision`, `revisionId`). No other RFC-0006 concept, lifecycle, or outcome is amended.
 - v1.2 — Amended by `NEXUS-RAT-2026-07-18-006`. Generalizes the Assessment Session subject to an `AssessmentSubjectReference` with exactly three discriminants (`ExecutableMissionPlan`, `ProposedPlanRevision`, `CorpusReviewBasis`), retaining `ReviewPlanRevisionReference` as a deprecated backward-compatible narrow alias; **no discriminator value is renamed, replaced, or re-encoded, and the two pre-existing values and their wire representation remain byte-for-byte unchanged**. Adds an exact `AssessmentCriterion` / non-empty Assessment Criteria Set identity-version-fingerprint model with a complete immutable criterion-reference contract, explicit inline-definition canonicalization (NFC, LF, outer-trim, UTF-8), a closed four-variant declarative applicability vocabulary, and a canonical SHA-256 fingerprint protocol; a Corpus-scoped Assessment Coverage universe formed as the union of the element-scoped Cartesian product and exactly one subject-wide pair per `SubjectWide` criterion; a closed Corpus-scoped Finding affected-target model (`SubjectElementTarget` / `AssessmentSubjectTarget`); Evidence-expectation enforcement consuming RFC-0002 v1.1 Exact Content Evidence read-only; conditional Execution attribution; and a Corpus-scoped recorded RFC-0003 Projection basis with snapshot-preserving completion under which staleness alone is never a fail-closed condition. No Assessment Outcome value, Finding Severity, or Finding Intent is changed. RFC-0005 and RFC-0012 dependencies are preserved unmodified, and RFC-0002 v1.1, RFC-0008, and RFC-0012 are recorded explicitly. Projection Freshness remains owned by RFC-0003 and is consumed, not redefined. Corpus-scoped Coverage, the Finding affected-target model, and Projection recording apply only to `CorpusReviewBasis` assessments; Plan-Revision assessment behavior is unchanged. The `CorpusReviewBasis` subject variant, the `SubjectWide` applicability variant, Corpus-scoped Coverage, the Finding affected-target model, and the recorded Projection basis remain **dormant and unusable** until `NEXUS-RAT-2026-07-18-008` authorizes RFC-0013 Draft v0.6. Conditional Execution Attribution is a normative change whose implementation is deferred and separately authorized. Specification text only; no implementation, no Sprint, no Initial Capability Sequence.
 - v1.3 — Amended by `NEXUS-RAT-2026-07-21-002`. Closes the `required Evidence expectations` field to an RFC-0006-owned, closed, declarative, non-executable four-variant vocabulary (`NoAdditionalExpectation`, `RequiredEvidenceType`, `RequiredExactContent`, `RequiredEvidenceCount`); `RequiredEvidenceType` is an exact immutable identity/version equality constraint requiring no RFC-0002 registry — no such registry is assumed to exist, and a well-formed reference matched by no baseline item is a determinate expectation-mismatch (`FindingProduced`), never `UnableToEvaluate`. Defines a per-coverage-pair baseline qualifying Evidence set and deterministic set-level matching, with a fully enveloped canonical fingerprint encoding for input 5: the expectation-set cardinality encoded as one length-framed canonical unsigned decimal ASCII field, followed by each complete encoded clause independently length-framed and sorted by its own complete encoded bytes, with exact duplicates rejected before sorting. Binds `AssessmentCriterion`'s required confidence threshold and required verification-status threshold fields to RFC-0002 v1.3's closed, totally ordered `ConfidenceClassification` and `EvidenceVerificationStatus` vocabularies, consumed read-only, with canonical fingerprint encoding for inputs 6 and 7. Establishes deterministic per-item threshold aggregation over the entire baseline qualifying Evidence set: every baseline item must individually satisfy both thresholds for `Satisfied`; a baseline with at least one rankable-but-insufficient item, and none unrankable or malformed, is a determinate `FindingProduced` recording every failing `(EvidenceId, EvidenceVersion, actual value, required threshold)` comparison; a baseline with any unrankable item, or any correlated malformed-Provenance item, is `UnableToEvaluate`. Malformed Provenance aborts a coverage pair's evaluation to `UnableToEvaluate` unconditionally, regardless of other valid baseline items present, and is distinguished from legacy-opaque unrankable verification status as separately explainable failure modes throughout baseline construction, common validity preconditions, disposition rules, and threshold semantics. Routes expectation-mismatched Evidence, including an unmatched well-formed `RequiredEvidenceType` reference, to `FindingProduced` with a matching-scope affected-target Finding. Applies only where `AssessmentSubjectReference.kind` is `CorpusReviewBasis`, exactly as in v1.2; `ExecutableMissionPlan` and `ProposedPlanRevision` assessment behavior is byte-for-byte and semantically unchanged. Synchronizes RFC-0006's live `RFC-0002 v1.1` Exact Content Evidence citations (§ Dependencies, § Evidence Expectation Enforcement, § Conformance) to `RFC-0002 v1.3`, the current RFC-0002 document version, with no semantic change to that consumption; historical Amendment History entries citing `RFC-0002 v1.1` are left untouched as an accurate historical record. No `AssessmentCriterion Applicability` variant, `Assessment Outcome` value, `Finding Severity`, `Finding Intent`, Coverage universe rule, RFC-0002 Evidence Relationships concept, or universal RFC-0002 Evidence Type registry is otherwise changed, referenced, or assumed. Specification text only; no implementation, no Sprint activation authorized.
+- v1.4 — Amended by `NEXUS-RAT-2026-07-28-003`. Corrects § Evidence Expectation Enforcement — Disposition Rules' `FindingProduced` recording sentence to require a persisted, canonically encoded Recorded Failure Basis, with Construction and Reconstitution specified as distinct procedures per field, threshold comparisons additionally requiring non-empty Evidence identity/version and a genuinely-weaker `actualValue`; adds a deterministic, total Finding Severity and Finding Intent derivation for `CorpusReviewBasis` `FindingProduced` Findings via a closed, five-value, recomputed-as-a-mathematical-set (never byte-encoded) Evidence Expectation Failure Reason classification; establishes a new, freestanding rule that such a Finding SHALL NOT be an Observation; and establishes a three-layer reconstitution-integrity rule — Layer 1 (Finding-level, fully self-contained), Layer 2 (a stated contract of Evaluation Context Assembly guarantees, whose no-lookup assembly path is assigned to Stop Condition 4's own RFC-0006/RFC-0013 consumer contract — not a fifth stop condition — with an external-resolver alternative requiring its own separate ratification in addition to, not instead of, Stop Condition 4), and Layer 3 (a fully specified, resolver-free, two-explicit-parameter — `persistedFindingDerivationState`, `evaluationContext` — pure derivation validator with no hidden receiver, closure, or global state, explicitly disclaimed as not itself an authenticity or completeness guarantee absent a Layer-2-satisfying context) — with full authenticity established only by the composition Layer 2 ∘ Layer 3. Introduces no new Finding Severity or Intent value, no Finding Category concept, no Severity total order, no Evidence/Assessment-Criteria-Set resolver, and no fifth stop condition. Applies only to `CorpusReviewBasis` assessments. Resolves Milestone 12 Initial Capability Sequence Step 3A Stop Condition 3 (`NEXUS-RAT-2026-07-21-006`). No implementation and no Sprint activation authorized; Step 3A remains blocked on its other three stop conditions.
