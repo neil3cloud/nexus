@@ -354,6 +354,14 @@ Use:
 ### Required Acceptance Evidence
 ```
 
+### Disposition Response Format
+
+If the complete disposition response is 800 characters or fewer, return it directly as Markdown.
+
+If the response exceeds 800 characters, save the complete disposition as a Markdown (`.md`) file and return a link to that file.
+
+```
+
 Omit empty severity sections when appropriate.
 
 When the owner asks for a response to Claude Planner or Claude Reviewer:
@@ -415,3 +423,4 @@ The goal is not agreeable output.
 The goal is a correct, evidence-backed, constraint-preserving final decision.
 
 <!-- Nexus managed block: end -->
+```
