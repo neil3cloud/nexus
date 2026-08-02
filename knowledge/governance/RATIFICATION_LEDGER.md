@@ -12217,3 +12217,1556 @@ seven successive Sprint Owner Final Owner Reviews conducted directly against suc
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-07-28-004
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-28-004
+
+## Date
+
+2026-07-28
+
+## Subject
+
+Reconciles eleven live Milestone 12 planning sites — six in `IMPLEMENTATION_PLAN.md`, five in `IMPLEMENTATION_MANIFEST.md` — to `NEXUS-RAT-2026-07-28-003`'s actual outcome (RFC-0006 Final v1.3 → v1.4; Milestone 12 Initial Capability Sequence Step 3A Stop Condition 3 resolved; Stop Conditions 1, 2, and 4 remain open). The established invariant that Step 3A has **four** independent stop conditions is preserved unchanged at every site; only the current-state wording (which of the four are resolved vs. open) is corrected. Historical references describing Step 2A as the "RFC-0006 v1.3 Structural Foundation," and every prior Ratification's own text (`NEXUS-RAT-2026-07-21-002`, `-06`, `-07`, `NEXUS-RAT-2026-07-22-001`, `-002`), are left unchanged as immutable history. No Sprint is activated. No prior Sprint (78, 79, 80, 81) or its findings are reopened. RFC-0001, RFC-0002, RFC-0003, RFC-0005, RFC-0013, and the Kernel Canon are unmodified. Stop Conditions 1, 2, and 4 are not resolved, narrowed, or otherwise affected by this entry.
+
+## Originating Review Finding(s)
+
+`nexus-plan` Governance Report (2026-07-28), Ambiguity G-1. Sprint Owner Final Owner Review, Revision 1 (APPROVE WITH NAMED CORRECTIONS): (1) preserve the four-total-stop-condition invariant — only current-state wording changes, "four" is never replaced with "three"; (2) expand the reconciliation inventory to include the two Step 4 sites (`IMPLEMENTATION_PLAN.md:4447`, `IMPLEMENTATION_MANIFEST.md:3258`) omitted from the original nine-site draft; (3) update every current/future Step 3A RFC-0006 reference from v1.3 to v1.4, while leaving historical v1.3 references untouched; (4) reproduce the exact prior and replacement text for all eleven sites inside this Ledger entry. Sprint Owner Final Owner Review, Revision 2 (APPROVE WITH NAMED CORRECTIONS), against the Revision 1 draft: (1) Manifest Site 7 was not byte-identical to Plan Site 1 as that draft claimed — required independent reproduction; (2) Sites 7–11 generally must reproduce complete independent text rather than cross-site aliasing, which this entry's own re-verification additionally showed applies to Site 9 (also not byte-identical to Site 4); (3) `Current Status` must read exactly `Active`, not a status/application-state compound; (4) Stop Condition 4 wording must state the no-lookup Evaluation Context contract applies only if that path is selected as the assembly mechanism, and must preserve that an external resolver is not authorized, not a substitute, and requires its own separate ratification; (5) Sites 2 and 8 must name both RFC-0006 sections relevant to Step 3A — § Required Evidence Expectations and § Finding Severity and Intent Derivation (Corpus-scoped). Sprint Owner Final Owner Review, Revision 3 (APPROVE WITH NAMED CORRECTIONS), against the Revision 2 draft: Sites 2 and 8's prior/replacement text omitted the Markdown list marker `- ` present on the live RFC Coverage bullet lines at `IMPLEMENTATION_PLAN.md:4397` and `IMPLEMENTATION_MANIFEST.md:3225`; corrected so both prior and replacement text begin `- RFC-0006`. No `NEXUS-REV-*` Review record originates or is otherwise associated with this Ratification.
+
+## RFC Coverage
+
+None normatively. Documentation reconciliation of Implementation Layer planning text only, reflecting an already-ratified RFC-0006 amendment (`NEXUS-RAT-2026-07-28-003`). No RFC-owned concept is created, amended, or reinterpreted by this entry.
+
+## Deferred Concepts
+
+Unchanged in every respect from `NEXUS-RAT-2026-07-21-006`, `NEXUS-RAT-2026-07-22-001`/`-002`, and `NEXUS-RAT-2026-07-28-003`. This entry defers nothing new and un-defers nothing. Stop Conditions 1, 2, and 4 remain exactly as open as before this entry. Stop Condition 4's Layer 2 no-lookup assembly path remains conditional on that path being selected; the external-resolver alternative remains its own, wholly separate, future ratification.
+
+## Ownership Model
+
+Unchanged. This entry introduces no domain, no aggregate ownership, and no reassignment of any concept between specifications. RFC-0003 remains the exclusive owner of Stop Condition 1; RFC-0005 of Stop Condition 2; RFC-0006 (consuming RFC-0013) of Stop Condition 4.
+
+## Governance Decision
+
+APPROVED — MILESTONE 12 PLANNING RECONCILIATION TO `NEXUS-RAT-2026-07-28-003` (ELEVEN SITES; FOUR-CONDITION GATE PRESERVED; EACH SITE INDEPENDENTLY REPRODUCED).
+
+Authorizes correcting exactly eleven identified Milestone 12 sites — six in `IMPLEMENTATION_PLAN.md`, five in `IMPLEMENTATION_MANIFEST.md` — to state Stop Condition 3 resolved and Stop Conditions 1, 2, and 4 open, and to update current/future RFC-0006 references to Final v1.4, without at any site reducing the stated total of "four" independent stop conditions or their ownership attribution. Exact prior and replacement text for every site, exactly as applied, follows; no site's text is supplied by reference to another site.
+
+### Site 1 — `IMPLEMENTATION_PLAN.md`, Milestone 12 § Status line (line 4387)
+
+Prior text (superseded):
+
+> Status: 🟡 ACTIVE (Sprint 78 Approved with Findings; Sprint 79 (Corrective Prerequisite 1A) Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Initial Capability Sequence amended by `NEXUS-RAT-2026-07-21-006`; Sprint 80 / Step 2A Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); Step 3/Step 3A boundary corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed, Step 3A expanded) and Step 3 (Narrowed, Final) implemented as Sprint 81 — Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` — `NEXUS-REV-0081-DEF-001` and `NEXUS-REV-0081-DOC-001` — resolved and independently verified; zero remaining findings); Step 3A not yet activated as a Sprint, pending its four independent stop conditions and its own separate architectural ratification — no next Sprint is advanced to Current by this review)
+
+Replacement text (applied):
+
+> Status: 🟡 ACTIVE (Sprint 78 Approved with Findings; Sprint 79 (Corrective Prerequisite 1A) Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Initial Capability Sequence amended by `NEXUS-RAT-2026-07-21-006`; Sprint 80 / Step 2A Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); Step 3/Step 3A boundary corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed, Step 3A expanded) and Step 3 (Narrowed, Final) implemented as Sprint 81 — Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` — `NEXUS-REV-0081-DEF-001` and `NEXUS-REV-0081-DOC-001` — resolved and independently verified; zero remaining findings); Step 3A not yet activated as a Sprint; of its four independent stop conditions, Stop Condition 3 is resolved by `NEXUS-RAT-2026-07-28-003` (RFC-0006 Final v1.3 → v1.4), Stop Conditions 1, 2, and 4 remain open, and Step 3A also requires its own separate architectural ratification — no next Sprint is advanced to Current by this review)
+
+### Site 2 — `IMPLEMENTATION_PLAN.md`, § RFC Coverage (line 4397)
+
+Prior text (superseded):
+
+> - RFC-0006 v1.3 — Engineering Assessment Model, § Required Evidence Expectations (Primary for Step 2A structural preparation and Step 3A runtime binding, per `NEXUS-RAT-2026-07-21-006`; amended by `NEXUS-RAT-2026-07-21-002`)
+
+Replacement text (applied):
+
+> - RFC-0006 v1.4 — Engineering Assessment Model, § Required Evidence Expectations and § Finding Severity and Intent Derivation (Corpus-scoped) (Primary for Step 2A structural preparation and Step 3A runtime binding, per `NEXUS-RAT-2026-07-21-006`; amended by `NEXUS-RAT-2026-07-21-002` and, adding § Finding Severity and Intent Derivation (Corpus-scoped) and resolving Step 3A Stop Condition 3, by `NEXUS-RAT-2026-07-28-003`)
+
+### Site 3 — `IMPLEMENTATION_PLAN.md`, end of § Ratification register (after the `NEXUS-RAT-2026-07-22-002` bullet)
+
+Prior text: no entry exists for `NEXUS-RAT-2026-07-28-001` through `-004`; the register's last entry was `NEXUS-RAT-2026-07-22-002`.
+
+Text appended (applied), inserted immediately after the existing `NEXUS-RAT-2026-07-22-002` bullet and before the blank line preceding "Architectural Boundary":
+
+> - `NEXUS-RAT-2026-07-28-001` — reconciles the three live Sprint 81 status locations in `IMPLEMENTATION_MANIFEST.md` to `NEXUS-REV-2026-07-22-005`'s actual outcome, matching `IMPLEMENTATION_PLAN.md`'s existing, already-correct text; documentation-accuracy correction only; no Sprint activated; no RFC amendment.
+> - `NEXUS-RAT-2026-07-28-002` — narrow corrective ratification to `NEXUS-RAT-2026-07-28-001` (preserved unedited): reproduces all three exact `IMPLEMENTATION_MANIFEST.md` replacement texts within the Ledger itself, removing a normative dependency on a transient scratchpad report; changes no source, test, or Sprint artifact.
+> - `NEXUS-RAT-2026-07-28-003` — amends RFC-0006 from Final v1.3 to Final v1.4: requires a persisted, canonically encoded Recorded Failure Basis; adds the closed five-value Evidence Expectation Failure Reason classification and a deterministic Finding Severity/Intent derivation (Corpus-scoped); establishes a Layer 1/Layer 2/Layer 3 reconstitution-integrity rule, with Layer 2's no-lookup Evaluation Context Assembly path assigned to Stop Condition 4's own future scope if that path is selected (creating no fifth stop condition); resolves Milestone 12 Initial Capability Sequence Step 3A Stop Condition 3 only — Stop Conditions 1, 2, and 4 remain open; authorizes no implementation and no Sprint activation.
+> - `NEXUS-RAT-2026-07-28-004` — reconciles eleven Milestone 12 planning sites across `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` to `NEXUS-RAT-2026-07-28-003`'s actual outcome: Stop Condition 3 resolved, Stop Conditions 1, 2, and 4 remain open (the four-condition gate itself unchanged), and current/future RFC-0006 references updated to Final v1.4, while every historical v1.3 reference (including Step 2A's name) is left unchanged; documentation-accuracy correction only; no Sprint activated; no RFC amendment.
+
+### Site 4 — `IMPLEMENTATION_PLAN.md`, § Initial Capability Sequence introduction sentence (line 4418)
+
+Prior text (superseded, in full):
+
+> Established by `NEXUS-RAT-2026-07-19-006` as a **binding, planning-only** six-step sequence: its dependency order, certification gates, and per-step compatibility gates bind every future Sprint scoped against it. Step 1 (Sprint 78) was activated by `NEXUS-RAT-2026-07-19-009`; Corrective Prerequisite 1A was activated as Sprint 79 by `NEXUS-RAT-2026-07-21-005` and is Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both findings from `NEXUS-REV-2026-07-21-001` resolved and independently verified; zero remaining findings); Step 2A was activated as Sprint 80 by `NEXUS-RAT-2026-07-21-007` and is Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved and independently verified; zero remaining findings); the Step 3/Step 3A boundary was corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed to exclude Mission Relationship, Active Evidence Applicability, the Basis and Basis Fingerprint, and aggregate construction, all relocated to Step 3A) and Step 3 (Narrowed, Final) was implemented as Sprint 81 by the Builder and is Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` resolved and independently verified; zero remaining findings). The sequence otherwise authorizes no Sprint, no Builder implementation, and no Sprint Implementation Record by itself. Step 3A is not activated and additionally requires all four named stop conditions resolved first, plus its own separate architectural ratification and Sprint authorization for any `Other`-variant or external-resolver capability.
+
+Replacement text (applied, in full):
+
+> Established by `NEXUS-RAT-2026-07-19-006` as a **binding, planning-only** six-step sequence: its dependency order, certification gates, and per-step compatibility gates bind every future Sprint scoped against it. Step 1 (Sprint 78) was activated by `NEXUS-RAT-2026-07-19-009`; Corrective Prerequisite 1A was activated as Sprint 79 by `NEXUS-RAT-2026-07-21-005` and is Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both findings from `NEXUS-REV-2026-07-21-001` resolved and independently verified; zero remaining findings); Step 2A was activated as Sprint 80 by `NEXUS-RAT-2026-07-21-007` and is Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved and independently verified; zero remaining findings); the Step 3/Step 3A boundary was corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed to exclude Mission Relationship, Active Evidence Applicability, the Basis and Basis Fingerprint, and aggregate construction, all relocated to Step 3A) and Step 3 (Narrowed, Final) was implemented as Sprint 81 by the Builder and is Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` resolved and independently verified; zero remaining findings). The sequence otherwise authorizes no Sprint, no Builder implementation, and no Sprint Implementation Record by itself. Step 3A is not activated; of its four named stop conditions, Stop Condition 3 is resolved by `NEXUS-RAT-2026-07-28-003`, and Stop Conditions 1, 2, and 4 remain open and must be resolved first, plus its own separate architectural ratification and Sprint authorization for any `Other`-variant or external-resolver capability.
+
+### Site 5 — `IMPLEMENTATION_PLAN.md`, Step 3A entry (line 4445)
+
+Prior text (superseded, in full):
+
+> 3A. **Corpus Assessment Runtime Foundation** — established by `NEXUS-RAT-2026-07-21-006`; its four independent stop conditions and their ownership attribution are unchanged. Depends exactly on Step 1 + Corrective Prerequisite 1A + Step 2A + Step 3 (Narrowed, Final). SHALL NOT be activated as a Sprint until all four of the following are independently resolved and ratified: (1) an independently ratified RFC-0003-owned durable Projection identity/version resolution contract; (2) an independently ratified RFC-0005-owned discriminated assessment-subject attribution contract; (3) an authoritative RFC-0006-owned Finding severity/intent derivation rule (Severity and Intent only — RFC-0006 v1.3 defines no Finding Category concept); (4) an exact RFC-0006 consumer contract for Basis resolution and snapshot migration, evaluated against RFC-0013's owned Corpus Review Basis and snapshot lineage. None of the four is resolved by `NEXUS-RAT-2026-07-21-006` or by `NEXUS-RAT-2026-07-22-001`/`-002`. Once resolved, implements: Mission Relationship; Active Evidence Applicability; the nine-component Corpus Review Basis and Basis Fingerprint (the sole RFC-0013 fingerprint incorporating the Assessment Criteria Set's identity/version/fingerprint); `CorpusReview`/`Open`-state aggregate construction (consuming Step 3's value objects unchanged); cross-Scope/Contract `corpusArtifactReferenceId` uniqueness; exact Basis resolution against Step 3's real, resolvable `CorpusReview`; runtime `Review.create`/`fromSnapshot` for a `CorpusReviewBasis` subject (including converting `ReviewPlanRevisionReference` into `AssessmentSubjectReference`'s derived alias); staleness-tolerant Assessment completion per RFC-0006 v1.3's actual rule; Coverage/Finding reconstitution additionally verifying every `FindingProduced` disposition resolves to exactly one owned, correctly criterion-and-target-matched Finding, with no orphaned or multiply-linked Finding; and Assessment Binding. An `Other`-variant implementation for `CorpusReviewPurpose`/`CorpusArtifactKind`, and any external Evidence/Assessment Criteria Set resolver capability, are each excluded from Step 3A's own authorization and require their own separate architectural ratification and subsequent Sprint authorization, per `NEXUS-RAT-2026-07-22-001` — neither is pre-authorized by Step 3A's activation alone. Blocking prerequisite for Step 4.
+
+Replacement text (applied, in full):
+
+> 3A. **Corpus Assessment Runtime Foundation** — established by `NEXUS-RAT-2026-07-21-006`; its four independent stop conditions and their ownership attribution are unchanged. Depends exactly on Step 1 + Corrective Prerequisite 1A + Step 2A + Step 3 (Narrowed, Final). SHALL NOT be activated as a Sprint until all four of the following are independently resolved and ratified: (1) an independently ratified RFC-0003-owned durable Projection identity/version resolution contract; (2) an independently ratified RFC-0005-owned discriminated assessment-subject attribution contract; (3) an authoritative RFC-0006-owned Finding severity/intent derivation rule (Severity and Intent only — RFC-0006 v1.4 defines no Finding Category concept) — **resolved** by `NEXUS-RAT-2026-07-28-003` (RFC-0006 Final v1.3 → v1.4); (4) an exact RFC-0006 consumer contract for Basis resolution and snapshot migration, evaluated against RFC-0013's owned Corpus Review Basis and snapshot lineage — including, per `NEXUS-RAT-2026-07-28-003`, Layer 2's no-lookup Evaluation Context contract if that path is selected as the assembly mechanism, assigned to this Stop Condition's own future scope and not a fifth stop condition; an external Evidence or Assessment Criteria Set resolver is not authorized by this entry, is not a substitute for this Stop Condition, and would require its own separate architectural ratification and Sprint authorization. Stop Condition 3 is resolved by `NEXUS-RAT-2026-07-28-003`; Stop Conditions 1, 2, and 4 remain open and unresolved by `NEXUS-RAT-2026-07-21-006`, `NEXUS-RAT-2026-07-22-001`/`-002`, or `NEXUS-RAT-2026-07-28-003`. Once resolved, implements: Mission Relationship; Active Evidence Applicability; the nine-component Corpus Review Basis and Basis Fingerprint (the sole RFC-0013 fingerprint incorporating the Assessment Criteria Set's identity/version/fingerprint); `CorpusReview`/`Open`-state aggregate construction (consuming Step 3's value objects unchanged); cross-Scope/Contract `corpusArtifactReferenceId` uniqueness; exact Basis resolution against Step 3's real, resolvable `CorpusReview`; runtime `Review.create`/`fromSnapshot` for a `CorpusReviewBasis` subject (including converting `ReviewPlanRevisionReference` into `AssessmentSubjectReference`'s derived alias); staleness-tolerant Assessment completion per RFC-0006 v1.4's actual rule; Coverage/Finding reconstitution additionally verifying every `FindingProduced` disposition resolves to exactly one owned, correctly criterion-and-target-matched Finding, with no orphaned or multiply-linked Finding; and Assessment Binding. An `Other`-variant implementation for `CorpusReviewPurpose`/`CorpusArtifactKind`, and any external Evidence/Assessment Criteria Set resolver capability, are each excluded from Step 3A's own authorization and require their own separate architectural ratification and subsequent Sprint authorization, per `NEXUS-RAT-2026-07-22-001` — neither is pre-authorized by Step 3A's activation alone. Blocking prerequisite for Step 4.
+
+### Site 6 — `IMPLEMENTATION_PLAN.md`, Step 4 entry (line 4447)
+
+Prior text (superseded):
+
+> 4. **Assessment Binding and Readiness Derivation Foundation** — Assessment Binding validation against a supplied terminal RFC-0006 v1.3 Assessment, `CorpusFindingReference` resolution/complete-set validation, the pure four-way Classification Derivation, deterministic Finding-set fingerprint computation, sixteen-field Result-input validation, five-way historical-bound Projection equality validation, and fail-closed diagnostics — implemented and unit-tested against supplied inputs only. SHALL NOT allocate a `corpusReadinessResultId`, construct or persist a final `CorpusReadinessResult`, expose a Result from a non-`Completed` review, or implement `Open → Completed`. Depends on Step 3A.
+
+Replacement text (applied):
+
+> 4. **Assessment Binding and Readiness Derivation Foundation** — Assessment Binding validation against a supplied terminal RFC-0006 v1.4 Assessment, `CorpusFindingReference` resolution/complete-set validation, the pure four-way Classification Derivation, deterministic Finding-set fingerprint computation, sixteen-field Result-input validation, five-way historical-bound Projection equality validation, and fail-closed diagnostics — implemented and unit-tested against supplied inputs only. SHALL NOT allocate a `corpusReadinessResultId`, construct or persist a final `CorpusReadinessResult`, expose a Result from a non-`Completed` review, or implement `Open → Completed`. Depends on Step 3A.
+
+### Site 7 — `IMPLEMENTATION_MANIFEST.md`, Milestone 12 § Status line (line 3212)
+
+Prior text (superseded, in full — note this is **not** byte-identical to Site 1: it lacks the Plan-only "no next Sprint is advanced to Current by this review" clause):
+
+> Status: 🟡 ACTIVE (Sprint 78 Approved with Findings; Sprint 79 (Corrective Prerequisite 1A) Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Initial Capability Sequence amended by `NEXUS-RAT-2026-07-21-006`; Sprint 80 / Step 2A Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); Step 3/Step 3A boundary corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed, Step 3A expanded) and Step 3 (Narrowed, Final) implemented as Sprint 81 — Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` — `NEXUS-REV-0081-DEF-001` and `NEXUS-REV-0081-DOC-001` — resolved and independently verified; zero remaining findings); Step 3A not yet activated as a Sprint, pending its four independent stop conditions and its own separate architectural ratification)
+
+Replacement text (applied, in full — preserves the Manifest's existing omission of the Plan-only clause; no clause is added that the Manifest did not already have):
+
+> Status: 🟡 ACTIVE (Sprint 78 Approved with Findings; Sprint 79 (Corrective Prerequisite 1A) Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Initial Capability Sequence amended by `NEXUS-RAT-2026-07-21-006`; Sprint 80 / Step 2A Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); Step 3/Step 3A boundary corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed, Step 3A expanded) and Step 3 (Narrowed, Final) implemented as Sprint 81 — Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` — `NEXUS-REV-0081-DEF-001` and `NEXUS-REV-0081-DOC-001` — resolved and independently verified; zero remaining findings); Step 3A not yet activated as a Sprint; of its four independent stop conditions, Stop Condition 3 is resolved by `NEXUS-RAT-2026-07-28-003` (RFC-0006 Final v1.3 → v1.4), Stop Conditions 1, 2, and 4 remain open, and Step 3A also requires its own separate architectural ratification)
+
+### Site 8 — `IMPLEMENTATION_MANIFEST.md`, § RFC Coverage (line 3225)
+
+Prior text (superseded, in full):
+
+> - RFC-0006 v1.3 — Engineering Assessment Model, § Required Evidence Expectations (Primary for Step 2A structural preparation and Step 3A runtime binding, per `NEXUS-RAT-2026-07-21-006`; amended by `NEXUS-RAT-2026-07-21-002`)
+
+Replacement text (applied, in full):
+
+> - RFC-0006 v1.4 — Engineering Assessment Model, § Required Evidence Expectations and § Finding Severity and Intent Derivation (Corpus-scoped) (Primary for Step 2A structural preparation and Step 3A runtime binding, per `NEXUS-RAT-2026-07-21-006`; amended by `NEXUS-RAT-2026-07-21-002` and, adding § Finding Severity and Intent Derivation (Corpus-scoped) and resolving Step 3A Stop Condition 3, by `NEXUS-RAT-2026-07-28-003`)
+
+### Site 9 — `IMPLEMENTATION_MANIFEST.md`, § Initial Capability Sequence introduction sentence (line 3229)
+
+Prior text (superseded, in full — note this is **not** byte-identical to Site 4: both the Sprint 79 and Sprint 80 clauses read "resolved" here, where the Plan reads "resolved and independently verified"):
+
+> Established by `NEXUS-RAT-2026-07-19-006` as a **binding, planning-only** six-step sequence: its dependency order, certification gates, and per-step compatibility gates bind every future Sprint scoped against it. Step 1 (Sprint 78) was activated by `NEXUS-RAT-2026-07-19-009`; Corrective Prerequisite 1A was activated as Sprint 79 by `NEXUS-RAT-2026-07-21-005` and is Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Step 2A was activated as Sprint 80 by `NEXUS-RAT-2026-07-21-007` and is Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); the Step 3/Step 3A boundary was corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed to exclude Mission Relationship, Active Evidence Applicability, the Basis and Basis Fingerprint, and aggregate construction, all relocated to Step 3A) and Step 3 (Narrowed, Final) was implemented as Sprint 81 by the Builder and is Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` resolved and independently verified; zero remaining findings). The sequence otherwise authorizes no Sprint, no Builder implementation, and no Sprint Implementation Record by itself. Step 3A is not activated and additionally requires all four named stop conditions resolved first, plus its own separate architectural ratification and Sprint authorization for any `Other`-variant or external-resolver capability.
+
+Replacement text (applied, in full — preserves the Manifest's existing "resolved" wording for the Sprint 79/80 clauses unchanged; only the Step 3A clause is corrected):
+
+> Established by `NEXUS-RAT-2026-07-19-006` as a **binding, planning-only** six-step sequence: its dependency order, certification gates, and per-step compatibility gates bind every future Sprint scoped against it. Step 1 (Sprint 78) was activated by `NEXUS-RAT-2026-07-19-009`; Corrective Prerequisite 1A was activated as Sprint 79 by `NEXUS-RAT-2026-07-21-005` and is Approved and fully closed under `NEXUS-REV-2026-07-21-002` (PASS; both prior findings resolved; zero remaining findings); Step 2A was activated as Sprint 80 by `NEXUS-RAT-2026-07-21-007` and is Approved and fully closed under `NEXUS-REV-2026-07-22-002` (PASS; all three findings from `NEXUS-REV-2026-07-22-001` resolved; zero remaining findings); the Step 3/Step 3A boundary was corrected by `NEXUS-RAT-2026-07-22-001` (Step 3 narrowed to exclude Mission Relationship, Active Evidence Applicability, the Basis and Basis Fingerprint, and aggregate construction, all relocated to Step 3A) and Step 3 (Narrowed, Final) was implemented as Sprint 81 by the Builder and is Approved and fully closed under `NEXUS-REV-2026-07-22-005` (PASS; both findings from `NEXUS-REV-2026-07-22-003`/`-004` resolved and independently verified; zero remaining findings). The sequence otherwise authorizes no Sprint, no Builder implementation, and no Sprint Implementation Record by itself. Step 3A is not activated; of its four named stop conditions, Stop Condition 3 is resolved by `NEXUS-RAT-2026-07-28-003`, and Stop Conditions 1, 2, and 4 remain open and must be resolved first, plus its own separate architectural ratification and Sprint authorization for any `Other`-variant or external-resolver capability.
+
+### Site 10 — `IMPLEMENTATION_MANIFEST.md`, Step 3A entry (line 3256)
+
+Prior text (superseded, in full — confirmed byte-identical to Site 5's prior text by direct read):
+
+> 3A. **Corpus Assessment Runtime Foundation** — established by `NEXUS-RAT-2026-07-21-006`; its four independent stop conditions and their ownership attribution are unchanged. Depends exactly on Step 1 + Corrective Prerequisite 1A + Step 2A + Step 3 (Narrowed, Final). SHALL NOT be activated as a Sprint until all four of the following are independently resolved and ratified: (1) an independently ratified RFC-0003-owned durable Projection identity/version resolution contract; (2) an independently ratified RFC-0005-owned discriminated assessment-subject attribution contract; (3) an authoritative RFC-0006-owned Finding severity/intent derivation rule (Severity and Intent only — RFC-0006 v1.3 defines no Finding Category concept); (4) an exact RFC-0006 consumer contract for Basis resolution and snapshot migration, evaluated against RFC-0013's owned Corpus Review Basis and snapshot lineage. None of the four is resolved by `NEXUS-RAT-2026-07-21-006` or by `NEXUS-RAT-2026-07-22-001`/`-002`. Once resolved, implements: Mission Relationship; Active Evidence Applicability; the nine-component Corpus Review Basis and Basis Fingerprint (the sole RFC-0013 fingerprint incorporating the Assessment Criteria Set's identity/version/fingerprint); `CorpusReview`/`Open`-state aggregate construction (consuming Step 3's value objects unchanged); cross-Scope/Contract `corpusArtifactReferenceId` uniqueness; exact Basis resolution against Step 3's real, resolvable `CorpusReview`; runtime `Review.create`/`fromSnapshot` for a `CorpusReviewBasis` subject (including converting `ReviewPlanRevisionReference` into `AssessmentSubjectReference`'s derived alias); staleness-tolerant Assessment completion per RFC-0006 v1.3's actual rule; Coverage/Finding reconstitution additionally verifying every `FindingProduced` disposition resolves to exactly one owned, correctly criterion-and-target-matched Finding, with no orphaned or multiply-linked Finding; and Assessment Binding. An `Other`-variant implementation for `CorpusReviewPurpose`/`CorpusArtifactKind`, and any external Evidence/Assessment Criteria Set resolver capability, are each excluded from Step 3A's own authorization and require their own separate architectural ratification and subsequent Sprint authorization, per `NEXUS-RAT-2026-07-22-001` — neither is pre-authorized by Step 3A's activation alone. Blocking prerequisite for Step 4.
+
+Replacement text (applied, in full):
+
+> 3A. **Corpus Assessment Runtime Foundation** — established by `NEXUS-RAT-2026-07-21-006`; its four independent stop conditions and their ownership attribution are unchanged. Depends exactly on Step 1 + Corrective Prerequisite 1A + Step 2A + Step 3 (Narrowed, Final). SHALL NOT be activated as a Sprint until all four of the following are independently resolved and ratified: (1) an independently ratified RFC-0003-owned durable Projection identity/version resolution contract; (2) an independently ratified RFC-0005-owned discriminated assessment-subject attribution contract; (3) an authoritative RFC-0006-owned Finding severity/intent derivation rule (Severity and Intent only — RFC-0006 v1.4 defines no Finding Category concept) — **resolved** by `NEXUS-RAT-2026-07-28-003` (RFC-0006 Final v1.3 → v1.4); (4) an exact RFC-0006 consumer contract for Basis resolution and snapshot migration, evaluated against RFC-0013's owned Corpus Review Basis and snapshot lineage — including, per `NEXUS-RAT-2026-07-28-003`, Layer 2's no-lookup Evaluation Context contract if that path is selected as the assembly mechanism, assigned to this Stop Condition's own future scope and not a fifth stop condition; an external Evidence or Assessment Criteria Set resolver is not authorized by this entry, is not a substitute for this Stop Condition, and would require its own separate architectural ratification and Sprint authorization. Stop Condition 3 is resolved by `NEXUS-RAT-2026-07-28-003`; Stop Conditions 1, 2, and 4 remain open and unresolved by `NEXUS-RAT-2026-07-21-006`, `NEXUS-RAT-2026-07-22-001`/`-002`, or `NEXUS-RAT-2026-07-28-003`. Once resolved, implements: Mission Relationship; Active Evidence Applicability; the nine-component Corpus Review Basis and Basis Fingerprint (the sole RFC-0013 fingerprint incorporating the Assessment Criteria Set's identity/version/fingerprint); `CorpusReview`/`Open`-state aggregate construction (consuming Step 3's value objects unchanged); cross-Scope/Contract `corpusArtifactReferenceId` uniqueness; exact Basis resolution against Step 3's real, resolvable `CorpusReview`; runtime `Review.create`/`fromSnapshot` for a `CorpusReviewBasis` subject (including converting `ReviewPlanRevisionReference` into `AssessmentSubjectReference`'s derived alias); staleness-tolerant Assessment completion per RFC-0006 v1.4's actual rule; Coverage/Finding reconstitution additionally verifying every `FindingProduced` disposition resolves to exactly one owned, correctly criterion-and-target-matched Finding, with no orphaned or multiply-linked Finding; and Assessment Binding. An `Other`-variant implementation for `CorpusReviewPurpose`/`CorpusArtifactKind`, and any external Evidence/Assessment Criteria Set resolver capability, are each excluded from Step 3A's own authorization and require their own separate architectural ratification and subsequent Sprint authorization, per `NEXUS-RAT-2026-07-22-001` — neither is pre-authorized by Step 3A's activation alone. Blocking prerequisite for Step 4.
+
+### Site 11 — `IMPLEMENTATION_MANIFEST.md`, Step 4 entry (line 3258)
+
+Prior text (superseded, in full — confirmed byte-identical to Site 6's prior text by direct read):
+
+> 4. **Assessment Binding and Readiness Derivation Foundation** — Assessment Binding validation against a supplied terminal RFC-0006 v1.3 Assessment, `CorpusFindingReference` resolution/complete-set validation, the pure four-way Classification Derivation, deterministic Finding-set fingerprint computation, sixteen-field Result-input validation, five-way historical-bound Projection equality validation, and fail-closed diagnostics — implemented and unit-tested against supplied inputs only. SHALL NOT allocate a `corpusReadinessResultId`, construct or persist a final `CorpusReadinessResult`, expose a Result from a non-`Completed` review, or implement `Open → Completed`. Depends on Step 3A.
+
+Replacement text (applied, in full):
+
+> 4. **Assessment Binding and Readiness Derivation Foundation** — Assessment Binding validation against a supplied terminal RFC-0006 v1.4 Assessment, `CorpusFindingReference` resolution/complete-set validation, the pure four-way Classification Derivation, deterministic Finding-set fingerprint computation, sixteen-field Result-input validation, five-way historical-bound Projection equality validation, and fail-closed diagnostics — implemented and unit-tested against supplied inputs only. SHALL NOT allocate a `corpusReadinessResultId`, construct or persist a final `CorpusReadinessResult`, expose a Result from a non-`Completed` review, or implement `Open → Completed`. Depends on Step 3A.
+
+No further site exists. No other word of `IMPLEMENTATION_PLAN.md` or `IMPLEMENTATION_MANIFEST.md` is authorized or referenced by this entry. The Step 2A entry's historical label ("RFC-0006 v1.3 Structural Foundation," `IMPLEMENTATION_PLAN.md` § Step 2A / `IMPLEMENTATION_MANIFEST.md` § Step 2A) and every prior Ratification's own recorded text are explicitly out of scope and remain unchanged.
+
+## Migration and Compatibility Effects
+
+None. No implemented code is affected. No Sprint's scope, contract, file inventory, or Reviewer finding is reopened. The four-condition Step 3A gate is unchanged in substance; only its current-state wording is corrected. Stop Condition 4's scope is clarified, not narrowed: the no-lookup Evaluation Context contract obligation applies conditionally, only if that assembly path is the one eventually selected; an external-resolver alternative remains equally available, pending its own separate ratification.
+
+## Authorized Builder Scope
+
+None. Documentation reconciliation only. No Sprint is activated. No Sprint Implementation Record is created. No `builder-task.md` change is authorized.
+
+## Scope Restrictions
+
+- Does not reduce, reinterpret, or otherwise alter the invariant that Step 3A has four independent stop conditions, or their ownership attribution.
+- Does not resolve, narrow, or otherwise affect Stop Conditions 1, 2, or 4.
+- Does not present Layer 2's no-lookup Evaluation Context contract as unconditionally required — it applies only if that path is selected as the assembly mechanism, and does not pre-empt a separately ratified external-resolver alternative.
+- Does not activate Step 3A or any other Sprint.
+- Does not reopen Sprint 78, 79, 80, or 81's scope, contract, file inventory, or Reviewer findings.
+- Does not amend RFC-0001, RFC-0002, RFC-0003, RFC-0005, RFC-0006, RFC-0013, or the Kernel Canon.
+- Does not modify `IMPLEMENTATION_REPORT.md`, `REVIEW_HISTORY.md`, `builder-task.md`, or any Sprint Implementation Record.
+- Does not modify any source or test file.
+- Does not edit `NEXUS-RAT-2026-07-21-006`, `NEXUS-RAT-2026-07-22-001`, `NEXUS-RAT-2026-07-22-002`, `NEXUS-RAT-2026-07-28-001`, `NEXUS-RAT-2026-07-28-002`, or `NEXUS-RAT-2026-07-28-003` — all are preserved unedited as immutable history.
+- Does not alter the Step 2A entry's historical "RFC-0006 v1.3 Structural Foundation" label in either file.
+
+## Changed-File List (exact)
+
+- `IMPLEMENTATION_PLAN.md` — Sites 1–6 only, exactly as specified above.
+- `IMPLEMENTATION_MANIFEST.md` — Sites 7–11 only, exactly as specified above.
+- `knowledge/governance/RATIFICATION_LEDGER.md` — this entry, appended once, `Current Status: Active`.
+
+No source file. No test file. No RFC. No `IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`. No `builder-task.md`. No Kernel Canon change. No Sprint Implementation Record.
+
+## Related Sprint(s) / Related Review(s)
+
+No Sprint activated. Related Ratifications: `NEXUS-RAT-2026-07-21-006` (established the four-condition gate), `NEXUS-RAT-2026-07-22-001`/`-002` (Step 3/3A boundary, Sprint 81 activation), `NEXUS-RAT-2026-07-28-001`/`-002` (Sprint 81 status reconciliation precedent), `NEXUS-RAT-2026-07-28-003` (resolves Stop Condition 3; basis for this entry). No `NEXUS-REV-*` Review record is associated with this Ratification.
+
+## Full Ratification Text
+
+> Eleven live Milestone 12 planning sites — six in `IMPLEMENTATION_PLAN.md` (Milestone 12 § Status; § RFC Coverage; end of § Ratification register; § Initial Capability Sequence introduction; the Step 3A entry; the Step 4 entry) and five in `IMPLEMENTATION_MANIFEST.md` (the corresponding Milestone 12 § Status; § RFC Coverage; § Initial Capability Sequence introduction; Step 3A entry; Step 4 entry) — are corrected to state that, of Step 3A's four independent stop conditions (unchanged in count and ownership attribution), Stop Condition 3 (RFC-0006-owned Finding Severity/Intent derivation) is resolved by `NEXUS-RAT-2026-07-28-003`, and Stop Conditions 1 (RFC-0003), 2 (RFC-0005), and 4 (RFC-0006 consumer contract for Basis resolution and snapshot migration, including Layer 2's no-lookup Evaluation Context contract if that path is selected as the assembly mechanism — not a substitute if an external resolver is instead separately ratified) remain open. Every current/future reference to RFC-0006 in these eleven sites is updated from v1.3 to v1.4, and the two RFC Coverage sites (2 and 8) additionally name § Finding Severity and Intent Derivation (Corpus-scoped) alongside § Required Evidence Expectations; the Ratification register in `IMPLEMENTATION_PLAN.md` gains four entries documenting `NEXUS-RAT-2026-07-28-001` through this entry. The Manifest's two sites that are not byte-identical to their Plan counterparts (the Milestone 12 § Status line, which omits the Plan-only "no next Sprint is advanced to Current by this review" clause; and the § Initial Capability Sequence introduction, whose Sprint 79/80 clauses read "resolved" rather than "resolved and independently verified") are each corrected independently, preserving that pre-existing wording difference exactly. The historical label of Step 2A as the "RFC-0006 v1.3 Structural Foundation," and the recorded text of every prior Ratification, are left unchanged. Documentation-accuracy correction only: no Sprint is activated, no RFC is amended, no source or test file is changed, no prior Sprint's scope, contract, file inventory, or findings are reopened, and Stop Conditions 1, 2, and 4 remain wholly unresolved and unaffected.
+
+## Current Status
+
+Active
+
+# NEXUS-RAT-2026-07-31-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-07-31-001
+
+## Date
+
+2026-07-31
+
+## Subject
+
+Ratification Authority Snapshot issuance contract and legacy lifecycle migration declarations.
+
+## Objective
+
+Establish, as RFC-0011 v1.3, the deterministic contract by which an immutable collection of
+Ratification Authority Records is derived from the governed Ratification Ledger octets, and
+resolve the lifecycle of the five historical entries whose Current Status text is not
+exactly `Active`.
+
+## Governing Authority
+
+- RFC-0003 v1.1 — Shared Reality Projection Model. NCCS-1 consumed exactly as defined. **Not amended.**
+- RFC-0011 v1.2 — Engineering Governance Model. Amended to v1.3 by this ratification.
+- `NEXUS-RAT-2026-07-15-017` — Ratification Attribution Validation Foundation. **Not amended.**
+
+## Authorized Scope
+
+1. Amendment of RFC-0011 from v1.2 to v1.3 across exactly nine edit sites in exactly one
+   file, introducing the Ratification Authority Snapshot Issuance Contract. The complete
+   authorized text of that amendment is reproduced verbatim under Full Ratification Text
+   below, and that reproduction — not any external document — is what this ratification
+   authorizes.
+2. Appending this entry to the Ratification Ledger, including the structured lifecycle
+   authority declarations below.
+
+Exactly two files are changed by this ratification.
+
+## Deferred and Prohibited Scope
+
+The following are deferred and are NOT authorized by this ratification:
+
+- authorized-subject attestations in any form — no field, no collection, no subject-kind
+  union, no placeholder, no dormant extraction path;
+- attestation extraction, validation, or attestation-backed applicability authority;
+- legacy attestation migration;
+- automatic Ratification-Ledger ingestion beyond this source contract;
+- migration, upgrade, or partial reading of any version 1 snapshot artifact;
+- issuing a production Snapshot, pinning any authority root, or consuming a Snapshot in
+  governance evaluation;
+- implementation, Sprint proposal, or Sprint activation of any capability described here.
+
+Implementation requires separate Sprint scope ratification.
+
+## Ownership Model
+
+`RatificationAttributionValidation`, as ratified by `NEXUS-RAT-2026-07-15-017`, retains
+sole ownership of Ratification reference resolution and of the three closed validation
+outcomes `Valid`, `Invalid`, and `Unresolvable`. All ten conditions of its Required Outcome
+Mapping remain in force, unamended.
+
+Ratification Authority Snapshot Issuance owns only the derivation of the immutable
+collection and its commitments, and produces exactly `Issued` or `Rejected`. It resolves no
+reference and opens no `RepositoryPolicy`.
+
+## Conformance Checkpoint Status
+
+This ratification pins **no** authority root, envelope commitment, or record fingerprint,
+and it deliberately records none. A commitment derived from the governed Ledger octets is
+not written into those same octets: doing so would make the one-pass derivation the
+amendment states circular, and would require instead solving a fixed-point problem that is
+neither specified nor authorized. The prohibition is stated normatively in the amendment
+below.
+
+Conformance evidence — record counts, roots, and agreement between two structurally
+independent implementations — is produced against the Ledger as it stands after this entry
+is applied, and is reported in the review record for this ratification, not here. Any such
+value is a **conformance checkpoint**: it demonstrates that the contract is deterministic
+and reproducible. It is not a production Snapshot and not a durable pin.
+
+## Full Ratification Text
+
+The following is the complete authorized amendment to
+`knowledge/specifications/rfc-0011-engineering-governance-model.md`, taking it from Final
+v1.2 to Final v1.3 across exactly nine edit sites. It is reproduced here in full so that
+this Ledger entry carries its own binding meaning and depends on no external document.
+
+````markdown
+## Edit Site 1 of 9 — Version line (line 4)
+
+PRIOR TEXT:
+
+**Version:** 1.2
+
+REPLACEMENT TEXT:
+
+**Version:** 1.3
+
+---
+
+## Edit Site 2 of 9 — Attribution paragraph (line 8)
+
+PRIOR TEXT (final sentence of the paragraph beginning "Ratified Final by"):
+
+Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
+
+REPLACEMENT TEXT:
+
+Amended by `NEXUS-RAT-2026-07-31-001` to establish the Ratification Authority Snapshot Issuance Contract (see Ratification Authority Snapshot Issuance, below, and Amendment History). RFC-0003 is not amended; NCCS-1 is consumed exactly as RFC-0003 v1.1 defines it. `NEXUS-RAT-2026-07-15-017` is not amended; `RatificationAttributionValidation` retains sole ownership of Ratification reference resolution and of its three closed validation outcomes. Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
+
+---
+
+## Edit Site 3 of 9 — Purpose ownership list (lines 18–26)
+
+PRIOR TEXT:
+
+This specification owns:
+
+- Repository Policy
+- Policy Criterion
+- Policy Evaluation
+- Governance Decision
+- Governance Escalation
+
+REPLACEMENT TEXT:
+
+This specification owns:
+
+- Repository Policy
+- Policy Criterion
+- Policy Evaluation
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+
+---
+
+## Edit Site 4 of 9 — Dependencies "Owns" list (lines 63–71)
+
+PRIOR TEXT:
+
+Owns:
+
+- Repository Policy
+- Policy Criterion
+- Policy Evaluation
+- Governance Evaluation Input Profiles
+- Governance Decision
+- Governance Escalation
+
+REPLACEMENT TEXT:
+
+Owns:
+
+- Repository Policy
+- Policy Criterion
+- Policy Evaluation
+- Governance Evaluation Input Profiles
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+
+---
+
+## Edit Site 5 of 9 — New normative section
+
+INSERTION POINT: immediately before the line `# Policy Evaluation` (line 160),
+after the `---` thematic break that precedes it (line 158).
+
+NOTE ON THE BOUNDARY: the final line of the inserted text below is a `---` thematic
+break. It separates the new section from `# Policy Evaluation` and preserves this
+specification's convention that every top-level section is preceded by one. The
+second `---`, after the blank line that follows it, is this artifact's separator
+between edit sites and is NOT part of the inserted text.
+
+INSERTED TEXT:
+
+# Ratification Authority Snapshot Issuance
+
+## Purpose and Ownership Boundary
+
+Ratification Authority Snapshot Issuance is the deterministic derivation, from an exact
+governed octet sequence, of an immutable collection of Ratification Authority Records
+together with a reproducible commitment to that collection.
+
+Issuance answers exactly one question:
+
+> Do these governed source octets yield a complete, structurally valid, internally
+> consistent collection of Ratification Authority Records?
+
+Issuance SHALL NOT resolve a Ratification reference. It receives no reference, opens no
+`RepositoryPolicy`, and produces no per-record verdict. Resolving a Ratification
+reference recorded on exactly one immutable `RepositoryPolicy` version against an
+immutable collection of Ratification Authority Records, and producing exactly one of the
+three closed outcomes `Valid`, `Invalid`, or `Unresolvable`, remains owned solely by
+`RatificationAttributionValidation` as ratified by `NEXUS-RAT-2026-07-15-017`. That
+ratification is not amended, narrowed, or superseded by this section.
+
+The two capabilities are sequential, not alternative. Issuance produces the collection.
+Validation consumes it. Issuance produces exactly `Issued` or `Rejected` and SHALL NEVER
+produce `Valid`, `Invalid`, or `Unresolvable`.
+
+This section is written to be independently implementable from its own text. Every
+grammar, schema, field order, constant, ordering rule, and output shape that a conforming
+implementation needs is stated here. An implementation SHALL NOT need to consult an
+existing implementation, a test suite, or an evidence artifact to reproduce the governed
+octets or the commitments derived from them.
+
+## Canonical Serialization
+
+Every octet sequence this section commits to SHALL be produced by NCCS-1 exactly as
+RFC-0003 v1.1 § Canonical Serialization Protocol defines it. That subsection is the
+complete and exclusive definition of the encoding. This specification adds no framing
+rule, omits none, and reinterprets none.
+
+In particular: rule 4 String length is the decimal UTF-8 **byte** length; rule 8 records
+encode in **fixed declared schema order** and SHALL NOT be sorted dynamically; rule 1
+invalid UTF-8 and any byte order mark fail closed before any further processing; and
+rule 12's enumerated conditions fail closed.
+
+Rule 8 encodes a record as its field count followed by its `(fieldName, value)` pairs in
+fixed declared order. **The record's type name is not encoded.** The names used for
+schemas in this section are expository; two schemas with identical field names, kinds,
+and order therefore encode identically, which is intended.
+
+## The Source Input Domain
+
+The architectural input to issuance is an **exact governed octet sequence** together with
+the declared issuance facts defined below. Nothing else is an input.
+
+The octet sequence is part of the public contract, not an implementation convenience:
+two conforming implementations SHALL classify the same supplied octets identically. An
+implementation SHALL declare exactly one concrete carrier type for the octet sequence and
+SHALL reject every other carrier with `invalid-input`, whether or not the rejected
+carrier holds the same octets. Converting other octets into the declared carrier is the
+caller's deliberate assertion that they are the governed source.
+
+The concrete carrier is an implementation-adapter obligation. No language-specific type
+is an architectural domain type of this specification.
+
+## Governed Source Text Preparation
+
+The octet sequence SHALL be prepared as text, in this order, before any structure is read:
+
+1. Decode as UTF-8. Invalid UTF-8 SHALL fail closed as `invalid-utf8`.
+2. A byte order mark, at any position, SHALL fail closed as `byte-order-mark-present`.
+3. Apply NCCS-1 rule 2 (Unicode NFC) and rule 3 (`CRLF` and lone `CR` become `LF`).
+
+No other preparation SHALL be applied. In particular **no line is trimmed, padded,
+folded, or case-normalized anywhere in this section**. A line carrying trailing whitespace
+is not the line it resembles. This is a load-bearing rule, not a stylistic one: trimming
+is what would allow a padded `Active ` to resolve as Effective.
+
+The prepared text is the subject of `authoritySourceRevision`, and it is the text every
+grammar below is defined over. Lines are the maximal substrings separated by `LF`.
+
+**Preparation is not mutation.** This section states how governed octets are *read* for
+issuance. It is not authority to rewrite the stored source. An implementation SHALL NOT
+write the prepared text back over the source it prepared, and a repository change
+authorized as append-only SHALL preserve every existing octet of the stored source as a
+byte-identical prefix of the result. Decoding, NFC, and line-ending folding are issuance
+operations whose only product is the issuance input; they change no stored octet. Applying
+them as a file edit would rewrite historical line endings throughout a source that was
+authorized only to grow at its end.
+
+## Fenced Regions
+
+A governed entry may quote Markdown verbatim — including level-1 and level-2 headings and
+its own fenced code — for example when it carries a self-contained Full Ratification Text.
+Heading recognition is therefore fence-aware, by this rule and by no other:
+
+- An **opening fence** is a line, encountered outside any fenced region, whose leading run
+  of backtick characters has length N ≥ 3. The run SHALL begin at the first character of
+  the line; no leading whitespace is permitted.
+- The region **closes** at the first later line consisting of a run of M ≥ N backtick
+  characters and nothing else.
+- Both fence lines belong to the region.
+- A line inside a fenced region SHALL NOT be recognized as an entry boundary or as a
+  section heading, whatever its text.
+- A region that is opened and never closed SHALL fail closed as
+  `unterminated-fenced-region`, in the `EntryStructure` phase. Carrying an open region to
+  the end of the source would silently reclassify every heading after it.
+
+Because a closing fence must be at least as long as its opening fence, **a longer outer
+fence encloses shorter inner fences verbatim.** That is what permits an entry to quote
+Markdown that itself contains fenced code.
+
+## Governed Entry Extraction Grammar
+
+**Entry boundary.** A line is an entry boundary if and only if it lies outside every
+fenced region, begins with `# `, and the remainder of the line matches the Ratification
+identifier grammar exactly:
+
+    NEXUS-RAT-<4 digits>-<2 digits>-<2 digits>-<3 digits>
+
+matched against the whole remainder, anchored at both ends. Trailing whitespace
+disqualifies a line from being an entry boundary. If the source contains no entry
+boundary, issuance SHALL fail closed as `no-entries`. An entry consists of its boundary
+line and every following line up to, but excluding, the next entry boundary, or the end
+of the source.
+
+**Sections.** Within an entry, a section begins at a line that lies outside every fenced
+region and begins with `## `. The section heading is the **entire line, verbatim**. The
+section body is every following line up to, but excluding, the next section heading or
+the end of the entry. Lines preceding the first section heading belong to no section. Two
+sections of one entry carrying the identical heading SHALL fail closed as
+`duplicate-section`.
+
+**Content lines.** A content line of a section is a body line that is neither empty nor
+exactly the three characters `---`. Every rule below that counts or indexes lines counts
+and indexes content lines.
+
+**Required sections.** Each of the following headings SHALL be present in every entry,
+matched exactly. An absent one SHALL fail closed as `missing-section`:
+
+`## Ratification Identifier` · `## Date` · `## Subject` · `## Current Status`
+
+`## Lifecycle Authority Declarations` is optional. Every other section is carried in the
+source, committed through `authoritySourceRevision`, and read into no record field.
+
+**Field rules.**
+
+| Source field | Rule | Failure |
+| --- | --- | --- |
+| Identifier | The **first** content line of `## Ratification Identifier`. Later content lines of that section are read into no record field. | none present → `missing-identifier` |
+| Identifier grammar | SHALL match the identifier grammar exactly. | → `identifier-grammar-violation` |
+| Identifier agreement | SHALL equal the identifier on the entry boundary line. | → `identifier-heading-mismatch` |
+| Date | `## Date` SHALL have exactly one content line, and it SHALL be a real calendar date `YYYY-MM-DD`. `2026-02-31` is not one. | → `malformed-date` |
+| Current Status | `## Current Status` SHALL have exactly one content line. | → `malformed-status` |
+| Subject | `## Subject` SHALL have at least one content line. | → `missing-subject` |
+| Entry uniqueness | No two entries SHALL carry the same identifier. | → `duplicate-entry-identifier` |
+
+The Date SHALL NOT be cross-checked against the date embedded in the identifier. The two
+are independently governed, and the governed corpus already contains an entry whose
+recorded Date differs from its identifier's embedded date. Imposing agreement would reject
+governed history on an invented ground.
+
+**Current status digest.** The digest bound by a governed declaration is the SHA-256
+digest of the NCCS-1 String encoding of the subject entry's single Current Status content
+line, rendered as 64 lowercase hexadecimal characters.
+
+## Governed Declaration Block Grammar
+
+Within `## Lifecycle Authority Declarations`, exactly one fenced block carries every
+declaration. Over the section's body lines:
+
+| Condition | Failure |
+| --- | --- |
+| No line is exactly ` ```text ` | `missing-declaration-block` |
+| No later line is exactly ` ``` ` | `unterminated-declaration-block` |
+| A second ` ```text ` line occurs before the closing line | `nested-declaration-block` |
+| Any content line occurs after the closing line | `extraneous-declaration-content` |
+
+An entry with no `## Lifecycle Authority Declarations` section declares nothing, which is
+not a defect.
+
+The block body is every line strictly between the opening and closing lines. Indentation
+is fixed and significant: exactly two spaces at declaration level, exactly four at segment
+level. Every token is matched exactly, as a literal prefix of the whole line.
+
+```text
+nexus-lifecycle-authority-declarations/1
+declaration <subject identifier>
+  sourceStatusDigest <64 lowercase hexadecimal characters>
+  form WholeRecordLifecycle
+  status <lifecycle status>
+  [relation <relation kind> <target identifier>]...
+end-declaration
+declaration <subject identifier>
+  sourceStatusDigest <64 lowercase hexadecimal characters>
+  form SegmentedLifecycle
+  segment <scope key>
+    describes <uninterpreted governed scope description>
+    status <lifecycle status>
+    [relation <relation kind> <target identifier>]...
+  end-segment
+  [further segments]
+end-declaration
+end-block
+```
+
+**Body rules.**
+
+- The first body line SHALL be exactly `nexus-lifecycle-authority-declarations/1`.
+- The last body line SHALL be exactly `end-block`, and no body line SHALL follow it.
+- At least one declaration SHALL be present, else `empty-declaration-block`.
+- Any line that does not carry its expected literal prefix, and any `relation` line
+  without a space separating kind from target, SHALL fail closed as
+  `declaration-grammar-violation`. A `sourceStatusDigest` value that is not 64 lowercase
+  hexadecimal characters SHALL also fail closed as `declaration-grammar-violation`: the
+  token simply is not a digest, which is a grammar defect and not an encoder defect.
+- A subject that does not match the identifier grammar SHALL fail closed as
+  `declaration-subject-grammar-violation`.
+- A `form` value outside `WholeRecordLifecycle` and `SegmentedLifecycle` SHALL fail closed
+  as `unsupported-lifecycle-form`.
+- A `status` value outside `Effective`, `Superseded`, and `Withdrawn` SHALL fail closed as
+  `unsupported-lifecycle-status`.
+- A `relation` kind outside `SupersededBy` and `WithdrawnBy` SHALL fail closed as
+  `unsupported-relation-kind`; a relation target not matching the identifier grammar SHALL
+  fail closed as `relation-target-grammar-violation`.
+- A scope key SHALL match `<lowercase alphanumeric run>(-<lowercase alphanumeric run>)*`
+  exactly, else `malformed-scope-key`.
+- A `WholeRecordLifecycle` declaration declares its status and relations directly, and is
+  read as a single `residual` segment carrying them.
+- A `SegmentedLifecycle` declaration SHALL declare at least two segments, else
+  `degenerate-segmentation`.
+- A non-residual segment SHALL carry a non-empty `describes` line, else
+  `missing-scope-description`. The `residual` segment SHALL NOT carry one, else
+  `residual-scope-description`.
+- Scope keys SHALL be unique within a declaration, else `duplicate-scope-key`.
+- Exactly one segment per declaration SHALL carry the reserved scope key `residual`, else
+  `incomplete-segmentation`.
+- Status and relations SHALL agree exactly: `Effective` declares no relation, `Superseded`
+  declares exactly one `SupersededBy`, `Withdrawn` declares exactly one `WithdrawnBy`.
+  Otherwise `status-relation-mismatch`.
+- No two declarations within one block SHALL name the same subject, else
+  `duplicate-declaration-subject`.
+
+## The Two Source Facts
+
+An issued snapshot SHALL record two distinct source facts, and SHALL NOT collapse them:
+
+- **`authoritySourceIdentity`** — which governed artifact the snapshot was taken from.
+  Stable across every revision of that artifact's content. It SHALL NOT be a filesystem
+  path, a URL, or any other environment-dependent locator.
+- **`authoritySourceRevision`** — which octets of that artifact were read. It SHALL be
+  the SHA-256 digest of the NCCS-1 String encoding of the **prepared** source text as
+  defined under Governed Source Text Preparation, not of the raw file octets: NCCS-1
+  rule 3 makes line endings a non-difference, and a raw-octet digest would contradict the
+  protocol the commitment claims to be governed by. It is rendered as 64 lowercase
+  hexadecimal characters.
+
+Collapsing the two would destroy the distinction between "the same artifact at a
+different revision" and "a different artifact". Both SHALL be bound into the authority
+root and into the envelope.
+
+## Fixed Protocol Constants
+
+These values are fixed by this specification. An implementation SHALL NOT parameterize
+them, derive them from its environment, or accept them from a caller.
+
+| Constant | Value |
+| --- | --- |
+| `authoritySourceIdentity` | `nexus-repository-ratification-ledger` |
+| `canonicalSerializationProtocolId` | `NCCS-1` |
+| `snapshotSchemaVersion` | `nexus-ratification-authority-snapshot/2` |
+| Record fingerprint prefix | `lr-sha256-` |
+| Authority root prefix | `ar-sha256-` |
+| Envelope commitment prefix | `ec-sha256-` |
+| Reserved residual scope key | `residual` |
+| Generic-rule status text | `Active` |
+| Declaration block format line | `nexus-lifecycle-authority-declarations/1` |
+
+Every digest is SHA-256 per FIPS 180-4, rendered as 64 lowercase hexadecimal characters.
+A prefixed value is the prefix immediately followed by that rendering.
+
+## Lifecycle Authority Records
+
+An issued snapshot contains exactly one **Ratification Authority Record** per Ratification
+entry in the source. Each record declares:
+
+- `lifecycleAuthorityKind` — exactly one of `GenericSourceRule` or `GovernedDeclaration`;
+- `ratificationIdentifier`;
+- `ratificationDate`;
+- `lifecycleResolutionForm` — exactly one of `WholeRecordLifecycle` or `SegmentedLifecycle`;
+- `lifecycleDeclaringAuthority` — present if and only if the kind is `GovernedDeclaration`;
+- `lifecycleSegments` — an ordered collection of Lifecycle Segments.
+
+The record is a discriminated union on `lifecycleAuthorityKind`. A generically resolved
+record naming a declaring authority, and a declared record omitting one, SHALL both be
+structurally inexpressible rather than merely rejected.
+
+**Lifecycle Resolution Form is a representation form, not a lifecycle status.** It SHALL
+NOT be treated as a fourth status.
+
+## Lifecycle Segments and Structural Completeness
+
+A Lifecycle Segment declares:
+
+- `scopeKind` — exactly one of `GovernedScope` or `ResidualScope`;
+- `scopeKey` — an atomic key, unique within its record;
+- `scopeDescription` — present if and only if `scopeKind` is `GovernedScope`;
+- `lifecycleStatus` — exactly one of `Effective`, `Superseded`, `Withdrawn`;
+- `lifecycleRelations` — an ordered collection of Lifecycle Relations.
+
+The segment is a discriminated union on `scopeKind`. The residual segment carries no
+description field at all, rather than a nullable one.
+
+Every record SHALL declare **exactly one** `ResidualScope` segment, under the reserved
+scope key `residual`. Total coverage is therefore provable structurally, without reading
+any prose. A `SegmentedLifecycle` record SHALL declare at least two segments.
+
+Every `GovernedScope` segment SHALL carry a non-empty `scopeDescription`: an uninterpreted
+governed scope description or exact governed-clause citation, carried verbatim into the
+record.
+
+**Issuance verifies uniqueness of atomic scope keys and the ratified mapping. Issuance
+SHALL NOT read the scope description, and SHALL NOT infer semantic disjointness from
+prose.**
+
+A Lifecycle Relation declares `relationKind` — exactly one of `SupersededBy` or
+`WithdrawnBy` — and `relationTarget`. Status and relations SHALL agree exactly:
+`Effective` declares no relation; `Superseded` declares exactly one `SupersededBy`;
+`Withdrawn` declares exactly one `WithdrawnBy`.
+
+## Canonical Schemas and Field Order
+
+Every schema below is a rule 8 record. **Field order is fixed as listed and SHALL NOT be
+sorted.** Field kinds are:
+
+| Kind | Encoding and constraint |
+| --- | --- |
+| `String` | NCCS-1 rule 4 String. |
+| `Integer` | NCCS-1 rule 4 Integer. Non-negative. |
+| `Identity` | A rule 4 String, constrained to be non-empty. |
+| `Digest` | A rule 4 String, constrained to 64 lowercase hexadecimal characters. |
+| `Enumeration(a, b, …)` | A rule 4 String, constrained to exactly one listed member. |
+| `OrderedList(T)` | NCCS-1 rule 5 ordered collection of encoded `T` values, in declared order. |
+| `OrderInsensitiveStrings` | NCCS-1 rule 6 collection of encoded Strings, sorted ascending by encoded octets. A duplicate fails closed under rule 7. |
+| `Record(S)` | A rule 8 record in schema `S`'s fixed declared order. |
+
+**`LifecycleRelation`**
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `relationKind` | `Enumeration(SupersededBy, WithdrawnBy)` |
+| 2 | `relationTarget` | `Identity` |
+
+**`LifecycleSegment`** — discriminated on `scopeKind`.
+
+`GovernedScope` arm:
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `scopeKind` | `Enumeration(GovernedScope, ResidualScope)` |
+| 2 | `scopeKey` | `Identity` |
+| 3 | `scopeDescription` | `String` |
+| 4 | `lifecycleStatus` | `Enumeration(Effective, Superseded, Withdrawn)` |
+| 5 | `lifecycleRelations` | `OrderedList(LifecycleRelation)` |
+
+`ResidualScope` arm:
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `scopeKind` | `Enumeration(GovernedScope, ResidualScope)` |
+| 2 | `scopeKey` | `Identity` |
+| 3 | `lifecycleStatus` | `Enumeration(Effective, Superseded, Withdrawn)` |
+| 4 | `lifecycleRelations` | `OrderedList(LifecycleRelation)` |
+
+**`LifecycleAuthorityRecord`** — discriminated on `lifecycleAuthorityKind`.
+
+`GenericSourceRule` arm:
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `lifecycleAuthorityKind` | `Enumeration(GenericSourceRule, GovernedDeclaration)` |
+| 2 | `ratificationIdentifier` | `Identity` |
+| 3 | `ratificationDate` | `String` |
+| 4 | `lifecycleResolutionForm` | `Enumeration(WholeRecordLifecycle, SegmentedLifecycle)` |
+| 5 | `lifecycleSegments` | `OrderedList(LifecycleSegment)` |
+
+`GovernedDeclaration` arm:
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `lifecycleAuthorityKind` | `Enumeration(GenericSourceRule, GovernedDeclaration)` |
+| 2 | `ratificationIdentifier` | `Identity` |
+| 3 | `ratificationDate` | `String` |
+| 4 | `lifecycleResolutionForm` | `Enumeration(WholeRecordLifecycle, SegmentedLifecycle)` |
+| 5 | `lifecycleDeclaringAuthority` | `Identity` |
+| 6 | `lifecycleSegments` | `OrderedList(LifecycleSegment)` |
+
+**`AuthorityRootBasis`**
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `authorityRecordFingerprints` | `OrderInsensitiveStrings` |
+| 2 | `authoritySourceIdentity` | `Identity` |
+| 3 | `authoritySourceRevision` | `Digest` |
+| 4 | `canonicalSerializationProtocolId` | `Identity` |
+| 5 | `recordCount` | `Integer` |
+| 6 | `snapshotSchemaVersion` | `Identity` |
+
+**`ProducingAttribution`**
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `producingImplementationIdentity` | `Identity` |
+| 2 | `producingImplementationRevision` | `Identity` |
+
+**`EnvelopeCommitmentBasis`**
+
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `authorityRoot` | `Identity` |
+| 2 | `authoritySourceIdentity` | `Identity` |
+| 3 | `authoritySourceRevision` | `Digest` |
+| 4 | `canonicalSerializationProtocolId` | `Identity` |
+| 5 | `capturedAt` | `String` |
+| 6 | `producingAttribution` | `Record(ProducingAttribution)` |
+| 7 | `recordCount` | `Integer` |
+| 8 | `snapshotSchemaVersion` | `Identity` |
+
+## The Generic Source Rule
+
+A source entry whose Current Status is **exactly** the text `Active` SHALL resolve to
+`WholeRecordLifecycle` with a single `Effective` residual segment, under
+`lifecycleAuthorityKind` `GenericSourceRule`.
+
+"Exactly" admits no prefix, substring, case, punctuation, whitespace, or parenthetical
+interpretation. No status text is trimmed, padded, folded, or otherwise normalized beyond
+NCCS-1 rules 2 and 3.
+
+**The generic rule is exclusive over its own domain.** A governed declaration targeting an
+entry that the generic rule resolves SHALL be rejected. No declaration can override the
+generic rule for any entry, because targeting such an entry is itself a rejection
+condition.
+
+## Governed Lifecycle Authority Declarations
+
+An entry whose Current Status is not exactly `Active` resolves only through a **governed
+lifecycle authority declaration**.
+
+Every declaration SHALL be extracted exclusively from the pinned governed source octets.
+Issuance SHALL accept **no caller-supplied declaration object**, and SHALL expose no
+parameter, field, or channel through which one could be supplied. A fabricated declaration
+must be smuggled into governed octets to be attempted at all.
+
+A declaration SHALL be carried in a fixed, exactly tokenized structured block, as defined
+under Governed Declaration Block Grammar. No element of a declaration SHALL be inferred
+from prose, intent, or implementation assumption.
+
+A **declaring authority** SHALL itself be Effective under the generic rule alone, else
+`declarant-not-effective`. It SHALL NOT borrow effectiveness from a declaration, its own
+or any other. A declaration SHALL NOT name its own declarant as its subject, else
+`self-referential-declaration`.
+
+Each declaration SHALL bind to the exact governed status octets it was written against,
+through the current status digest defined above. A declaration whose bound digest does not
+match its subject's current status octets SHALL be rejected as `status-binding-mismatch`,
+so a declaration cannot outlive the text it governs. A declaration naming a subject that
+is not an entry of the source SHALL be rejected as `absent-declaration-subject`. Two
+declarations binding the same subject, from any declarants, SHALL be rejected as
+`duplicate-declaration`.
+
+## Two Distinct Graphs
+
+Two graphs exist and they are not the same graph:
+
+- the **declarant-authority graph**: declaring authority → declaration subject;
+- the **lifecycle-relation graph**: record → `SupersededBy` / `WithdrawnBy` target.
+
+Each SHALL be constructed and validated independently. Guarding the first proves nothing
+about the second.
+
+The lifecycle-relation graph SHALL be constructed over **provisional records** — every
+source entry contributes a node, whether or not it resolves — and SHALL be validated in
+full **before** any entry is rejected for resolving to nothing. An entry that resolves to
+nothing still exists, and a lineage passing through it is still a lineage.
+
+A relation target SHALL exist, SHALL resolve to a structurally valid record, and SHALL
+participate in an acyclic lineage. A relation target **need not be currently Effective**:
+supersession and withdrawal lineages are historical, and an intermediate target may itself
+have been superseded later.
+
+## Authority Root and Envelope Commitment
+
+Issuance produces exactly three commitment layers:
+
+1. **Record fingerprint** — the record fingerprint prefix followed by the SHA-256 digest
+   of the `LifecycleAuthorityRecord` encoding of one Ratification Authority Record.
+2. **Authority root** — the authority root prefix followed by the SHA-256 digest of the
+   `AuthorityRootBasis` encoding.
+3. **Envelope commitment** — the envelope commitment prefix followed by the SHA-256 digest
+   of the `EnvelopeCommitmentBasis` encoding.
+
+**The authority root SHALL be derived from governed octets alone.** It is therefore
+issuer-independent and time-independent: two structurally independent implementations
+reading the same octets SHALL produce the same root, and re-deriving it later SHALL not
+change it. The authority root SHALL NOT bind the capture instant or the producing
+attribution. A root that absorbed either could never be reproduced, and reproducibility is
+the entire purpose of committing to one.
+
+The record fingerprints are committed as an order-insensitive collection because a
+snapshot is an immutable **collection**; its root SHALL NOT depend on the order the
+records were read in. A duplicate fingerprint fails closed.
+
+**The envelope commitment SHALL bind the authority root, both source facts, the canonical
+serialization protocol identifier, the capture instant, the producing attribution, the
+record count, and the snapshot schema version.** It is deliberately not issuer-independent:
+it records who computed the root and when. Two implementations agreeing on the root while
+differing on the envelope commitment is the expected and correct outcome when their
+attributions differ.
+
+**No authority root, envelope commitment, or record fingerprint SHALL be recorded inside
+the governed source it is derived from.** Self-inclusion would make the one-pass derivation
+stated in this section circular, and would require instead solving a fixed-point problem
+that this specification neither states nor authorizes. A ratification that authorizes
+issuance SHALL therefore state the contract, never pin a value produced by it.
+
+## Declared Issuance Facts
+
+Exactly two facts are declared rather than derived:
+
+- **`capturedAt`** — the capture instant. RFC 3339 UTC, second precision, literal `Z`, in
+  the form `YYYY-MM-DDThh:mm:ssZ`. The date part SHALL be a real calendar date; `hh` SHALL
+  NOT exceed 23, and `mm` and `ss` SHALL NOT exceed 59. Offsets, fractional seconds, local
+  time, the `24:00:00` end-of-day form, and leap seconds SHALL each be rejected. An
+  implementation SHALL NOT read a system clock internally: an instant an external party
+  cannot supply is an instant no external party can verify.
+- **`producingAttribution`** — exactly `producingImplementationIdentity` and
+  `producingImplementationRevision`, each a non-empty String.
+
+No other declared field SHALL be accepted. An unrecognized declared field SHALL be
+rejected, not ignored. There is no declared channel for a record, a segment, a status, a
+relation, a declaration, a root, or an attestation.
+
+## Deterministic Ordering
+
+Determinism is a contract obligation, not an implementation preference. Where any
+traversal could otherwise depend on incidental data-structure order, this section fixes it:
+
+Every term below is defined by position in the prepared text. No traversal term is left to
+be inferred from another, and none depends on a data structure's insertion order.
+
+- **Entry order** is the ascending source-line order of entry boundaries in the prepared
+  text. **Every** entry is traversed, including entries that are provisional, malformed, or
+  that will never become records.
+- **Record order** is entry order, restricted to the entries that became records.
+- **Provisional-record order** is entry order. A provisional record exists for every entry,
+  so the two coincide element for element; the term is named separately because
+  `LifecycleGraph` runs before any entry has become a record, when record order does not
+  yet exist.
+- **Section order** within an entry is the ascending source-line order of its section
+  headings, taking each distinct heading at its first occurrence.
+- **Block order** is the entry order of the entry carrying the block. An entry carries at
+  most one declaration block, so block order is total.
+- **Declaration order within a block** is the ascending source-line order of the
+  `declaration` lines that open each declaration in that block.
+- **Declaration traversal** is block order, then declaration order within the block.
+- **Segment order** within a declaration or record is declared order: the ascending
+  source-line order of its `segment` lines. For a `WholeRecordLifecycle` declaration, the
+  single `residual` segment.
+- **Relation order** within a segment is declared order: the ascending source-line order of
+  its `relation` lines.
+- **Fingerprint collection order** is NCCS-1 rule 6: ascending by encoded octets.
+- **Cycle selection**, in both graphs, is fixed completely by Cycle Selection below.
+- **Phase order is execution order**, as defined below.
+
+Given identical octets and identical declared facts, two conforming implementations SHALL
+produce identical results in every field, including the reported diagnostic and its
+payload.
+
+### Cycle Selection
+
+A cycle diagnostic names a path. A graph may hold more than one cycle, and one cycle may
+admit more than one path describing it. Declaring only that cycles are refused would leave
+the payload to whichever traversal an implementation happened to choose, and two conforming
+readers could return different valid paths for identical octets. The selection is therefore
+stated in full.
+
+Each governed graph is a directed multigraph whose nodes are Ratification identifiers.
+Because relation targets and declaration subjects are grammar-checked in an earlier phase,
+every node is a conforming identifier and therefore ASCII.
+
+- The **declarant-authority graph** takes one edge from the declaring authority to the
+  declaration subject for each declaration, in declaration traversal order.
+- The **lifecycle-relation graph** takes one edge from a provisional record to a relation
+  target for each relation, in provisional-record order, then segment order, then relation
+  order.
+
+A node is a **source node** if at least one edge leaves it. **Outgoing-edge order** at a
+node is the order in which that node's edges were taken above. Duplicate edges are retained
+rather than collapsed, and keep the order of the relations or declarations that produced
+them.
+
+Cycle detection SHALL be the following depth-first search, and the first cycle it finds
+SHALL be the reported diagnostic:
+
+1. Every node begins `unvisited`, and the search stack begins empty.
+2. Source nodes are entered as search roots in **ascending octet order** of their
+   identifiers.
+3. On entering a node:
+   1. if it is `open`, a cycle has been found; the search SHALL stop and report it;
+   2. if it is `closed`, the search SHALL return at once without re-entering it;
+   3. otherwise it is marked `open` and pushed onto the search stack, and its outgoing edges
+      are followed in outgoing-edge order, each target entered by this same rule.
+4. When every outgoing edge of a node has been followed without a cycle being found, that
+   node is popped from the stack and marked `closed`.
+5. When every root is exhausted without a cycle being found, the graph is acyclic.
+
+The reported path SHALL be the contents of the search stack from the first occurrence of the
+re-entered node through the top of the stack, followed by that node once more. It begins and
+ends at the same identifier and names every other identifier on it exactly once.
+
+Marking a node `closed` is normative, not an optimization: it fixes how many times a node is
+entered, and therefore fixes the search itself rather than leaving it to an implementation's
+discretion. It hides no cycle. On any cycle, the node discovered first finds every other
+node on that cycle still `unvisited`, so the search from it walks the whole cycle and
+re-enters an `open` node. A node is never `closed` while a cycle through it remains
+undetected.
+
+## The Total Result Contract
+
+Issuance SHALL be total: exactly `Issued` or `Rejected`, never an unhandled failure for
+any governed input.
+
+### Result Schemas
+
+An `Issued` result SHALL carry:
+
+- `result` — `Issued`;
+- `envelope` — `authorityRoot`, `authoritySourceIdentity`, `authoritySourceRevision`,
+  `canonicalSerializationProtocolId`, `capturedAt`, `producingAttribution`, `recordCount`,
+  `snapshotSchemaVersion`;
+- `envelopeCommitment`;
+- `records` — the ordered Ratification Authority Records;
+- `recordFingerprints` — the order-insensitive fingerprint collection as committed;
+- `declarationCount`, `genericCount`, `segmentedCount`.
+
+A `Rejected` result SHALL carry:
+
+- `result` — `Rejected`;
+- `diagnosticCode` — one code from the closed public vocabulary;
+- `diagnosticPhase` — that code's declared phase;
+- `diagnosticPrecedence` — that phase's rank;
+- `diagnosticPayload` — the exact discriminated payload, carrying its variant name;
+- `detail` — the derived canonical rendering.
+
+A `Rejected` result SHALL carry no partial snapshot. A snapshot is issued in whole or not
+at all.
+
+The canonical rendering of a payload is: the empty string for `NoPayload`; the path
+identifiers joined by ` -> ` for `RelationPathPayload`; otherwise the variant's fields, in
+declared order, joined by ` :: `.
+
+### Diagnostic Phases
+
+Precedence is defined first by **phase**, and phase order SHALL be execution order. A phase
+is atomic and runs to a decision before the next begins, so when a source carries several
+independent defects the reported diagnostic is always drawn from the lowest-ranked phase
+containing any defect, wherever in the source the defects sit.
+
+There are **eight governed phases**, ranked 0 through 7, and a ninth partition,
+`ContractViolation` at rank 8, which is not a governed outcome. Nine ranks in total; eight
+of them public.
+
+| Rank | Phase | Partition | Meaning |
+| --- | --- | --- | --- |
+| 0 | `SourceIntegrity` | public | The octets are not admissible as governed source. |
+| 1 | `EntryStructure` | public | The source is text, but its entry structure is not readable. |
+| 2 | `DeclarationGrammar` | public | Entries are readable, but a declaration block is malformed. |
+| 3 | `DeclarantAuthority` | public | Blocks parse, but the declaring authority is not entitled. |
+| 4 | `DeclarationBinding` | public | Authority is entitled, but a declaration does not bind. |
+| 5 | `LifecycleGraph` | public | Declarations bind, but the asserted lineage is not a lineage. |
+| 6 | `Resolution` | public | The lineage is sound, but some entry resolves to no lifecycle. |
+| 7 | `Envelope` | public | Records resolved, but a declared issuance fact was inadmissible. |
+| 8 | `ContractViolation` | not a governed outcome | The implementation violated its own contract. |
+
+### Within-Phase Precedence
+
+Phase precedence alone does not determine the answer when one source carries two defects
+belonging to the **same** phase. That case SHALL be decided as follows.
+
+Each phase declares its codes in a fixed order — the order in which they are listed under
+The Closed Public Vocabulary below. **That order is normative, and it is also the order in
+which the phase executes.** A phase SHALL run as a sequence of passes, one per declared
+code, in declared order; each pass SHALL examine every target of that code under the
+phase's deterministic traversal order and SHALL report the first target that fails.
+
+Equivalently: the reported diagnostic is the minimum, **code-major**, of the pair
+
+> (position of the code within its phase, position of the target under the phase's
+> traversal order)
+
+A **target-major** rule — first failing target, then whichever check that target happened
+to fail — SHALL NOT be used. It would leave a conforming implementation free to report
+either of two same-phase codes depending on the order in which it examined one target, and
+identical inputs would no longer produce identical results.
+
+The declared code order is not free. A pass SHALL only read data whose well-formedness
+every earlier-listed pass has already established across the whole source. Two consequences
+are load-bearing and are stated here so that no implementation has to rediscover them:
+
+- `missing-section` precedes every code that reads a section, and the missing-section pass
+  SHALL examine the required headings in the order they are listed above.
+- `unsupported-lifecycle-form` precedes every code that reads a declaration body. The body
+  of a declaration whose form token is not a recognized form has no known shape; a reader
+  SHALL record the attempt, resynchronize at that declaration's `end-declaration` line, and
+  continue.
+
+Within `SourceIntegrity`, `invalid-utf8` precedes `byte-order-mark-present`, so an
+implementation SHALL decode before testing for a byte order mark. A byte order mark is
+itself valid UTF-8, so nothing is lost by decoding first.
+
+Within `Envelope`, the declared inputs SHALL be examined in this order: `capturedAt`; the
+`producingAttribution` container; `producingImplementationIdentity`;
+`producingImplementationRevision`; unrecognized top-level declared fields; unrecognized
+`producingAttribution` fields. Unrecognized fields SHALL be reported in **ascending name
+order**, so that the diagnostic depends on what the caller supplied and not on the order in
+which the caller's object happens to enumerate its keys.
+
+### Target Selection Order
+
+Within-phase precedence fixes *which code* is reported. When that code fails on more than
+one target, the payload SHALL name the **first failing target** under the traversal order
+declared here.
+
+Every traversal term used here — entry order, section order, block order, declaration order
+within a block, declaration traversal, provisional-record order, record order, segment
+order, relation order — is defined under Deterministic Ordering above, and cycle selection
+is defined under Cycle Selection above. This subsection assigns those orders to phases; it
+defines no order of its own.
+
+Entry order and section order exist precisely because record order cannot serve
+`EntryStructure`: that phase runs while nothing has yet become a record, so a rule stated
+over records would leave its payload undetermined.
+
+| Rank | Phase | Target traversal order |
+| --- | --- | --- |
+| 0 | `SourceIntegrity` | The source is the only target. No traversal. |
+| 1 | `EntryStructure` | Entry order, refined per code below. |
+| 2 | `DeclarationGrammar` | Outermost first: declaration traversal order, then segment order, then relation order. |
+| 3 | `DeclarantAuthority` | Declaration traversal order; `declarant-not-effective` is block-scoped and uses block order; `cyclic-declaration-authority` uses cycle selection over the declarant-authority graph. |
+| 4 | `DeclarationBinding` | Declaration traversal order. |
+| 5 | `LifecycleGraph` | Provisional-record order, then segment order, then relation order; `cyclic-lifecycle-relation` uses cycle selection over the lifecycle-relation graph. |
+| 6 | `Resolution` | Record order. |
+| 7 | `Envelope` | The declared-input examination order stated above. |
+
+Within `EntryStructure`:
+
+- `no-entries` and `unterminated-fenced-region` are properties of the whole source. Each has
+  a single target and carries `NoPayload`.
+- `missing-section` SHALL be traversed **entry-major**: entry order first, and within an
+  entry the required headings in their declared order — `## Ratification Identifier`,
+  `## Date`, `## Subject`, `## Current Status`. A heading-major traversal SHALL NOT be used.
+- `duplicate-section` reports, within the first entry carrying any repeated heading, the
+  heading whose **second** occurrence appears earliest in source-line order.
+- `duplicate-entry-identifier` reports the **later** occurrence — the second entry bearing
+  an identifier already seen — and not the first.
+- Every other `EntryStructure` code is entry-scoped and reports the first entry, in entry
+  order, that fails it.
+
+Within `DeclarationGrammar`, a code whose payload names a declaration or a scope reports the
+first such target under the nesting order above; a code whose payload names an entry reports
+the entry carrying the first failing block. `duplicate-declaration-subject` and
+`duplicate-scope-key` report the **later** duplicate, consistently with
+`duplicate-entry-identifier`.
+
+Within `DeclarantAuthority`, `declarant-not-effective` reports the entry carrying the first
+failing block in block order, and `self-referential-declaration` reports the first failing
+declaration in declaration traversal order.
+
+Within `DeclarationBinding`, every code reports the first failing declaration in declaration
+traversal order. `duplicate-declaration` reports the **later** declaration — the one whose
+subject a declaration earlier in declaration traversal order has already claimed —
+consistently with `duplicate-entry-identifier`.
+
+Within `LifecycleGraph`, `absent-relation-target` and `self-referential-relation` SHALL
+report the two-element path `[declaring record, relation target]`.
+
+### Structured Diagnostic Payloads
+
+Every `Rejected` result SHALL carry an exact discriminated payload. `detail`, where
+present, SHALL be **derived** from that payload by the single canonical rendering rule
+above and SHALL NOT be the data-bearing channel.
+
+Every payload SHALL be discriminated by the exact field **`payloadKind`**, whose value is
+the variant name. `payloadKind` SHALL be the payload's **first** field, and its value SHALL
+be exactly one of the following seven, which are the whole vocabulary:
+
+`NoPayload` · `EntryPayload` · `EntrySectionPayload` · `DeclarationPayload` ·
+`DeclarationScopePayload` · `RelationPathPayload` · `DeclaredInputPayload`
+
+The complete exact fields of each variant are:
+
+| Payload variant | Complete exact fields, in order |
+| --- | --- |
+| `NoPayload` | `payloadKind` |
+| `EntryPayload` | `payloadKind`, `ratificationIdentifier` |
+| `EntrySectionPayload` | `payloadKind`, `ratificationIdentifier`, `sectionHeading` |
+| `DeclarationPayload` | `payloadKind`, `declaringAuthority`, `declarationSubject` |
+| `DeclarationScopePayload` | `payloadKind`, `declaringAuthority`, `declarationSubject`, `scopeKey` |
+| `RelationPathPayload` | `payloadKind`, `pathIdentifiers` |
+| `DeclaredInputPayload` | `payloadKind`, `declaredField` |
+
+`NoPayload` is therefore **not** an empty payload: `payloadKind` is its sole field, carrying
+the value `NoPayload`.
+
+Every field is a non-empty String except `pathIdentifiers`, which is a non-empty ordered
+list of non-empty Strings. The canonical rendering rule above operates on the fields
+following `payloadKind`; `payloadKind` itself is never rendered into `detail`.
+
+`declaredField` SHALL name the **exact leaf** at fault — for example
+`producingImplementationIdentity` — and SHALL NOT be widened to its containing record.
+
+A payload that does not match its declared variant exactly — a missing field, an extra
+field, a wrongly typed field, an empty path — SHALL be replaced by a contract violation
+rather than reported as a governed outcome.
+
+### The Closed Public Vocabulary
+
+Exactly forty-six public diagnostic codes are declared. Every one SHALL be reachable
+through the public issuance contract from governed octets and declared facts alone, and no
+code outside this partition SHALL be reachable through it.
+
+**The order in which each phase's codes are listed below is normative**: it is that
+phase's within-phase precedence and its pass execution order, as defined under Within-Phase
+Precedence above.
+
+`SourceIntegrity` — `invalid-input` (NoPayload) · `invalid-utf8` (NoPayload) ·
+`byte-order-mark-present` (NoPayload).
+
+`EntryStructure` — `no-entries` (NoPayload) · `unterminated-fenced-region` (NoPayload) ·
+`missing-section` (EntrySectionPayload) · `duplicate-section` (EntrySectionPayload) ·
+`missing-identifier` (EntryPayload) · `identifier-grammar-violation` (EntryPayload) ·
+`identifier-heading-mismatch` (EntryPayload) · `malformed-date` (EntryPayload) ·
+`malformed-status` (EntryPayload) · `missing-subject` (EntryPayload) ·
+`duplicate-entry-identifier` (EntryPayload).
+
+`DeclarationGrammar` — `missing-declaration-block` (EntryPayload) ·
+`unterminated-declaration-block` (EntryPayload) · `nested-declaration-block`
+(EntryPayload) · `extraneous-declaration-content` (EntryPayload) ·
+`empty-declaration-block` (EntryPayload) · `declaration-grammar-violation` (EntryPayload)
+· `declaration-subject-grammar-violation` (EntryPayload) ·
+`unsupported-lifecycle-form` (DeclarationPayload) ·
+`relation-target-grammar-violation` (DeclarationPayload) ·
+`unsupported-lifecycle-status` (DeclarationPayload) ·
+`unsupported-relation-kind` (DeclarationPayload) · `degenerate-segmentation`
+(DeclarationPayload) · `duplicate-declaration-subject` (DeclarationPayload) ·
+`malformed-scope-key` (DeclarationScopePayload) · `missing-scope-description`
+(DeclarationScopePayload) · `residual-scope-description` (DeclarationScopePayload) ·
+`duplicate-scope-key` (DeclarationScopePayload) · `incomplete-segmentation`
+(DeclarationScopePayload) · `status-relation-mismatch` (DeclarationScopePayload).
+
+`DeclarantAuthority` — `declarant-not-effective` (EntryPayload) ·
+`self-referential-declaration` (DeclarationPayload) · `cyclic-declaration-authority`
+(RelationPathPayload).
+
+`DeclarationBinding` — `absent-declaration-subject` (DeclarationPayload) ·
+`generic-rule-conflict` (DeclarationPayload) · `status-binding-mismatch`
+(DeclarationPayload) · `duplicate-declaration` (DeclarationPayload).
+
+`LifecycleGraph` — `absent-relation-target` (RelationPathPayload) ·
+`self-referential-relation` (RelationPathPayload) · `cyclic-lifecycle-relation`
+(RelationPathPayload).
+
+`Resolution` — `unresolved-lifecycle` (EntryPayload).
+
+`Envelope` — `malformed-capture-instant` (DeclaredInputPayload) · `malformed-attribution`
+(DeclaredInputPayload).
+
+### Contract Violations
+
+Exactly three codes classify implementation defects and SHALL NOT be reachable through the
+public contract: `undeclared-diagnostic`, `malformed-diagnostic-payload`, and
+`internal-invariant-violation`. They are not governed outcomes.
+
+A code emitted outside the declared vocabulary SHALL be replaced by `undeclared-diagnostic`
+rather than passed through. An encoder failure raised on an already-validated fixed schema
+SHALL be classified as `internal-invariant-violation`, never dressed as an `Envelope`
+outcome a caller could have caused.
+
+### Diagnostic Ownership by Boundary
+
+A code belongs to the phase in which the **defect** lies, not the phase whose component
+detected it. A malformed declared issuance fact is an `Envelope` defect even when the
+canonical encoder is what refuses it, because the governed source octets were valid and
+the declared input was not.
+
+## Relationship to `NEXUS-RAT-2026-07-15-017`
+
+`NEXUS-RAT-2026-07-15-017`'s Required Outcome Mapping remains in force, unamended, for
+`RatificationAttributionValidation`. Its ten conditions are conditions on resolving a
+reference against an existing collection; issuance receives no reference.
+
+Two of those conditions describe defects that can also occur in governed source octets.
+Where so, issuance owns an equivalent condition under its own name and rejects earlier and
+more strongly than validation could:
+
+| Ratified validation condition | Issuance disposition |
+| --- | --- |
+| Duplicate identifier | Owned by issuance as `duplicate-entry-identifier`; the snapshot is never issued. |
+| Unknown / unrecognized lifecycle status | Owned by issuance as `unsupported-lifecycle-status`; the declaration is refused. |
+| Contradictory record | Structurally inexpressible in this schema; no code is declared for it. |
+| Snapshot source unavailable | Outside this contract; owned by the Snapshot source contract. |
+| Malformed reference on the `RepositoryPolicy` | Outside this contract; issuance opens no `RepositoryPolicy`. |
+| The remaining five conditions | Retained for attribution validation; not issuance outcomes. |
+
+Issuance SHALL NOT emit a code whose name asserts an outcome issuance cannot produce.
+
+## Two Structurally Independent Implementations
+
+Conformance SHALL be demonstrated by at least two structurally independent
+implementations. Independence means: no shared encoder, no shared schema table, no shared
+vocabulary structure, and no shared parsing component. Sharing this specification is the
+point; sharing an implementation would make agreement between them meaningless.
+
+Both implementations SHALL agree on the complete public result, field for field, for
+identical inputs — not merely on fingerprints. Both SHALL be cross-checked against
+RFC-0003's own normative Conformance Vectors **before** any agreement between them is
+claimed: an encoder agreeing with its counterpart but not with RFC-0003 demonstrates only
+a shared defect.
+
+## Schema Version and Compatibility
+
+The snapshot schema version is `nexus-ratification-authority-snapshot/2`.
+
+**Version 2 is not backward compatible with version 1 and SHALL NOT be read as version 1.**
+The incompatibility is exact and total:
+
+- v1 records carried a single record-level lifecycle status; v2 records carry a segmented
+  lifecycle whose statuses attach to atomic scopes.
+- v2 introduces `lifecycleResolutionForm`, `lifecycleAuthorityKind`,
+  `lifecycleDeclaringAuthority`, `scopeKind`, `scopeKey`, `scopeDescription`, and
+  `lifecycleRelations`; none exists in v1.
+- v2 records are discriminated unions; v1 records were not, so no v1 record has a
+  well-defined v2 encoding and no v2 record has a well-defined v1 encoding.
+- Consequently **no v1 fingerprint, root, or commitment is comparable to any v2
+  fingerprint, root, or commitment.** Comparing them across versions is meaningless, not
+  merely inadvisable.
+
+A v1 snapshot SHALL NOT be upgraded, reinterpreted, or partially read under v2. Migration
+of any v1 artifact requires separate ratification stating its scope, and is not authorized
+by this section.
+
+## Deferred Concepts
+
+The following are **deferred** and SHALL NOT be implemented under this section:
+
+- authorized-subject attestations in any form — no field, no collection, no subject-kind
+  union, no placeholder, and no dormant extraction path;
+- attestation extraction, validation, or attestation-backed applicability authority;
+- legacy attestation migration;
+- automatic Ratification-Ledger ingestion beyond this source contract.
+
+Introducing attestations later SHALL require either a new snapshot schema version or a
+separately ratified overlay. They SHALL NOT be added to
+`nexus-ratification-authority-snapshot/2`.
+
+---
+
+---
+
+## Edit Site 6 of 9 — Boundaries, final bullet (line 384)
+
+PRIOR TEXT:
+
+- publish a Governance Domain Event that omits required RFC-0005 Event Attribution fields (including Mission identity), weakens RFC-0005's Event Attribution requirement, or relies on a type-unsound construct to bypass structural conformance with the RFC-0005 Domain Event envelope.
+
+REPLACEMENT TEXT:
+
+- publish a Governance Domain Event that omits required RFC-0005 Event Attribution fields (including Mission identity), weakens RFC-0005's Event Attribution requirement, or relies on a type-unsound construct to bypass structural conformance with the RFC-0005 Domain Event envelope;
+- accept a caller-supplied lifecycle authority declaration, record, segment, status, relation, or authority root during Ratification Authority Snapshot Issuance, or expose any parameter, field, or channel through which one could be supplied;
+- resolve a Ratification reference, open a `RepositoryPolicy`, or produce a `Valid`, `Invalid`, or `Unresolvable` outcome during Ratification Authority Snapshot Issuance (`NEXUS-RAT-2026-07-15-017` retains sole authority over Ratification attribution validation);
+- infer semantic disjointness of lifecycle scopes from prose, or read a `scopeDescription` for any purpose other than carrying it verbatim;
+- bind the capture instant or the producing attribution into the authority root, or read a system clock internally in place of a declared capture instant;
+- record an authority root, envelope commitment, or record fingerprint inside the governed source it is derived from;
+- trim, pad, fold, or case-normalize any line of the governed source, or recognize an entry boundary or section heading inside a fenced region;
+- implement, stub, or reserve authorized-subject attestations under the `nexus-ratification-authority-snapshot/2` schema.
+
+---
+
+## Edit Site 7 of 9 — Failure and Conflict Handling, new subsection
+
+INSERTION POINT: immediately after the paragraph beginning "Deferred is used exactly when
+the obstruction is the temporary absence" (line 435), before the `---` that follows it.
+
+INSERTED TEXT:
+
+## Ratification Authority Snapshot Issuance Failures
+
+Issuance failures are not Governance Decisions and SHALL NOT be mapped onto `Approved`,
+`Deferred`, or `Escalation Required`. Issuance produces exactly `Issued` or `Rejected`,
+and a `Rejected` result carries exactly one diagnostic code from the closed public
+vocabulary, its declared phase, its precedence rank, and its exact discriminated payload.
+
+| Condition | Resulting issuance outcome |
+| --- | --- |
+| Octets outside the declared source input domain | `Rejected` · `SourceIntegrity` |
+| Invalid UTF-8, or a byte order mark | `Rejected` · `SourceIntegrity` |
+| Unreadable Ratification entry structure, or an unclosed fenced region | `Rejected` · `EntryStructure` |
+| Malformed structured declaration block | `Rejected` · `DeclarationGrammar` |
+| Declaring authority not Effective under the generic rule | `Rejected` · `DeclarantAuthority` |
+| Declaration self-reference, or a declarant-authority cycle | `Rejected` · `DeclarantAuthority` |
+| Absent subject, generic-rule conflict, status-binding mismatch, or duplicate declaration | `Rejected` · `DeclarationBinding` |
+| Absent relation target, self-referential relation, or a lifecycle-relation cycle | `Rejected` · `LifecycleGraph` |
+| An entry with neither generic resolution nor a governed declaration | `Rejected` · `Resolution` |
+| Inadmissible declared capture instant or producing attribution | `Rejected` · `Envelope` |
+| All phases pass | `Issued` |
+
+No issuance condition produces a partial snapshot. A snapshot is issued in whole or not at
+all.
+
+---
+
+## Edit Site 8 of 9 — Conformance, final bullet (line 496)
+
+PRIOR TEXT:
+
+- records, for every Corpus-readiness Governance Decision, the historical bound Projection identity and version, the resolved current Projection identity and version when present, the selector policy and criterion identity and version, the candidate-corpus fingerprint, and the resolution and freshness results.
+
+REPLACEMENT TEXT:
+
+- records, for every Corpus-readiness Governance Decision, the historical bound Projection identity and version, the resolved current Projection identity and version when present, the selector policy and criterion identity and version, the candidate-corpus fingerprint, and the resolution and freshness results;
+- for Ratification Authority Snapshot Issuance, encodes every committed octet sequence with NCCS-1 exactly as RFC-0003 v1.1 defines it, and cross-checks each implementation against RFC-0003's normative Conformance Vectors before claiming agreement between implementations;
+- reads the governed source under the entry-extraction and declaration-block grammars stated in this specification, including the fenced-region rule, without trimming any line;
+- derives every lifecycle authority declaration exclusively from the governed source octets, and exposes no channel for a caller-supplied declaration;
+- constructs and validates the declarant-authority graph and the lifecycle-relation graph independently, evaluating the lifecycle-relation graph over provisional records before rejecting any entry for failing to resolve;
+- encodes every committed record in the fixed schemas and field order stated in this specification, and applies the stated deterministic ordering rules wherever traversal order could otherwise vary;
+- derives the authority root from governed octets alone, so that two structurally independent implementations reading the same octets produce the same root, and records no root, commitment, or fingerprint inside the governed source;
+- resolves two defects of the same phase by declared code order, code-major over target order, executing each phase as one pass per declared code, and selects the reported target under the target-selection order stated for that phase, every term of which is defined by position in the prepared text;
+- detects cycles in both governed graphs by the stated depth-first search — roots entered in ascending octet order, outgoing edges followed in declared order, exhausted nodes closed and never re-entered — and reports the stated canonical path for the first cycle found;
+- prepares governed octets for issuance without writing the prepared text back over the stored source, and treats an append-only change to that source as preserving every existing octet as a byte-identical prefix;
+- reports exactly `Issued` or `Rejected`, with every `Rejected` result carrying a declared code, its phase, its precedence, and an exact discriminated payload carrying `payloadKind` as its first field and whose `declaredField`, where applicable, names the exact leaf at fault;
+- demonstrates that every declared public diagnostic code is reachable through the public issuance contract, and that no code outside the declared public partition is reachable;
+- implements no attestation field, collection, subject-kind union, placeholder, or extraction path.
+
+---
+
+## Edit Site 9 of 9 — Amendment History, new final entry
+
+INSERTION POINT: immediately after the `v1.2 (2026-07-18)` entry (line 514), as the new
+final list item.
+
+INSERTED TEXT:
+
+- v1.3 (2026-07-31) — Amended by `NEXUS-RAT-2026-07-31-001` to establish the Ratification Authority Snapshot Issuance Contract as a new binding section, stated completely enough to be implemented from this specification alone. Introduces: the ownership boundary separating issuance from `RatificationAttributionValidation`, which retains sole authority over Ratification reference resolution and its three closed outcomes; an exact governed octet-sequence input domain, stated as a public contract so that conforming implementations classify identical octets identically; the complete governed source text preparation, fenced-region, entry-extraction, and declaration-block grammars; the complete fixed NCCS-1 schemas and field order for records, segments, relations, the authority root basis, the producing attribution, and the envelope commitment basis; the fixed protocol constants; two distinct source facts, a stable `authoritySourceIdentity` and a revision-sensitive `authoritySourceRevision` computed over prepared text; Ratification Authority Records as discriminated unions on `lifecycleAuthorityKind`, with Lifecycle Segments discriminated on `scopeKind` and exactly one reserved `residual` segment per record establishing structural completeness; the exclusive Generic Source Rule for a Current Status of exactly `Active`; governed lifecycle authority declarations extracted solely from pinned governed octets, with entitled declarants, digest-bound subjects, and no caller-supplied channel; two independently validated graphs, the lifecycle-relation graph evaluated over provisional records before any entry is rejected for failing to resolve; three commitment layers, of which the issuer- and time-independent authority root is derived from governed octets alone while the envelope commitment binds the capture instant and producing attribution, and none of which may be recorded inside the source it commits to; exactly two declared issuance facts; explicit deterministic ordering rules, each defined by position in the prepared text, for entries, records, provisional records, sections, blocks, declarations within a block, declaration traversal, segments, relations, and fingerprints, together with a complete cycle-selection algorithm for both governed graphs fixing edge construction, outgoing-edge order, root order, visit states, the first reported cycle, and the exact canonical path; and a total `Issued | Rejected` result contract with declared result schemas, carrying a closed forty-six-code public vocabulary across eight ordered governed execution phases ranked 0 through 7, together with a ninth `ContractViolation` partition at rank 8 that is not a governed outcome, seven exact discriminated payload variants each carrying `payloadKind` as its first field, and three unreachable contract-violation classifications. Precedence is total: phase rank first, then normative within-phase code order applied code-major over the deterministic traversal order, with each phase executing as one pass per declared code, and a complete target-selection order for all eight public phases — including an entry order and a section order for `EntryStructure`, where no entry has yet become a record, and a provisional-record order for `LifecycleGraph`, which runs before record order exists — so that two implementations agreeing on the code also agree on the payload. States that governed source preparation is a read operation and not authority to rewrite the stored source, so that an append-only repository change preserves every existing octet as a byte-identical prefix. Requires two structurally independent implementations agreeing on the complete public result. Declares the schema version `nexus-ratification-authority-snapshot/2` and its exact, total incompatibility with version 1, with migration of any v1 artifact requiring separate ratification. Defers authorized-subject attestations entirely, in every form. **RFC-0003 is not amended**; NCCS-1 is consumed exactly as defined. **`NEXUS-RAT-2026-07-15-017` is not amended**; all ten of its ratified Required Outcome Mapping conditions remain in force for attribution validation. No Governance Decision value, Escalation category, Policy Evaluation mechanism, or Governance Evaluation Input Profile is introduced or modified. Specification text only; implementation requires separate Sprint scope ratification.
+````
+
+## Lifecycle Authority Declarations
+
+```text
+nexus-lifecycle-authority-declarations/1
+declaration NEXUS-RAT-2026-07-15-006
+  sourceStatusDigest 60727d03e3897a85e20fd1d1a410fab88c4462ba1a25bd7dd4ecbfb71652c24d
+  form WholeRecordLifecycle
+  status Effective
+end-declaration
+declaration NEXUS-RAT-2026-07-16-003
+  sourceStatusDigest cb5416005218e79f1c9c7805a37c66a1519ebcdb8bd9f0501dd089d8e365241a
+  form SegmentedLifecycle
+  segment mission-identity-rule
+    describes The Mission Identity Rule stating that `missionId` MAY be absent.
+    status Withdrawn
+    relation WithdrawnBy NEXUS-RAT-2026-07-16-004
+  end-segment
+  segment authorized-builder-changes-items-1-3-7-10
+    describes Authorized Builder Changes items 1, 2, 3, 7 and 10, being the non-Mission-Identity elements verified Resolved by `NEXUS-REV-2026-07-16-004`.
+    status Effective
+  end-segment
+  segment residual
+    status Superseded
+    relation SupersededBy NEXUS-RAT-2026-07-16-004
+  end-segment
+end-declaration
+declaration NEXUS-RAT-2026-07-16-015
+  sourceStatusDigest 06c71aae06a68c7f7ee365932ca86bbd5974fe3236856839232cef6c90939954
+  form WholeRecordLifecycle
+  status Effective
+end-declaration
+declaration NEXUS-RAT-2026-07-16-018
+  sourceStatusDigest 04739730a78cf741c0046ae41db5ea9caa958c3d0d578181a5b2d2c4cfba2c24
+  form SegmentedLifecycle
+  segment sprint-65-canonical-events
+    describes The Sprint 65 Canonical Events section, revised by the Revised Canonical Events section of `NEXUS-RAT-2026-07-16-019`.
+    status Superseded
+    relation SupersededBy NEXUS-RAT-2026-07-16-019
+  end-segment
+  segment sprint-65-authorized-operations
+    describes The Sprint 65 Authorized Operations, revised by the Revised Authorized Operations section of `NEXUS-RAT-2026-07-16-019`.
+    status Superseded
+    relation SupersededBy NEXUS-RAT-2026-07-16-019
+  end-segment
+  segment residual
+    status Effective
+  end-segment
+end-declaration
+declaration NEXUS-RAT-2026-07-17-012
+  sourceStatusDigest ae68fa8cdc0d9112c624cea51548356ec2ff99fd5a7aa57d2fc342d0e13245a2
+  form SegmentedLifecycle
+  segment proposed-plan-revision-extension-prohibition
+    describes The Sprint 74 authorized-scope restriction prohibiting additive extension of the frozen `ProposedPlanRevision` lifecycle, corrected by `NEXUS-RAT-2026-07-17-013`.
+    status Superseded
+    relation SupersededBy NEXUS-RAT-2026-07-17-013
+  end-segment
+  segment residual
+    status Effective
+  end-segment
+end-declaration
+end-block
+```
+
+## Basis of Each Declaration
+
+- `NEXUS-RAT-2026-07-15-006` — the status parenthetical records subsequent Sprint closure
+  and certification. It revises no part of the ratification, so the record is wholly
+  Effective.
+- `NEXUS-RAT-2026-07-16-003` — the Mission Identity Rule is Withdrawn by `-004`. Authorized
+  Builder Changes items 1, 2, 3, 7 and 10 remain Effective as already-verified Resolved per
+  `NEXUS-REV-2026-07-16-004`. The residual is Superseded by `-004`.
+- `NEXUS-RAT-2026-07-16-015` — `-016` narrows Sprint 63's scope by adding constraints
+  without withdrawing any clause of `-015`. `WholeRecordLifecycle` Effective records that no
+  part has been superseded or withdrawn; it does not exclude later composing restrictions,
+  and both ratifications bind together.
+- `NEXUS-RAT-2026-07-16-018` — `NEXUS-RAT-2026-07-16-019`'s own Ownership Model states that
+  "only Sprint 65's Canonical Events and Authorized Operations are revised as specified
+  above", and that the Milestone 10 attribution-gap resolution and the Sprint 65
+  authorization "remain unmodified". Those two clauses are therefore Superseded and the
+  residual is Effective.
+- `NEXUS-RAT-2026-07-17-012` — `NEXUS-RAT-2026-07-17-013` corrects exactly one
+  self-contradiction: the restriction prohibiting additive extension of the frozen
+  `ProposedPlanRevision` lifecycle. That clause is Superseded; the residual is Effective.
+
+Each `sourceStatusDigest` is the SHA-256 digest of the NCCS-1 String encoding of the
+subject's exact Current Status text, so a declaration cannot outlive the text it governs.
+
+## Files Changed After Approval
+
+1. `knowledge/specifications/rfc-0011-engineering-governance-model.md` — nine edit sites,
+   v1.2 to v1.3, exactly as reproduced under Full Ratification Text.
+2. `knowledge/governance/RATIFICATION_LEDGER.md` — this entry appended, and nothing else
+   changed.
+
+The Ledger change is **append-only on raw octets**. Every octet the file already holds is
+preserved unmodified and SHALL be a byte-identical prefix of the result. The file uses one
+line terminator throughout; that terminator is written after its existing final line to
+form exactly one empty logical line, this entry follows with its text unchanged and each of
+its line terminators rendered as that same terminator, and the file ends with exactly one
+terminator after a non-empty line. Rendering the terminator is the only transformation
+authorized on this entry, and it is authorized because the appended region must match the
+file it joins; no character of the entry is added, removed, or substituted.
+
+Application **reads** the existing file — its terminator, its terminal shape, and the five
+governed status texts named under Stop Conditions. Those reads are required. What this
+ratification prohibits is modifying any octet the file already holds.
+
+Preparing the Ledger for issuance — decoding UTF-8, applying Unicode NFC, folding line
+endings — is a **read** operation performed on a copy. It is not authority to rewrite the
+stored file, and the prepared text SHALL NOT be written back. Applying preparation as a
+file edit would rewrite every historical line ending in a file this ratification authorizes
+only to grow at its end.
+
+No source file, test, or implementation artifact is changed.
+
+## Stop Conditions
+
+Application SHALL stop and report if any of the five `sourceStatusDigest` values above no
+longer matches its subject's Current Status text at application time, if any prior text
+quoted under Full Ratification Text does not match
+`knowledge/specifications/rfc-0011-engineering-governance-model.md` exactly, or if the
+Ledger does not present the expected append boundary — one line terminator throughout, no
+lone carriage return, and exactly one terminator after a non-empty final line. The boundary
+SHALL fail closed rather than be repaired, and no general trailing-whitespace removal SHALL
+be applied to either side of it.
+
+## Current Status
+
+Active
