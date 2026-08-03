@@ -13770,3 +13770,946 @@ be applied to either side of it.
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-02-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-02-002
+
+## Date
+
+2026-08-02
+
+## Subject
+
+Mission Applicability Scope — an immutable, policy-owned declaration, per Repository Policy
+version, of the Mission scope over which that version has authority, together with the exact
+Mission applicability predicate. Amends RFC-0011 from Final v1.3 to Final v1.4.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` governance cycle, not from a Reviewer
+finding. It was raised as prerequisite P1 during Owner review of the proposed
+`NEXUS-RAT-2026-08-02-001`, whose Mission-applicability predicate could not be defined
+because no ratified artifact recorded a Mission-applicability fact for a Repository Policy.
+The Sprint Owner adopted option P1-A and rejected option P1-B, on the ground that declaring
+every existing Repository Policy repository-wide would retroactively grant universal Mission
+applicability to immutable Policy versions whose authorizing Ratifications never declared
+that scope, which is an authority expansion rather than a neutral default.
+
+## Governance Decision
+
+The Sprint Owner establishes, as RFC-0011 v1.4, Mission Applicability Scope.
+
+Every newly created or superseding Repository Policy version SHALL explicitly declare exactly
+one immutable, policy-owned `MissionApplicabilityScope`, drawn from a closed union of exactly
+two variants: `RepositoryWide`, or `MissionSet` containing one or more exact RFC-0001 Mission
+identities in a canonically ordered, duplicate-free collection.
+
+A Repository Policy version is Mission-applicable to a governance evaluation request if and
+only if it declares `RepositoryWide`, or it declares `MissionSet` and the request's explicit
+Mission identity is an exact member of that collection.
+
+No absent, inferred, wildcarded, pattern-matched, prefix-matched, range-matched,
+hierarchically derived, defaulted, synthesized, or caller-supplied scope is authorized.
+`RepositoryWide` SHALL be deliberately authorized for that exact Repository Policy version by
+that version's own authorizing Ratification, and SHALL NEVER be inferred from absence.
+
+A Repository Policy version created before this amendment and declaring no scope is
+`ScopeUndeclared`. It remains valid for, and never invalidates, Governance Decisions already
+produced against it; it is ineligible for any new governance evaluation and fails closed with
+Escalation Required; it SHALL NOT be mutated, back-filled, annotated, or repaired in place;
+and it SHALL NOT be treated as `RepositoryWide` or as having any implied, default, or
+inherited scope.
+
+This amendment adds a Mission-applicability precondition to evaluation gating and adds ten
+Escalation Required failure mappings. Policy Criterion evaluation semantics are unchanged, and
+the `# Policy Evaluation` section text is not edited.
+
+## Objective
+
+Establish the deterministic contract by which the Mission scope of a Repository Policy version
+is declared, encoded, compared, and enforced, so that Mission applicability can be determined
+from authoritative Repository Policy data rather than assumed.
+
+RFC-0011 v1.3 declares exactly five Repository Policy attributes — explicit, ratified,
+immutable per version, versioned by supersession, attributable. None expresses the Mission
+scope over which a Policy version has authority. A Policy Criterion declares a Governance
+Evaluation Input Profile and declares no Mission. The specification consequently requires
+throughout that Policy Evaluation apply the applicable Repository Policy version while
+providing no authoritative basis on which Mission applicability could be determined. This
+amendment closes that gap and nothing else.
+
+## Governing Authority
+
+- RFC-0011 v1.3 — Engineering Governance Model. Amended to v1.4 by this ratification.
+- RFC-0001 — Mission identity. Consumed by identity only. **Not amended.** This amendment
+  declares exact RFC-0001 Mission identities and defines no Mission concept, lifecycle, or
+  resolution rule of its own.
+- RFC-0003 v1.1 — Shared Reality Projection Model. NCCS-1 consumed exactly as defined, rules 1
+  through 12. **Not amended.** This amendment declares only its own record schema, field order,
+  and collection ordering, which NCCS-1 rule 5 expressly delegates to the governing schema.
+- `NEXUS-RAT-2026-07-15-017` — Ratification Attribution Validation Foundation. **Not amended.**
+  It retains sole authority over validating a Repository Policy version's Ratification
+  reference and over its three closed outcomes. Mission Applicability Scope is a separate,
+  independent dimension that neither participates in nor substitutes for that validation.
+- `NEXUS-RAT-2026-07-18-007` — Governance Evaluation Input Profile model. **Not amended.**
+  Neither authorized profile gains, loses, or alters any field.
+- `NEXUS-RAT-2026-07-31-001` — Ratification Authority Snapshot Issuance Contract. **Not
+  amended.** No field is added to or reserved in `nexus-ratification-authority-snapshot/2`, no
+  Snapshot is issued, no authority root is pinned, and every deferral it declared remains in
+  force.
+
+## Authorized Scope
+
+1. Amendment of RFC-0011 from Final v1.3 to Final v1.4 across exactly eleven edit sites in
+   exactly one file, `knowledge/specifications/rfc-0011-engineering-governance-model.md`,
+   establishing Mission Applicability Scope. The complete authorized text is reproduced
+   verbatim under Full Ratification Text below, and that reproduction — not any external
+   document — is what this ratification authorizes.
+2. Appending this entry to `knowledge/governance/RATIFICATION_LEDGER.md`.
+
+Exactly two files are changed by this ratification.
+
+The Conformance Vectors section below is **normative and ratified** by this entry. It is
+ratified architectural evidence recorded in the Ledger; it is not a twelfth RFC edit site and
+adds no text to RFC-0011. It binds any implementation subsequently authorized by separate
+Sprint scope ratification, and it is permanently traceable here rather than in any external
+or working document.
+
+**No Builder implementation scope is authorized.** This ratification authorizes specification
+text only. It creates, modifies, supersedes, and migrates no Repository Policy version, and it
+produces no source file, test, or Sprint Implementation Record. Implementation of any
+capability described here requires its own separate Sprint scope ratification.
+
+## Deferred and Prohibited Scope
+
+The following are deferred and are NOT authorized by this ratification:
+
+- authorized-subject attestations in any form — no field, no collection, no subject-kind
+  union, no placeholder, and no dormant extraction path;
+- attestation extraction, validation, attestation-backed applicability authority, or
+  attestation-backed scope authority;
+- legacy attestation migration;
+- migration, back-fill, or repair of `ScopeUndeclared` Repository Policy versions, which
+  requires its own separate, exact ratification;
+- wildcard, pattern, prefix, range, or hierarchical Mission matching of any kind;
+- Repository Policy authority over any subject other than the Mission — no subject-kind union,
+  no subject enumeration, no arbitrary or inferred subject;
+- any addition to, reservation in, or reinterpretation of the
+  `nexus-ratification-authority-snapshot/2` schema, and any Ratification Authority Snapshot
+  issuance;
+- Repository Policy Selection and Version Binding, the subject of the proposed
+  `NEXUS-RAT-2026-08-02-001`, which remains proposed, unallocated, unapplied, and blocked;
+- any revision of Acceptance Semantics, Current Projection Applicability Selection, or
+  External Authoritative Applicability and Recording;
+- activation of the DORMANT `CorpusReadinessAcceptanceEvaluationInput` profile;
+- external Evidence or Assessment Criteria Set resolvers;
+- implementation, Sprint proposal, or Sprint activation of any capability described here;
+- Milestone 12 Initial Capability Sequence Step 3A activation.
+
+## Ownership Model (ratified)
+
+This ratification adds exactly one owned concept to RFC-0011: Mission Applicability Scope.
+
+`MissionApplicabilityScope` is Repository Policy data. It is owned by, declared on, and
+versioned with the Repository Policy version it belongs to. It is not owned by, stored in,
+derived from, or attested by any other artifact.
+
+- RFC-0001 owns Mission identity. This amendment declares exact RFC-0001 Mission identities and
+  defines no Mission concept, lifecycle, or resolution rule.
+- RFC-0003 owns NCCS-1, consumed read-only and not amended.
+- `NEXUS-RAT-2026-07-15-017` retains sole authority over validating a Repository Policy
+  version's Ratification reference. Mission Applicability Scope is a separate dimension: a
+  Policy version may have a Valid attribution and still be Mission-ineligible, and a
+  Mission-eligible version with a non-Valid attribution remains unusable. Neither dimension
+  substitutes for the other.
+- `NEXUS-RAT-2026-07-31-001` retains sole ownership of Ratification Authority Snapshot
+  issuance. A scope is never a Snapshot field, record, or attestation.
+- The Corpus Readiness Acceptance Repository Policy retains sole ownership of the
+  current-Projection selector, which this amendment does not consume, replace, or interact
+  with.
+
+## Scope Restrictions
+
+- No Domain Event is authorized.
+- No `src/hosts`, `src/adapters`, `src/kernel`, or test change is authorized.
+- No modification to the Kernel Canon, to any RFC other than RFC-0011, to
+  `IMPLEMENTATION_PLAN.md`, to `IMPLEMENTATION_MANIFEST.md`, to `IMPLEMENTATION_REPORT.md`, or
+  to `REVIEW_HISTORY.md`.
+- No Repository Policy instance is created, modified, superseded, or migrated.
+- No Milestone 12 Initial Capability Sequence stop condition is resolved and no Milestone 12
+  planning text is altered.
+- No Sprint is proposed, activated, or recorded.
+- Partial application is prohibited. The amendment applies in whole or not at all.
+
+## Related Sprint(s)
+
+None. This ratification authorizes no Sprint and activates none.
+
+## Related Review(s)
+
+None. This amendment does not originate from a Review finding, and `nexus-review` is not
+invoked by it: no implementation is produced, so there is no vertical slice to review.
+
+## Full Ratification Text
+
+> The Sprint Owner establishes Mission Applicability Scope as RFC-0011 v1.4, through exactly
+> the eleven edit sites reproduced below, applied to
+> `knowledge/specifications/rfc-0011-engineering-governance-model.md` at Final v1.3, and
+> authorizes appending this entry to the Ratification Ledger. Application SHALL match on the
+> reproduced prior text, not on line number alone. Partial application is prohibited.
+
+**Target file:** `knowledge/specifications/rfc-0011-engineering-governance-model.md`
+**Baseline:** Final v1.3, 1,525 lines, as read on 2026-08-02.
+**Site count:** eleven.
+
+### Site 1 — Version metadata
+
+Location: line 4. Line 3 (`**Status:** Final (Amended)`) is unchanged.
+
+PRIOR TEXT:
+
+```
+**Version:** 1.3
+```
+
+REPLACEMENT TEXT:
+
+```
+**Version:** 1.4
+```
+
+### Site 2 — Amendment provenance sentence
+
+Location: line 8. The existing paragraph is preserved verbatim; new sentences are appended at
+its end. No other text on line 8 is altered.
+
+PRIOR TEXT (final portion of line 8):
+
+```
+Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process.
+```
+
+REPLACEMENT TEXT:
+
+```
+Implementation of any capability described here still requires its own separate Sprint scope ratification, per `nexus-plan`'s governance process. Amended by `NEXUS-RAT-2026-08-02-002` to establish Mission Applicability Scope (see Repository Policy → Mission Applicability Scope, below, and Amendment History). That amendment adds a sixth required Repository Policy attribute and the exact predicate by which a governance evaluation request's explicit Mission identity is validated against a Policy version's declared scope. It deletes, narrows, rewords, and withdraws no existing rule, and it does not edit the Policy Evaluation section; it does add a Mission-applicability precondition to evaluation gating and ten Escalation Required failure mappings, while Policy Criterion evaluation semantics remain unchanged. An absent scope is never treated as repository-wide: a Repository Policy version that declares no scope remains valid for Governance Decisions already produced and is ineligible for any new evaluation until superseded by an explicitly scoped version or covered by a separately ratified migration. RFC-0001 is not amended. RFC-0003 is not amended. `NEXUS-RAT-2026-07-18-007` is not amended; neither authorized Governance Evaluation Input Profile gains, loses, or alters any field. `NEXUS-RAT-2026-07-15-017` is not amended; it retains sole authority over Ratification attribution validation, which Mission Applicability Scope neither replaces nor participates in. `NEXUS-RAT-2026-07-31-001` is not amended; no field is added to or reserved in the Ratification Authority Snapshot schema, and every deferral it declared, including the entire deferral of authorized-subject attestations, remains in force. Corpus Readiness Acceptance Evaluation, including Current Projection Applicability Selection, is not revised.
+```
+
+### Site 3 — Purpose, owned-concept list
+
+Location: lines 18–25. One bullet inserted; no existing bullet is altered or reordered relative
+to the others.
+
+PRIOR TEXT:
+
+```
+This specification owns:
+
+- Repository Policy
+- Policy Criterion
+- Policy Evaluation
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+REPLACEMENT TEXT:
+
+```
+This specification owns:
+
+- Repository Policy
+- Policy Criterion
+- Mission Applicability Scope
+- Policy Evaluation
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+### Site 4 — Dependencies, Owns list
+
+Location: lines 64–72.
+
+PRIOR TEXT:
+
+```
+Owns:
+
+- Repository Policy
+- Policy Criterion
+- Policy Evaluation
+- Governance Evaluation Input Profiles
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+REPLACEMENT TEXT:
+
+```
+Owns:
+
+- Repository Policy
+- Policy Criterion
+- Mission Applicability Scope
+- Policy Evaluation
+- Governance Evaluation Input Profiles
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+### Site 5 — Repository Policy, sixth required attribute
+
+Location: lines 144–150. One attribute is appended to the existing five. All five existing
+attributes are preserved verbatim and in order. The terminating period of the `attributable`
+attribute becomes a semicolon; no word of any existing attribute is otherwise altered.
+
+PRIOR TEXT:
+
+```
+A Repository Policy SHALL be:
+
+- explicit — expressed as one or more deterministic Policy Criteria, never as freeform natural-language judgment;
+- ratified — a Repository Policy SHALL originate only from an approved Ratification (`RATIFICATION_LEDGER.md`) or an equivalently Sprint-Owner-authorized source; Governance SHALL NOT invent, infer, or optimize policy;
+- immutable per version — once ratified, a specific Repository Policy version's Policy Criteria SHALL NOT be mutated;
+- versioned by supersession — a Repository Policy modification SHALL create a new Repository Policy version through a new Ratification; it SHALL NOT overwrite a prior version. The prior version SHALL remain permanently preserved and remain the version of record for every Policy Evaluation and Governance Decision that cited it;
+- attributable — a Repository Policy SHALL reference the Ratification or repository law that authorized it.
+```
+
+REPLACEMENT TEXT:
+
+```
+A Repository Policy SHALL be:
+
+- explicit — expressed as one or more deterministic Policy Criteria, never as freeform natural-language judgment;
+- ratified — a Repository Policy SHALL originate only from an approved Ratification (`RATIFICATION_LEDGER.md`) or an equivalently Sprint-Owner-authorized source; Governance SHALL NOT invent, infer, or optimize policy;
+- immutable per version — once ratified, a specific Repository Policy version's Policy Criteria SHALL NOT be mutated;
+- versioned by supersession — a Repository Policy modification SHALL create a new Repository Policy version through a new Ratification; it SHALL NOT overwrite a prior version. The prior version SHALL remain permanently preserved and remain the version of record for every Policy Evaluation and Governance Decision that cited it;
+- attributable — a Repository Policy SHALL reference the Ratification or repository law that authorized it;
+- Mission-scoped — every newly created or superseding Repository Policy version SHALL explicitly declare exactly one `MissionApplicabilityScope`, stating the Mission scope over which that version has authority (see Mission Applicability Scope, below). The declaration SHALL be explicit; it SHALL NOT be absent, inferred, wildcarded, defaulted, or supplied by a caller.
+```
+
+### Site 6 — New subsection: Mission Applicability Scope
+
+Location: inserted after line 158 and its following blank line, immediately before the `---` on
+baseline line 160. Lines 152–158, the Policy Criterion paragraphs, are unchanged in every line.
+
+TEXT TO INSERT:
+
+```
+## Mission Applicability Scope
+
+### Definition and Ownership
+
+A `MissionApplicabilityScope` is an immutable declaration, owned by exactly one Repository
+Policy version, of the Mission scope over which that version has authority.
+
+It is Repository Policy data. It is declared on the Repository Policy version, versioned
+with it, and preserved with it. It is not a Ratification Authority Snapshot field, not a
+snapshot record, not an attestation, and not a caller-supplied input.
+
+### Closed Union
+
+`MissionApplicabilityScope` is a closed union of exactly two variants. No third variant is
+authorized:
+
+- `RepositoryWide` — the Repository Policy version has authority across every Mission;
+- `MissionSet` — the Repository Policy version has authority over exactly the Mission
+  identities enumerated in its `missions` collection. `missions` SHALL contain one or more
+  exact RFC-0001 Mission identities, canonically ordered and duplicate-free. An empty
+  `missions` collection is invalid and SHALL fail closed.
+
+Every newly created or superseding Repository Policy version SHALL explicitly declare
+exactly one variant.
+
+A scope SHALL NOT be absent, inferred, wildcarded, pattern-matched, prefix-matched,
+range-matched, hierarchically derived, defaulted, or supplied or overridden by a caller.
+Governance SHALL NOT synthesize a scope.
+
+`RepositoryWide` SHALL be deliberately authorized for that exact Repository Policy version
+by that version's own authorizing Ratification. It SHALL NEVER be inferred from the absence
+of a declaration, from a legacy artifact, from a prior version's scope, or from the scope of
+any other Repository Policy.
+
+### The Mission Applicability Predicate
+
+Mission applicability is exactly this predicate, and nothing else.
+
+A Repository Policy version is **Mission-applicable** to a governance evaluation request if
+and only if:
+
+- the version declares `RepositoryWide`; or
+- the version declares `MissionSet` and the evaluation request's explicit Mission identity
+  is a member of that version's `missions` collection.
+
+Membership SHALL be exact identity equality, determined by byte equality of the NCCS-1
+String encoding of each Mission identity after Unicode NFC normalization. Membership SHALL
+NOT be determined by prefix, pattern, wildcard, range, case-insensitive comparison,
+hierarchy, or any similarity measure.
+
+A Repository Policy version that is not Mission-applicable to a request SHALL NOT be applied
+to that request. A version that fails this predicate SHALL NOT be described as applied.
+
+### Relationship to the No-Inference Rule
+
+Mission-Scoped Governance Evaluation, below, requires that `MissionId` originate from the
+governance evaluation request and SHALL NOT be inferred from Ratification data or from
+Repository Policy data. This section does not weaken, narrow, or except that rule; it
+depends on it.
+
+The distinction is one of direction, and it is exact:
+
+- **Prohibited (inference):** deriving, synthesizing, defaulting, or discovering *what the
+  Mission is* by reading a Repository Policy or a Ratification. This section performs no
+  such derivation, and authorizes none.
+- **Authorized (validation):** comparing an already-supplied, explicit request Mission
+  identity against a Repository Policy version's declared scope, to determine whether that
+  version has authority over the Mission the request already named.
+
+The Mission identity is an input to the predicate, never an output of it. The predicate
+reads Repository Policy data only to answer a yes-or-no authority question about a Mission
+identity that the request has already established. Consequently a request with an absent,
+malformed, or unresolvable `MissionId` SHALL fail under Mission-Scoped Governance Evaluation
+before this predicate is reached; the predicate SHALL NOT supply, repair, or substitute a
+Mission identity under any circumstance.
+
+### Immutability and Supersession
+
+A Repository Policy version's `MissionApplicabilityScope` SHALL be immutable for the life of
+that version. It SHALL NOT be mutated, extended, narrowed, re-declared, or overridden in
+place.
+
+A change of scope SHALL create a new sequential Repository Policy version through a new
+authorizing Ratification, exactly as a change of Policy Criteria does. The prior version
+SHALL remain permanently preserved with its original scope.
+
+A later Repository Policy version's scope SHALL NOT retroactively apply to, rebind, or
+invalidate a Governance Decision already produced against an earlier version. Every
+Governance Decision remains historically evaluated against the scope its cited version
+declared at the time.
+
+### Legacy Versions and Migration
+
+A Repository Policy version created before this section and declaring no
+`MissionApplicabilityScope` is `ScopeUndeclared`.
+
+A `ScopeUndeclared` version:
+
+- SHALL remain valid for, and SHALL NOT invalidate, any Governance Decision already produced
+  against it. Historical Decisions remain exactly as recorded;
+- SHALL be ineligible for any new governance evaluation, and SHALL fail closed with
+  **Escalation Required** if referenced by one;
+- SHALL NOT be mutated, back-filled, annotated, or repaired in place;
+- SHALL NOT be treated as `RepositoryWide`, and SHALL NOT be treated as having any implied,
+  default, or inherited scope.
+
+A `ScopeUndeclared` version becomes usable only by being superseded by a new, explicitly
+scoped Repository Policy version through a new authorizing Ratification, or by being covered
+by a separately ratified migration that states its exact scope. No such migration is
+authorized by this section.
+
+### Two Independent Eligibility Dimensions
+
+Mission Applicability Scope and the Policy Criterion profile declaration are two separate,
+independent eligibility dimensions. Neither replaces, subsumes, or implies the other.
+
+Every Policy Criterion SHALL continue to declare the Governance Evaluation Input Profile it
+evaluates against, exactly as stated above, and that requirement is unchanged.
+
+A Repository Policy version is usable for a given evaluation only when both dimensions hold
+independently: the version is Mission-applicable to the request, **and** the criterion's
+declared profile matches the profile the evaluation declared. Satisfying one dimension SHALL
+NOT be treated as satisfying the other.
+
+### Non-Attestation Boundary
+
+`MissionApplicabilityScope` is Repository Policy data. It is not an attestation of an
+authorized subject, and it SHALL NOT be implemented, stored, reserved, or represented as one.
+
+This section introduces no attestation field, no attestation collection, no subject-kind
+union, no attestation placeholder, and no dormant attestation extraction path. It adds no
+field to, and reserves no field in, the Ratification Authority Snapshot schema.
+
+`RatificationAttributionValidation` remains the sole authority for validating a Repository
+Policy version's Ratification reference and for producing its three closed outcomes. Mission
+Applicability Scope neither participates in, contributes to, nor substitutes for that
+validation, and attribution validation neither produces nor consumes a scope.
+
+The only subject this section recognizes is the Mission. No other subject, subject kind, or
+subject enumeration is introduced, and Repository Policy authority over any other subject
+remains unestablished.
+
+### Canonical Encoding
+
+Canonical encoding uses NCCS-1 exactly as RFC-0003 defines it, protocol identity `"nccs"`,
+version `"1"`, rules 1 through 12. This section adds, omits, and reinterprets no NCCS-1
+framing rule. It declares only what NCCS-1 rule 5 delegates to the governing schema: this
+schema's record, field order, and collection ordering.
+
+**MissionApplicabilityScope record.** Encoded per NCCS-1 rule 8 as a record of exactly two
+fields, field count `i2e`, in this fixed order:
+
+1. `scopeKind` — Enumeration framing of exactly `RepositoryWide` or `MissionSet`;
+2. `missions` — ordered collection (rule 5) of Mission identity values in String framing.
+
+**Variant coupling.** When `scopeKind` is `RepositoryWide`, `missions` SHALL be the empty
+ordered collection — the two bytes `le`. When `scopeKind` is `MissionSet`, `missions` SHALL
+contain at least one element. Any other combination SHALL fail closed.
+
+**Mission Ordering Comparator.** `missions` SHALL be ordered strictly ascending by the
+byte-wise comparison of each Mission identity's NCCS-1 String encoding — that is, of the
+`<decimal UTF-8 byte length>:<bytes>` form, not of the raw identity. NCCS-1 does not
+auto-sort an ordered collection; this comparator is this schema's declared order. A
+collection presented in any other order SHALL fail closed.
+
+**Duplicates.** `missions` is uniqueness-declared on the Mission identity. Two elements with
+an equal encoded — or NFC-normalized — value SHALL fail closed under NCCS-1 rule 7.
+
+**Normalization.** UTF-8 without byte order mark; every string value normalized to Unicode
+NFC; `CRLF` and bare `CR` normalized to `LF` — NCCS-1 rules 1, 2, and 3, applied unchanged.
+
+**Fail-closed conditions.** In addition to NCCS-1 rule 12, encoding SHALL fail closed on: a
+`scopeKind` outside the closed union; `RepositoryWide` with a non-empty `missions`;
+`MissionSet` with an empty `missions`; a `missions` collection not in Mission Ordering
+Comparator order; a duplicate Mission identity; and an empty Mission identity.
+
+**No fingerprint contract.** This section establishes no fingerprint, digest, commitment, or
+identity value derived from a `MissionApplicabilityScope`. Equality is determined by the
+canonical bytes themselves, below. Any future fingerprint over a scope would require its own
+ratification.
+
+### Equality
+
+Two `MissionApplicabilityScope` values are equal if and only if their NCCS-1 canonical byte
+encodings are byte-identical.
+
+Equality SHALL NOT be determined by set semantics over an unordered collection, by
+membership overlap, by subset or superset relation, or by any comparison that ignores the
+declared canonical order. Because the Mission Ordering Comparator makes the encoding of a
+given scope unique, byte equality and semantic equality coincide exactly.
+
+Two Repository Policy versions declaring equal scopes remain distinct versions; scope
+equality SHALL NOT be treated as version equivalence, and SHALL NOT permit one version to be
+substituted for another.
+
+### Determinism
+
+For an equivalent evaluation request Mission identity and an equivalent Repository Policy
+version scope, the Mission applicability predicate SHALL always produce the equivalent
+result.
+
+The predicate reads exactly two inputs: the request's explicit Mission identity and the
+Policy version's declared scope. It reads no repository state, no Ratification Ledger, no
+Ratification Authority Snapshot, no attestation, and no system clock. Its result therefore
+does not depend on evaluation-time repository state.
+
+### Deferred Concepts
+
+The following are **deferred** and SHALL NOT be implemented under this section:
+
+- authorized-subject attestations in any form — no field, no collection, no subject-kind
+  union, no placeholder, and no dormant extraction path;
+- attestation extraction, validation, attestation-backed applicability authority, or
+  attestation-backed scope authority;
+- legacy attestation migration;
+- migration, back-fill, or repair of `ScopeUndeclared` Repository Policy versions;
+- wildcard, pattern, prefix, range, or hierarchical Mission matching of any kind;
+- Repository Policy authority over any subject other than the Mission;
+- any fingerprint, digest, commitment, or identity value derived from a
+  `MissionApplicabilityScope`;
+- any addition to, reservation in, or reinterpretation of the Ratification Authority
+  Snapshot schema, and any Snapshot issuance;
+- any revision of Acceptance Semantics, Current Projection Applicability Selection, or
+  External Authoritative Applicability and Recording;
+- activation of the DORMANT `CorpusReadinessAcceptanceEvaluationInput` profile.
+
+Implementation of this section requires its own separate Sprint scope ratification.
+```
+
+### Site 7 — Mission-Scoped Governance Evaluation, no-inference reconciliation
+
+Location: immediately after baseline line 1,161, the final bullet of the `MissionId` prohibition
+list, and before the blank line preceding `## Governance Decision Attribution` at line 1,163. A
+new paragraph is inserted. Lines 1,150–1,161 are unchanged in every line.
+
+PRIOR TEXT (lines 1,154–1,161):
+
+```
+`MissionId` SHALL be required for every governance evaluation. It SHALL NOT be:
+
+- optional;
+- inferred from Ratification data;
+- inferred from Repository Policy data;
+- synthesized;
+- defaulted;
+- treated as a fallback value.
+```
+
+REPLACEMENT TEXT:
+
+```
+`MissionId` SHALL be required for every governance evaluation. It SHALL NOT be:
+
+- optional;
+- inferred from Ratification data;
+- inferred from Repository Policy data;
+- synthesized;
+- defaulted;
+- treated as a fallback value.
+
+Validating a supplied `MissionId` against a Repository Policy version's declared `MissionApplicabilityScope` (see Mission Applicability Scope, above) is not an inference of Mission identity and is not excepted from this rule. The direction is exact: the `MissionId` is an input to that validation and never an output of it. The Mission applicability predicate reads Repository Policy data solely to answer whether a Policy version has authority over a Mission the request has already explicitly named; it SHALL NOT derive, synthesize, default, repair, or substitute a `MissionId` under any circumstance. A governance evaluation whose `MissionId` is absent, malformed, or unresolvable SHALL fail under this section before any Mission applicability predicate is evaluated.
+```
+
+### Site 8 — Failure and Conflict Handling, new table
+
+Location: inserted after baseline line 1,407, the end of the `Condition (any profile)` table, and
+before line 1,409, the `Deferred is used exactly when…` paragraph. Every existing table and row in
+the section is unchanged.
+
+PRIOR TEXT (lines 1,403–1,407):
+
+```
+The following row applies to both profiles:
+
+| Condition (any profile) | Resulting Governance Decision |
+| --- | --- |
+| Undeclared, unknown, or ambiguous Governance Evaluation Input Profile | Escalation Required |
+```
+
+REPLACEMENT TEXT:
+
+```
+The following row applies to both profiles:
+
+| Condition (any profile) | Resulting Governance Decision |
+| --- | --- |
+| Undeclared, unknown, or ambiguous Governance Evaluation Input Profile | Escalation Required |
+
+The following rows apply to Mission Applicability Scope, under both profiles:
+
+| Condition (any profile; Mission Applicability Scope) | Resulting Governance Decision |
+| --- | --- |
+| Referenced Repository Policy version declares no `MissionApplicabilityScope` (`ScopeUndeclared`) and is referenced by a new governance evaluation | Escalation Required |
+| A `ScopeUndeclared` version is presented as, back-filled to, or otherwise treated as `RepositoryWide` or any other implied scope | Escalation Required |
+| The evaluation request's Mission identity is not a member of the referenced Policy version's declared `MissionSet` | Escalation Required |
+| `scopeKind` is a value outside the closed union `RepositoryWide \| MissionSet` | Escalation Required |
+| `scopeKind` is `MissionSet` and `missions` is empty | Escalation Required |
+| `scopeKind` is `RepositoryWide` and `missions` is non-empty | Escalation Required |
+| `missions` is not in Mission Ordering Comparator order, contains a duplicate Mission identity, or contains an empty identity | Escalation Required |
+| A scope is absent, inferred, wildcarded, defaulted, synthesized, or supplied or overridden by a caller | Escalation Required |
+| A Repository Policy version's scope is mutated, extended, narrowed, or re-declared in place rather than superseded by a new version | Escalation Required |
+| Mission applicability is satisfied but the Policy Criterion's declared Governance Evaluation Input Profile does not match the profile the evaluation declared, or the converse | Escalation Required |
+
+No Mission Applicability Scope condition produces **Deferred**, and none produces **Approved**. A Repository Policy version's scope comes into existence only through Ratification, which is a governance action, and never through normal engineering progression.
+```
+
+### Site 9 — Explainability
+
+Location: the identification list at baseline lines 1,439–1,450. One bullet is appended after the
+existing final bullet. All ten existing bullets are preserved verbatim, and the two paragraphs at
+lines 1,452 and 1,454 are unchanged. The terminating period of the existing final bullet becomes a
+semicolon; no word of the existing bullet is otherwise altered.
+
+PRIOR TEXT (the final bullet of that list):
+
+```
+- the declared Governance Evaluation Input Profile and the exact bound fields of that profile instance.
+```
+
+REPLACEMENT TEXT:
+
+```
+- the declared Governance Evaluation Input Profile and the exact bound fields of that profile instance;
+- for the Repository Policy version **referenced** by the evaluation, its declared `MissionApplicabilityScope` — the `scopeKind` and, when `MissionSet`, the complete canonically ordered `missions` collection — together with the evaluation request's Mission identity and the exact result of the Mission applicability predicate. A referenced version that fails the predicate SHALL NOT be described as applied; the term **applied** is reserved for a Repository Policy version that satisfied every required eligibility dimension and whose Policy Criteria were evaluated. When applicability failed, the exact failing condition SHALL be identified; when the referenced version was `ScopeUndeclared`, that SHALL be stated explicitly rather than reported as a scope mismatch.
+```
+
+### Site 10 — Conformance
+
+Location: the conformance list at baseline lines 1,474–1,506. Five items are appended after the
+existing final item. All existing items are preserved verbatim. The terminating period of the
+existing final item becomes a semicolon; no word of the existing item is otherwise altered.
+
+PRIOR TEXT (the final item of that list):
+
+```
+- implements no attestation field, collection, subject-kind union, placeholder, or extraction path.
+```
+
+REPLACEMENT TEXT:
+
+```
+- implements no attestation field, collection, subject-kind union, placeholder, or extraction path;
+- requires every newly created or superseding Repository Policy version to explicitly declare exactly one `MissionApplicabilityScope` from the closed union `RepositoryWide | MissionSet`, and accepts no absent, inferred, wildcarded, defaulted, synthesized, or caller-supplied scope;
+- never treats a `ScopeUndeclared` Repository Policy version as `RepositoryWide` or as having any implied scope, never mutates or back-fills such a version, preserves every Governance Decision already produced against it exactly as recorded, and fails closed with `Escalation Required` when such a version is referenced by a new evaluation;
+- evaluates Mission applicability as exactly the declared predicate — `RepositoryWide`, or exact identity membership of the request's explicit Mission identity in the declared `MissionSet` — using byte equality of NFC-normalized NCCS-1 String encodings, implements no prefix, pattern, wildcard, range, case-insensitive, hierarchical, or similarity matching, and never describes a version that failed the predicate as applied;
+- treats Mission applicability and the Policy Criterion's declared Governance Evaluation Input Profile as two independent eligibility dimensions, requires both to hold, and never treats either as satisfying the other;
+- encodes `MissionApplicabilityScope` as the declared two-field NCCS-1 record with `missions` in Mission Ordering Comparator order, empty exactly when `RepositoryWide` and non-empty exactly when `MissionSet`, determines scope equality solely by byte-identical canonical encoding, derives no fingerprint from a scope, and stores the scope as Repository Policy data rather than as any Ratification Authority Snapshot field or attestation.
+```
+
+### Site 11 — Amendment History
+
+Location: appended after the existing final entry of `# Amendment History`, baseline line 1,524,
+the `v1.3 (2026-07-31)` entry. Every existing entry is unchanged.
+
+TEXT TO APPEND:
+
+```
+- v1.4 (2026-08-02) — Amended by `NEXUS-RAT-2026-08-02-002` to establish Mission Applicability Scope. Adds a sixth required Repository Policy attribute, Mission-scoped, requiring every newly created or superseding Repository Policy version to explicitly declare exactly one immutable, policy-owned `MissionApplicabilityScope`. Defines that scope as a closed union of exactly two variants: `RepositoryWide`, which SHALL be deliberately authorized for that exact version by that version's own authorizing Ratification and SHALL NEVER be inferred from absence; and `MissionSet`, containing one or more exact RFC-0001 Mission identities in a canonically ordered, duplicate-free collection. No absent, inferred, wildcarded, pattern-matched, prefix-matched, range-matched, hierarchically derived, defaulted, synthesized, or caller-supplied scope is authorized. Establishes the exact Mission applicability predicate: a Repository Policy version is Mission-applicable to a governance evaluation request if and only if it declares `RepositoryWide`, or it declares `MissionSet` and the request's explicit Mission identity is an exact member of that collection, membership being byte equality of NFC-normalized NCCS-1 String encodings with no prefix, pattern, wildcard, range, case-insensitive, hierarchical, or similarity matching. Reconciles this explicitly with Mission-Scoped Governance Evaluation's existing no-inference rule, which is not weakened, narrowed, or excepted: the direction is exact, the `MissionId` is an input to the validation and never an output of it, the predicate derives, synthesizes, defaults, repairs, and substitutes no Mission identity, and an absent, malformed, or unresolvable `MissionId` fails under that section before any applicability predicate is reached. Establishes immutability per version: a scope SHALL NOT be mutated, extended, narrowed, re-declared, or overridden in place; a change requires a new sequential Repository Policy version and its own authorizing Ratification; the prior version is permanently preserved with its original scope; and a later version's scope SHALL NOT retroactively apply to, rebind, or invalidate a Governance Decision already produced against an earlier version. Establishes exact legacy behavior: a Repository Policy version created before this section and declaring no scope is `ScopeUndeclared`, remains valid for and never invalidates Governance Decisions already produced against it, is ineligible for any new governance evaluation and fails closed with **Escalation Required**, SHALL NOT be mutated, back-filled, annotated, or repaired in place, and SHALL NOT be treated as `RepositoryWide` or as having any implied, default, or inherited scope; it becomes usable only by supersession through an explicitly scoped new version or by a separately ratified exact migration, which this section does not authorize. Establishes Mission applicability and the Policy Criterion profile declaration as two independent eligibility dimensions, both of which SHALL hold, neither replacing, subsuming, or implying the other; the existing Policy Criterion profile declaration requirement is unchanged. Reserves the term **applied** for a Repository Policy version that satisfied every required eligibility dimension; a referenced version that fails the applicability predicate SHALL NOT be described as applied. Declares the complete canonical encoding this schema owes NCCS-1 rule 5: a two-field record (`scopeKind` Enumeration, `missions` ordered collection), the variant coupling requiring `missions` empty exactly when `RepositoryWide` and non-empty exactly when `MissionSet`, the Mission Ordering Comparator over the length-prefixed String encoding, the uniqueness declaration and duplicate fail-closed policy, the normalization rules, and the additional fail-closed conditions. Defines equality as byte-identical canonical encoding, never as set semantics, membership overlap, subset relation, or any order-ignoring comparison, and states that scope equality is not version equivalence. Establishes no fingerprint, digest, commitment, or identity value derived from a scope. Adds ten Failure and Conflict Handling rows applicable under both profiles, none of which produces **Deferred** or **Approved**. **Scope of modification, stated precisely:** the amendment deletes, narrows, rewords, and withdraws no existing rule, row, bullet, or clause, and does not edit the `# Policy Evaluation` section; it does add a Mission-applicability precondition to evaluation gating and ten Escalation Required failure mappings, both of which are additive changes to gating and failure semantics, while Policy Criterion evaluation semantics, the four Governance Decision values, the Mixed-Result Decision Table, and every existing failure row remain unchanged. **RFC-0001 is not amended**; exact RFC-0001 Mission identities are declared and no Mission concept, lifecycle, or resolution rule is defined here. **RFC-0003 is not amended**; NCCS-1 is consumed exactly as RFC-0003 v1.1 defines it, and this section declares only the schema-owned record, field order, and ordering that NCCS-1 rule 5 delegates. **`NEXUS-RAT-2026-07-18-007` is not amended**; neither authorized Governance Evaluation Input Profile gains, loses, or alters any field, and the authorized profile set remains exactly two. **`NEXUS-RAT-2026-07-15-017` is not amended**; it retains sole authority over validating a Repository Policy version's Ratification reference and over its three closed outcomes, Mission Applicability Scope is a separate independent dimension that neither participates in nor substitutes for that validation, and attribution validation neither produces nor consumes a scope. **`NEXUS-RAT-2026-07-31-001` is not amended**; no field is added to or reserved in the `nexus-ratification-authority-snapshot/2` schema, no Snapshot is issued, no authority root is pinned, and every deferral it declared remains in force, with authorized-subject attestations deferred in every form — no field, no collection, no subject-kind union, no placeholder, and no dormant extraction path. **Corpus Readiness Acceptance Evaluation is not revised**; Acceptance Semantics, Current Projection Applicability Selection rules 1 through 10, the "Historical validity is not current applicability" rule, and External Authoritative Applicability and Recording are unchanged. The scope is Repository Policy data, not an attestation of an authorized subject; the only subject recognized is the Mission, and Repository Policy authority over any other subject remains unestablished. Specification text only; implementation requires separate Sprint scope ratification.
+```
+
+## Conformance Vectors (normative)
+
+These vectors are **normative** and are part of this ratification's permanently traceable authorized text.
+They are ratified architectural evidence recorded in the Ratification Ledger; they are not an RFC edit site
+and do not add text to RFC-0011. A conforming implementation, when one is separately authorized by Sprint
+scope ratification, SHALL reproduce every canonical byte sequence, byte length, ordering result, equality
+result, failure classification, and predicate result stated below. Where a vector and any narrative summary
+elsewhere disagree, the vector governs.
+
+### Mission identity literals used
+
+RFC-0011 and RFC-0001 prescribe no lexical format for a Mission identity beyond immutability and
+non-emptiness; `MissionId` is carried as a non-empty string. The vectors below therefore use exact literal
+identity strings. These are **illustrative literals, not reserved values**, and this ratification reserves
+no Mission identity.
+
+| Literal | UTF-8 byte length | NCCS-1 String encoding |
+| --- | --- | --- |
+| `mission-alpha` | 13 | `13:mission-alpha` |
+| `mission-delta` | 13 | `13:mission-delta` |
+| `mission-gamma` | 13 | `13:mission-gamma` |
+| `mission-beta` | 12 | `12:mission-beta` |
+
+All four are pure ASCII, so UTF-8 encoding and Unicode NFC normalization are identity operations on them
+and the canonical bytes below are directly readable.
+
+### Derivation of the record framing
+
+Per NCCS-1 rule 8, a record is `r<field count as Integer><(fieldName, value) pairs in fixed declared schema
+order>e`, with field names in String framing. This schema declares two fields in fixed order, so every
+`MissionApplicabilityScope` encodes as:
+
+```
+r  i2e  9:scopeKind  <Enumeration>  8:missions  <ordered collection>  e
+```
+
+where the Enumeration is String framing of `14:RepositoryWide` or `10:MissionSet`, and the ordered
+collection is `l<concatenated element encodings>e` per rule 5 — the empty collection being exactly `le`.
+
+### Positive vectors — complete canonical bytes
+
+#### Vector 1 — `RepositoryWide`
+
+- **Input:** `scopeKind` = `RepositoryWide`; `missions` = empty.
+- **Canonical bytes (ASCII):**
+
+```
+ri2e9:scopeKind14:RepositoryWide8:missionslee
+```
+
+- **Byte length:** 45
+- **Canonical bytes (hex):**
+
+```
+72693265393a73636f70654b696e6431343a5265706f7369746f727957696465
+383a6d697373696f6e736c6565
+```
+
+- **SHA-256 cross-check (non-normative):** `630141b393ecba7ce41520ffd50c8ce8158b51dd2e59ea47c1f5a0bbb589cdc0`
+
+#### Vector 2 — `MissionSet`, one element
+
+- **Input:** `scopeKind` = `MissionSet`; `missions` = [`mission-alpha`].
+- **Canonical bytes (ASCII):**
+
+```
+ri2e9:scopeKind10:MissionSet8:missionsl13:mission-alphaee
+```
+
+- **Byte length:** 57
+- **Canonical bytes (hex):**
+
+```
+72693265393a73636f70654b696e6431303a4d697373696f6e536574383a6d69
+7373696f6e736c31333a6d697373696f6e2d616c7068616565
+```
+
+- **SHA-256 cross-check (non-normative):** `7881d83bcafd5e8735c50cff3d219db4ca372d9cf05c19de6dc09e46a9298ec5`
+
+#### Vector 3 — `MissionSet`, canonically ordered multi-element
+
+- **Input:** `scopeKind` = `MissionSet`; `missions` = [`mission-alpha`, `mission-delta`, `mission-gamma`],
+  which is Mission Ordering Comparator order: the three String encodings `13:mission-alpha`,
+  `13:mission-delta`, `13:mission-gamma` are strictly ascending byte-wise.
+- **Canonical bytes (ASCII):**
+
+```
+ri2e9:scopeKind10:MissionSet8:missionsl13:mission-alpha13:mission-delta13:mission-gammaee
+```
+
+- **Byte length:** 89
+- **Canonical bytes (hex):**
+
+```
+72693265393a73636f70654b696e6431303a4d697373696f6e536574383a6d69
+7373696f6e736c31333a6d697373696f6e2d616c70686131333a6d697373696f
+6e2d64656c746131333a6d697373696f6e2d67616d6d616565
+```
+
+- **SHA-256 cross-check (non-normative):** `f981a607455274de1376321373ac5f7288af16a2d7eb2ae5e11fc164b0ce8c13`
+
+#### Vector 4 — Equality
+
+- **Input:** a second Repository Policy version declaring `MissionSet` = [`mission-alpha`, `mission-delta`,
+  `mission-gamma`].
+- **Canonical bytes:** byte-identical to Vector 3, 89 bytes, same hex, same SHA-256.
+- **Required result:** the two scopes are **equal** under § Equality, because their canonical byte
+  encodings are byte-identical. The two Repository Policy versions nonetheless remain **distinct versions**
+  and are not substitutable for one another.
+
+#### Vector 5 — Ordering is over the length-prefixed encoding
+
+- **Input:** `scopeKind` = `MissionSet`; `missions` = [`mission-beta`, `mission-alpha`].
+- **Required order:** `mission-beta` **precedes** `mission-alpha`, because the comparator orders the
+  NCCS-1 String encodings and `12:mission-beta` < `13:mission-alpha` byte-wise — the length prefix decides
+  before any identity character is compared. Sorting the raw identity strings would place `mission-alpha`
+  first and is **wrong**.
+- **Canonical bytes (ASCII):**
+
+```
+ri2e9:scopeKind10:MissionSet8:missionsl12:mission-beta13:mission-alphaee
+```
+
+- **Byte length:** 72
+- **Canonical bytes (hex):**
+
+```
+72693265393a73636f70654b696e6431303a4d697373696f6e536574383a6d69
+7373696f6e736c31323a6d697373696f6e2d6265746131333a6d697373696f6e
+2d616c7068616565
+```
+
+- **SHA-256 cross-check (non-normative):** `bad97da33c33c0ccf78470e86db89d1a59a1136da3c27447b6e2489b88ce8edf`
+- **Required result:** valid. Presented in the reverse order, it SHALL fail closed.
+
+### Negative vectors — failure only
+
+No canonical bytes exist for these; each fails closed before encoding completes.
+
+| # | Case | Input | Required result |
+| --- | --- | --- | --- |
+| 6 | `MissionSet` empty | `MissionSet`, `missions` = [] | Fail closed → Escalation Required |
+| 7 | `RepositoryWide` with missions | `RepositoryWide`, `missions` = [`mission-alpha`] | Fail closed → Escalation Required |
+| 8 | Duplicate identity | `MissionSet` [`mission-alpha`, `mission-alpha`] | Fail closed, NCCS-1 rule 7 → Escalation Required |
+| 9 | Unordered collection | `MissionSet` [`mission-gamma`, `mission-alpha`] | Fail closed → Escalation Required |
+| 10 | Empty identity | `MissionSet` [``] | Fail closed → Escalation Required |
+| 11 | Unknown variant | `scopeKind` outside the closed union | Fail closed → Escalation Required |
+
+### Predicate vectors
+
+| # | Case | Declared scope | Request Mission | Required result |
+| --- | --- | --- | --- | --- |
+| 12 | Repository-wide match | Vector 1 | `mission-alpha` | Mission-applicable |
+| 13 | Repository-wide, any Mission | Vector 1 | `mission-gamma` | Mission-applicable |
+| 14 | MissionSet member, single | Vector 2 | `mission-alpha` | Mission-applicable |
+| 15 | MissionSet member, multiple | Vector 3 | `mission-delta` | Mission-applicable |
+| 16 | MissionSet non-member | Vector 2 | `mission-gamma` | Not applicable → Escalation Required; the version SHALL NOT be described as applied |
+| 17 | Case sensitivity | Vector 2 | `Mission-Alpha` | Not applicable → Escalation Required |
+| 18 | Prefix non-match | `MissionSet` [`mission-alpha`] | `mission-alpha-2` | Not applicable → Escalation Required |
+| 19 | Legacy undeclared, new evaluation | none (`ScopeUndeclared`) | `mission-alpha` | Ineligible, fail closed → Escalation Required; never treated as `RepositoryWide` |
+| 20 | Legacy undeclared, historical Decision | none (`ScopeUndeclared`) | — | The already-produced Governance Decision remains valid and unchanged; the version is not mutated |
+| 21 | Caller-supplied scope | scope supplied or overridden by a caller | any | Fail closed → Escalation Required |
+| 22 | In-place mutation | an existing version's scope changed in place | any | Fail closed → Escalation Required; supersession required |
+| 23 | Two dimensions, profile mismatch | Vector 2 | `mission-alpha`, but the criterion's declared profile ≠ the evaluation's declared profile | Escalation Required; Mission applicability does not satisfy the profile dimension |
+
+### Independent recomputation
+
+Every positive vector's canonical bytes, byte length, hex, and SHA-256 were produced by **two independent
+read-only methods** and agree exactly, field for field:
+
+| Method | Runtime | How the bytes were obtained | Hash API |
+| --- | --- | --- | --- |
+| A | Node.js | Bytes **generated** from the declared framing rules by a throwaway read-only encoder built from NCCS-1 rules 5, 8, and 4 | `crypto.createHash('sha256')` |
+| B | Windows PowerShell / .NET | Bytes **written out literally** from this document and re-encoded UTF-8, independently of method A's encoder | `System.Security.Cryptography.SHA256` |
+
+Method B deliberately does not reuse method A's encoder: it takes the literal ASCII strings published above
+as its input, so it cross-checks both the framing and the hashing rather than only the hashing.
+
+Both methods produced identical bytes, identical hex, and identical 64-character lowercase digests for all
+five positive vectors, at these byte lengths:
+
+| Vector | Byte length | Note |
+| --- | --- | --- |
+| 1 — `RepositoryWide` | 45 | |
+| 2 — `MissionSet`, one element | 57 | |
+| 3 — `MissionSet`, three elements, ordered | 89 | |
+| 4 — Equality | 89 | Byte-identical to Vector 3; reuses its bytes, hex, and digest by construction |
+| 5 — Length-prefix ordering | 72 | |
+
+Four distinct byte sequences and four distinct digests are therefore published, across five vectors.
+Neither method was written to, persisted in, or added to the repository; both were transient read-only
+computations.
+
+**No fingerprint contract is created.** The SHA-256 values above are a verification cross-check for this
+ratification's evidence only. § Canonical Encoding explicitly establishes no fingerprint, digest,
+commitment, or identity value derived from a `MissionApplicabilityScope`, and § Deferred Concepts defers
+any such value to a future ratification. Equality is defined on the canonical bytes themselves.
+
+## Files Changed
+
+1. `knowledge/specifications/rfc-0011-engineering-governance-model.md` — eleven edit sites,
+   Final v1.3 to Final v1.4, exactly as reproduced under Full Ratification Text.
+2. `knowledge/governance/RATIFICATION_LEDGER.md` — this entry appended, and nothing else
+   changed.
+
+The Ledger change is append-only on raw octets. The appended region SHALL be encoded UTF-8
+without a byte-order mark, SHALL use `CRLF` throughout, and SHALL begin with `0d 0a` followed
+by `---`, matching the file it joins. Every octet the file already holds SHALL be
+preserved unmodified and SHALL be a byte-identical prefix of the result. Preparing the Ledger
+for issuance — decoding UTF-8, applying Unicode NFC, folding line endings — is a read
+operation performed on a copy; the prepared text SHALL NOT be written back over the stored
+file, and no general trailing-whitespace removal SHALL be applied to either side of the
+append boundary.
+
+No source file, test, Sprint Implementation Record, or implementation artifact is changed.
+`IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are not changed. No Repository
+Policy version is created, modified, superseded, or migrated.
+
+The following regions of RFC-0011 SHALL remain byte-identical after application:
+`# Corpus Readiness Acceptance Evaluation` and all subsections (baseline 1,198–1,260);
+`# Ratification Authority Snapshot Issuance` and all subsections (162–1,125); its
+`## Deferred Concepts` (1,111–1,120); `# Authority Hierarchy` (107–125); `# Governance
+Evaluation Input Profiles` (129–136); the Policy Criterion paragraphs within
+`# Repository Policy` (152–158); `# Mission-Scoped Governance Evaluation` apart from the Site
+7 insertion (1,148–1,161 and 1,163–1,194); `# Policy Evaluation` (1,127–1,144); `# Boundaries`
+and `# Non-Goals` (1,332–1,362 and 1,460–1,468); the existing Failure and Conflict Handling
+tables and rows (1,368–1,407 and 1,411–1,433); and Amendment History entries v0.1 through v1.3
+(1,519–1,524).
+
+## Stop Conditions
+
+Application SHALL stop and report, without partial application, if any of the following holds:
+
+1. Any prior text quoted under Full Ratification Text does not match
+   `knowledge/specifications/rfc-0011-engineering-governance-model.md` exactly.
+2. The target file does not present `**Version:** 1.3` at Site 1.
+3. Any region listed under Files Changed as byte-identical is not byte-identical before
+   application.
+4. `knowledge/governance/RATIFICATION_LEDGER.md` does not present the expected append boundary
+   — one line terminator throughout, no lone carriage return, and exactly one terminator after
+   a non-empty final line. The boundary SHALL fail closed rather than be repaired.
+5. The Ledger already contains an entry identified `NEXUS-RAT-2026-08-02-002`.
+6. Fewer or more than eleven edit sites are matched.
+7. The Ledger already contains an entry identified `NEXUS-RAT-2026-08-02-001`, which would
+   indicate the dependent ratification was applied out of order.
+
+## Current Status
+
+Active
