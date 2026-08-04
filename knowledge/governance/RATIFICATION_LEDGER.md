@@ -16752,3 +16752,4441 @@ Application SHALL stop and report, without partial application, if any of the fo
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-04-001
+
+## Ratification Identifier
+
+`NEXUS-RAT-2026-08-04-001`
+
+## Date
+
+2026-08-04
+
+## Subject
+
+Ratification Authority Snapshot Consumption Correspondence — the governed subject field, the schema
+version `nexus-ratification-authority-snapshot/3`, the supplied-artifact verification chain including
+governed-source re-derivation, the canonical consumed order, and the deterministic transformation
+from a verified issued artifact to the Snapshot state that `RatificationAttributionValidation`
+consults.
+
+## Originating Review Finding(s)
+
+Two Owner reviews. Revision 3 of this draft and Revision 12 of `NEXUS-RAT-2026-08-02-001` returned
+three further Blocking findings and two further Major findings, all of them owned here:
+
+- **Blocking A** — the chain did not verify the complete ratified `Issued` result. `V1` checked only
+  that `result` was the literal `Issued`; no step required, recomputed, or compared
+  `declarationCount`, `genericCount`, or `segmentedCount`, and no step rejected a missing or
+  unrecognized result field. An object with any count absent or falsified passed the whole chain,
+  V8 included, because V8 compared only the re-derived root and fingerprint collection. The chain
+  therefore accepted objects that are not conforming issued results while describing itself as
+  verifying one.
+- **Blocking B** — `V8` omitted required issuance inputs. The ratified issuance input is the exact
+  governed octet sequence **together with** the two declared issuance facts; V8 said only that
+  issuance was run "over those octets". Whether the supplied artifact's declared facts, independently
+  supplied facts, or arbitrary admissible facts were to be passed was unstated, so an artifact
+  carrying a malformed `capturedAt` or an empty attribution member could be refused by one conforming
+  implementation and accepted by another. The contract was not independently implementable with one
+  total result.
+- **Blocking C** — the selection reference's two recorded authority-source facts were never compared
+  with the verified artifact. That finding is owned by `NEXUS-RAT-2026-08-02-001` and is corrected in
+  that entry's Selection Step 5; it is recorded here because the pin this chain accepts is the pin
+  that entry supplies, and because this chain deliberately does not widen to carry the comparison.
+- **Major A** — the envelope commitment was still described in places as fixing "which issuance" or
+  as binding a complete issued state, which it cannot do.
+- **Major B** — several complete-chain citations stopped at V8 although the chain runs V1 through V9.
+
+The preceding Owner review, of Revision 2 of this draft and of `NEXUS-RAT-2026-08-02-001` Revision
+11, returned three Blocking findings and two Major findings:
+
+- **Blocking 1** — the supplied-artifact chain proved consistency, not authentic issuance. Every step
+  recomputed values supplied by the same artifact and compared the result to a pin carried by the
+  mutable selection reference. No step obtained the commitment from an independent authority or
+  re-derived the authority records from the governed source. A forger could therefore construct
+  arbitrary whole-record lifecycle records, label the result `Issued`, copy the genuine source facts,
+  recompute every fingerprint, root, and commitment, place that commitment in a forged selection
+  reference, and pass the whole chain. The finding directed that governed-source re-derivation be
+  restored, or an independently authenticated issuance source be ratified, and that a normative
+  vector exhibit a self-consistent forged artifact failing at the external-authority check.
+- **Blocking 2** — Revision 2's `CC7` required a state its own V3 makes structurally impossible.
+  `LifecycleSegment.lifecycleStatus` is `Enumeration(Effective, Superseded, Withdrawn)`; V3 refuses
+  an out-of-set value as `record-not-encodable`, while `CC7` required an unknown status to survive
+  into the consumed state and resolve as `unresolvable-unknown-lifecycle-status`. No implementation
+  could satisfy both.
+- **Blocking 3** — the amended canonical record encoding retained the schema identity `/2`. Adding
+  `ratificationSubject` changes both arms, every record encoding, and every downstream digest. The
+  absence of production pins removes migration cost but does not make a versioned schema identifier
+  cease to identify its encoding, leaving the verification gate unable to distinguish the two shapes.
+- **Major 1** — the normative identifier `N24` was assigned to two distinct negative vectors in
+  `NEXUS-RAT-2026-08-02-001`.
+- **Major 2** — Revision 2's Conformance clause listed `CC11`, a V3 refusal producing no state, among
+  the outcomes of the Required Outcome Mapping.
+
+## Governance Decision
+
+An issued Ratification Authority Snapshot artifact and the Snapshot state consumed by
+`RatificationAttributionValidation` are two different structures owned by two different
+ratifications. This ratification establishes:
+
+1. the carriage of the **governed Ratification subject** into the Ratification Authority Record, so
+   that every field the validation authority requires is present in the artifact as governed
+   evidence rather than supplied by the adapter;
+2. the advance of the snapshot schema version to **`nexus-ratification-authority-snapshot/3`**,
+   together with the normative rule that a schema version identifier names an exact canonical
+   encoding and is therefore an encoding compatibility boundary;
+3. the complete, executable **verification chain** by which a supplied object is established to be a
+   complete ratified `Issued` result, to be **authentically derivable from the governed source it
+   names**, and to be **commitment-equivalent** to the object a recorded envelope commitment names —
+   the exact equivalence that commitment establishes, stated in place of any claim of unique artifact
+   or unique issuance identity;
+4. the **canonical consumed order**, derived from commitment-bound values alone, so that the consumed
+   state is a function of the pin and not of the order in which records happen to be supplied;
+5. the exact, deterministic **transformation** from the verified artifact to the consumed state;
+6. the explicit **disposition of `SegmentedLifecycle` records**, which are refused rather than
+   flattened, because no ratified rule selects which governed scope a scope-free Ratification
+   reference resolves against.
+
+It does not authorize consumption. It defines what consumption would consume, and how a consumer
+establishes that it holds an authentic artifact. Authority to consume an issued Snapshot during
+governance evaluation arrives separately, with `NEXUS-RAT-2026-08-02-001`; until that entry is
+applied, this correspondence is inert and no governed process invokes it.
+
+## Objective
+
+Make Repository Policy Selection's Pre-Use Verification Step 5 executable, verifiable, and
+**forgery-resistant** by supplying the contracts it presupposes, without fabricating any governed
+value, without asking either authority it stands between to report a defect that authority does not
+recognise, and without requiring any implementation to satisfy two contradictory obligations.
+
+## Governing Authority
+
+- `NEXUS-RAT-2026-07-31-001` — Ratification Authority Snapshot Issuance Contract. **Amended in
+  exactly three respects**: the `LifecycleAuthorityRecord` gains one field, `ratificationSubject`, on
+  both arms, extracted from the already-required `## Subject` section; the snapshot schema version
+  constant advances from `nexus-ratification-authority-snapshot/2` to
+  `nexus-ratification-authority-snapshot/3`, because the record encoding changed; and the Total
+  Result Contract's `Issued` result schema is **completed** — the three counts it already required
+  are given their exact derivation from the issued records, the listed fields are stated to be
+  exactly the fields of an `Issued` result with a missing or unrecognized field rejected rather than
+  ignored, and it is stated normatively that no commitment layer binds that shape. No count is added,
+  renamed, or removed, and no previously conforming result becomes non-conforming. Its ownership
+  boundary, input domain, source preparation rules, grammars, generic source rule, declaration
+  contract, two graphs, commitment layers, declared issuance facts, ordering rules, diagnostic
+  vocabulary, and phase model are otherwise unchanged, and every deferral it declared remains in
+  force. This ratification issues no production Snapshot and pins no commitment.
+- `NEXUS-RAT-2026-07-15-017` — Ratification Attribution Validation Foundation. **Not amended.** Its
+  binding `RatificationAuthorityRecord` field rule — identifier, date, and subject *as recorded in
+  the authority source*, with no field inferred from prose, intent, or Builder assumption — is
+  **satisfied exactly** by this ratification rather than narrowed, excepted, or reinterpreted. It
+  retains sole authority over Ratification reference resolution and over the three closed outcomes
+  `Valid | Invalid | Unresolvable`, and all ten conditions of its Required Outcome Mapping remain in
+  force, including the unknown-lifecycle-status condition, which is preserved unamended and is stated
+  below to be unreachable through a conforming version 3 artifact.
+- `NEXUS-RAT-2026-07-16-001` — Ratification and Repository-Law Integration. **Not amended.** Its
+  requirement that escalation attribution record, and that the complete deterministic input to a
+  Governance Decision include, the Ratification Authority Snapshot fingerprint is unchanged. This
+  ratification fixes the state that fingerprint is taken over; it does not own, alter, re-specify, or
+  constrain the derivation.
+- `NEXUS-RAT-2026-08-03-001` — Governed Repository Policy Corpus Source Contract. **Amended in
+  exactly one respect**: three schema-identifier citations within `# Repository Policy Corpus Source`
+  advance from `/2` to `/3`, so that the distinctness statement and the deferral they carry continue
+  to bind the live schema. No rule, field, grammar, ordering, commitment, diagnostic, or output of
+  that section changes, and `nexus-repository-policy-corpus/1` is untouched.
+- RFC-0003 v1.1 — Shared Reality Projection Model. **Not amended.** NCCS-1 is consumed exactly as
+  defined.
+- RFC-0011 — Engineering Governance Model. **Amended from Final (Amended) v1.5 to v1.6** across
+  exactly fifteen edit sites in exactly one file, as reproduced in full under Full Ratification Text.
+
+## Authorized Scope
+
+1. Amendment of RFC-0011 from Final (Amended) v1.5 to v1.6 across exactly fifteen edit sites in
+   exactly one file, adding `ratificationSubject` to both arms of the `LifecycleAuthorityRecord`,
+   defining its extraction, advancing the schema version constant to
+   `nexus-ratification-authority-snapshot/3`, restating Schema Version and Compatibility, updating
+   four schema-identifier citations, and completing the Total Result Contract's `Issued` result
+   schema with the exact derivation of its three counts and the exactness of its field list. The
+   complete authorized text of that amendment is reproduced verbatim under Full Ratification Text
+   below, and that reproduction — not any external document — is what this ratification authorizes.
+2. Appending this entry to `knowledge/governance/RATIFICATION_LEDGER.md`, including the Consumption
+   Correspondence, the verification chain, and the conformance vectors recorded below.
+
+Exactly two files are changed by this ratification.
+
+## Deferred and Prohibited Scope
+
+The following are deferred and are **NOT** authorized by this ratification:
+
+- **Segmented Lifecycle Scope Selection.** No rule determines which governed scope of a
+  `SegmentedLifecycle` record a scope-free Ratification reference resolves against. Until such a rule
+  is separately ratified by the authorities that own scope and resolution, an artifact containing any
+  `SegmentedLifecycle` record is **refused** by this correspondence. This is stated normatively
+  below, is demonstrated by vector CC9, and its consequence for the present governed corpus is stated
+  openly rather than concealed;
+- authority to consume a Ratification Authority Snapshot during governance evaluation. That authority
+  is established separately by `NEXUS-RAT-2026-08-02-001`, and this correspondence is inert until it
+  is applied;
+- issuing a production Ratification Authority Snapshot;
+- any store, registry, resolver, locator, index, or retrieval protocol for issued artifacts. The
+  governed-source re-derivation of V8 is a **read of the governed source artifact this specification
+  already names**, performed by the verifier; it is not an artifact store and establishes none;
+- any signature, certificate, key, trust anchor, or authenticated issuance registry. This
+  ratification's authenticity anchor is governed-source re-derivation, not cryptographic
+  attestation; any such mechanism requires its own ratification;
+- migration, upgrade, or partial reading of any `nexus-ratification-authority-snapshot/1` or
+  `nexus-ratification-authority-snapshot/2` artifact;
+- any amendment to the Required Outcome Mapping, to its diagnostic codes, or to the derivation of the
+  Ratification Authority Snapshot fingerprint;
+- any amendment to the declared issuance facts, to their grammar, to their examination order, or to
+  the `Envelope` phase that judges them. V8 **supplies** the two declared facts to the ratified
+  issuance contract and reports its diagnostic verbatim; it judges neither, and adds no admissibility
+  rule of its own;
+- any complete artifact encoding, wire format, framing, or commitment over a serialized issued result
+  as a whole. Establishing unique byte-artifact identity would require such an encoding and a
+  commitment over it; neither exists, neither is proposed here, and this ratification claims no
+  unique artifact or unique issuance identity anywhere;
+- authorized-subject attestations in any form — no field, no collection, no subject-kind union, no
+  placeholder, no dormant extraction path. `ratificationSubject` is the governed **entry subject**
+  recorded in the `## Subject` section of a Ratification Ledger entry. It is not an attestation, it
+  declares no subject kind, and it opens no extraction path for one;
+- implementation, Sprint proposal, or Sprint activation of any capability described here;
+- any Git operation.
+
+**Implementation requires separate Sprint scope ratification.**
+
+## Ownership Model (ratified)
+
+Ratification Authority Snapshot Issuance owns the issued artifact, its schemas, its schema version,
+and its three commitment layers. `RatificationAttributionValidation` owns resolution, the three
+closed outcomes, the diagnostic vocabulary, and the derivation of the Ratification Authority Snapshot
+fingerprint.
+
+The Consumption Correspondence owns exactly two things: the verification chain by which a supplied
+object is established to be a complete ratified `Issued` result, to be authentic against governed
+law, and to be commitment-equivalent to the object a pin names, and the function from that verified
+result to the input of the validation authority. It resolves no Ratification, produces no
+outcome, emits no diagnostic from the validation authority's vocabulary, and derives no fingerprint.
+It **invokes** Ratification Authority Snapshot Issuance during verification; it does not redefine,
+extend, or substitute for it, and the derivation it performs is a **conformance checkpoint** in the
+sense `NEXUS-RAT-2026-07-31-001` already names, never a production issuance.
+
+## Full Ratification Text
+
+The following is the complete authorized amendment to
+`knowledge/specifications/rfc-0011-engineering-governance-model.md`, taking it from Final (Amended)
+v1.5 to Final (Amended) v1.6 across exactly fifteen edit sites. It is reproduced here in full so
+that this Ledger entry carries its own binding meaning and depends on no external document.
+
+**Target file:** `knowledge/specifications/rfc-0011-engineering-governance-model.md`
+**Baseline:** Final (Amended) v1.5, 2,752 lines, 212,310 octets, LF terminators, SHA-256
+`5d6f5ea63ce866707cda99fcef4184c2c403ee3316d3c5370586bb22a66b3ff0`, as committed on 2026-08-03.
+**Site count:** fifteen — fourteen exact-match replacements and one file-end append.
+
+Line numbers identify the baseline v1.5 file. Application SHALL match on the reproduced prior text,
+not on line number alone. Every PRIOR TEXT block below occurs exactly once in the baseline file.
+
+````markdown
+### Site 1 of 15 — Version metadata
+
+PRIOR TEXT (exact):
+
+```
+**Version:** 1.5
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+**Version:** 1.6
+```
+
+### Site 2 of 15 — Amendment provenance sentence
+
+PRIOR TEXT (exact):
+
+```
+`NEXUS-RAT-2026-08-02-002` is not amended; the `MissionApplicabilityScope` record and its closed two-variant union are consumed exactly as ratified, no third variant is declared, and no `ScopeUndeclared` version is migrated, back-filled, annotated, or repaired.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+`NEXUS-RAT-2026-08-02-002` is not amended; the `MissionApplicabilityScope` record and its closed two-variant union are consumed exactly as ratified, no third variant is declared, and no `ScopeUndeclared` version is migrated, back-filled, annotated, or repaired. Amended by `NEXUS-RAT-2026-08-04-001` to establish the Ratification Authority Snapshot Consumption Correspondence, to carry the governed Ratification subject into the Ratification Authority Record, and to allocate the resulting canonical record encoding the schema version `nexus-ratification-authority-snapshot/3`, and to state the exact field shape of an `Issued` issuance result together with the derivation of its three counts (see Ratification Authority Snapshot Issuance, below, and Amendment History). `NEXUS-RAT-2026-07-15-017` is not amended by that amendment; its binding `RatificationAuthorityRecord` field rule, requiring identifier, date, and subject as recorded in the authority source and permitting no field to be inferred from prose, intent, or Builder assumption, is satisfied exactly rather than narrowed, and all ten conditions of its Required Outcome Mapping remain in force. `NEXUS-RAT-2026-07-16-001` is not amended by that amendment; the derivation of the Ratification Authority Snapshot fingerprint remains owned by `RatificationAttributionValidation`.
+```
+
+### Site 3 of 15 — Lifecycle Authority Records, declared fields
+
+PRIOR TEXT (exact):
+
+```
+- `lifecycleAuthorityKind` — exactly one of `GenericSourceRule` or `GovernedDeclaration`;
+- `ratificationIdentifier`;
+- `ratificationDate`;
+- `lifecycleResolutionForm` — exactly one of `WholeRecordLifecycle` or `SegmentedLifecycle`;
+- `lifecycleDeclaringAuthority` — present if and only if the kind is `GovernedDeclaration`;
+- `lifecycleSegments` — an ordered collection of Lifecycle Segments.
+
+The record is a discriminated union on `lifecycleAuthorityKind`. A generically resolved
+record naming a declaring authority, and a declared record omitting one, SHALL both be
+structurally inexpressible rather than merely rejected.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- `lifecycleAuthorityKind` — exactly one of `GenericSourceRule` or `GovernedDeclaration`;
+- `ratificationIdentifier`;
+- `ratificationDate`;
+- `ratificationSubject`;
+- `lifecycleResolutionForm` — exactly one of `WholeRecordLifecycle` or `SegmentedLifecycle`;
+- `lifecycleDeclaringAuthority` — present if and only if the kind is `GovernedDeclaration`;
+- `lifecycleSegments` — an ordered collection of Lifecycle Segments.
+
+The record is a discriminated union on `lifecycleAuthorityKind`. A generically resolved
+record naming a declaring authority, and a declared record omitting one, SHALL both be
+structurally inexpressible rather than merely rejected.
+
+`ratificationSubject` carries the governed subject of the Ratification entry, extracted from
+the `## Subject` section exactly as the field rules above define, and is present on every
+record of both arms. It is **governed evidence carried verbatim, never a derived, defaulted,
+substituted, or synthesized value.** Issuance SHALL NOT read it, interpret it, normalize it,
+truncate it, or resolve any lifecycle from it; it is carried so that a consumer requiring the
+subject as a record field receives the subject the authority source actually records, rather
+than a value standing in for one. A record whose subject is absent from the source is not
+issued at all: `missing-subject` fails closed in the `EntryStructure` phase, before any
+record exists.
+```
+
+### Site 4 of 15 — Governed Entry Extraction Grammar, Subject field rule
+
+PRIOR TEXT (exact):
+
+```
+| Subject | `## Subject` SHALL have at least one content line. | → `missing-subject` |
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+| Subject | `## Subject` SHALL have at least one content line. Its content lines, joined by a single `LF` in ascending source-line order, are the record's `ratificationSubject`, carried verbatim. No line is trimmed, folded, reordered, truncated, or summarized; no other section contributes to it; and no value is substituted for it. | → `missing-subject` |
+```
+
+### Site 5 of 15 — Canonical Schemas, `LifecycleAuthorityRecord` `GenericSourceRule` arm
+
+PRIOR TEXT (exact):
+
+```
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `lifecycleAuthorityKind` | `Enumeration(GenericSourceRule, GovernedDeclaration)` |
+| 2 | `ratificationIdentifier` | `Identity` |
+| 3 | `ratificationDate` | `String` |
+| 4 | `lifecycleResolutionForm` | `Enumeration(WholeRecordLifecycle, SegmentedLifecycle)` |
+| 5 | `lifecycleSegments` | `OrderedList(LifecycleSegment)` |
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `lifecycleAuthorityKind` | `Enumeration(GenericSourceRule, GovernedDeclaration)` |
+| 2 | `ratificationIdentifier` | `Identity` |
+| 3 | `ratificationDate` | `String` |
+| 4 | `ratificationSubject` | `String` |
+| 5 | `lifecycleResolutionForm` | `Enumeration(WholeRecordLifecycle, SegmentedLifecycle)` |
+| 6 | `lifecycleSegments` | `OrderedList(LifecycleSegment)` |
+```
+
+### Site 6 of 15 — Canonical Schemas, `LifecycleAuthorityRecord` `GovernedDeclaration` arm
+
+PRIOR TEXT (exact):
+
+```
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `lifecycleAuthorityKind` | `Enumeration(GenericSourceRule, GovernedDeclaration)` |
+| 2 | `ratificationIdentifier` | `Identity` |
+| 3 | `ratificationDate` | `String` |
+| 4 | `lifecycleResolutionForm` | `Enumeration(WholeRecordLifecycle, SegmentedLifecycle)` |
+| 5 | `lifecycleDeclaringAuthority` | `Identity` |
+| 6 | `lifecycleSegments` | `OrderedList(LifecycleSegment)` |
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+| # | Field | Kind |
+| --- | --- | --- |
+| 1 | `lifecycleAuthorityKind` | `Enumeration(GenericSourceRule, GovernedDeclaration)` |
+| 2 | `ratificationIdentifier` | `Identity` |
+| 3 | `ratificationDate` | `String` |
+| 4 | `ratificationSubject` | `String` |
+| 5 | `lifecycleResolutionForm` | `Enumeration(WholeRecordLifecycle, SegmentedLifecycle)` |
+| 6 | `lifecycleDeclaringAuthority` | `Identity` |
+| 7 | `lifecycleSegments` | `OrderedList(LifecycleSegment)` |
+```
+
+### Site 7 of 15 — Fixed Protocol Constants, snapshot schema version
+
+PRIOR TEXT (exact):
+
+```
+| `snapshotSchemaVersion` | `nexus-ratification-authority-snapshot/2` |
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+| `snapshotSchemaVersion` | `nexus-ratification-authority-snapshot/3` |
+```
+
+### Site 8 of 15 — Schema Version and Compatibility
+
+PRIOR TEXT (exact):
+
+```
+The snapshot schema version is `nexus-ratification-authority-snapshot/2`.
+
+**Version 2 is not backward compatible with version 1 and SHALL NOT be read as version 1.**
+The incompatibility is exact and total:
+
+- v1 records carried a single record-level lifecycle status; v2 records carry a segmented
+  lifecycle whose statuses attach to atomic scopes.
+- v2 introduces `lifecycleResolutionForm`, `lifecycleAuthorityKind`,
+  `lifecycleDeclaringAuthority`, `scopeKind`, `scopeKey`, `scopeDescription`, and
+  `lifecycleRelations`; none exists in v1.
+- v2 records are discriminated unions; v1 records were not, so no v1 record has a
+  well-defined v2 encoding and no v2 record has a well-defined v1 encoding.
+- Consequently **no v1 fingerprint, root, or commitment is comparable to any v2
+  fingerprint, root, or commitment.** Comparing them across versions is meaningless, not
+  merely inadvisable.
+
+A v1 snapshot SHALL NOT be upgraded, reinterpreted, or partially read under v2. Migration
+of any v1 artifact requires separate ratification stating its scope, and is not authorized
+by this section.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+The snapshot schema version is `nexus-ratification-authority-snapshot/3`.
+
+**A schema version identifier names an exact canonical encoding, and is therefore an
+encoding compatibility boundary.** Any change to a schema in this section that alters the
+octets a conforming record encodes to SHALL take a new schema version identifier, whether or
+not any artifact has yet been issued under the previous one. The absence of issued artifacts
+removes migration cost; it does not make a version identifier stop identifying the encoding
+it names. A consumer SHALL be able to decide, from `snapshotSchemaVersion` alone, whether it
+holds an encoding it can read — never by attempting to decode and observing a failure.
+
+**Version 3 is not backward compatible with version 2 and SHALL NOT be read as version 2.**
+The incompatibility is exact and total:
+
+- v3 `LifecycleAuthorityRecord` carries `ratificationSubject` at field 4 on both arms; v2
+  carried no subject at all. The arms carry six and seven fields in v3, where they carried
+  five and six in v2.
+- Rule 8 encodes a record's field count and its `(fieldName, value)` pairs, so **no v2
+  record has a well-defined v3 encoding and no v3 record has a well-defined v2 encoding.**
+- Consequently **no v2 record fingerprint, authority root, or envelope commitment is
+  comparable to any v3 record fingerprint, authority root, or envelope commitment**, even
+  when both are derived from byte-identical governed source octets.
+
+**Version 3 is likewise not backward compatible with version 1 and SHALL NOT be read as
+version 1.** That incompatibility is exact and total, and was already so at version 2:
+
+- v1 records carried a single record-level lifecycle status; v2 and v3 records carry a
+  segmented lifecycle whose statuses attach to atomic scopes.
+- v2 introduced `lifecycleResolutionForm`, `lifecycleAuthorityKind`,
+  `lifecycleDeclaringAuthority`, `scopeKind`, `scopeKey`, `scopeDescription`, and
+  `lifecycleRelations`, and v3 retains all of them; none exists in v1.
+- v2 and v3 records are discriminated unions; v1 records were not, so no v1 record has a
+  well-defined v2 or v3 encoding and no v2 or v3 record has a well-defined v1 encoding.
+- Consequently **no v1 fingerprint, root, or commitment is comparable to any v2 or v3
+  fingerprint, root, or commitment.** Comparing them across versions is meaningless, not
+  merely inadvisable.
+
+A v1 or v2 snapshot SHALL NOT be upgraded, reinterpreted, or partially read under v3.
+Migration of any v1 or v2 artifact requires separate ratification stating its scope, and is
+not authorized by this section. **No production artifact has been issued under any version
+of this schema**, so no migration is presently required by anything; the rule is stated
+because the boundary is a property of the encoding and not of the deployment state.
+```
+
+### Site 9 of 15 — Deferred Concepts, attestation overlay clause
+
+PRIOR TEXT (exact):
+
+```
+Introducing attestations later SHALL require either a new snapshot schema version or a
+separately ratified overlay. They SHALL NOT be added to
+`nexus-ratification-authority-snapshot/2`.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+Introducing attestations later SHALL require either a new snapshot schema version or a
+separately ratified overlay. They SHALL NOT be added to
+`nexus-ratification-authority-snapshot/3`.
+```
+
+### Site 10 of 15 — Repository Policy Corpus Source, relationship citation
+
+PRIOR TEXT (exact):
+
+```
+extended, or reinterpreted as one. `nexus-ratification-authority-snapshot/2` carries one
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+extended, or reinterpreted as one. `nexus-ratification-authority-snapshot/3` carries one
+```
+
+### Site 11 of 15 — Repository Policy Corpus Source, schema distinctness citation
+
+PRIOR TEXT (exact):
+
+```
+It is a distinct schema from `nexus-ratification-authority-snapshot/2`. No fingerprint, root, or
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+It is a distinct schema from `nexus-ratification-authority-snapshot/3`. No fingerprint, root, or
+```
+
+### Site 12 of 15 — Repository Policy Corpus Source, deferred-concept citation
+
+PRIOR TEXT (exact):
+
+```
+- any addition to, reservation in, reinterpretation of, or read from the
+  `nexus-ratification-authority-snapshot/2` schema, and any Snapshot issuance;
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- any addition to, reservation in, reinterpretation of, or read from the
+  `nexus-ratification-authority-snapshot/3` schema, and any Snapshot issuance;
+```
+
+### Site 13 of 15 — Prohibitions, attestation citation
+
+PRIOR TEXT (exact):
+
+```
+- implement, stub, or reserve authorized-subject attestations under the `nexus-ratification-authority-snapshot/2` schema.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- implement, stub, or reserve authorized-subject attestations under the `nexus-ratification-authority-snapshot/3` schema.
+```
+
+### Site 14 of 15 — Total Result Contract, `Issued` result shape and derived counts
+
+PRIOR TEXT (exact):
+
+```
+An `Issued` result SHALL carry:
+
+- `result` — `Issued`;
+- `envelope` — `authorityRoot`, `authoritySourceIdentity`, `authoritySourceRevision`,
+  `canonicalSerializationProtocolId`, `capturedAt`, `producingAttribution`, `recordCount`,
+  `snapshotSchemaVersion`;
+- `envelopeCommitment`;
+- `records` — the ordered Ratification Authority Records;
+- `recordFingerprints` — the order-insensitive fingerprint collection as committed;
+- `declarationCount`, `genericCount`, `segmentedCount`.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+An `Issued` result SHALL carry:
+
+- `result` — `Issued`;
+- `envelope` — `authorityRoot`, `authoritySourceIdentity`, `authoritySourceRevision`,
+  `canonicalSerializationProtocolId`, `capturedAt`, `producingAttribution`, `recordCount`,
+  `snapshotSchemaVersion`;
+- `envelopeCommitment`;
+- `records` — the ordered Ratification Authority Records;
+- `recordFingerprints` — the order-insensitive fingerprint collection as committed;
+- `declarationCount`, `genericCount`, `segmentedCount`.
+
+**The three counts are derived, never declared.** Each is a non-negative Integer, derived
+from the issued records alone:
+
+| Count | Derivation |
+| --- | --- |
+| `declarationCount` | the number of records whose `lifecycleAuthorityKind` is `GovernedDeclaration` |
+| `genericCount` | the number of records whose `lifecycleAuthorityKind` is `GenericSourceRule` |
+| `segmentedCount` | the number of records whose `lifecycleResolutionForm` is `SegmentedLifecycle` |
+
+`declarationCount` and `genericCount` partition the records, so their sum SHALL equal
+`recordCount`. `segmentedCount` counts a representation form across both arms and SHALL NOT
+be added to either. Every count is derived from governed octets alone, so two conforming
+implementations reading the same octets SHALL report the same three values, and a reader
+MAY re-derive all three rather than accept them.
+
+**The listed fields are exactly the fields of an `Issued` result.** A result missing any of
+them is not an `Issued` result, and an unrecognized field SHALL be rejected rather than
+ignored, exactly as an unrecognized declared issuance fact is. The same rule binds the
+`envelope` and the `producingAttribution` record: each carries exactly the fields listed for
+it, no more and no fewer.
+
+**The commitment layers do not bind this shape.** No count, and no framing of the result as
+a whole, enters `AuthorityRootBasis` or `EnvelopeCommitmentBasis`. A reader SHALL therefore
+establish the shape structurally and SHALL NOT infer it from a matching root or envelope
+commitment: an object carrying a correct root and a correct commitment, but a missing,
+extra, or false count, satisfies every commitment layer and is still not an `Issued`
+result.
+```
+
+### Site 15 of 15 — Amendment History
+
+**Location:** appended after the existing final entry of `# Amendment History`, the
+`v1.5 (2026-08-03)` entry at baseline line 2,752, which is the file's final line. Every existing
+entry is unchanged.
+
+TEXT TO APPEND (exact):
+
+```
+- v1.6 (2026-08-04) — Amended by `NEXUS-RAT-2026-08-04-001` to carry the governed Ratification subject into the Ratification Authority Record and to allocate the resulting canonical record encoding a new schema version, in support of the Ratification Authority Snapshot Consumption Correspondence that ratification establishes in the Ratification Ledger. Adds exactly one field, `ratificationSubject`, to both arms of `LifecycleAuthorityRecord`, positioned after `ratificationDate` so that the record carries identifier, date, and subject in the order `NEXUS-RAT-2026-07-15-017` declares them, and defines its extraction as the content lines of the already-required `## Subject` section joined by a single `LF`, carried verbatim. No section becomes required that was not already required, no new failure code is introduced, and `missing-subject` continues to fail closed in the `EntryStructure` phase exactly as before. The field is governed evidence carried without interpretation: issuance neither reads nor normalizes it and resolves no lifecycle from it. Because both arms encode differently, every record fingerprint, authority root, and envelope commitment derived under the amended schema differs from the value the same governed octets would have yielded before, so the schema version identifier advances from `nexus-ratification-authority-snapshot/2` to `nexus-ratification-authority-snapshot/3`. **A schema version identifier names an exact canonical encoding and is therefore an encoding compatibility boundary**: the amendment states that rule normatively, requires a new identifier for any future encoding change whether or not artifacts exist, and requires a consumer to decide readability from `snapshotSchemaVersion` alone rather than by attempting to decode. Version 3 is declared totally incompatible with version 2 and with version 1, with no fingerprint, root, or commitment comparable across versions even from byte-identical governed octets, and migration of any version 1 or version 2 artifact requires separate ratification. No production artifact has been issued under any version, so nothing is migrated, rewritten, or invalidated; that fact removes migration cost and is expressly not the reason the boundary exists. Four schema-identifier citations elsewhere in this specification are updated to `/3` so that the prohibitions and distinctness statements carrying them continue to bind the live schema. **`NEXUS-RAT-2026-07-15-017` is not amended**; its binding `RatificationAuthorityRecord` field rule — identifier, date, and subject as recorded in the authority source, with no field inferred from prose, intent, or Builder assumption — is satisfied exactly, and all ten conditions of its Required Outcome Mapping remain in force. The Total Result Contract's `Issued` result schema is completed rather than changed: the three counts it already required — `declarationCount`, `genericCount`, `segmentedCount` — are given their exact derivation from the issued records, the listed fields are stated to be exactly the fields of an `Issued` result with a missing or unrecognized field rejected rather than ignored, and it is stated normatively that the commitment layers bind none of that shape, so a reader establishes it structurally and never infers it from a matching root or envelope commitment. No count is added, renamed, or removed, and no previously conforming result becomes non-conforming: the derivations are the only ones consistent with the field names and with the partition the record union already fixes. **`NEXUS-RAT-2026-07-31-001` is amended in exactly three respects**: the record schema gains `ratificationSubject`, the schema version identifier advances to `/3`, and the `Issued` result shape and its three counts are stated exactly. Its ownership boundary, input domain, preparation rules, grammars, generic source rule, declaration contract, two graphs, commitment layers, declared issuance facts, ordering rules, diagnostic vocabulary, phase model, and total result contract are otherwise unchanged, and every deferral it declared, including the entire deferral of authorized-subject attestations in every form, remains in force. `ratificationSubject` is the governed **entry subject** and is not an authorized-subject attestation, declares no subject kind, and opens no extraction path for one. **`NEXUS-RAT-2026-08-03-001` is amended in exactly one respect**: three schema-identifier citations within Repository Policy Corpus Source advance from `/2` to `/3`. No rule, field, grammar, ordering, commitment, diagnostic, or output of that section changes, and the corpus schema version `nexus-repository-policy-corpus/1` is untouched. **`NEXUS-RAT-2026-07-16-001` is not amended**; the Ratification Authority Snapshot fingerprint remains derived and owned by `RatificationAttributionValidation`. **RFC-0003 is not amended**; NCCS-1 is consumed exactly as defined. No Governance Decision value, Escalation category, Policy Evaluation mechanism, Policy Criterion predicate, or Governance Evaluation Input Profile is introduced or modified. Specification text only; implementation requires separate Sprint scope ratification.
+```
+````
+
+**Resulting file:** Final (Amended) v1.6, 2,816 lines, 223,147 octets, LF terminators, SHA-256
+`71bd09692d0e24d5dfc641ba65501d9d855cce97cad46d476fb0fd0e609b01c4`.
+
+## The Supplied-Artifact Verification Chain
+
+Every clause of this section is normative.
+
+A consumer receives a collection of supplied artifacts, a **pin** carrying exactly two recorded
+values — `schemaVersion` and `envelopeCommitment` — and access to the governed source artifact named
+by the fixed protocol constant `authoritySourceIdentity`. The chain below SHALL execute in the stated
+order, SHALL stop at the first failing step, and SHALL produce no partial result.
+
+| Step | Check | Refusal reason |
+| --- | --- | --- |
+| **V1** | Exactly one artifact is supplied; its `result` is `Issued`; and it carries **exactly** the fields the ratified `Issued` result schema lists — `result`, `envelope`, `envelopeCommitment`, `records`, `recordFingerprints`, `declarationCount`, `genericCount`, `segmentedCount` — with `envelope` carrying exactly its eight listed fields and `producingAttribution` exactly its two. A missing field is refused; an unrecognized field is refused rather than ignored. | `artifact-supply-not-singular`; `artifact-not-issued`; `issued-result-field-missing`; `issued-result-field-unrecognized` |
+| **V2** | `envelope.snapshotSchemaVersion` equals `nexus-ratification-authority-snapshot/3` and equals the pinned `schemaVersion`. | `schema-version-not-version-3`; `schema-version-pin-mismatch` |
+| **V3** | Every supplied record encodes under the `LifecycleAuthorityRecord` schema of its declared arm, **including every enumeration constraint**; its record fingerprint is **recomputed** from that encoding. A missing field, an extra field, a wrong arm, or a value outside a declared enumeration fails here. | `record-not-encodable` |
+| **V4** | `envelope.recordCount` equals the number of supplied records, and the supplied `recordFingerprints` collection has the same cardinality. | `record-count-mismatch`; `fingerprint-count-mismatch` |
+| **V5** | The recomputed fingerprints are pairwise distinct, and their NCCS-1 rule 6 `OrderInsensitiveStrings` encoding is octet-identical to that of the supplied `recordFingerprints`. | `duplicate-record-fingerprint`; `record-fingerprint-collection-mismatch` |
+| **V6** | The `AuthorityRootBasis` is **recomputed** from the recomputed fingerprint collection, both source facts, the protocol identifier, the record count, and the schema version, and equals `envelope.authorityRoot`. | `authority-root-mismatch` |
+| **V7** | The `EnvelopeCommitmentBasis` is **recomputed** from the supplied `envelope` and equals both the artifact's self-declared `envelopeCommitment` and the pinned `envelopeCommitment`. | `self-declared-commitment-mismatch`; `envelope-commitment-pin-mismatch` |
+| **V8** | **Governed-source re-derivation.** Exactly one obtainable governed source artifact prepares, under Governed Source Text Preparation, to a text whose prepared-text digest equals `envelope.authoritySourceRevision`. Ratification Authority Snapshot Issuance is rerun over exactly those octets, taking as its declared issuance facts **exactly `envelope.capturedAt` and `envelope.producingAttribution`, unaltered and unsubstituted**, and returns `Issued`. The re-derived `authorityRoot` equals `envelope.authorityRoot`; the re-derived record fingerprint collection is octet-identical to the recomputed one; and the re-derived `declarationCount`, `genericCount`, and `segmentedCount` each equal the supplied value. | `governed-source-unobtainable`; `governed-source-not-issuable`, carrying the ratified issuance diagnostic verbatim; `authority-root-not-derivable-from-governed-source`; `record-collection-not-derivable-from-governed-source`; `declaration-count-not-derivable-from-governed-source`; `generic-count-not-derivable-from-governed-source`; `segmented-count-not-derivable-from-governed-source` |
+| **V9** | The records are ordered into the **canonical consumed order** defined below. | none — total |
+
+**No supplied value is accepted as authority.** Every fingerprint, the root, the commitment, and all
+three result counts are recomputed or re-derived from the records, envelope, and governed octets
+actually supplied. The supplied `recordFingerprints` collection is compared, never trusted; the
+artifact's self-declared commitment is compared, never trusted; the supplied counts are compared,
+never trusted; and the record collection itself is compared against one derived independently from
+governed law.
+
+### The complete `Issued` result is verified, not merely its commitment layers
+
+The object a consumer receives is the ratified `Issued` result of Ratification Authority Snapshot
+Issuance, and V1 requires it to be that result **in full**. Verifying only the fields that feed a
+commitment basis would not do, and the reason is structural rather than cautious: **no result count,
+and no framing of the result as a whole, enters `AuthorityRootBasis` or `EnvelopeCommitmentBasis`.**
+An object carrying a correct root and a correct envelope commitment, but a missing, extra, or false
+`declarationCount`, `genericCount`, or `segmentedCount`, satisfies every commitment layer and is
+still not an `Issued` result.
+
+A chain that admitted such an object while describing itself as verifying an issued artifact would be
+making a claim it had not established. Two consequences follow, and both are normative:
+
+- **The shape is established structurally, at V1**, before any recomputation. A missing field and an
+  unrecognized field are both refusals, matching the treatment the ratified contract already gives an
+  unrecognized declared issuance fact: rejected, never ignored. Vectors CV15 through CV19 exhibit one
+  case of each, at each of the three levels — the result, its `envelope`, and its
+  `producingAttribution`.
+- **The three counts are re-derived at V8**, from the governed source, and compared. They are derived
+  values, not declared ones: the amendment this ratification makes states their exact derivation from
+  the issued records, so a consumer obtains them from governed law rather than accepting them.
+  Vectors CV20, CV21, and CV22 falsify one count each and are refused by name.
+
+This entry therefore describes what it verifies as **a complete ratified `Issued` result**, and no
+consuming entry may describe a partially verified object as one.
+
+### V8's declared issuance facts are fixed, not chosen
+
+The ratified issuance input is not governed octets alone. It is the exact governed octet sequence
+**together with the two declared issuance facts**, `capturedAt` and `producingAttribution`. A
+re-derivation leaving those inputs unspecified would not be a total contract: the same supplied
+artifact could be accepted by one conforming implementation and refused by another, according to
+which facts each happened to pass.
+
+V8 therefore fixes them exactly. Issuance is rerun with **`envelope.capturedAt` and
+`envelope.producingAttribution` taken verbatim from the supplied artifact**. There is no
+substitution, no independently supplied fact, no default, no system clock, and no retry with a
+different fact after a refusal.
+
+The consequence is that the ratified `Envelope` phase becomes reachable through this chain, and is
+the correct authority for the defect. NCCS-1 String encoding accepts any string, so an artifact
+carrying a malformed `capturedAt` or an empty producing-attribution member can bind that value into a
+correctly recomputed envelope commitment and pass V1 through V7 intact. V8 reruns issuance with that
+exact fact, the ratified contract rejects it, and the chain refuses the artifact as
+`governed-source-not-issuable`, **carrying the ratified issuance diagnostic verbatim** —
+`malformed-capture-instant` or `malformed-attribution` — rather than restating, renaming, or
+absorbing it. Vectors CV23, CV24, and CV25 exhibit the three cases the Owner's review named, and
+CV26 is the control: the identical construction with admissible facts is accepted.
+
+This adds no validation authority to the chain. The declared facts are judged by the ratification
+that owns them, in the phase that owns them, and this entry supplies only the inputs.
+
+### V8 is the external-authority anchor, and why the chain needs one
+
+V1 through V7 establish only that the supplied object is **internally consistent** and that its
+envelope commitment equals a pin. Both properties are reproducible by anyone: the pin is carried on a
+mutable `RepositoryPolicySelectionReference`, and a forger who fabricates records can recompute every
+fingerprint, the root, and the commitment, and place the result in a forged reference. Nothing in V1
+through V7 distinguishes such an object from a genuine issuance, and stating that the chain
+establishes "self-consistency plus pin equality" describes that gap rather than closing it.
+
+An issuance obligation binding the producer is not evidence available to the verifier. **V8 supplies
+the evidence**: the record collection is re-derived from the governed source octets the artifact
+itself names, by the ratified issuance contract, and compared. A forged record set no longer passes,
+because the governed source does not yield it.
+
+The consequence is stated exactly, and nothing beyond it is claimed:
+
+- **Every Ratification Authority Record consumed is a record the governed source yields.** No
+  attribution outcome can be produced that the governed Ratification Ledger does not support. Vector
+  CC10 exhibits a fully self-consistent forged artifact that would have passed the prior chain and
+  fabricated a `Valid` outcome for a Superseded Ratification, and that V8 refuses.
+- **The capture instant and the producing attribution are declared issuance facts and are not
+  re-derivable.** They are not authenticated by V8. They are bound into the envelope commitment and
+  therefore fixed by the pin, and neither is an input to any attribution outcome. `capturedAt` enters
+  the consumed state and is stated here so that no reader mistakes the pin for an authentication of
+  it.
+- **V8 is a read, not an issuance.** It performs a derivation over governed octets and compares two
+  values. It produces no artifact, declares no capture instant, declares no producing attribution,
+  and issues nothing. It is a conformance checkpoint in the sense `NEXUS-RAT-2026-07-31-001` already
+  defines, and the deferral of production Snapshot issuance is unaffected by it.
+- **V8 does not make the artifact redundant.** Re-derivation establishes the records and the root; it
+  does not establish the declared facts, because two issuances of the same octets share a root and
+  differ in envelope commitment wherever their declared facts differ. V7 narrows the supplied object
+  to one commitment-equivalence class; V8 establishes that its records are governed. Both are
+  required, and an earlier revision of this contract's consumer that pinned only the authority root
+  and directed the verifier to re-issue remains withdrawn, because it discarded V7 rather than adding
+  V8.
+- **If the governed source is not obtainable at the pinned revision, verification fails closed.**
+  There is no fallback to the supplied artifact, no most-recent-source substitution, and no
+  degradation to the V1–V7 chain alone.
+
+### The canonical consumed order
+
+The consumed record sequence SHALL be the supplied records arranged in **ascending order of the
+NCCS-1 rule 4 String encoding of their recomputed record fingerprints** — that is, exactly the rule 6
+order in which `authorityRecordFingerprints` is committed into the authority root.
+
+This order is total: V5 requires the fingerprints to be pairwise distinct, so no two records compare
+equal. It is derived from commitment-bound values alone. It is therefore **independent of the order
+in which records were supplied**, and the artifact's declared record order is inert for consumption.
+
+`NEXUS-RAT-2026-07-31-001` commits the record fingerprints as an *order-insensitive* collection,
+deliberately, because a snapshot is an immutable collection whose root must not depend on read order.
+A consumed state that preserved supplied record order would therefore not be a function of the
+commitment: two artifacts with identical roots and identical envelope commitments could yield
+different consumed states. Deriving the consumed order from the committed collection closes that gap
+without weakening the root, without introducing a second commitment, and without requiring any
+further derivation.
+
+### What the chain establishes, exactly
+
+After V1 through V9 succeed, the following are established, and **nothing beyond them is claimed**:
+
+| Established | How |
+| --- | --- |
+| The record collection is one the governed source at the pinned revision actually yields | V8 |
+| The authority root is derivable from governed octets alone | V8 |
+| The set of record encodings is exactly the set committed by that root | V3 recomputes each; V5 compares the rule 6 collection; V6 binds it into the root |
+| The record count is exactly the committed count | V4 and V6 |
+| Both source facts, the protocol identifier, the capture instant, the producing attribution, and the schema version are exactly those committed | V7 |
+| The supplied object carries exactly the fields of a ratified `Issued` result | V1 |
+| The three result counts are exactly those the governed source yields | V8 |
+| The supplied object is **commitment-equivalent** to the object the recorded pin names — see below | V7's comparison against the pinned commitment |
+| The consumed record sequence is exactly determined | V9, over the values V5, V6, and V8 established |
+
+#### Exactly what the envelope commitment establishes
+
+The envelope commitment is **not** a commitment to a serialized artifact as a whole, and it does not
+identify a unique artifact or a unique issuance event. It commits exactly the eight fields of
+`EnvelopeCommitmentBasis` and, through the authority root, the order-insensitive record fingerprint
+collection. Everything else about the object it accompanies is outside it.
+
+| Bound by the envelope commitment | Not bound by it |
+| --- | --- |
+| `authorityRoot`, and through it the order-insensitive record fingerprint collection, the record count, both source facts, the protocol identifier, and the schema version | The artifact's **declared record order** — made inert by the canonical consumed order of V9 |
+| `authoritySourceIdentity` | The **wire framing**, encoding, transport, file format, or serialization of the result |
+| `authoritySourceRevision` | `declarationCount`, `genericCount`, and `segmentedCount` — established instead by V1 structurally and by V8 against governed law |
+| `canonicalSerializationProtocolId` | The **identity of the issuance event**: two distinct issuances declaring identical basis facts produce the same commitment |
+| `capturedAt` | Whether the declared capture instant is the instant of actual production |
+| `producingAttribution`, both members | Whether the declared producing attribution names the implementation that actually produced it |
+| `recordCount` | Any field of any kind not listed in the left column |
+| `snapshotSchemaVersion` | |
+
+**Two supplied objects with equal envelope commitments are therefore commitment-equivalent, not
+identical.** They agree on all eight basis fields and on the committed record collection, which is
+precisely what consumption depends on: V9 makes supplied order inert, V1 fixes the shape, and V8
+fixes the counts, so commitment-equivalent objects yield the identical consumed state. That is the
+exact property this chain establishes and the exact property a consumer may rely on.
+
+No claim that the envelope commitment uniquely identifies an artifact, an issuance, or a byte
+sequence appears in this entry, and no consuming entry may make one. Establishing unique byte-artifact
+identity would require a ratified complete artifact encoding and a commitment over it. Neither exists,
+and neither is proposed here.
+
+Two things the chain still does **not** establish, stated so that no consumer assumes them: that the
+declared capture instant is the instant at which the artifact was actually produced, and that the
+declared producing attribution names the implementation that actually produced it. Both are declared
+facts, fixed by the pin against substitution, and authenticated by nothing. Neither affects any
+attribution outcome.
+
+## The Correspondence
+
+Let a verified artifact carry `envelope` and its canonically ordered `records`. The **consumed
+Snapshot state** SHALL be the record
+
+- `source` — exactly `envelope.authoritySourceIdentity`, unaltered;
+- `capturedAt` — exactly `envelope.capturedAt`, unaltered;
+- `records` — the result of applying the record transformation below to each element, in the
+  canonical consumed order, preserving both order and multiplicity.
+
+The transformation is **total over `WholeRecordLifecycle` records**: each produces exactly one
+consumed record, and no record is dropped, merged, deduplicated, reordered, or synthesized. Its
+disposition of `SegmentedLifecycle` records is stated separately below.
+
+### Record transformation and field provenance
+
+For a `LifecycleAuthorityRecord` R whose `lifecycleResolutionForm` is `WholeRecordLifecycle`, let
+S be its single `residual` segment. The consumed record SHALL carry:
+
+| Consumed field | Version 3 field | Governed source of that field | Transformation |
+| --- | --- | --- | --- |
+| `identifier` | `R.ratificationIdentifier` | the first content line of `## Ratification Identifier` | none — carried unaltered |
+| `date` | `R.ratificationDate` | the single content line of `## Date` | none — carried unaltered |
+| `subject` | `R.ratificationSubject` | the content lines of `## Subject`, joined by a single `LF` | none — carried unaltered |
+| `lifecycleStatus` | `S.lifecycleStatus` | the Generic Source Rule over the `## Current Status` line, or the `status` line of the governed declaration | none — carried unaltered |
+| `supersededByRatificationId` | the `relationTarget` of S's `SupersededBy` relation | the `relation SupersededBy` line of the governed declaration | present exactly when that relation is declared; absent otherwise |
+| `withdrawnByRatificationId` | the `relationTarget` of S's `WithdrawnBy` relation | the `relation WithdrawnBy` line of the governed declaration | present exactly when that relation is declared; absent otherwise |
+
+**Every consumed field is present in the verified artifact as governed evidence, and no consumed
+field is fabricated, defaulted, substituted, derived from prose, or inferred from Builder
+assumption.** This is the field-by-field provenance proof `NEXUS-RAT-2026-07-15-017` requires, and it
+is exact: identifier, date, and subject are each carried verbatim from a section that ratification's
+field rule already names, and the lifecycle facts are carried verbatim from the segment that governs
+them. Because V8 re-derives the record collection from the governed source, each value is not merely
+*claimed* to come from that section — it is established to.
+
+`R.lifecycleAuthorityKind` and `R.lifecycleDeclaringAuthority` are **not** carried. They record how
+the lifecycle was established, which is issuance-side provenance; the validation authority resolves
+lifecycle, not its provenance, and carrying them would place a value in the consumed state that no
+consumer reads.
+
+**The subject filler rule of Revision 1 is withdrawn in full.** No value stands in for the governed
+subject. Its two dispositions are executable and are exhibited as vector CC7: a governed entry whose
+`## Subject` carries no content line is **never issued** — `missing-subject` fails closed in the
+`EntryStructure` phase, so no record and no artifact exists — and a supplied record lacking
+`ratificationSubject` fails the chain at **V3** as `record-not-encodable`, before any consumed record
+is produced. In neither case does a synthetic value reach the validation authority.
+
+### Reachability of the validation authority's conditions
+
+The Required Outcome Mapping of `NEXUS-RAT-2026-07-15-017` is **unamended, and all ten of its
+conditions remain in force**. This section states, without amending any of them, which are reachable
+through a conforming version 3 artifact and which are not. Reachability is a property of the
+encoding; a condition that this path cannot present remains binding for every other path.
+
+| Condition | Through a conforming version 3 artifact |
+| --- | --- |
+| Exactly one structurally valid record explicitly `Effective` | **Reachable** — CC4 |
+| Record explicitly `Superseded` | **Reachable** — CC4 |
+| Record explicitly `Withdrawn` | **Reachable** — CC5 |
+| Contradictory record | **Not reachable.** Version 3 requires exact status/relation agreement within a segment, so a `WholeRecordLifecycle` record cannot present a contradiction. A record carrying divergent scoped statuses is `SegmentedLifecycle` and is refused before validation, by the rule below — it is **not** reported as contradictory |
+| Structurally malformed record (missing required fields) | **Not reachable.** Every required consumed field is carried; a record missing one does not encode and fails V3 as `record-not-encodable`, and a source entry missing a `## Subject` content line is never issued. CC7 |
+| No matching record found | **Reachable** — CC6 |
+| Duplicate identifier | **Not reachable.** Issuance fails closed on duplicate entry identifiers, and V5 fails closed on duplicate record fingerprints. The correspondence nevertheless preserves multiplicity rather than deduplicating, so the condition is unreachable **by contract** and not by adapter; CC6 exhibits the preserved behaviour over a constructed state |
+| Unknown/unrecognized lifecycle status | **Not reachable.** `LifecycleSegment.lifecycleStatus` is `Enumeration(Effective, Superseded, Withdrawn)`; an out-of-set value does not encode and fails V3 as `record-not-encodable`. Vector CV12 |
+| Malformed Ratification reference on the `RepositoryPolicy` | Owned by the consuming authority; outside this correspondence |
+| Snapshot source unavailable | Owned by the consuming authority; the chain's own `governed-source-unobtainable` refusal is a distinct, correspondence-level failure and does not produce this outcome |
+
+**Revision 2's vector CC7, which required an out-of-set lifecycle status to survive into the consumed
+state and resolve as `unresolvable-unknown-lifecycle-status`, is withdrawn in full.** It required an
+input that V3 refuses, so no implementation could satisfy both obligations. This section makes the
+unreachability explicit rather than claiming a pass-through the encoding prohibits. The validation
+authority's rule is not amended, not narrowed, and not excepted; it is unreachable through this path
+and remains binding on every other.
+
+### Disposition of `SegmentedLifecycle` records
+
+A `SegmentedLifecycle` record carries two or more independently scoped segments, each with its own
+scope key, its own governed description, and its own status and relations. A Ratification reference
+recorded on a `RepositoryPolicy` version carries **no scope selector**. There is therefore no
+governed basis on which to decide which segment's lifecycle answers a scope-free reference.
+
+Accordingly: **if any record of the verified artifact declares `lifecycleResolutionForm`
+`SegmentedLifecycle`, this correspondence SHALL refuse the artifact**, after the verification chain
+has run in full, with the refusal reason `segmented-lifecycle-scope-selection-unratified`. It SHALL
+produce no consumed state, no partial state, and no outcome.
+
+The refusal is deliberately conservative, and each of its properties is normative:
+
+- **No scope is erased.** The correspondence does not flatten segments into a status collection, does
+  not prefer the `residual` segment, does not prefer a governed segment, and does not arbitrate.
+- **No existing diagnostic is reused or reinterpreted.** In particular a structurally valid scoped
+  record is **never** reported as `invalid-contradictory-record`. That diagnostic keeps exactly the
+  meaning `NEXUS-RAT-2026-07-15-017` gave it, and RFC-0011's characterization of a contradictory
+  version 3 record as structurally inexpressible is left standing. The Revision 1 rule that mapped
+  divergent scoped statuses onto it is **withdrawn in full**.
+- **The refusal reason belongs to this correspondence**, not to the validation authority's closed
+  vocabulary, and is emitted before that authority is invoked.
+- **The whole artifact is refused, not the individual record.** Dropping the record would make a
+  reference to it report `unresolvable-no-matching-record`, which asserts that the authority source
+  does not contain the Ratification — a false statement. Refusing the artifact asserts only that this
+  correspondence cannot read it, which is true.
+
+**The consequence is stated openly.** The Ratification Ledger as it presently stands carries governed
+declarations in `SegmentedLifecycle` form. An artifact issued from it is therefore refused by this
+correspondence, and no conforming `RepositoryPolicySelectionReference` can be produced against the
+present corpus until Segmented Lifecycle Scope Selection is separately ratified. That is a deferred
+dependency of consumption, named in Deferred and Prohibited Scope above and recorded as an activation
+dependency by `NEXUS-RAT-2026-08-02-001`. It is not silently supplied here, and no vector in this
+entry or in that one assumes a rule that this entry defers: every vector below either avoids
+segmented records or exhibits the refusal.
+
+### What the correspondence preserves
+
+Each of the following is a property of the produced state, and each is normative:
+
+- **Absence.** An identifier with no producing record is absent from the consumed state, so
+  resolution returns `Unresolvable` with `unresolvable-no-matching-record`.
+- **Multiplicity.** Two artifact records sharing an identifier produce two consumed records sharing
+  it, so resolution returns `Unresolvable` with `unresolvable-duplicate-identifier`. The condition is
+  unreachable from a verified artifact, as the reachability table records; the correspondence
+  preserves it anyway, because a transformation that deduplicated would make a governed check
+  unreachable by adapter rather than by contract, and those are different facts.
+- **Status values, verbatim.** A segment's `lifecycleStatus` is carried unaltered. The correspondence
+  normalizes nothing, defaults nothing, and rejects nothing on the validation authority's behalf. It
+  is the version 3 encoding, not the correspondence, that confines the value to three members.
+- **Structural completeness.** Every required consumed field is carried from the artifact, so
+  `invalid-structurally-malformed-record` is not satisfied on the record's behalf by any substituted
+  value.
+- **Status and relation agreement.** Because version 3 requires exact agreement between a segment's
+  status and its relations, a conforming `Effective` record produces neither relation field, a
+  `Superseded` record produces exactly `supersededByRatificationId`, and a `Withdrawn` record
+  produces exactly `withdrawnByRatificationId`. The consuming authority's contradiction test is
+  therefore never triggered by the correspondence itself.
+
+### Failure precedence
+
+The correspondence's own failures — the twenty-one verification refusals of the refusal-producing
+steps V1 through V8 and the segmented-lifecycle refusal — precede every consuming check, produce no
+partial state, and SHALL NOT emit a diagnostic from the consuming authority's vocabulary, because
+those codes belong to that authority and describe resolution rather than transformation. V9 is total
+and produces no refusal, which is why the refusal enumeration ends at V8 while the chain itself runs
+V1 through V9.
+
+Where the correspondence succeeds, precedence is entirely the consuming authority's, unchanged: no
+matching record, then duplicate identifier, then structural completeness, then unknown status, then
+contradiction, then the status mapping.
+
+## The Ratification Authority Snapshot Fingerprint
+
+`NEXUS-RAT-2026-07-16-001` requires the Ratification Authority Snapshot fingerprint to be recorded in
+escalation attribution and included in the complete deterministic input to a Governance Decision.
+That fingerprint is derived by `RatificationAttributionValidation` over the Snapshot state it
+consults. This ratification fixes **which state that is** when the state comes from a verified
+version 3 artifact: exactly the consumed state defined above.
+
+**The derivation itself is neither established nor constrained here, and the fingerprint renderings
+in the evidence below are informative, not normative.** Ratifying an octet length or a digest of a
+serialization this entry does not own would constrain that derivation in fact. The renderings are
+retained as reproducible delivery evidence, clearly marked, and an implementation is **not** required
+to reproduce them.
+
+What **is** normative is the consumed state itself — `source`, `capturedAt`, and the canonically
+ordered records with exactly the fields the transformation table specifies — and the authority-owned
+outcomes that follow from it.
+
+Two consequences follow and are stated normatively:
+
+1. The consumed state is a function of the pinned values alone, so **fixing the artifact by its
+   envelope commitment fixes the consumed state**, and therefore fixes any fingerprint derived over
+   it, whatever derivation its owning authority specifies.
+2. The consumed state carries neither the producing attribution nor the source revision, so **no
+   fingerprint derived over it can fix the artifact.** Two artifacts differing only in producing
+   attribution yield the identical consumed state. A Snapshot fingerprint is therefore not an
+   artifact identifier, and nothing in this entry or any consuming entry may treat it as one.
+
+## Conformance Vectors
+
+The fixtures are four Ratification Authority Snapshot artifacts — **KA**, **KA′**, **KA″**, and
+**KB** — together with **KC**, which exercises the segmented refusal. They are issued from reserved
+governed source entries `NEXUS-RAT-2999-12-31-001` through `-009`, which conform to the ratified
+identifier grammar, are not allocated, and will not be allocated. Three governed sources are used:
+**UA** carries entries `-001` through `-004`, **UB** carries `-001` through `-007`, and **UC** carries
+`-001` through `-009`, of which `-008` resolves through `-009`'s governed declaration in
+`SegmentedLifecycle` form.
+
+Every value below is computed under `nexus-ratification-authority-snapshot/3`. Values published in
+Revisions 1 and 2 of this draft, and in Revisions 10 and 11 of `NEXUS-RAT-2026-08-02-001`, were
+computed under earlier schemas and are superseded by these.
+
+**No commitment value changed in this revision.** The three result counts enter neither
+`AuthorityRootBasis` nor `EnvelopeCommitmentBasis` — which is precisely why they must be verified
+structurally and re-derived rather than inferred — so completing the `Issued` result shape and fixing
+V8's declared-fact inputs leaves every record fingerprint, every authority root, and every envelope
+commitment published in Revision 3 exactly as published. Each was nonetheless recomputed and
+compared, not carried forward on assumption.
+
+| Fixture | Source | Source revision | Authority root | Envelope commitment |
+| --- | --- | --- | --- | --- |
+| **KA** | UA | `9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6` | `ar-sha256-1bdb503249c79c786152f9222ac8aaff9375c821983fd3d31686d419ff247b66` | `ec-sha256-3c42aef6b1ce59504d92ae2c12f0bfc03ff82bb89c0080c026ac42e20ee0c6fc` |
+| **KA′** | UA | identical to KA | identical to KA | `ec-sha256-a0bb33ecf60e2664acf0c96e43f82ca3974edccc8685506e12a1140322aa28eb` |
+| **KA″** | UA | identical to KA | identical to KA | `ec-sha256-c6b93bb52a421ba577adf4f96b7b382beb3e031838d89d821359a479b4e4095d` |
+| **KB** | UB | `0ec72b7c7c33351aaccdb1452942f9113f702b8f982fe6f6c0468e7f5927e2e4` | `ar-sha256-6642920b73abd69f557f32430838350fa3cb892a801ecbde6248b128153151c7` | `ec-sha256-eaf1393a83ee8102394dd1a7b4d4dddc5d214e009d654f93ede03899cdc702b3` |
+| **KC** | UC | `ce7f538a2ce7de9c5b17488ecd2445bcb0c7dd3d47043dff2804a5d64851bf0c` | `ar-sha256-1b998f858f4ad46c0e4e5ea9dedd5f5dfaa500bf6333a9f9824923f98e49d18b` | `ec-sha256-a0b0b579da389d932b88574fd0103038df5df2b8d192e007fe1c01e0bf5243f6` |
+
+Each governed source also fixes the three result counts of any artifact issued from it. They are
+derived from the issued records alone, by the derivation the amendment above states, and are
+therefore properties of the source rather than of the issuance:
+
+| Source | `recordCount` | `declarationCount` | `genericCount` | `segmentedCount` |
+| --- | --- | --- | --- | --- |
+| **UA** | 4 | 0 | 4 | 0 |
+| **UB** | 7 | 1 | 6 | 0 |
+| **UC** | 9 | 2 | 7 | 1 |
+
+In each row `declarationCount` and `genericCount` sum to `recordCount`, as the amendment requires;
+`segmentedCount` counts a representation form across both arms and is not part of that sum. UC is
+the only source carrying a `SegmentedLifecycle` record, which is why KC is the fixture that exercises
+the segmented refusal.
+
+KA, KA′, and KB declare the producing attribution `nexus-reference-snapshot-issuer` / `1.0.0`; KA″
+declares `nexus-independent-snapshot-issuer` / `2.0.0`. Capture instants are `2026-08-02T00:00:00Z`
+for KA and KA″, `…:01Z` for KA′, `…:02Z` for KB, and `…:03Z` for KC. The `AuthorityRootBasis`
+encodes to 629 octets for UA, 860 for UB; the `EnvelopeCommitmentBasis` to 555 octets for KA, KA′,
+KB, and KC, and 557 for KA″, whose attribution strings are longer.
+
+The seven `lr-sha256-` record fingerprints of UB are **unchanged from Revision 2**, because a record's
+encoding does not carry the schema version. Only the authority root and the envelope commitment,
+which bind `snapshotSchemaVersion`, changed with the version advance.
+
+| Record | Status | Record fingerprint |
+| --- | --- | --- |
+| `NEXUS-RAT-2999-12-31-001` | `Effective` | `lr-sha256-53af68f1f8a3edb34486bb93d6482c001a3846c048043f1b14166abce182e46b` |
+| `NEXUS-RAT-2999-12-31-002` | `Effective` | `lr-sha256-cb2ff8a0f44f468c2f5d07454f52a6830ef3c52fa460f2c85d62e66a065ffafe` |
+| `NEXUS-RAT-2999-12-31-003` | `Effective` | `lr-sha256-951274b5a0262ac25ccbdec6ef45ab5e69f1742549591e31591242be9834e1a0` |
+| `NEXUS-RAT-2999-12-31-004` | `Effective` | `lr-sha256-104f6684397df64f72757b647b8640d5cb745757d7bb330ab0d38091a966e683` |
+| `NEXUS-RAT-2999-12-31-005` | `Effective` (KB, KC) | `lr-sha256-8e2c244a4bd4d4f7ca2d9883994bcba0d2da6401a957a05b56659f1b5a7b7709` |
+| `NEXUS-RAT-2999-12-31-006` | **`Superseded`** (KB, KC) | `lr-sha256-2734e5845e0b45ec09b7a60d2a0910c62107c5063483876dbdef0393c94cdd7a` |
+| `NEXUS-RAT-2999-12-31-007` | `Effective` (KB, KC) | `lr-sha256-2f6026670e6ec2252436dcd8cea27e3de1deabc8d691674a9678be0118fb0bdf` |
+| `NEXUS-RAT-2999-12-31-008` | segmented (KC only) | `lr-sha256-a4e0f9e077860a6bdf9c962a35fcf4976b1e45b871e080f946b6aff9547c3775` |
+
+### Normative vectors
+
+**CC1 — the canonical consumed order.** KA's four records are supplied in source-entry order
+`-001, -002, -003, -004`. Their recomputed fingerprints place them in the canonical consumed order
+
+```
+NEXUS-RAT-2999-12-31-004, NEXUS-RAT-2999-12-31-001, NEXUS-RAT-2999-12-31-003, NEXUS-RAT-2999-12-31-002
+```
+
+**CC2 — the canonical consumed order is not source order for KB either.** KB's seven records order as
+
+```
+NEXUS-RAT-2999-12-31-004, -006, -007, -001, -005, -003, -002
+```
+
+**CC3 — reordering the supplied records is inert.** KA supplied in reverse record order, with its
+`recordFingerprints` collection reordered to match, passes the verification chain and produces a
+consumed state **identical in every field and in order** to CC1's.
+
+**CC4 — end-to-end outcomes.** Each value below was produced by supplying the exact artifact, running
+the verification chain including governed-source re-derivation, applying the correspondence, and then
+applying the ratified Required Outcome Mapping.
+
+| Authorizing Ratification | Against **KA** | Diagnostic under KA | Against **KB** | Diagnostic under KB |
+| --- | --- | --- | --- | --- |
+| `NEXUS-RAT-2999-12-31-001` | `Valid` | `valid-effective-record` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-002` | `Valid` | `valid-effective-record` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-003` | `Valid` | `valid-effective-record` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-004` | `Valid` | `valid-effective-record` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-005` | `Unresolvable` | `unresolvable-no-matching-record` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-006` | `Unresolvable` | `unresolvable-no-matching-record` | **`Invalid`** | `invalid-superseded-record` |
+| `NEXUS-RAT-2999-12-31-007` | `Unresolvable` | `unresolvable-no-matching-record` | `Valid` | `valid-effective-record` |
+
+All fourteen outcomes are **identical** to those published under every earlier schema and
+correspondence revision of this draft. Carrying the governed subject, advancing the schema version,
+verifying the chain, re-deriving from governed source, and canonicalizing the order change no
+attribution result; they establish that those results are reachable by a governed route rather than
+an assumed one.
+
+KA's first consumed record, in full, is
+
+```
+{"identifier":"NEXUS-RAT-2999-12-31-004","date":"2999-12-31","subject":"An illustrative Ratification declaring a ScopeUndeclared Repository Policy version.","lifecycleStatus":"Effective"}
+```
+
+`subject` carries the **governed subject text of the Ratification entry**, taken from its `## Subject`
+section. It is not the identifier, and no value stands in for it.
+
+**CC5 — a withdrawn record.** A `WholeRecordLifecycle` record carrying `Withdrawn` and one
+`WithdrawnBy` relation produces the consumed record
+
+```
+{"identifier":"NEXUS-RAT-2999-12-31-009","date":"2999-12-31","subject":"An illustrative withdrawn Ratification.","lifecycleStatus":"Withdrawn","withdrawnByRatificationId":"NEXUS-RAT-2999-12-31-002"}
+```
+
+and resolves to `Invalid` with `invalid-withdrawn-record`, distinctly from
+`invalid-superseded-record`.
+
+**CC6 — absence and multiplicity.** An identifier absent from the consumed state resolves to
+`Unresolvable` with `unresolvable-no-matching-record`. Two consumed records sharing an identifier
+resolve to `Unresolvable` with `unresolvable-duplicate-identifier`. The second is unreachable from a
+verified artifact, as the reachability table records, and is vectored over a constructed state to fix
+that the correspondence does not deduplicate.
+
+**CC7 — the governed subject, in both directions.** A source entry whose `## Subject` section carries
+no content line fails issuance with `missing-subject` in the `EntryStructure` phase; no record exists,
+no artifact is issued, and consumption is never reached. An entry with no `## Subject` section at all
+fails earlier still, with `missing-section`. A supplied record lacking `ratificationSubject` is not
+encodable under either arm and is refused at **V3** as `record-not-encodable`, before any consumed
+record is produced. No value is substituted in either case.
+
+**CC8 — no fingerprint over the consumed state identifies the artifact.** KA and KA″ carry the same
+governed octets, the same capture instant, and the same authority root, and differ only in producing
+attribution. They produce the **identical consumed state**, hence any fingerprint derived over it is
+identical, while their envelope commitments differ:
+`ec-sha256-3c42aef6…` against `ec-sha256-c6b93bb5…`. A Snapshot fingerprint therefore could not have
+served as an artifact pin, and the envelope commitment is the value that can.
+
+**CC9 — segmented lifecycle refusal.** KC is issued from UC, which is a genuine governed source: its
+entry `-008` carries the Current Status `Partially Superseded` and resolves through `-009`'s governed
+declaration, in `SegmentedLifecycle` form, with a `GovernedScope` segment `clause-a` carrying
+`Superseded` and one `SupersededBy` relation, and a `ResidualScope` segment carrying `Effective`.
+KC **passes V1 through V9 in full**, including governed-source re-derivation against UC, and is then
+**refused** with `segmented-lifecycle-scope-selection-unratified`. No consumed state is produced, no
+record is dropped, no scope is flattened, and no diagnostic of the validation authority is emitted.
+
+**CC10 — a self-consistent forged artifact is refused.** Let **KF** be constructed from KB by
+replacing the record for `NEXUS-RAT-2999-12-31-006` with a fabricated `WholeRecordLifecycle` record
+carrying `Effective` and no relation, and then recomputing, consistently and correctly, every record
+fingerprint, the `recordFingerprints` collection, the authority root
+`ar-sha256-3460dbc78c24cf5d6a57fd0807ce02f54bfd42b62bf959bebd08339d4a8f922c`, and the envelope
+commitment `ec-sha256-da79fa8cd1295f0c82fe169d84d3348616a59d18ab77270547da4a0993c4af42`. Let the
+forged commitment be placed in a `RepositoryPolicySelectionReference` whose candidate-set fingerprint
+and recorded outcomes are recomputed to match.
+
+KF **passes V1 through V7 in full**: its collection matches, its root recomputes, its self-declared
+commitment matches, and its commitment equals the pin. It is **refused at V8** with
+`authority-root-not-derivable-from-governed-source`, because UB does not yield its record collection.
+
+Had it been consumed, KF would have produced `Valid` with `valid-effective-record` for
+`NEXUS-RAT-2999-12-31-006`, where the governed source yields `Invalid` with
+`invalid-superseded-record`. **This vector is the reason V8 exists**, and a conforming implementation
+SHALL refuse KF at V8. An implementation that omits V8 accepts it.
+
+### Verification-chain vectors
+
+Each row supplies an artifact against KA's recorded pin, with UA, UB, and UC obtainable as governed
+sources unless stated otherwise. Every row was executed.
+
+| Vector | Supplied | Result |
+| --- | --- | --- |
+| **CV1** | nothing | **REFUSED** `artifact-supply-not-singular` |
+| **CV2** | KA and KA′ together | **REFUSED** `artifact-supply-not-singular` |
+| **CV3** | KA′ alone | **REFUSED** `envelope-commitment-pin-mismatch` — the substitution a root pin would have admitted |
+| **CV4** | KA with one record's `ratificationSubject` altered | **REFUSED** `record-fingerprint-collection-mismatch` |
+| **CV5** | KA with one member of `recordFingerprints` substituted | **REFUSED** `record-fingerprint-collection-mismatch` |
+| **CV6** | KA with `envelope.authorityRoot` substituted | **REFUSED** `authority-root-mismatch` |
+| **CV7** | KA with `envelope.recordCount` changed to 3 | **REFUSED** `record-count-mismatch` |
+| **CV8** | KA with one record and its fingerprint removed | **REFUSED** `record-count-mismatch` |
+| **CV9** | KA declaring KA′'s `envelopeCommitment` as its own | **REFUSED** `self-declared-commitment-mismatch` |
+| **CV10** | KA declaring `nexus-ratification-authority-snapshot/2` | **REFUSED** `schema-version-not-version-3`, before any record is read |
+| **CV11** | KA, with no governed source obtainable | **REFUSED** `governed-source-unobtainable` |
+| **CV12** | KA with one segment's `lifecycleStatus` set to a value outside the enumeration | **REFUSED** `record-not-encodable` at V3 |
+| **CV13** | **KF**, the self-consistent forged artifact of CC10, against its own matching forged pin | **REFUSED** `authority-root-not-derivable-from-governed-source` at V8, after passing V1–V7 |
+| **CV14** | KA with records and fingerprints reordered | **ACCEPTED**, producing the CC1 consumed state exactly — see CC3 |
+| **CV15** | KA with `declarationCount` absent | **REFUSED** `issued-result-field-missing` at V1 |
+| **CV16** | KA with `envelope.canonicalSerializationProtocolId` absent | **REFUSED** `issued-result-field-missing` at V1 |
+| **CV17** | KA with an unrecognized top-level result field `attestation` | **REFUSED** `issued-result-field-unrecognized` at V1 |
+| **CV18** | KA with an unrecognized `envelope` field `issuerNote` | **REFUSED** `issued-result-field-unrecognized` at V1 |
+| **CV19** | KA with an unrecognized `producingAttribution` field `buildId` | **REFUSED** `issued-result-field-unrecognized` at V1 |
+| **CV20** | KA with `declarationCount` falsified from 0 to 1 | **REFUSED** `declaration-count-not-derivable-from-governed-source` at V8 |
+| **CV21** | KA with `genericCount` falsified from 4 to 0 | **REFUSED** `generic-count-not-derivable-from-governed-source` at V8 |
+| **CV22** | KA with `segmentedCount` falsified from 0 to 1 | **REFUSED** `segmented-count-not-derivable-from-governed-source` at V8 |
+| **CV23** | **KM1** — a self-consistent artifact declaring `capturedAt` `2026-08-02T00:00:00+01:00`, that value bound into a correctly recomputed envelope commitment | **REFUSED** `governed-source-not-issuable` at V8, carrying `malformed-capture-instant` |
+| **CV24** | **KM5** — the same construction with `producingImplementationIdentity` the empty string | **REFUSED** `governed-source-not-issuable` at V8, carrying `malformed-attribution` |
+| **CV25** | **KM6** — the same construction with `producingImplementationRevision` the empty string | **REFUSED** `governed-source-not-issuable` at V8, carrying `malformed-attribution` |
+| **CV26** | **KM0** — the identical construction with admissible declared facts, `capturedAt` `2026-08-02T00:00:04Z` | **ACCEPTED**, the control establishing that CV23 through CV25 fail for their declared facts and for nothing else |
+
+The seven KM fixtures share UA's governed source, authority root, and record collection, and differ
+from one another and from KA only in their declared issuance facts. Each envelope commitment below
+was recomputed from the fixture's own envelope and verified to equal the value the fixture declares,
+which is why each passes V7 and reaches V8:
+
+| Fixture | Declared fact under test | Envelope commitment |
+| --- | --- | --- |
+| **KM0** | admissible: `2026-08-02T00:00:04Z`, `nexus-reference-snapshot-issuer` / `1.0.0` | `ec-sha256-cf55c34f3a133fb22584fa6f17623fdc1632839fb56a00b6ba59e8bf6080714b` |
+| **KM1** | `capturedAt` `2026-08-02T00:00:00+01:00` | `ec-sha256-61dd1b930ad6866ff7bcc66c208228016821fa09420b0f0deceb9b28db7a2df2` |
+| **KM2** | `capturedAt` `2026-08-02T24:00:00Z` | `ec-sha256-46ae35aec82dd62a1df17548c4aae04cb7c159b34688cfe18936730413fecf67` |
+| **KM3** | `capturedAt` `2026-02-30T00:00:00Z` | `ec-sha256-5c52751ede5518c3fa27b420212f1320b5fceff1254325504efedee45aa694c9` |
+| **KM4** | `capturedAt` `2026-08-02T00:00:00.500Z` | `ec-sha256-e7c2984a8990340b372814707b2202c6e3af2f5e573ba7f560201583d9751959` |
+| **KM5** | `producingImplementationIdentity` the empty string | `ec-sha256-3790abfae99a1bdbce84442673fb7e89ccbc1cb446a28ae3d2a444d5ada98986` |
+| **KM6** | `producingImplementationRevision` the empty string | `ec-sha256-8dee893629681bf71adbb3622a64810ccb44dcc97f6e07999c262705873ac380` |
+
+KM2, KM3, and KM4 are the supporting capture-instant forms noted below; KM1, KM5, and KM6 are CV23,
+CV24, and CV25; KM0 is CV26.
+
+CV4 and CV13 are the two vectors the Owner's Revision 11 review required: a genuine envelope paired
+with an altered record is refused because V3 recomputes from the record supplied; and a wholly
+self-consistent forgery with a matching forged reference is refused because V8 consults governed law.
+
+CV15 through CV26 are the vectors the Owner's Revision 12 review required. Three properties of them
+are load-bearing and were verified rather than assumed:
+
+- **CV15 through CV19 are refused before any recomputation**, at V1, because result shape is a
+  structural property and no commitment layer binds it.
+- **CV20 through CV22 pass V1 through V7 in full.** Each is internally consistent: no count enters
+  either commitment basis, so falsifying one leaves every fingerprint, the root, and the commitment
+  correct. Only re-derivation against governed law refuses them. They are, in miniature, the same
+  lesson KF teaches at CV13.
+- **CV23 through CV25 likewise pass V1 through V7 in full**, because NCCS-1 String encoding accepts
+  any string and the malformed value is bound into a correctly recomputed commitment. Each is refused
+  only when V8 reruns issuance with that exact declared fact, and each carries the ratified issuance
+  diagnostic rather than a diagnostic invented here. CV26 supplies the control.
+
+Three further capture-instant forms were executed against the same construction and refused
+identically as `malformed-capture-instant`: the `24:00:00` end-of-day form, the impossible calendar
+date `2026-02-30`, and a fractional-seconds rendering. They are recorded as supporting evidence for
+CV23 rather than as separate normative vectors, because the ratified `Envelope` phase already owns
+every form of that judgement and this entry adds none.
+
+### Informative delivery evidence — not normative
+
+The values in this subsection render the Snapshot fingerprint under the derivation the approved
+Sprint 55 delivery implements: the canonical serialization of the consulted state with object members
+ordered by member name, rendered as its serialized text
+(`src/kernel/governance/ratification-attribution-validation.ts:64`, helper at line 243). That
+derivation belongs to `RatificationAttributionValidation` and to `NEXUS-RAT-2026-07-16-001`. **These
+values are recorded as reproducible evidence and are not conformance requirements.**
+
+| Fixture | Consumed records | Fingerprint octets | SHA-256 of the fingerprint octets |
+| --- | --- | --- | --- |
+| **KA** | 4 | 820 | `ea497206cb222f111bb8ef22eafa40f1b229aca6267260842b5a62895aed9585` |
+| **KA′** | 4 | 820 | `b23efcd58cc3d4d6ec9748c7e4eeda1a44bcb29b82bb557e1876e5d824051c7b` |
+| **KA″** | 4 | 820 | identical to KA |
+| **KB** | 7 | 1,449 | `8ef19b1968532ddb34fbb32f20b6a4e6585182930313183e17134adee23f55ce` |
+
+These are unchanged from Revision 2, because the consumed state does not carry the schema version.
+
+## Compatibility
+
+No production Ratification Authority Snapshot has been issued under any version of this schema, no
+authority root or envelope commitment has ever been pinned in a governed artifact, and no persisted
+Governance Decision, evaluation key, escalation attribution, or diagnostic derives from a version 2
+or version 3 record. **Nothing is migrated, rewritten, or invalidated.**
+
+That fact removes migration cost. It is expressly **not** the reason the schema version advances. The
+version advances because a schema version identifier names an exact canonical encoding, and the
+encoding changed; the amendment states that rule normatively so that it binds every future change,
+including ones made after artifacts exist.
+
+Every record fingerprint, authority root, and envelope commitment computed under the unamended
+version 2 schema — including every such value published in Revisions 1 and 2 of this draft and in
+Revisions 10 and 11 of `NEXUS-RAT-2026-08-02-001` — is **superseded** by the recomputation published
+above. Those were conformance-checkpoint values, never durable pins, and `NEXUS-RAT-2026-07-31-001`
+already declares that any such value is a checkpoint and not a production Snapshot.
+
+A `nexus-ratification-authority-snapshot/1` or `/2` artifact remains **out of scope**: this
+correspondence reads version 3 only, V2 refuses any other declared version before a record is read,
+and migration of either remains deferred.
+
+A Snapshot state obtained by means other than this correspondence is unaffected by every rule stated
+here.
+
+## Conformance
+
+An implementation conforms to this ratification when, given a collection of supplied artifacts, a
+pin, and access to the governed source artifact:
+
+**Verification-chain obligations.** It executes V1 through V9 in the stated order, stopping at the
+first failure and producing no partial result; it requires at V1 the complete ratified `Issued`
+result shape, refusing a missing field and refusing an unrecognized field rather than ignoring it; it
+recomputes every fingerprint, the authority root, and the envelope commitment rather than accepting
+any supplied value; it performs the governed-source re-derivation of V8 without exception, fallback,
+or degradation, rerunning issuance with exactly `envelope.capturedAt` and
+`envelope.producingAttribution` and substituting neither; it compares all three re-derived result
+counts; and it refuses each of CV1 through CV13 and CV15 through CV25 with the stated reason, while
+accepting CV14 and CV26.
+
+Three of those refusals are singled out because each closes a gap an implementation could otherwise
+leave open while satisfying everything around it, and none is optional:
+
+- Refusing **CV13** — an implementation that omits V8 does not conform, whatever else it satisfies.
+- Refusing **CV20 through CV22** — an implementation that accepts a supplied result count without
+  re-deriving it does not conform, and cannot detect the defect from any commitment layer.
+- Refusing **CV23 through CV25** — an implementation that reruns issuance with any declared fact
+  other than the supplied artifact's own does not conform, whether it substitutes a valid fact, a
+  default, or a system clock reading. It also does not conform if it absorbs, renames, or discards
+  the ratified issuance diagnostic rather than carrying it verbatim.
+
+**Transformation obligations.** It derives the consumed order from the recomputed record
+fingerprints, so that CC1, CC2, and CC3 hold; it produces, from a verified artifact containing no
+`SegmentedLifecycle` record, exactly the consumed state this entry defines — the same `source`, the
+same `capturedAt`, and the same records in the canonical consumed order with exactly the fields the
+transformation table specifies; and it refuses an artifact containing any `SegmentedLifecycle`
+record, as CC9 requires.
+
+**Authority-owned outcomes.** The ratified Required Outcome Mapping, applied to the state it
+produces, yields exactly the outcomes and diagnostics of CC4, CC5, and CC6. **CC7 and CC10 are
+verification-chain obligations, not outcomes**: each is a refusal that produces no state and never
+invokes that mapping, and neither SHALL be listed or tested as a result of it. CC8 is a property of
+the produced state, not an outcome.
+
+An implementation that normalizes a status, collapses or arbitrates among segment statuses,
+deduplicates records, preserves supplied record order in place of the canonical order, substitutes
+any value for `ratificationSubject`, accepts a supplied fingerprint, root, commitment, or result
+count without recomputing or re-deriving it, accepts an object that is not a complete ratified
+`Issued` result, substitutes a declared issuance fact at V8, or omits governed-source re-derivation,
+expressly does not conform.
+
+An implementation, or a consuming entry, that describes the envelope commitment as identifying a
+unique artifact, a unique issuance event, or a complete serialized issued state likewise does not
+conform: the commitment establishes commitment-equivalence over exactly the eight basis fields and
+the committed record collection, as the table under *Exactly what the envelope commitment
+establishes* sets out, and nothing more.
+
+Reproducing the informative fingerprint renderings is **not** a conformance requirement.
+
+## Files Changed
+
+Exactly two:
+
+1. `knowledge/specifications/rfc-0011-engineering-governance-model.md` — amended v1.5 → v1.6 across
+   fifteen edit sites.
+2. `knowledge/governance/RATIFICATION_LEDGER.md` — appended.
+
+## Stop Conditions
+
+Application SHALL stop and report, without partial application, if any of the following holds:
+
+1. The Ledger already contains an entry identified `NEXUS-RAT-2026-08-04-001`.
+2. `knowledge/specifications/rfc-0011-engineering-governance-model.md` is not byte-identical to the
+   declared v1.5 baseline — 2,752 lines, 212,310 octets, LF, SHA-256
+   `5d6f5ea63ce866707cda99fcef4184c2c403ee3316d3c5370586bb22a66b3ff0`.
+3. Any PRIOR TEXT block of the amendment does not occur in that file exactly once, or fewer or more
+   than fifteen edit sites are matched.
+4. `knowledge/governance/RATIFICATION_LEDGER.md` does not present the expected append boundary — `LF`
+   used consistently throughout, no carriage return, and exactly one terminator after a non-empty
+   final line. The boundary SHALL fail closed rather than be repaired.
+5. The working-tree copy of either governed file and its committed form use different line
+   terminators, or the repository does not pin the governed Markdown paths to `LF`. That hygiene
+   change SHALL be made as its own separate, explicit governed change **before** application.
+6. The Ledger does not contain an entry identified `NEXUS-RAT-2026-07-31-001`, or an entry identified
+   `NEXUS-RAT-2026-08-03-001`.
+7. The resulting RFC-0011 file is not 2,816 lines, 223,147 octets, LF, SHA-256
+   `71bd09692d0e24d5dfc641ba65501d9d855cce97cad46d476fb0fd0e609b01c4`.
+8. The resulting file presents any occurrence of `nexus-ratification-authority-snapshot/2` outside
+   `# Amendment History`, which would indicate an incomplete citation update.
+
+Partial application is prohibited.
+
+## Current Status
+
+Active
+
+---
+
+# NEXUS-RAT-2026-08-02-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-02-001
+
+## Date
+
+2026-08-03
+
+## Subject
+
+Repository Policy Selection and Version Binding — the deterministic determination of which single
+ratified Repository Policy version is applicable to exactly one Mission and exactly one declared
+Governance Evaluation Input Profile instance, together with the exact binding of that version into
+the resulting Governance Decision. Amends RFC-0011 from Final (Amended) v1.6 to Final (Amended)
+v1.7, taking as its baseline the file as `NEXUS-RAT-2026-08-04-001` leaves it.
+
+## Originating Review Finding(s)
+
+None. This ratification originates from a `nexus-plan` governance cycle, not from a Reviewer
+finding.
+
+It was raised as the primary governance ambiguity of that cycle: RFC-0011 requires throughout that
+Policy Evaluation apply "the applicable Repository Policy version," and its Failure and Conflict
+Handling already governs the case where two or more applicable Repository Policies conflict and the
+case where a referenced Repository Policy version does not exist or has no ratified version, while
+the specification nowhere defines how the applicable Policy version is determined.
+
+Owner review of this ratification's revisions identified two gaps that could not be closed from any
+authorized input, and directed in each case that the gap be closed by a separate prior ratification
+rather than asserted here. Both prerequisites were drafted, reviewed, approved, and applied:
+
+- `NEXUS-RAT-2026-08-02-002` established Mission Applicability Scope as RFC-0011 v1.4, closing the
+  Mission-eligibility conjunct of this amendment's predicate.
+- `NEXUS-RAT-2026-08-03-001` established the Governed Repository Policy Corpus Source Contract as
+  RFC-0011 v1.5, closing the enumeration, completeness, and content-binding authority this
+  amendment's candidate assembly requires.
+
+This ratification consumes both contracts and is applied after them.
+
+## Governance Decision
+
+The Sprint Owner establishes, as RFC-0011 v1.7, Repository Policy Selection and Version Binding.
+
+Selection is three ordered stages with total precedence — Candidate Set Assembly, Attribution
+Validation, Selection — and Policy Evaluation follows Stage 3 and begins only on a `Resolved`
+outcome.
+
+The candidate collection is produced by a named Candidate Set Assembly Authority and is exactly the
+**current-head universe** of the Repository Policy Corpus at one pinned `corpusSourceRevision`, as
+ratified by `NEXUS-RAT-2026-08-03-001`. Every current head is assembled **unconditionally**. Assembly
+applies no filter of any kind, and in particular SHALL NOT drop a current head whose authorizing
+Ratification identifier is unrecognised: filtering during assembly would defeat the completeness the
+contract requires, and the disposition of an unrecognised Ratification belongs to
+`RatificationAttributionValidation` alone. The collection is never a caller-supplied candidate entry
+and never a caller-supplied applicability fact.
+
+Completeness is established by re-derivation from the pinned governed octets, not asserted by an
+assembler and not inferred from a recorded digest: omission, injection, and changed Policy content
+under an unchanged declaration are each rejected by comparison against the re-derived current-head
+universe.
+
+A superseded Repository Policy version is preserved history. It SHALL NOT be assembled as a
+candidate under any circumstance, and in particular SHALL NOT be revived because the current head of
+its Policy identity is `Invalid`, `Unresolvable`, ineligible, or `ScopeUndeclared`.
+Selection never walks a lineage backwards.
+
+Selection produces exactly one immutable `RepositoryPolicySelectionReference`, whose
+`selectionOutcome` is drawn from the closed set `Resolved | NoCandidate | Ambiguous | Unresolvable`.
+
+That reference is never trusted as caller-authored authority, and **self-consistency is not
+authenticity**. Recomputing a fingerprint over a reference's own recorded fields establishes only
+that the reference is internally consistent; a caller who alters the candidate collection, an
+attribution outcome, or the selection outcome and then recomputes the fingerprint would produce an
+equally self-consistent artifact. Every recorded fact SHALL therefore be re-established against the
+authority that owns it, by a named Selection Verification Authority, before use: the corpus is
+re-derived from the governed source octets whose prepared-text digest equals the recorded
+`corpusSourceRevision`, and every attribution outcome is re-validated by
+`RatificationAttributionValidation` against the verified issued Ratification Authority Snapshot
+artifact whose envelope commitment equals the recorded `authoritySnapshotEnvelopeCommitment`. Any
+divergence SHALL produce Escalation Required. No claim is made anywhere in this ratification that
+hashing a recorded corpus root alongside a recorded candidate list proves that list to be the root's
+current-head projection.
+
+A candidate is eligible if and only if its attribution validation outcome is `Valid`, its corpus
+record declares a Policy Criterion whose Governance Evaluation Input Profile is the declared profile
+kind, its Mission Applicability Scope is `Declared`, and that declared scope satisfies the ratified
+Mission applicability predicate for the request's explicit Mission identity. Membership in the
+current-head universe is not an eligibility conjunct: it is established for the collection as a whole
+by verification, and its failure is a candidate-set divergence rather than an ineligible candidate.
+
+Exactly one eligible candidate resolves to `Resolved`. No eligible candidate resolves to
+`NoCandidate` and Escalation Required, never Deferred. Two or more eligible candidates resolve to
+`Ambiguous` and Escalation Required, failing closed on all multiplicity without arbitration.
+
+Exactly one Repository Policy identity and version is bound to each Policy Evaluation and to the
+Governance Decision it produces, immutable for that Decision's life, never substituted, rebased,
+refreshed, or upgraded after binding, and never retroactively rebound by a later version.
+
+This amendment adds a mandatory selection-and-validation precondition to Policy Evaluation and a
+mandatory recording obligation to Governance Decision. Policy Criterion evaluation semantics are
+unchanged.
+
+## Objective
+
+Establish the deterministic contract by which exactly one ratified Repository Policy version is
+determined to be applicable to exactly one Mission and exactly one declared Governance Evaluation
+Input Profile instance, and by which that exact version is bound into the resulting Governance
+Decision.
+
+RFC-0011 v1.5 requires throughout that Policy Evaluation apply "the applicable Repository Policy
+version." Since `NEXUS-RAT-2026-08-02-002` it defines authoritatively what makes a Repository Policy
+version Mission-applicable. Since `NEXUS-RAT-2026-08-03-001` it defines authoritatively which
+Repository Policy versions exist, what each declares, and which version is the current head of its
+lineage. It still does not define how the applicable version is *determined* from among the current
+heads, nor how the determined version is bound. This amendment closes that gap and nothing else.
+
+## Governing Authority
+
+- RFC-0011 Final (Amended) v1.6 — Engineering Governance Model, as `NEXUS-RAT-2026-08-04-001`
+  leaves it. Amended to v1.7 by this
+  ratification.
+- `NEXUS-RAT-2026-08-03-001` — Governed Repository Policy Corpus Source Contract. **Not amended.**
+  It retains sole ownership of which Repository Policy versions exist, of the declaration grammar,
+  of the `RepositoryPolicyCorpusRecord` schema, of version lineage and the derived current lineage
+  head, of the per-version `contentCommitment`, of `corpusSourceIdentity` and `corpusSourceRevision`,
+  and of the corpus root and envelope commitment. This amendment **consumes** that contract exactly
+  as ratified. It enumerates nothing, declares no corpus record, derives no current head, computes
+  no content commitment, issues no corpus artifact, and adds no field to any corpus schema.
+- `NEXUS-RAT-2026-08-02-002` — Mission Applicability Scope. **Not amended.** It retains sole
+  ownership of `MissionApplicabilityScope`, of the closed union `RepositoryWide | MissionSet`, of the
+  Mission applicability predicate, of the Mission Ordering Comparator, of the scope record's
+  canonical encoding, and of the `ScopeUndeclared` treatment of legacy versions. This amendment
+  **consumes** that contract exactly as ratified. It declares no scope, defines no variant, adds no
+  field to the scope record, establishes no scope fingerprint, and authorizes no migration.
+- RFC-0001 — Mission identity. Consumed by identity only. **Not amended.**
+- RFC-0003 v1.1 — Shared Reality Projection Model. NCCS-1 consumed exactly as defined, per its rules
+  1 through 12. RFC-0003 is the complete and exclusive definition of that encoding and is **not
+  amended**; this amendment declares only its own records, field order, and collection ordering,
+  which NCCS-1 rule 5 expressly delegates to the governing schema.
+- `NEXUS-RAT-2026-07-18-007` — Governance Evaluation Input Profile model. **Not amended.**
+  `ReviewGovernanceEvaluationInput` semantics, required inputs, failure handling, and wire contract
+  remain exactly those of v1.1, and `CorpusReadinessAcceptanceEvaluationInput` retains its exact
+  field list and remains DORMANT.
+- `NEXUS-RAT-2026-07-15-017` — Ratification Attribution Validation Foundation. **Not amended.**
+  Retains sole authority over Ratification reference resolution and over the three closed outcomes
+  `Valid | Invalid | Unresolvable`. This amendment **consumes** its precomputed result and never
+  produces one.
+- `NEXUS-RAT-2026-08-04-001` — Ratification Authority Snapshot Consumption Correspondence.
+  **Not amended.** It is a **prerequisite** of this ratification, in two independent senses, and SHALL
+  already be present in the Ratification Ledger before this entry is applied: it owns contracts
+  Verification Step 5 invokes, and its RFC-0011 amendment produces the **v1.6 baseline** this
+  amendment is anchored against. Both are enforced, by Stop Condition 11 and Stop Condition 12
+  respectively. It owns the supplied-artifact verification chain **V1–V9, including the mandatory
+  governed-source re-derivation at V8**, the canonical consumed order, the total transformation from
+  a verified `nexus-ratification-authority-snapshot/3` artifact to the Snapshot state
+  `RatificationAttributionValidation` consults, the record of which Required Outcome Mapping
+  conditions that path can present, and the refusal of any artifact carrying a `SegmentedLifecycle`
+  record. Verification Step 5 invokes all of these rather than defining, restating, weakening, or
+  excepting any of them.
+- `NEXUS-RAT-2026-07-16-001` — Ratification and Repository-Law Integration. **Not amended.** Its
+  binding Validation Ordering — attribution validation before Policy Criteria evaluation, for every
+  Governance Decision production — and its Determinism rule — the complete deterministic governance
+  input includes the Ratification Authority Snapshot fingerprint — are the sequencing this amendment
+  conforms to. That fingerprint continues to be derived by `RatificationAttributionValidation` from
+  the Snapshot state it consults, and continues to be consumed unchanged by escalation attribution
+  and by the Governance Decision evaluation key. This amendment does not derive it, record it,
+  rename it, replace it, or introduce any value that stands in for it. It is a **different value
+  from** the envelope commitment this amendment pins, and the two are compared field by field and
+  derivation by derivation under Reconciliation, below.
+- `NEXUS-RAT-2026-07-31-001` — Ratification Authority Snapshot Issuance Contract. **Amended in
+  exactly one respect**, stated in full under Disposition of the Snapshot Issuance Deferrals, below:
+  the single deferral of *consuming a Snapshot in governance evaluation* is closed to the exact
+  extent of Pre-Use Verification Step 5, and to no greater extent. Every other deferral of that
+  ratification remains in force verbatim, including the deferral of production Snapshot issuance and
+  the deferral of any version 1 migration. This amendment issues no Snapshot, derives no authority
+  root and no envelope commitment of its own, and adds no field to
+  `nexus-ratification-authority-snapshot/3` — that schema, its `ratificationSubject` field, and its
+  version identifier are established by `NEXUS-RAT-2026-08-04-001`, not here, and are neither altered
+  nor extended by this amendment. It records that ratification's already-issued envelope commitment
+  under a distinct field name, verifies a supplied artifact against it through the ratified
+  verification chain, and **invokes that ratification's issuance contract during verification** to
+  re-derive the record collection from governed octets. That re-derivation is a conformance
+  checkpoint in the sense `NEXUS-RAT-2026-07-31-001` already defines: it declares no capture instant,
+  declares no producing attribution, and issues nothing, so the deferral of production Snapshot
+  issuance is unaffected by it.
+
+## Authorized Scope
+
+1. Amendment of RFC-0011 from **Final (Amended) v1.6** to **Final (Amended) v1.7** across exactly
+   **fourteen edit sites** in exactly **one file** —
+   `knowledge/specifications/rfc-0011-engineering-governance-model.md` — introducing Repository Policy
+   Selection and Version Binding. The complete authorized text is reproduced verbatim under Full
+   Ratification Text, below, and that reproduction — not any external document — is what this
+   ratification authorizes.
+2. Appending this entry to `knowledge/governance/RATIFICATION_LEDGER.md`.
+
+Exactly two files are changed by this ratification.
+
+The Traceability of Every Field and Conformance Vectors sections below are **normative and ratified**
+by this entry. They are ratified architectural evidence recorded in the Ratification Ledger; they are
+not additional RFC edit sites and add no text to RFC-0011.
+
+## Deferred and Prohibited Scope
+
+The following are deferred and are **NOT** authorized by this ratification:
+
+- authorized-subject attestations in any form — no field, no collection, no subject-kind union, no
+  placeholder, and no dormant extraction path;
+- attestation extraction, validation, attestation-backed applicability authority, or
+  attestation-backed selection authority;
+- legacy attestation migration;
+- Repository Policy authority over any subject other than the Mission;
+- migration, back-fill, annotation, or repair of `ScopeUndeclared` Repository Policy versions. That
+  deferral belongs to `NEXUS-RAT-2026-08-02-002` and `NEXUS-RAT-2026-08-03-001` and is preserved
+  unchanged; this amendment authorizes no migration and states only how selection treats a
+  `ScopeUndeclared` candidate;
+- any amendment to, extension of, or addition to `MissionApplicabilityScope`, its closed union, its
+  predicate, its ordering, or its encoding;
+- any fingerprint, digest, commitment, or identity value derived from a `MissionApplicabilityScope`;
+- any amendment to, extension of, or addition to the Repository Policy Corpus Source contract — its
+  declaration grammar, its record schemas, its lineage rules, its current-head derivation, its
+  content commitment, its source facts, its protocol constants, its result contract, or its
+  diagnostic code vocabulary;
+- issuance of a Repository Policy Corpus artifact, population of the corpus with any Repository
+  Policy version, and pinning of any corpus root, envelope commitment, or record fingerprint;
+- implementation of corpus assembly;
+- wildcard, pattern, prefix, range, or hierarchical Mission matching of any kind;
+- any revision of Current Projection Applicability Selection, Acceptance Semantics, or External
+  Authoritative Applicability and Recording;
+- automatic Ratification-Ledger ingestion beyond the source contracts already ratified by
+  `NEXUS-RAT-2026-07-31-001` and `NEXUS-RAT-2026-08-03-001`;
+- issuing a production Ratification Authority Snapshot, deriving any authority root or envelope
+  commitment of its own, or establishing any store, registry, resolver, locator, index, or retrieval
+  protocol for issued Snapshot artifacts;
+- any amendment to, extension of, or addition to the Ratification Authority Snapshot Consumption
+  Correspondence. That correspondence is ratified separately and in advance by
+  `NEXUS-RAT-2026-08-04-001` and is **consumed** here exactly as ratified; this entry defines no
+  part of it, alters no part of it, and states no rule of it;
+- activation of the DORMANT `CorpusReadinessAcceptanceEvaluationInput` profile;
+- external Evidence or Assessment Criteria Set resolvers;
+- implementation, Sprint proposal, or Sprint activation of any capability described here;
+- Milestone 12 Initial Capability Sequence Step 3A activation;
+- any Git operation. No commit, amendment, push, branch, merge, or pull request is authorized.
+
+**Implementation requires separate Sprint scope ratification.**
+
+## Ownership Model (ratified)
+
+This ratification adds exactly one owned concept to RFC-0011: **Repository Policy Selection and
+Version Binding**.
+
+| Concern | Owner |
+| --- | --- |
+| Which single Repository Policy version applies to one Mission and one declared profile instance, and how it is bound | Repository Policy Selection and Version Binding (this amendment) |
+| Producing a candidate collection and a selection reference | The Candidate Set Assembly Authority (this amendment) |
+| Verifying a supplied selection reference against the authorities that own its facts, before use | The Selection Verification Authority (this amendment). It is a distinct role from the producer, and a conforming implementation SHALL NOT satisfy it by re-running the producer over the producer's own recorded output. |
+| Whether re-derived governed octets yield a given corpus, current-head universe, and root | `NEXUS-RAT-2026-08-03-001`, unamended. Verification invokes that contract; it does not restate or reimplement it. |
+| Which Repository Policy versions exist, their declared content, their lineage, and the current head per Policy identity | `NEXUS-RAT-2026-08-03-001`, unamended |
+| The Mission scope a Repository Policy version declares, and the Mission applicability predicate | `NEXUS-RAT-2026-08-02-002`, unamended |
+| Resolving a Repository Policy version's Ratification reference to `Valid`, `Invalid`, or `Unresolvable` | `NEXUS-RAT-2026-07-15-017`, unamended |
+| Whether an authorizing Ratification is Effective, Superseded, or Withdrawn | `NEXUS-RAT-2026-07-31-001`, unamended |
+| Canonical serialization | RFC-0003 v1.1 NCCS-1, unamended |
+| Mission identity | RFC-0001, unamended; consumed by identity only |
+| Assessment and Review Outcome | RFC-0006, unchanged |
+| Corpus Readiness Result and Corpus Review Basis | RFC-0013, unchanged |
+| The current-Projection selector producing a `CurrentProjectionApplicabilityReference` | The Corpus Readiness Acceptance Repository Policy, unchanged. This amendment's selector is a different, independent mechanism on a different question and does not consume, replace, or interact with it. |
+
+## Scope Restrictions
+
+This amendment is additive in the precise sense that no existing rule, row, bullet, or clause of
+RFC-0011 v1.5 is deleted, narrowed, reworded, or withdrawn.
+
+It is **not** a claim that nothing is modified. Three contracts are modified, additively and
+precisely:
+
+- **Policy Evaluation gains an additive selection-and-validation precondition** (Site 8). Policy
+  Evaluation is not permitted to proceed without a `Resolved` recomputed selection reference. This is
+  a change to the Policy Evaluation request contract and to its preconditions. No existing step is
+  removed or reordered.
+- **Governance Decision's recording contract becomes conditional on the selection outcome** (Site 9).
+  Every Governance Decision SHALL carry the complete `RepositoryPolicySelectionReference`. Where the
+  outcome is `Resolved`, every element of the existing unconditional sentence is preserved verbatim.
+  Where it is `NoCandidate`, `Ambiguous`, or `Unresolvable`, the Decision SHALL carry no applied
+  Repository Policy version and no Policy Criteria results, because none exists. This is a change to
+  the Governance Decision recording contract, and the previous unconditional wording could not be
+  preserved without becoming false for three of the four outcomes.
+- **`Escalation Required`'s required inputs and precondition are widened** (Site 14) so that a
+  Governance Decision arising from an unresolved selection is satisfiable. Every existing obstruction,
+  example, and consequence is preserved; a second, disjoint case is admitted alongside them. The
+  `Approved`, `Rejected`, and `Deferred` Decision values are untouched.
+
+Unchanged: Policy Criterion evaluation semantics — no predicate, no criterion, no evaluability rule
+is altered; `ReviewGovernanceEvaluationInput`'s field list, semantics, required inputs, failure
+handling, and wire contract; `CorpusReadinessAcceptanceEvaluationInput`'s exact field list, which
+remains DORMANT; the four Governance Decision values; the Mixed-Result Decision Table; every existing
+Failure and Conflict Handling row; the Authority Hierarchy; Mission Applicability Scope in its
+entirety; Repository Policy Corpus Source in its entirety; Ratification Authority Snapshot Issuance
+in its entirety; Corpus Readiness Acceptance Evaluation in its entirety.
+
+No claim is made anywhere in this ratification that no Policy Evaluation mechanism is introduced or
+modified.
+
+### Relationship to the existing contradictory-policy rule
+
+RFC-0011 v1.5 § Authority Hierarchy governs the case where two or more **applicable** Repository
+Policies conflict with each other — same tier, contradictory Policy Criteria. That rule is **not
+modified**. The relationship is one of containment:
+
+- This amendment's Selection Rule 8 is a new, broader, fail-closed rule for all multiplicity: two or
+  more eligible candidates produce `Ambiguous` and Escalation Required, regardless of whether their
+  Policy Criteria contradict each other. Multiplicity alone is sufficient. Selection never arbitrates.
+- The Authority Hierarchy's contradictory-policy condition is a narrower subset of that multiplicity.
+  It remains in force, unamended, for its own case and its own downstream consequences.
+- Because Rule 8 fails closed on all multiplicity, and the Authority Hierarchy rule fails closed on a
+  subset of multiplicity, the two agree on outcome wherever they overlap. Neither displaces the other.
+
+### Relationship to corpus supersession
+
+Because the candidate collection is exactly the current-head universe, an ordinary supersession never
+presents two simultaneous candidates for one Policy identity. Rule 8's `Ambiguous` outcome therefore
+arises from two *distinct* Policy identities both being eligible, not from two versions of one
+identity. That is a governance condition requiring an Owner decision, not a lineage defect.
+
+## Related Sprint(s)
+
+None. No Sprint is proposed, activated, or modified by this ratification. No Sprint Implementation
+Record is created.
+
+## Related Review(s)
+
+None. This amendment does not originate from a Review finding, and `nexus-review` is not invoked by
+it: no implementation is produced, so there is no vertical slice to review.
+
+## Full Ratification Text
+
+**Target file:** `knowledge/specifications/rfc-0011-engineering-governance-model.md`
+**Baseline:** Final (Amended) **v1.6**, 2,816 lines, 223,147 octets, LF terminators, SHA-256
+`71bd09692d0e24d5dfc641ba65501d9d855cce97cad46d476fb0fd0e609b01c4` — the file **as it stands after
+`NEXUS-RAT-2026-08-04-001` has been applied**, and not the v1.5 committed on 2026-08-03. Stop
+Condition 11 permits no other order, and Stop Condition 12 fails this application closed unless the
+target file presents exactly that baseline.
+**Site count:** fourteen.
+
+Line numbers identify the baseline v1.6 file. Application SHALL match on the reproduced prior text,
+not on line number alone. Every PRIOR TEXT block below occurs exactly once in the baseline file.
+
+### Site 1 — Version metadata
+
+**Location:** line 4.
+
+PRIOR TEXT (exact):
+
+```
+**Version:** 1.6
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+**Version:** 1.7
+```
+
+Line 3, `**Status:** Final (Amended)`, is unchanged.
+
+### Site 2 — Amendment provenance sentence
+
+**Location:** line 8, final sentence of the v1.6 file. The existing paragraph is preserved verbatim;
+new sentences are appended at its end, after the `NEXUS-RAT-2026-08-04-001` provenance sentences that
+amendment added. The anchor is that amendment's final sentence, which occurs exactly once in v1.6.
+
+PRIOR TEXT (exact):
+
+```
+`NEXUS-RAT-2026-07-16-001` is not amended by that amendment; the derivation of the Ratification Authority Snapshot fingerprint remains owned by `RatificationAttributionValidation`.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+`NEXUS-RAT-2026-07-16-001` is not amended by that amendment; the derivation of the Ratification Authority Snapshot fingerprint remains owned by `RatificationAttributionValidation`. Amended by `NEXUS-RAT-2026-08-02-001` to establish Repository Policy Selection and Version Binding (see Repository Policy Selection and Version Binding, below, and Amendment History). That amendment is additive in the precise sense that no existing rule, row, bullet, or clause is deleted, narrowed, reworded, or withdrawn; it does, however, add a mandatory selection-and-validation precondition to Policy Evaluation and a mandatory recording obligation to Governance Decision. Policy Criterion evaluation semantics are unchanged. The candidate collection is exactly the current-head universe of the Repository Policy Corpus at one pinned corpus source revision, and a superseded version is never revived as a candidate. `NEXUS-RAT-2026-08-03-001` is not amended; the Repository Policy Corpus Source contract is consumed exactly as ratified, and selection enumerates no corpus, declares no corpus record, derives no current head, computes no content commitment, issues no corpus artifact, and adds no field to any corpus schema. `NEXUS-RAT-2026-08-02-002` is not amended by this amendment either; Mission Applicability Scope, its closed union, its predicate, its ordering, and its encoding are consumed exactly as ratified, and no scope is declared, synthesized, defaulted, mutated, extended, fingerprinted, or migrated by selection. RFC-0001 is not amended. RFC-0003 is not amended. `NEXUS-RAT-2026-07-18-007` is not amended; neither authorized Governance Evaluation Input Profile gains, loses, or alters any field. `NEXUS-RAT-2026-07-15-017` is not amended; selection consumes a precomputed Ratification attribution validation result and produces none. `NEXUS-RAT-2026-07-31-001` is not amended by this amendment; every deferral it declared, including the entire deferral of authorized-subject attestations, remains in force, and the `ratificationSubject` field added by `NEXUS-RAT-2026-08-04-001` is neither altered nor read here. `NEXUS-RAT-2026-08-04-001` is not amended; the Ratification Authority Snapshot Consumption Correspondence, its supplied-artifact verification chain, and its canonical consumed order are consumed exactly as ratified, and its refusal of any artifact carrying a `SegmentedLifecycle` record is neither narrowed nor excepted.
+```
+
+No other text on line 8 is altered.
+
+### Site 3 — Purpose, owned-concept list
+
+**Location:** lines 18–26.
+
+PRIOR TEXT (exact):
+
+```
+This specification owns:
+
+- Repository Policy
+- Policy Criterion
+- Mission Applicability Scope
+- Policy Evaluation
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+This specification owns:
+
+- Repository Policy
+- Policy Criterion
+- Mission Applicability Scope
+- Policy Evaluation
+- Repository Policy Selection and Version Binding
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+One bullet inserted. No existing bullet is altered or reordered relative to the others. The
+`- Repository Policy Corpus Source` bullet that follows this block, added by
+`NEXUS-RAT-2026-08-03-001`, is outside the matched region and is unchanged.
+
+### Site 4 — Dependencies, Owns list
+
+**Location:** lines 66–74.
+
+PRIOR TEXT (exact):
+
+```
+Owns:
+
+- Repository Policy
+- Policy Criterion
+- Mission Applicability Scope
+- Policy Evaluation
+- Governance Evaluation Input Profiles
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+Owns:
+
+- Repository Policy
+- Policy Criterion
+- Mission Applicability Scope
+- Policy Evaluation
+- Governance Evaluation Input Profiles
+- Repository Policy Selection and Version Binding
+- Governance Decision
+- Governance Escalation
+- Ratification Authority Snapshot Issuance
+```
+
+One bullet inserted. No existing bullet is altered or reordered relative to the others. The
+`- Repository Policy Corpus Source` bullet that follows this block is outside the matched region and
+is unchanged.
+
+### Site 5 — Design Goals, determinism
+
+**Location:** line 86. A further sub-bullet is appended to the existing `deterministic, per input
+profile` bullet. Every existing sub-bullet is preserved verbatim.
+
+PRIOR TEXT (exact, the sub-bullet terminating the determinism bullet):
+
+```
+  - for `CorpusReadinessAcceptanceEvaluationInput`: equivalent Repository Policy version, Mission, and complete input profile instance — including an equivalent `CurrentProjectionApplicabilityReference` (selector policy and criterion identity/version, resolution result, resolved current Projection where present, freshness determination, and candidate-corpus fingerprint) — SHALL always produce the equivalent Governance Decision. Because current applicability is supplied as a recorded input rather than discovered at evaluation time, determinism does not depend on evaluation-time repository state;
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+  - for `CorpusReadinessAcceptanceEvaluationInput`: equivalent Repository Policy version, Mission, and complete input profile instance — including an equivalent `CurrentProjectionApplicabilityReference` (selector policy and criterion identity/version, resolution result, resolved current Projection where present, freshness determination, and candidate-corpus fingerprint) — SHALL always produce the equivalent Governance Decision. Because current applicability is supplied as a recorded input rather than discovered at evaluation time, determinism does not depend on evaluation-time repository state;
+  - for Repository Policy Selection, applicable to both profiles: an equivalent `RepositoryPolicySelectionReference` — equivalent Mission identity, declared input profile kind, pinned corpus source identity, corpus source revision and corpus root, pinned authority snapshot schema version, authority source identity, authority source revision, and authority snapshot envelope commitment, pinned candidate policy references including each candidate's content commitment, scope declaration state and declared `MissionApplicabilityScope`, candidate-set fingerprint, and selection outcome — SHALL always produce the equivalent selected Repository Policy identity and version, or the equivalent non-`Resolved` outcome. Because the candidate set is the current-head universe of one pinned corpus source revision and is supplied as a recorded input rather than discovered at evaluation time, selection determinism does not depend on evaluation-time repository state. Because the recorded outcome SHALL be recomputed from those recorded inputs before use, selection determinism does not depend on the trustworthiness of the supplying caller;
+```
+
+### Site 6 — Governance Evaluation Input Profiles, non-modification clause
+
+**Location:** line 140. A new paragraph is appended after the existing paragraph.
+
+PRIOR TEXT (exact):
+
+```
+Every Policy Evaluation SHALL declare exactly one input profile. No additional, arbitrary, ad hoc, or implicitly inferred input profile is authorized. A Policy Evaluation SHALL NOT infer its profile from the shape of the supplied data, and SHALL NOT substitute one profile's inputs for another's. An unknown, undeclared, or ambiguous profile SHALL produce **Escalation Required**.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+Every Policy Evaluation SHALL declare exactly one input profile. No additional, arbitrary, ad hoc, or implicitly inferred input profile is authorized. A Policy Evaluation SHALL NOT infer its profile from the shape of the supplied data, and SHALL NOT substitute one profile's inputs for another's. An unknown, undeclared, or ambiguous profile SHALL produce **Escalation Required**.
+
+Repository Policy Selection, below, operates alongside this closed profile set and does not extend it. The `RepositoryPolicySelectionReference` is the output of the governed selection process, subsequently bound as a component of the Policy Evaluation request and recorded on the resulting Governance Decision. It SHALL NOT be a field of `ReviewGovernanceEvaluationInput` and SHALL NOT be a field of `CorpusReadinessAcceptanceEvaluationInput`. Neither profile's field list, semantics, required inputs, failure handling, or wire contract is modified by Repository Policy Selection. No third input profile is introduced, and the authorized set remains exactly two. A Policy Criterion's declared Governance Evaluation Input Profile, carried as data in a Repository Policy Corpus Record per Repository Policy Corpus Source, below, is a declaration and not an evaluation, and selection's use of it as an eligibility input neither activates nor undefers the DORMANT profile.
+```
+### Site 7 — New binding section
+
+**Location:** lines 2,293–2,297. The new section is inserted after the `# Repository Policy Corpus
+Source` section, which ends with its `## Deferred Concepts`, and before the `---` preceding
+`# Policy Evaluation`. Every line of `# Repository Policy Corpus Source` and of
+`# Ratification Authority Snapshot Issuance` is unchanged.
+
+This placement differs from earlier revisions of this draft, which targeted the boundary before
+`# Ratification Authority Snapshot Issuance`. Selection consumes the Repository Policy Corpus Source
+contract by name, and the Stage Model places Policy Evaluation immediately after Stage 3; the section
+is therefore placed between the contract it consumes and the process it precedes.
+
+PRIOR TEXT (exact):
+
+```
+Implementation of this section requires its own separate Sprint scope ratification.
+
+---
+
+# Policy Evaluation
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+Implementation of this section requires its own separate Sprint scope ratification.
+
+---
+
+# Repository Policy Selection and Version Binding
+
+## Purpose and Ownership Boundary
+
+Repository Policy Selection and Version Binding is the deterministic determination of which
+single ratified Repository Policy version is applicable to exactly one Mission and exactly
+one declared Governance Evaluation Input Profile instance, together with the exact binding
+of that version into the resulting Governance Decision.
+
+Selection answers exactly one question:
+
+> Which ratified Repository Policy version, if any, is applicable to this Mission and this
+> declared input profile kind?
+
+Selection SHALL NOT evaluate whether the selected Policy's Criteria are satisfied. That
+remains Policy Evaluation, below, and its criterion semantics are unchanged.
+
+Selection SHALL NOT enumerate the Repository Policy corpus, assemble a corpus record, derive
+a current lineage head, compute or verify a content commitment, compute a corpus root or
+envelope commitment, or issue a corpus artifact. Repository Policy Corpus Source, above,
+retains sole ownership of all of those. Selection consumes an assembled corpus's
+current-head universe together with the corpus source identity, corpus source revision, and
+corpus root that pin it, and produces none of them.
+
+Selection SHALL NOT determine, alter, or contribute to the current applicability of a
+Corpus Readiness Result. That remains governed, unchanged, by Corpus Readiness Acceptance
+Evaluation and its Current Projection Applicability Selection rules, which this section
+does not revise.
+
+Selection SHALL NOT establish, extend, enumerate, or infer the authority of a Repository
+Policy over any subject. This section introduces no subject, no subject-kind union, no
+subject enumeration, and no attestation of an authorized subject. The only subject it
+recognizes is the Mission, exactly as Mission Applicability Scope, above, already
+recognizes it.
+
+Selection SHALL NOT declare, synthesize, default, mutate, extend, narrow, re-order, or
+fingerprint a `MissionApplicabilityScope`, and SHALL NOT authorize or perform any migration
+of a `ScopeUndeclared` Repository Policy version. Mission Applicability Scope, above,
+retains sole ownership of the scope, its closed union, its predicate, its Mission Ordering
+Comparator, and its canonical encoding. Selection reads a Repository Policy version's
+declared scope as the corpus records it and evaluates the already-ratified Mission
+applicability predicate against it; it produces no scope and alters none.
+
+Selection SHALL NOT infer a `MissionId`. The evaluation request's explicit Mission identity
+is an input to the Mission applicability predicate and is never an output of it, exactly as
+Mission Applicability Scope, above, requires. A request with an absent, malformed, or
+unresolvable `MissionId` SHALL fail under Mission-Scoped Governance Evaluation, below,
+before selection is reached.
+
+Selection SHALL NOT resolve a Ratification reference and SHALL NOT produce a `Valid`,
+`Invalid`, or `Unresolvable` attribution outcome. `RatificationAttributionValidation`, as
+ratified by `NEXUS-RAT-2026-07-15-017`, retains sole authority over Ratification reference
+resolution and over those three closed outcomes. Selection consumes an attribution result
+already produced by that authority, together with the identity and fingerprint of the
+Ratification Authority Snapshot it was produced against. Selection SHALL NOT infer the
+existence, validity, or lifecycle status of a Ratification from an identifier's form,
+spelling, or presence.
+
+Selection SHALL NOT issue a Ratification Authority Snapshot, derive an authority root or an
+envelope commitment, or add any field to the `nexus-ratification-authority-snapshot/3`
+schema. It records the envelope commitment that issuance already produced, and reads it as an
+opaque identifier of one issued artifact. Snapshot issuance remains governed solely by
+`NEXUS-RAT-2026-07-31-001`, which this ratification amends in exactly one respect — the
+closure of its deferral of Snapshot consumption in governance evaluation, to the exact extent of
+Verification Step 5 — and in no other.
+
+## Non-Modification of the Authorized Profiles
+
+The `RepositoryPolicySelectionReference` is the output of the governed selection process
+and a bound component of the Policy Evaluation request. It is not a field of either
+authorized profile.
+
+`ReviewGovernanceEvaluationInput`'s semantics, required inputs, failure handling, and wire
+contract remain exactly those of v1.1 and are NOT modified by this section.
+
+`CorpusReadinessAcceptanceEvaluationInput`'s exact field list under Corpus Readiness
+Acceptance Evaluation is NOT modified, and that profile remains DORMANT under the
+conditions already stated in Governance Evaluation Input Profiles, above. A Policy
+Criterion's declared profile kind, carried as data in a Repository Policy Corpus Record, is
+a declaration and not an evaluation; consuming it as an eligibility input neither activates
+nor undefers that profile.
+
+## Stage Model and Total Precedence
+
+Selection is not a single act. It is three ordered stages with total precedence. A later
+stage SHALL NOT execute until every earlier stage has completed for every candidate.
+
+**Stage 1 — Candidate Set Assembly.** Performed by the Candidate Set Assembly Authority,
+below, outside Policy Evaluation. Produces the pinned candidate collection and its
+fingerprint from the current-head universe of one assembled Repository Policy Corpus.
+
+**Stage 2 — Attribution Validation.** Performed by `RatificationAttributionValidation`
+(`NEXUS-RAT-2026-07-15-017`) against the pinned Ratification Authority Snapshot, for every
+assembled candidate without exception, before any eligibility test. This preserves, and does not restate, the ratified
+requirement that attribution validation precedes Policy Criteria evaluation for every
+Governance Decision production.
+
+**Stage 3 — Selection.** Applies the Eligibility Predicate and the Selection Rules, below,
+to the fully validated candidate collection, and produces exactly one
+`RepositoryPolicySelectionReference`.
+
+Policy Evaluation follows Stage 3 and SHALL NOT begin until Stage 3 has produced a
+`Resolved` outcome.
+
+Precedence is total and SHALL be applied in this exact order. The first condition that
+holds determines the outcome; no later condition may override an earlier one:
+
+1. Structural integrity of the selection reference itself (Rule 4).
+2. Binding equality against the evaluation request (Rule 5).
+3. Candidate-level **indeterminacy** (Rule 6).
+4. Eligibility and cardinality (Rules 7, 8, 9).
+
+Pre-Use Verification, below, strictly precedes all four. Its steps establish the recorded
+facts against the authorities that own them, and no rule in this precedence order is reached
+until every verification step has succeeded. Rule 10, Historical Version Non-Revival, is a
+constraint on Stage 1 rather than a stage of Stage 3; its violation is detected at Pre-Use
+Verification Step 4, and it is stated separately because its subject is which records may be
+assembled at all.
+
+**Indeterminacy is not the same as determinate exclusion, and the two SHALL NOT be
+conflated.** This distinction is total and governs every stage, rule, failure mapping, and
+diagnostic in this section:
+
+- A candidate whose re-validated `attributionValidationOutcome` is `Unresolvable`, or whose
+  carried corpus record is internally inconsistent, is **indeterminate**: its authority cannot be determined at all. Selection SHALL classify the
+  whole selection `Unresolvable` under Rule 6, before eligibility and cardinality are
+  reached. Selection SHALL NOT convert an absence of determination into a determinate
+  exclusion, because doing so would silently treat an unknown as a known negative.
+- A candidate whose `attributionValidationOutcome` is `Invalid` is **determinately
+  excluded**: its lack of effective authority is known, not unknown. It is ineligible under
+  Eligibility Predicate conjunct 1, participates normally in cardinality, and SHALL NOT make
+  the selection `Unresolvable`.
+
+Because candidate-level indeterminacy (3) strictly precedes eligibility and cardinality (4),
+an indeterminate candidate SHALL be classified `Unresolvable` and SHALL NOT also be
+classified `Resolved`, `NoCandidate`, or `Ambiguous`. The classifications are mutually
+exclusive by construction of this precedence order. One indeterminate candidate is
+sufficient: it makes the selection `Unresolvable` even where another candidate would
+otherwise be eligible, because a candidate set containing an undeterminable member cannot be
+known to have exactly one eligible member.
+
+## Candidate Set Assembly Authority
+
+The Candidate Set Assembly Authority is the producer of the candidate collection. It is
+named, and it is not the caller.
+
+The Authority SHALL NOT accept a caller-supplied candidate collection, a caller-supplied
+candidate entry, or a caller-supplied applicability fact, and SHALL NOT expose any
+parameter, field, or channel through which one could be supplied.
+
+**Enumeration source.** The Authority SHALL enumerate the candidate collection from exactly
+one assembled Repository Policy Corpus, as governed by Repository Policy Corpus Source,
+above. The corpus SHALL have been assembled from one pinned governed octet sequence and SHALL
+have reported `Assembled`; a corpus that reported `Rejected` SHALL NOT be a source, and no
+partial or repaired corpus SHALL be a source.
+
+The candidate collection SHALL be exactly the corpus's **current-head universe** — one
+record per Policy identity, being the record of that identity's highest declared version,
+derived by the corpus contract and never declared. It SHALL NOT be the preserved history, a
+subset of the current-head universe, a superset of it, or any other projection.
+
+The Authority SHALL pin, and record on the selection reference, exactly seven governed facts —
+three corpus facts and four authority facts:
+`corpusSourceIdentity`, `corpusSourceRevision`, and `corpusRoot`, each taken from that
+assembled corpus without alteration. These three, together with the pinned Snapshot's schema
+version, source identity, source revision, and envelope commitment, are what make the candidate
+collection reproducible and its attribution outcomes re-verifiable: an
+independent party given the same `corpusSourceRevision` re-derives the same corpus, the same
+current-head universe, and the same `corpusRoot`.
+
+**Assembly applies no filter.** Every current head of the pinned corpus SHALL be assembled as a
+candidate, unconditionally. The Authority SHALL NOT omit, skip, drop, defer, or refuse a
+current head for any reason, and in particular SHALL NOT omit one because its
+`authorizingRatificationIdentifier` is absent from, or unrecognised by, the pinned
+Ratification Authority Snapshot.
+
+An unrecognised authorizing Ratification is **not** an assembly condition. Whether such a
+Ratification is effective, ineffective, or unresolvable is owned exclusively by
+`RatificationAttributionValidation` (`NEXUS-RAT-2026-07-15-017`), which produces its result in
+Stage 2 for every assembled candidate without exception. Selection SHALL NOT predict, anticipate,
+or pre-empt that result by filtering the candidate out beforehand. Doing so would both usurp that
+authority and destroy completeness: the candidate collection would no longer equal the corpus's
+current-head universe, and no verifier could establish that it did.
+
+The candidate whose Ratification the Snapshot does not recognise is therefore assembled, receives
+whatever outcome that authority produces, and is disposed of by the ordinary rules — `Unresolvable`
+makes the whole selection `Unresolvable` under Rule 6, `Invalid` makes it determinately ineligible
+under Eligibility Predicate conjunct 1. Either way it fails closed, and either way it remains in
+the collection.
+
+The Authority SHALL derive every field of every candidate entry from exactly one of:
+
+- the Repository Policy Corpus Record of that current head, as assembled from the pinned
+  `corpusSourceRevision`, carried verbatim; or
+- a digest recomputed from that carried record; or
+- the attribution validation result produced in Stage 2 against the pinned Snapshot.
+
+Every field's producer and every derivation is enumerated exhaustively under Traceability of
+Every Field in this ratification's Ledger entry. No field has any other source, and no field
+is a caller label.
+
+## Candidate Set Completeness
+
+Completeness SHALL be **established by re-derivation**, not asserted by a producer and not
+inferred from a recorded digest.
+
+**Self-consistency is not authenticity.** A `RepositoryPolicySelectionReference` is a
+self-contained artifact. Every digest it carries is computable from the other values it
+carries. It follows that recomputing `candidateSetFingerprint` from the reference's own
+recorded fields can only establish internal consistency: a party who omits a candidate,
+injects one, alters an attribution outcome, or alters the selection outcome, and then
+recomputes the fingerprint and any recorded root over the altered values, produces an
+artifact that is internally consistent and indistinguishable from a genuine one by
+recomputation alone.
+
+**No claim is made that a recorded `corpusRoot` proves the recorded list is its current-head
+projection.** The root is an opaque recorded value until it is re-derived. Hashing it beside
+a candidate list establishes that the two were hashed together and nothing more. This
+specification defines no derivation from the root to the list and asserts none.
+
+Completeness is therefore established only by Pre-Use Verification, below, which re-derives
+the corpus from the governed source octets that the recorded `corpusSourceRevision` pins, and
+compares the recorded collection against the re-derived current-head universe. That comparison
+is against an authority external to the reference, and is the only comparison in this
+specification capable of rejecting a consistently re-fingerprinted forgery.
+
+**The completeness basis.** The universe of Repository Policy versions is exactly the
+population that the pinned governed source octets declare, as Repository Policy Corpus
+Source, above, establishes. The candidate universe is the current-head projection of that
+population, re-derived under that contract at verification time.
+
+**Omission**, **injection**, and **lineage descent** are each rejected because the re-derived
+current-head fingerprint multiset differs from the multiset recomputed over the recorded
+candidates. The forger cannot escape by also altering the recorded root, because the root is
+itself re-derived; and cannot escape by also altering `corpusSourceRevision`, because no
+governed source octets then prepare to that digest and verification fails closed.
+
+**Changed Policy content under an unchanged declaration** is rejected three times over: corpus
+re-derivation fails with `content-binding-mismatch`; the prepared source text changed, so no
+source prepares to the recorded `corpusSourceRevision`; and the candidate's carried corpus
+record, which includes the `contentCommitment`, produces a different corpus record fingerprint.
+
+**A governed Ratification that authorizes no Repository Policy version** contributes zero
+corpus records and therefore zero candidates. That is not an omission and SHALL NOT be
+reported as one, exactly as Repository Policy Corpus Source, above, requires.
+
+Reordering of a recorded candidate collection is additionally detectable as a
+`candidateSetFingerprint` mismatch, because the Candidate Ordering Comparator makes the
+encoding of a given collection unique. That check is necessary and is not sufficient.
+
+Every `ScopeUndeclared` current head SHALL be assembled as a candidate and then found
+ineligible by the Eligibility Predicate, below. Such a version SHALL NOT be silently omitted
+at assembly time, because omission would make the candidate set irreproducible.
+
+## Pre-Use Verification
+
+The **Selection Verification Authority** is the consumer-side authority that establishes a
+supplied `RepositoryPolicySelectionReference` against the authorities that own its facts. It
+is a distinct role from the Candidate Set Assembly Authority. A conforming implementation
+SHALL NOT satisfy this section by re-running the producer over the producer's own recorded
+output.
+
+Before a bound reference is used for any purpose, the Selection Verification Authority SHALL
+perform every one of the following steps, in this order. Any step that does not succeed SHALL
+produce **Escalation Required**, and Policy Evaluation SHALL NOT proceed. No step is optional,
+and no step may be skipped on the strength of another having succeeded.
+
+**Step 1 — Pin the governed source.** Obtain the governed source octets identified by the
+recorded `corpusSourceIdentity` and prepare them under the Governed Source Text Preparation
+rules that Repository Policy Corpus Source, above, consumes. The prepared text's digest SHALL
+equal the recorded `corpusSourceRevision`. If no obtainable source prepares to that digest,
+verification SHALL fail closed. This is a read of a **pinned** revision identified by digest,
+not a read of current repository state.
+
+**Step 2 — Re-derive the corpus.** Assemble the Repository Policy Corpus from that prepared
+text under Repository Policy Corpus Source, above. The result SHALL be `Assembled`. A
+`Rejected` result SHALL fail closed, and its diagnostic SHALL be reported.
+
+**Step 3 — Re-derive and compare the root.** Compute the corpus root from the re-derived
+corpus. It SHALL equal the recorded `corpusRoot` exactly. This step is what makes the recorded
+root a claim about governed octets rather than an opaque literal.
+
+**Step 4 — Compare the collection against the re-derived current-head universe.** For each
+recorded candidate, recompute its corpus record fingerprint from the corpus record it carries.
+The multiset of those recomputed fingerprints SHALL equal, exactly, the multiset of corpus
+record fingerprints of the re-derived current-head universe. Equality is by multiset, so a
+missing member, an extra member, and a substituted member each fail. A recorded candidate
+whose recomputed fingerprint is not a current-head fingerprint of the re-derived corpus SHALL
+be reported as an injected or non-head candidate, naming its exact
+`(policyIdentity, policyVersion)` pair. A re-derived current head with no matching recorded
+candidate SHALL be reported as an omitted candidate, naming its exact pair.
+
+**Step 5 — Verify the supplied Snapshot artifact and re-validate every attribution outcome.** The
+issued Ratification Authority Snapshot artifact is a **required supplied input** to
+verification, supplied alongside the reference itself.
+
+Verification SHALL execute the **complete supplied-artifact verification chain V1 through V9 of
+`NEXUS-RAT-2026-08-04-001`**, in the order that ratification fixes, stopping at the first failing
+step and producing no partial result. That chain is invoked, not restated here, and no step of it is
+weakened, reordered, or omitted. In summary, and normatively by reference to that entry: exactly one
+artifact is supplied and its result is `Issued`; its `snapshotSchemaVersion` equals the recorded
+`authoritySnapshotSchemaVersion` and equals `nexus-ratification-authority-snapshot/3`; **every
+record fingerprint is recomputed from the record actually supplied**, under every enumeration
+constraint of the record schema; both counts agree with `envelope.recordCount`; the recomputed
+fingerprints are pairwise distinct and their NCCS-1 rule 6 collection is octet-identical to the
+supplied one; the **authority root is recomputed** from that collection and the envelope's own facts
+and equals `envelope.authorityRoot`; the **envelope commitment is recomputed** and equals both the
+artifact's self-declared value and the recorded `authoritySnapshotEnvelopeCommitment`; **the record
+collection is re-derived from the governed source octets the artifact's `authoritySourceRevision`
+names, by the ratified issuance contract, and the re-derived authority root and fingerprint
+collection are required to match**; and the records are placed in the **canonical consumed order**
+that ratification defines, ascending by the encoded octets of their recomputed fingerprints.
+
+**Step 8 of that chain is the external-authority anchor, and it is mandatory.** Steps V1 through V7
+recompute values the supplied artifact itself carries and compare the result to a value recorded on a
+`RepositoryPolicySelectionReference`, which this section already declares to be mutable and
+untrusted. Both are reproducible by whoever wrote the artifact: a party that fabricates records can
+recompute every fingerprint, the root, and the commitment, place that commitment in a forged
+reference, and recompute that reference's candidate-set fingerprint and recorded outcomes. Nothing in
+V1 through V7 distinguishes such an object from a genuine issuance.
+
+Two earlier revisions of this draft are accordingly **withdrawn**. The first required only that a
+recomputed envelope commitment equal the recorded pin, so a genuine envelope could be presented
+alongside altered records. The second added per-record recomputation and collection comparison but
+stopped there, and described the result as establishing "self-consistency plus pin equality" — which
+named the gap accurately and left it open. **An issuance obligation binding the producer is not
+evidence available to the verifier.** Vector CV4 of `NEXUS-RAT-2026-08-04-001` exhibits the altered
+record and its refusal; vector CV13 exhibits a wholly self-consistent forged artifact, with a
+matching forged reference, that passes V1 through V7 and is refused at V8.
+
+**Selection Steps 1 through 4 re-derive the Repository Policy corpus; they do not re-derive the
+Ratification authority collection.** Before V8 existed, no step of this contract established the
+authority records against governed law, and the Selection Verification Authority's obligation to
+establish every attribution outcome against its owning external authority was therefore unmet in
+substance. V8 meets it: every Ratification Authority Record consulted is a record the governed source
+at the pinned revision actually yields, so **no attribution outcome can be produced that the governed
+Ratification Ledger does not support.**
+
+What V8 does not establish is stated with it, in that ratification and here: the declared capture
+instant and the declared producing attribution are not re-derivable, are fixed by the recorded pin
+against substitution only, and are inputs to no attribution outcome.
+
+**Consumed order is fixed by the pin, not by supply order.** Because the canonical consumed order is
+derived from the recomputed fingerprint collection — the same collection the authority root commits
+order-insensitively — the order in which records happen to be supplied is inert. Two verifiers
+supplied the same artifact's records in different orders obtain the identical consumed state. The
+earlier reliance on the artifact's declared record order is **withdrawn**.
+
+**Then, before any attribution outcome is validated, re-establish both recorded authority-source
+facts against the verified artifact.** Verification SHALL require, as normative conditions of this
+step:
+
+- `envelope.authoritySourceIdentity` of the verified artifact SHALL equal the recorded
+  `authoritySourceIdentity` of field 7, octet for octet. A divergence SHALL fail this step closed as
+  a **recorded authority-source identity divergence**, naming both values.
+- `envelope.authoritySourceRevision` of the verified artifact SHALL equal the recorded
+  `authoritySourceRevision` of field 8, octet for octet. A divergence SHALL fail this step closed as
+  a **recorded authority-source revision divergence**, naming both values.
+
+Neither comparison is performed by the verification chain, and neither may be assumed from it. The
+pin `NEXUS-RAT-2026-08-04-001` accepts carries exactly two recorded values — the schema version,
+checked at V2, and the envelope commitment, checked at V7 — and Selection Step 5 passes only those
+two into it. **Fields 7 and 8 are therefore established here or nowhere.**
+
+The reason they must be established is the same reason every other recorded field must be: a
+recomputation over a reference's own fields proves only that the reference is self-consistent. A
+caller holding a genuine, correctly pinned artifact can alter either recorded source fact, recompute
+the candidate-set fingerprint and the recorded outcomes, and produce an entirely self-consistent
+reference. The artifact would then be verified against its actual governed source while the immutable
+reference recorded a different lineage — a divergence invisible to every other step, and a direct
+breach of both the reference's provenance contract and this authority's obligation to re-establish
+every recorded field against the authority that owns it. Vectors **SV10** and **SV11** exhibit one
+such reference for each field.
+
+These two comparisons are equality checks and nothing more. They do not locate an artifact, do not
+authorize a retrieval, and confer no independent authority; what they establish is that the lineage
+the reference records is the lineage the verified artifact actually carries.
+
+Then, for each candidate, invoke `RatificationAttributionValidation` (`NEXUS-RAT-2026-07-15-017`) on
+that candidate's `corpusRecord.authorizingRatificationIdentifier` against the consumed state that
+correspondence produces. Each re-validated outcome SHALL equal the candidate's recorded
+`attributionValidationOutcome`. A divergence SHALL be reported as a forged or stale attribution
+outcome, naming the candidate and both outcomes. Selection SHALL NOT produce, default, infer, or
+override an attribution outcome at any point; it invokes the sole authority and compares.
+
+**A refused artifact is a failed step.** `NEXUS-RAT-2026-08-04-001` refuses an artifact that fails
+any refusal-producing step of its chain — V1 through V8, V9 being total — and refuses an artifact any
+of whose records declares
+`lifecycleResolutionForm` `SegmentedLifecycle`, because no ratified rule selects which governed scope
+a scope-free Ratification reference resolves against. Every such refusal SHALL fail this step closed,
+and Policy Evaluation SHALL NOT proceed. Selection SHALL NOT flatten, prefer, arbitrate among, or
+otherwise interpret segment statuses, and SHALL NOT report a refused artifact as an attribution
+outcome of any kind. The consequence is stated rather than concealed: while the governed corpus
+carries declarations in `SegmentedLifecycle` form, an artifact issued from it is refused, and no
+conforming reference can be produced against it. That is recorded as Dependency DEP2 below.
+
+**Nothing is fetched here, and no locator is established here.** The recorded
+`authoritySourceIdentity` and `authoritySourceRevision` are **checked for equality** against the
+supplied artifact's own envelope facts. They identify the **governed source the artifact was issued
+from**. They do not identify an issuance, a store, or a retrieval path, and SHALL NOT be described,
+encoded, or read as doing so anywhere in this section, including in the Traceability tables.
+`NEXUS-RAT-2026-07-31-001` permits many issuances from one source revision, and Conformance Vector
+S1 exhibits two; source facts therefore cannot single out an artifact even in principle. An earlier
+revision of this draft stated that those two fields identify where the artifact is to be sought, and
+a later one left that claim standing in the Traceability table after removing it from the prose. Both
+statements were incorrect and are **withdrawn**. Where an issued artifact is kept, who serves it, and
+how a commitment is resolved to it are **deferred in full**, are not ratified here, and appear in
+Deferred and Prohibited Scope, above. An envelope commitment verifies a supplied artifact; it does
+not make one retrievable.
+
+**Absence, substitution, and forgery are the same outcome.** If no artifact is supplied, if more than
+one is supplied, if the supplied artifact fails any step of the verification chain — including an
+artifact re-issued from the same governed source at a different capture instant or by a different
+producer, an artifact whose records the governed source does not yield, and the case where no
+governed source is obtainable at the pinned revision — or if it is refused for carrying a segmented
+record, this step SHALL fail closed and Policy Evaluation SHALL NOT proceed. There is no fallback to
+the supplied artifact, no most-recent-source substitution, and no degradation to the
+recomputation-only chain. The conditions are distinguished only in the reported diagnostic; they are
+never distinguished in the outcome. Vectors SV1 through SV8, below, fix each, and SV9 through SV11 fix
+the two recorded authority-source equality conditions together with their control.
+
+**This step consumes an immutable artifact; it does not re-issue one.** The distinction is
+load-bearing. `NEXUS-RAT-2026-07-15-017` gives attribution validation authority over an **immutable
+Snapshot collection**, and `NEXUS-RAT-2026-07-31-001` binds an issued artifact's envelope commitment
+to the authority root, both source facts, the canonical serialization protocol identifier, the
+capture instant, the producing attribution, the record count, and the snapshot schema version.
+Re-issuing from the pinned source revision would reproduce an authority-root-equivalent record set,
+not the artifact previously consulted: two issuances of the same governed octets at different
+instants, or by different producers, share an authority root and differ in envelope commitment by
+design. An earlier revision of this draft pinned the authority root and directed the verifier to
+re-issue. That was incorrect and is **withdrawn** — it silently substituted root equivalence for the
+pinned artifact, and so permitted a verifier to consult an artifact other than the one the reference
+was produced against.
+
+**What this step claims, exactly.** After the chain succeeds, the supplied artifact's record
+collection is established to be one the governed source at the pinned revision actually yields; the
+supplied object is established to be a complete ratified `Issued` result and to be
+**commitment-equivalent** to the object the recorded commitment names; and the consumed state is
+established to be a function of the pinned values alone.
+**Nothing stronger is claimed.** The envelope commitment is expressly **not** a commitment to a
+serialized artifact as a whole and does **not** identify a unique artifact or a unique issuance
+event: two distinct issuance events declaring identical basis facts produce the same commitment. It
+commits the eight fields of `EnvelopeCommitmentBasis` and, through the authority root, the
+order-insensitive record fingerprint collection, and it commits neither the artifact's declared
+record order — which the canonical consumed order makes inert — nor its wire framing, nor the three
+result counts, which are instead established structurally at V1 and re-derived at V8.
+`NEXUS-RAT-2026-08-04-001` states the complete bound and unbound lists in a table, and this section
+adopts them without extension. Commitment-equivalence is sufficient here and is exactly what this
+step needs: objects with equal envelope commitments yield the identical consumed state, and the
+consumed state is the only thing attribution validation reads.
+
+**Re-derivation does not make the pin redundant, and the pin does not make re-derivation redundant.**
+Two issuances of the same governed octets share an authority root and differ in envelope commitment
+wherever their declared facts differ, so re-derivation alone does not narrow the supplied object to
+the commitment-equivalence class the reference records; and a commitment alone cannot say whether the
+records are governed. V7 narrows to that class, V8 establishes that its records are governed, and
+both are required. An earlier revision of this draft that pinned the authority root and directed the verifier
+to re-issue remains **withdrawn**, because it discarded V7 rather than adding V8.
+
+**What this step does not claim.** It does not claim to produce, reproduce, or stand in for the
+Ratification Authority Snapshot fingerprint that `NEXUS-RAT-2026-07-16-001` binds into escalation
+attribution and Governance Decision idempotency. That fingerprint is a distinct value with a distinct
+derivation, a distinct owner, and a distinct consumer; it is unaffected by this section, is separately
+produced and separately recorded, and is compared against the envelope commitment, derivation by
+derivation, under Reconciliation, below. A `RepositoryPolicySelectionReference` SHALL NOT be
+described, encoded, or recorded as carrying one.
+
+**Both halves of verification now re-derive from governed octets.** Steps 2 through 4 re-derive the
+Repository Policy corpus and compare its root; chain step V8 re-derives the Ratification authority
+collection and compares its root. The remaining difference is what each additionally pins, and it
+follows from what each artifact carries. The corpus root is issuer- and time-independent and is the
+whole of what corpus assembly commits, so pinning it suffices. A Ratification Authority Snapshot
+additionally carries two declared issuance facts — a capture instant and a producing attribution —
+that no derivation can reproduce and that enter the consumed state; the envelope commitment is the
+only layer binding them, so it is what a selection reference pins. An earlier revision of this draft
+stated that Step 5 re-derives nothing from source. That is no longer true and the statement is
+**withdrawn**.
+
+**Step 6 — Recompute the candidate-set fingerprint.** It SHALL equal the recorded
+`candidateSetFingerprint`. This step detects reordering and internal inconsistency. It is
+necessary and, standing alone, insufficient, and SHALL NOT be represented as establishing
+completeness, provenance, or attribution.
+
+**Step 7 — Recompute the outcome.** Recompute `selectionOutcome` and every selected field from
+the verified inputs under the Eligibility Predicate and the Selection Rules. Each SHALL equal
+the recorded value. The recomputed value governs; the supplied value is never preferred.
+
+**Determinism is preserved by pinning, not by refusing to read.** Steps 1 through 5 read a
+corpus source revision fixed by digest and an issued Snapshot artifact fixed by its envelope
+commitment. Two verifiers performing these
+steps at different times obtain the same corpus and the same Snapshot or fail closed, so the
+verified outcome does not vary with evaluation-time repository state. Earlier revisions of this
+contract forbade these reads and relied on recomputation alone; that reliance is withdrawn,
+because recomputation over a self-contained artifact cannot distinguish a genuine reference
+from a consistently re-fingerprinted forgery.
+
+**Verification is not assembly.** The Selection Verification Authority produces no candidate,
+no corpus record, no attribution outcome, and no selection reference. It re-derives, compares,
+and fails closed.
+
+## Historical Version Non-Revival
+
+A superseded Repository Policy version is **preserved history**. It remains permanently
+recorded in the corpus and remains the version of record for every Policy Evaluation and
+Governance Decision that cited it. It is **not** a candidate for any new governance
+evaluation.
+
+A Repository Policy version that is not the current lineage head of its Policy identity at the
+pinned `corpusSourceRevision` SHALL NOT be assembled as a candidate under any circumstance.
+
+In particular, selection SHALL NOT assemble, substitute, promote, fall back to, descend to,
+walk to, or otherwise reach an earlier version of a Policy identity because that identity's
+current head:
+
+- has a re-validated `attributionValidationOutcome` of `Invalid`;
+- has a re-validated `attributionValidationOutcome` of `Unresolvable`;
+- has an authorizing Ratification the pinned Snapshot does not recognise;
+- is `ScopeUndeclared`;
+- fails any conjunct of the Eligibility Predicate;
+- is internally inconsistent; or
+- would, if excluded, leave no eligible candidate.
+
+**There is no lineage walk.** Selection examines exactly one version per Policy identity — the
+current head — and never a second. An identity whose current head is ineligible contributes
+exactly one ineligible candidate and nothing further. An identity whose current head is
+indeterminate makes the whole selection `Unresolvable` and contributes nothing further.
+
+**Rationale, stated normatively.** Reviving a predecessor would apply a Repository Policy
+version that the repository has superseded, on the strength of a defect in the version that
+superseded it. It would make the applied version a function of the current head's validation
+outcome rather than of the governed source, and it would allow a withdrawn or invalidated
+authority to silently restore the law it replaced. The corpus's lineage is linear and its head
+is derived, precisely so that exactly one version per identity is ever a candidate.
+
+**Detection.** A candidate collection containing a non-head version does not correspond to the
+pinned corpus's current-head universe. Pre-Use Verification Step 4 recomputes each candidate's
+corpus record fingerprint and compares the resulting multiset against the current-head
+fingerprint multiset of the **re-derived** corpus; a non-head version's fingerprint appears in
+the re-derived corpus's preserved-history collection and not in its current-head collection, so
+the comparison fails before any eligibility or cardinality assessment, and the Decision SHALL be
+**Escalation Required**. A self-consistent recomputation of the candidate-set fingerprint does
+not avoid this, because the comparison is against the re-derived corpus rather than against the
+reference itself. The failure SHALL be reported as a candidate-set divergence
+naming the non-head `(policyIdentity, policyVersion)` pair, and SHALL NOT be reported as an
+eligibility failure of that pair.
+
+## RepositoryPolicySelectionReference
+
+An exact, immutable, read-only `RepositoryPolicySelectionReference` SHALL contain exactly
+the following fields, in this fixed declared schema order:
+
+1. `missionId` — the Mission for which selection was performed. It SHALL equal the
+   evaluation request's Mission identity;
+2. `declaredProfileKind` — exactly one of `ReviewGovernanceEvaluationInput` or
+   `CorpusReadinessAcceptanceEvaluationInput`. It SHALL equal the profile declared by the
+   Policy Evaluation;
+3. `corpusSourceIdentity` — the identity of the governed source the corpus was assembled
+   from, taken unaltered from the assembled corpus;
+4. `corpusSourceRevision` — that corpus's source revision digest, exactly 64 lowercase hex
+   characters, taken unaltered;
+5. `corpusRoot` — that corpus's root, being the ratified corpus root prefix followed by
+   exactly 64 lowercase hex characters, taken unaltered;
+6. `authoritySnapshotSchemaVersion` — the schema version of the pinned Ratification Authority
+   Snapshot, taken unaltered from that Snapshot. Under `NEXUS-RAT-2026-07-31-001` this is exactly
+   `nexus-ratification-authority-snapshot/3`. It is recorded explicitly, and not merely implied by
+   the fingerprint prefix, because that ratification declares version 2 **totally incompatible**
+   with version 1, so a verifier SHALL be able to reject a version 1 or version 2 artifact before consuming it;
+7. `authoritySourceIdentity` — the identity of the governed source the pinned Ratification
+   Authority Snapshot was issued from, taken unaltered from that Snapshot;
+8. `authoritySourceRevision` — that Snapshot's source revision digest, exactly 64
+   lowercase hex characters, taken unaltered;
+9. `authoritySnapshotEnvelopeCommitment` — the pinned Snapshot artifact's **envelope commitment**,
+   being the ratified envelope commitment prefix followed by exactly 64 lowercase hex characters,
+   taken unaltered from that artifact. Under `NEXUS-RAT-2026-07-31-001` the envelope commitment binds
+   the authority root, both source facts, the canonical serialization protocol identifier, the
+   capture instant, the producing attribution, the record count, and the snapshot schema version —
+   exactly those eight fields, and, through the authority root, the order-insensitive record
+   fingerprint collection. It therefore identifies a **commitment-equivalence class**, not a unique
+   artifact and not a unique issuance event: two distinct issuances declaring identical basis facts
+   produce the same commitment, and the commitment binds neither wire framing, nor supplied record
+   order, nor the three result counts. That is sufficient for this contract, because objects in one
+   such class yield the identical consumed state — supplied order being made inert by the canonical
+   consumed order, the result shape being fixed at V1, and the counts being re-derived at V8. No
+   stronger identity is claimed for this field anywhere in this section, and establishing one would
+   require a ratified complete artifact encoding, which does not exist and is not proposed here. **This field is not, and does not replace, the Ratification Authority Snapshot fingerprint
+   of `NEXUS-RAT-2026-07-16-001`.** That fingerprint has a different derivation, a different input
+   domain, a different representation, a different owner, and a different consumer; it is neither
+   recorded in this reference nor altered by it, and it continues to be derived and consumed exactly
+   as it is today. The two values are compared exhaustively under Reconciliation, below. Fields 6
+   through 8 are recorded in addition because they state the schema the artifact must declare and
+   the governed source it was issued from; they are each bound by this commitment, they confer no
+   independent authority, and they do **not** locate the artifact;
+10. `candidatePolicyReferences` — the ordered, possibly empty collection of candidate
+    Repository Policy references assembled by the Candidate Set Assembly Authority from the
+    pinned corpus's current-head universe, ordered by the Candidate Ordering Comparator,
+    below;
+11. `candidateSetFingerprint` — the fingerprint defined under Canonical Encoding and
+    Candidate Set Fingerprint, below; exactly 64 lowercase hex characters;
+12. `selectionOutcome` — exactly one of `Resolved | NoCandidate | Ambiguous | Unresolvable`;
+13. `selectedPolicyIdentity` — the selected Repository Policy identity. Present exactly when
+    `selectionOutcome` is `Resolved`; absent otherwise;
+14. `selectedPolicyVersion` — the selected Repository Policy version. Present exactly when
+    `selectionOutcome` is `Resolved`; absent otherwise;
+15. `selectedAuthorizingRatificationIdentifier` — the authorizing Ratification identifier of
+    the selected candidate. Present exactly when `selectionOutcome` is `Resolved`; absent
+    otherwise.
+
+## Candidate Policy Reference
+
+Each entry of `candidatePolicyReferences` SHALL contain exactly the following three fields,
+in this fixed declared schema order. The schema is deliberately minimal: it carries the
+governed record verbatim rather than a projection of it, so that the record's own fingerprint
+is recomputable from the candidate alone and can be compared against the re-derived
+current-head universe.
+
+1. `corpusRecord` — the complete `RepositoryPolicyCorpusRecord` of that current head, as
+   ratified by `NEXUS-RAT-2026-08-03-001`, carried **verbatim and unaltered**. Selection
+   declares no field of it, adds none, removes none, reorders none, and reinterprets none. It
+   is consumed exactly as that contract defines it, including its `policyIdentity`,
+   `policyVersion`, `authorizingRatificationIdentifier`, `predecessorVersions`,
+   `scopeDeclarationState`, `missionApplicabilityScope`, `criterionDeclarations`, and
+   `contentCommitment`;
+2. `corpusRecordFingerprint` — the ratified corpus record fingerprint prefix followed by the
+   SHA-256 digest of field 1's canonical encoding. It is **recomputed**, never copied from a
+   caller and never accepted as supplied. It exists so that Pre-Use Verification, above, can
+   compare this candidate against the re-derived corpus's current-head fingerprints;
+3. `attributionValidationOutcome` — exactly one of `Valid | Invalid | Unresolvable`, produced
+   exclusively by `RatificationAttributionValidation` (`NEXUS-RAT-2026-07-15-017`) in Stage 2
+   against the pinned Snapshot, and **re-validated** against that same pinned Snapshot in
+   Pre-Use Verification Step 5. Selection SHALL NOT compute, default, infer, or override this
+   value.
+
+**Every value in this record has exactly one producer, and this section states it truthfully.**
+Field 1 is copied verbatim from corpus assembly. Field 2 is recomputed from field 1 by a
+digest this specification names. Field 3 is produced by an external sole authority and
+re-validated against it. There is no field that is partly copied, partly derived, or
+described as copied while in fact being derived.
+
+**Two values used by the Eligibility Predicate are derivations, not fields, and are not
+stored.** Storing a derived value alongside the record it derives from would permit the two to
+diverge and would require a rule reconciling them. Neither is stored, so neither can diverge:
+
+- **Declared profile kinds.** A candidate declares a Governance Evaluation Input Profile kind
+  if and only if at least one element of `corpusRecord.criterionDeclarations` carries an
+  `evaluationInputProfile` equal to that kind. This is evaluated directly against the carried
+  record, and no `declaredProfileKinds` collection is stored, ordered, deduplicated, or
+  encoded.
+- **Current-head membership.** Whether a candidate is a current head is established for the
+  collection as a whole by Pre-Use Verification Step 4, against the re-derived corpus. It is
+  not a per-candidate stored flag, is not an eligibility conjunct, and its failure is a
+  candidate-set divergence rather than an ineligible candidate. Earlier revisions of this
+  contract carried a `policyVersionExistence` enumeration for this purpose; that field is
+  withdrawn, because a value recorded by the same party that recorded the collection cannot
+  establish the collection's membership in a universe defined elsewhere.
+
+
+## Eligibility Predicate
+
+A candidate is **eligible** if and only if every one of the following holds. Each conjunct
+is an explicit predicate over an authoritative input, not an assumption. Each is evaluated
+only after Pre-Use Verification, above, has succeeded in full:
+
+1. `attributionValidationOutcome` is exactly `Valid`, as re-validated against the pinned
+   Snapshot in Verification Step 5. A candidate whose attribution outcome is `Invalid` is
+   determinately ineligible under this conjunct. A candidate whose attribution outcome is
+   `Unresolvable` never reaches this conjunct, because Rule 6 classifies the selection
+   `Unresolvable` first; this conjunct SHALL NOT be read as an alternative disposition for
+   that case.
+2. At least one element of `corpusRecord.criterionDeclarations` carries an
+   `evaluationInputProfile` equal to the reference's `declaredProfileKind`. This preserves,
+   and does not restate, the existing requirement that a Policy Criterion SHALL NOT be
+   evaluated against a profile it does not declare. Because the test reads the carried corpus
+   record directly, profile eligibility derives from authoritative governed data and never
+   from a caller-supplied label.
+3. `corpusRecord.scopeDeclarationState` is exactly `Declared`. A `ScopeUndeclared` candidate
+   SHALL NOT be eligible, and SHALL NOT be treated as `RepositoryWide` or as having any
+   implied, default, or inherited scope.
+4. The candidate's declared `MissionApplicabilityScope`, carried in
+   `corpusRecord.missionApplicabilityScope`, satisfies the Mission applicability predicate of
+   Mission Applicability Scope, above, for the reference's `missionId` — that is, the scope
+   declares `RepositoryWide`, or it declares `MissionSet` and the reference's `missionId` is
+   an exact member of that scope's `missions` collection, with membership determined by byte
+   equality of the NCCS-1 String encodings after Unicode NFC normalization. Selection SHALL
+   apply that predicate exactly as ratified and SHALL NOT substitute, relax, extend, or
+   reimplement it, and SHALL NOT apply prefix, pattern, wildcard, range, case-insensitive,
+   hierarchical, or similarity matching.
+
+These four conjuncts are independent eligibility dimensions. Every one SHALL hold. Satisfying
+one SHALL NOT be treated as satisfying another, and in particular Mission applicability
+(conjuncts 3 and 4) and the declared profile kind (conjunct 2) remain the two independent
+dimensions that Mission Applicability Scope, above, requires.
+
+**Current-head membership is not a conjunct.** Earlier revisions of this contract carried a
+fifth conjunct over a recorded `policyVersionExistence` value. That conjunct is withdrawn:
+whether the recorded collection is the corpus's current-head universe is a property of the
+collection, established against the re-derived corpus by Verification Step 4, and it cannot be
+established by a flag the same party recorded. A collection that fails Step 4 never reaches
+eligibility at all.
+
+Eligibility is assessed only over assembled candidates, and only current heads are assembled.
+No conjunct is ever assessed against a superseded version, and the failure of every conjunct
+for every candidate SHALL NOT cause a superseded version to be assessed.
+
+**`ScopeUndeclared` candidates.** Mission Applicability Scope, above, requires that a
+`ScopeUndeclared` Repository Policy version be ineligible for any new governance evaluation
+and fail closed with **Escalation Required** if referenced by one. Within selection, that
+requirement is satisfied exactly as follows, and this is the complete and exclusive
+reconciliation:
+
+- a `ScopeUndeclared` current head is assembled as a candidate, so that the candidate set
+  remains complete and verifiable against the re-derived current-head universe;
+- it is **ineligible** under conjunct 3, and is therefore excluded from the eligible set;
+- it SHALL NOT be bound to any Policy Evaluation or Governance Decision, and therefore is
+  never **referenced by** an evaluation in the sense that section uses;
+- where a `ScopeUndeclared` candidate is the only candidate, or where every candidate is
+  ineligible, no candidate is eligible, `selectionOutcome` SHALL be `NoCandidate`, and the
+  Decision SHALL be **Escalation Required** — which is the fail-closed outcome that section
+  requires;
+- the presence of a `ScopeUndeclared` candidate alongside one eligible candidate SHALL NOT
+  by itself produce `Unresolvable`, `Ambiguous`, or **Escalation Required**. Ineligibility is
+  not ambiguity, and a version that is never bound is never applied;
+- a `ScopeUndeclared` candidate SHALL NOT be mutated, back-filled, annotated, or repaired,
+  and no Governance Decision already produced against such a version is altered or
+  invalidated;
+- a `ScopeUndeclared` current head SHALL NOT cause an earlier, explicitly scoped version of
+  the same Policy identity to be assembled or selected. That is the prohibited revival of
+  Historical Version Non-Revival, above, and the correct outcome is `NoCandidate` and
+  **Escalation Required** until a superseding explicitly scoped version is ratified.
+
+## Selection Rules
+
+The following ten rules govern selection and its consequences, applied in the total
+precedence order declared under Stage Model and Total Precedence, above, and only after
+Pre-Use Verification, above, has succeeded in full.
+
+1. Selection SHALL be performed for exactly one Mission and exactly one declared input
+   profile kind.
+2. Selection SHALL operate solely over the verified `candidatePolicyReferences` and the
+   verified corpus and Snapshot facts recorded with them. It SHALL NOT perform an implicit
+   or opportunistic repository lookup, and SHALL NOT read any repository state other than
+   the two pinned reads that Pre-Use Verification requires: the governed source octets whose
+   prepared-text digest equals the recorded `corpusSourceRevision`, and the issued Ratification
+   Authority Snapshot artifact whose envelope commitment equals the recorded
+   `authoritySnapshotEnvelopeCommitment`.
+   Both reads are pinned — the first by prepared-text digest, the second by envelope
+   commitment — are mandatory, and are the only reads authorized.
+   Reading a governed source at a different revision, or a Snapshot at a different envelope
+   commitment, SHALL fail closed rather than be substituted.
+3. A supplied `RepositoryPolicySelectionReference` SHALL NOT be trusted as caller-authored
+   authority, and SHALL NOT be accepted on the strength of internal consistency alone. Every
+   step of Pre-Use Verification SHALL succeed before any value it carries is used, and any
+   divergence between a supplied and a re-established value SHALL produce **Escalation
+   Required**.
+4. A reference that is absent, structurally incomplete, or internally inconsistent — a
+   `Resolved` outcome missing any selected field, a non-`Resolved` outcome carrying any of
+   them, a `candidateSetFingerprint` that does not match the recorded collection, a
+   `corpusRecordFingerprint` that does not match the corpus record it accompanies, a
+   malformed corpus source revision, corpus root, authority source revision, or authority snapshot envelope commitment, or a corpus record
+   whose `scopeDeclarationState` and `missionApplicabilityScope` collection length are
+   inconsistent — SHALL produce **Escalation Required**.
+5. A reference whose `missionId` differs from the evaluation request's Mission identity, or
+   whose `declaredProfileKind` differs from the profile declared by the Policy Evaluation,
+   SHALL produce **Escalation Required**.
+6. Where **any** candidate is indeterminate, `selectionOutcome` SHALL be `Unresolvable` and
+   the Decision SHALL be **Escalation Required**. A candidate is indeterminate when, and only
+   when, at least one of the following holds:
+   - its re-validated `attributionValidationOutcome` is exactly `Unresolvable`;
+   - its `corpusRecord` is internally inconsistent, including a `missionApplicabilityScope`
+     collection whose length does not match its `scopeDeclarationState`.
+
+   An unrecognised `authorizingRatificationIdentifier` is **not** a separate indeterminacy
+   condition and SHALL NOT be treated as one by selection. Such a candidate is assembled like
+   any other, and `RatificationAttributionValidation` alone determines whether it is
+   `Unresolvable`, `Invalid`, or `Valid`. Selection consumes that determination and SHALL NOT
+   anticipate it, filter on it, or substitute its own.
+
+   This rule is evaluated before Rules 7 through 9. An indeterminate candidate can therefore
+   never be resolved, never be counted toward cardinality, and never be reported as
+   `NoCandidate` or `Ambiguous`. One indeterminate candidate is sufficient to make the whole
+   selection `Unresolvable`, even where another candidate is otherwise eligible. An
+   `Invalid` attribution outcome is **not** indeterminacy and SHALL NOT trigger this rule.
+   An `Unresolvable` outcome SHALL NOT cause any earlier version of any Policy identity to be
+   assembled, examined, or selected.
+7. Where every candidate is determinate and no candidate is eligible, `selectionOutcome`
+   SHALL be `NoCandidate` and the Decision SHALL be **Escalation Required**. This condition
+   SHALL NOT produce **Deferred**: a Repository Policy comes into existence only through
+   Ratification, which is a governance action, and never through normal engineering
+   progression. This is the outcome when the candidate collection is empty, when every
+   candidate's attribution outcome is `Invalid`, when every candidate is `ScopeUndeclared`,
+   when no candidate's declared scope is Mission-applicable to the request, and when no
+   candidate declares the profile kind. In every one of those cases the correct outcome is
+   `NoCandidate`, and SHALL NOT be resolution against a superseded version.
+8. Where every candidate is determinate and two or more candidates are eligible,
+   `selectionOutcome` SHALL be `Ambiguous` and
+   the Decision SHALL be **Escalation Required**, identifying every eligible candidate in
+   Candidate Ordering Comparator order. This rule fails closed on **all** multiplicity,
+   whether or not the eligible candidates' Policy Criteria contradict one another.
+   Contradictory applicable Policies, as governed by Authority Hierarchy, above, are a
+   narrower subset of this multiplicity; that rule remains in force and is not modified.
+   Selection SHALL NOT arbitrate between candidates under any circumstance, and SHALL NOT
+   prefer a `RepositoryWide` scope over a `MissionSet` scope, or the reverse, or a higher
+   Policy version over a lower one.
+9. Where every candidate is determinate and exactly one candidate is eligible,
+   `selectionOutcome` SHALL be `Resolved`, and the
+   bound Repository Policy identity and version SHALL be that candidate's exact
+   `corpusRecord.policyIdentity` and `corpusRecord.policyVersion`. The bound version SHALL NOT
+   be derived by recency guessing, maximum-version guessing, latest-ratification-date
+   guessing, scope-specificity guessing, or defaulting.
+10. The candidate collection SHALL be exactly the current-head universe of the re-derived
+    corpus at `corpusSourceRevision`, as established by Pre-Use Verification Step 4. A
+    collection containing any non-head version, omitting any current head, or containing any
+    record the re-derived corpus does not declare SHALL produce **Escalation Required**,
+    reported as a candidate-set divergence naming the exact
+    `(policyIdentity, policyVersion)` pair and the exact divergence kind. This rule holds
+    irrespective of every candidate's attribution outcome, scope, or eligibility, and
+    irrespective of the selection outcome that would otherwise obtain. No condition anywhere
+    in this specification authorizes the assembly, substitution, promotion, or selection of a
+    superseded Repository Policy version.
+
+No outcome above may produce **Approved** through defaulting, recency guessing,
+maximum-version guessing, scope-specificity guessing, lineage descent, implicit repository
+lookup, or acceptance of a self-consistent but unverified selection reference.
+
+## Canonical Encoding and Candidate Set Fingerprint
+
+Canonical encoding uses NCCS-1 exactly as RFC-0003 defines it, protocol identity `"nccs"`,
+version `"1"`, rules 1 through 12. This section does not add, omit, or reinterpret any
+NCCS-1 framing rule. It declares only what NCCS-1 rule 5 expressly delegates to the
+governing schema: this schema's records, field order, and collection ordering.
+
+**Candidate Ordering Comparator.** `candidatePolicyReferences` is an ordered collection
+(NCCS-1 rule 5), which NCCS-1 does not auto-sort. Its order SHALL be strictly ascending by
+the byte-wise comparison of the NCCS-1 String encoding of each candidate's
+`corpusRecord.policyIdentity`. Because the collection is the current-head universe, it carries
+at most one entry per Policy identity, so that key alone is a total order and no tiebreak is
+required. A collection presented in any other order SHALL fail closed.
+
+The comparison is over the **length-prefixed encoded form**, not the bare identifier. A
+shorter identity therefore sorts before a longer one whose bare text would sort earlier
+alphabetically. This is a deliberate consequence of NCCS-1 framing and is stated so that no
+implementation sorts raw identifiers instead.
+
+**Duplicates.** `candidatePolicyReferences` is uniqueness-declared on
+`corpusRecord.policyIdentity`. Two entries with an equal encoded identity SHALL fail closed
+under NCCS-1 rule 7. This is the encoding-level consequence of the current-head universe
+holding exactly one record per identity, and it makes two versions of one identity
+structurally inexpressible in a candidate collection.
+
+**Empty set.** An empty `candidatePolicyReferences` encodes as the empty ordered collection,
+NCCS-1 rule 5 with no elements — the two bytes `le`. It SHALL NOT be encoded as an absent
+field, and SHALL NOT fail closed merely for being empty. An empty collection is one of the
+exact inputs that produces `NoCandidate`, and is the correct collection when the re-derived
+corpus is empty.
+
+**RepositoryPolicyCorpusRecord.** The record carried in Candidate Policy Reference field 1 is
+encoded exactly as `NEXUS-RAT-2026-08-03-001` defines it: NCCS-1 rule 8, field count `i8e`,
+its ratified fixed declared order, with `predecessorVersions` and `missionApplicabilityScope`
+as ordered collections of zero or one element under that contract's exact coupling rules, and
+`criterionDeclarations` a non-empty ordered collection of its ratified two-field
+`PolicyCriterionDeclaration` records. This section neither restates nor modifies that
+encoding, and adds no field to it.
+
+**MissionApplicabilityScope.** The scope record nested within the corpus record is encoded
+exactly as Mission Applicability Scope, above, defines it: NCCS-1 rule 8, field count `i2e`,
+fixed order `scopeKind` then `missions`, with `missions` in Mission Ordering Comparator order
+and empty exactly when `scopeKind` is `RepositoryWide`. This section neither restates nor
+modifies that encoding.
+
+**Candidate Policy Reference record.** Encoded per NCCS-1 rule 8 as a record of exactly three
+fields, field count `i3e`, in the fixed declared order given under Candidate Policy Reference,
+above: `corpusRecord`, `corpusRecordFingerprint`, `attributionValidationOutcome`. Field 1 uses
+record framing; field 2 uses String framing and SHALL be the ratified corpus record
+fingerprint prefix followed by exactly 64 lowercase hexadecimal characters; field 3 uses
+Enumeration framing.
+
+**Candidate Set record.** Encoded per NCCS-1 rule 8 as a record of exactly ten fields, field
+count `i10e`, in **ascending field-name order**, matching the convention the ratified corpus
+contract uses for its commitment-basis records:
+
+1. `authoritySnapshotEnvelopeCommitment` — String framing, the ratified envelope commitment prefix
+   followed by exactly 64 lowercase hex characters;
+2. `authoritySnapshotSchemaVersion` — String framing;
+3. `authoritySourceIdentity` — String framing;
+4. `authoritySourceRevision` — String framing, exactly 64 lowercase hex characters;
+5. `candidatePolicyReferences` — ordered collection (rule 5) of Candidate Policy Reference
+   records in Candidate Ordering Comparator order;
+6. `corpusRoot` — String framing, the ratified corpus root prefix followed by exactly 64
+   lowercase hex characters;
+7. `corpusSourceIdentity` — String framing;
+8. `corpusSourceRevision` — String framing, exactly 64 lowercase hex characters;
+9. `declaredProfileKind` — Enumeration framing;
+10. `missionId` — String framing.
+
+Ascending field-name order places `authoritySnapshotEnvelopeCommitment` before
+`authoritySnapshotSchemaVersion` (`F` precedes `S`) and both before `authoritySourceIdentity`
+(`n` precedes `o` at the tenth octet). The order is fixed by the field names alone and is not a
+matter of judgement.
+
+**The selection outcome is not a field of this record.** It is recomputed in Verification Step 7
+from the verified inputs, so binding it would make the fingerprint attest to its own conclusion.
+
+**Fields 9 and 10 are bound deliberately.** The selection outcome is a function of the Mission
+identity and the declared profile kind as well as of the candidate collection. Were they omitted,
+two references over one candidate collection but different Missions would share a fingerprint
+while requiring different outcomes, and a recomputation could not tell them apart. Binding them
+makes the fingerprint a commitment to the complete selection input.
+
+**Hash representation.** `candidateSetFingerprint = lowercase-hex(SHA-256(NCCS-1 canonical
+bytes of the exact ten-field Candidate Set record))`, FIPS 180-4 SHA-256, output exactly
+64 lowercase hex characters, per NCCS-1 rules 9 and 11.
+
+**What the candidate-set fingerprint does and does not establish.** It establishes that the
+recorded authority facts, corpus facts, request facts, and candidate collection were encoded
+together in the declared order, and it detects reordering, truncation, and internal inconsistency of the
+recorded artifact.
+
+It establishes **nothing** about completeness, provenance, or attribution. It is computed
+over values the reference itself carries, so any party able to alter those values can
+recompute it. In particular:
+
+- a reproducing fingerprint SHALL NOT be represented as establishing that
+  `candidatePolicyReferences` is the current-head projection of `corpusRoot`. This
+  specification defines no derivation from a recorded root to a recorded list and asserts
+  none;
+- a reproducing fingerprint SHALL NOT be represented as establishing that any
+  `attributionValidationOutcome` is the outcome the sole attribution authority produced;
+- a reproducing fingerprint SHALL NOT be represented as establishing that the recorded corpus
+  facts describe any governed source.
+
+Each of those is established only by the corresponding step of Pre-Use Verification, above,
+and the fingerprint check is Verification Step 6 — one necessary step among seven, never a
+substitute for the others.
+
+**No scope fingerprint.** The `candidateSetFingerprint` is a fingerprint over the candidate
+set. It is not a fingerprint over any `MissionApplicabilityScope`, and no fingerprint,
+digest, commitment, or identity value derived from a scope is established here. Mission
+Applicability Scope, above, establishes none and defers any, and that deferral is preserved.
+
+**Normalization.** UTF-8 without byte order mark; every string value normalized to Unicode
+NFC; `CRLF` and bare `CR` normalized to `LF` — NCCS-1 rules 1, 2, and 3, applied unchanged.
+
+**Traversal order.** Selection traversal, eligibility evaluation, and diagnostic target
+enumeration SHALL all use the Candidate Ordering Comparator order, so that the order in
+which candidates are examined and reported is identical to the order in which they are
+encoded.
+
+**Fail-closed conditions.** In addition to NCCS-1 rule 12, encoding SHALL fail closed on: a
+`candidatePolicyReferences` collection not in Candidate Ordering Comparator order; a
+duplicate `corpusRecord.policyIdentity`; an `authoritySourceRevision`,
+`corpusSourceRevision`, or `candidateSetFingerprint` that is not exactly 64 lowercase hex
+characters; a `corpusRoot` or `authoritySnapshotEnvelopeCommitment` that is not its ratified prefix
+followed by exactly 64 lowercase hex characters; an `authoritySnapshotSchemaVersion` other than
+exactly `nexus-ratification-authority-snapshot/3`; a `corpusRecordFingerprint` that is not the ratified corpus record
+fingerprint prefix followed by exactly 64 lowercase hex characters, or that does not equal
+the digest recomputed from the corpus record it accompanies; and an enumeration value outside
+its declared closed set. Every fail-closed condition that `NEXUS-RAT-2026-08-03-001` declares
+for the corpus record, and every one that Mission Applicability Scope, above, declares for the
+scope record, continues to apply unchanged to the record carried in field 1.
+
+## Verification Obligation
+
+A `RepositoryPolicySelectionReference` is the immutable output of the governed selection
+process defined above. Once produced, it is bound as a component of the Policy Evaluation
+request and recorded on the resulting Governance Decision.
+
+It SHALL NOT be trusted as caller-authored authority at any point, and SHALL NOT be accepted
+on the strength of internal consistency alone.
+
+Before a bound reference is used for any purpose, every step of Pre-Use Verification, above,
+SHALL be performed by the Selection Verification Authority and SHALL succeed. Any divergence
+between a supplied value and the value re-established against the authority that owns it SHALL
+produce **Escalation Required**, and Policy Evaluation SHALL NOT proceed.
+
+An implementation that performs only the fingerprint and outcome recomputations of Steps 6 and
+7, omitting the re-derivation of Steps 1 through 5, does **not** conform to this section, even
+though every recomputation it performs succeeds on a forged reference.
+
+## Exact Version Binding
+
+Exactly one Repository Policy identity and exactly one Repository Policy version SHALL be
+bound to each Policy Evaluation and to the Governance Decision it produces.
+
+The bound identity and version SHALL be immutable for the life of that Governance Decision.
+
+Governance SHALL NOT substitute, rebase, refresh, or upgrade a bound Repository Policy
+version after binding.
+
+A later Repository Policy version SHALL NOT retroactively rebind, supersede, or invalidate
+a Governance Decision already produced against an earlier version. This preserves, and does
+not restate, the existing requirement that a prior Repository Policy version remains the
+version of record for every Policy Evaluation and Governance Decision that cited it, and it
+preserves the equivalent requirement that a later version's declared scope SHALL NOT
+retroactively apply to a Decision already produced.
+
+The converse holds symmetrically and is stated here because Historical Version Non-Revival,
+above, depends on it: an earlier Repository Policy version remains the version of record for
+the Decisions that cited it and SHALL NOT become applicable again to a new evaluation, whatever
+becomes of the version that superseded it.
+
+## Determinism
+
+Equivalent `missionId`, `declaredProfileKind`, `corpusSourceIdentity`, `corpusSourceRevision`,
+`corpusRoot`, `authoritySnapshotSchemaVersion`, `authoritySourceIdentity`,
+`authoritySourceRevision`, `authoritySnapshotEnvelopeCommitment`, and
+`candidatePolicyReferences` — including each candidate's complete carried corpus record and
+re-validated attribution outcome — and `candidateSetFingerprint` SHALL always produce the
+equivalent bound Repository Policy identity and version, or the equivalent non-`Resolved`
+outcome.
+
+**Determinism rests on pinning, not on refusing to read.** Pre-Use Verification reads a
+governed source revision fixed by prepared-text digest and an issued Ratification Authority
+Snapshot artifact fixed by its envelope commitment. Two verifiers performing those reads at
+different times obtain the same corpus
+and the same Snapshot, or fail closed; neither obtains a different result from a repository
+that has moved on. Selection therefore does not depend on evaluation-time repository state,
+while still being anchored to authorities outside the artifact it is verifying.
+
+Because the recorded outcome is recomputed from verified inputs before use, selection
+determinism does not depend on the supplying caller. Because the Mission applicability
+predicate reads exactly two inputs — the request's explicit Mission identity and the
+candidate's declared scope — and reads no clock and no repository state, its contribution to
+selection is equally deterministic. Because only current heads are ever candidates, and
+because that is enforced against a re-derived universe rather than a recorded flag, the
+selected version is a function of the governed source and never of any candidate's validation
+outcome.
+
+## Deferred Concepts
+
+The following are **deferred** and SHALL NOT be implemented under this section:
+
+- authorized-subject attestations in any form — no field, no collection, no subject-kind
+  union, no placeholder, and no dormant extraction path;
+- attestation extraction, validation, attestation-backed applicability authority, or
+  attestation-backed selection authority;
+- legacy attestation migration;
+- Repository Policy authority over any subject other than the Mission;
+- migration, back-fill, annotation, or repair of `ScopeUndeclared` Repository Policy
+  versions;
+- any amendment to, extension of, or addition to `MissionApplicabilityScope`, its closed
+  union, its predicate, its Mission Ordering Comparator, or its canonical encoding;
+- any fingerprint, digest, commitment, or identity value derived from a
+  `MissionApplicabilityScope`;
+- any amendment to, extension of, or addition to the Repository Policy Corpus Source
+  contract, its grammars, its schemas, its lineage rules, its current-head derivation, its
+  commitments, its constants, or its diagnostic vocabulary;
+- issuance of a Repository Policy Corpus artifact, population of the corpus, and pinning of
+  any corpus root, envelope commitment, or record fingerprint;
+- any separately issued, signed, or otherwise authenticated selection artifact, and any
+  producer-authentication mechanism that would permit Pre-Use Verification Steps 1 through 5
+  to be omitted. Such a mechanism may be established later by its own ratification; until it
+  is, re-derivation is the only authorized verification path;
+- any mechanism by which a superseded Repository Policy version could become a candidate,
+  including lineage descent, fallback, promotion, pinning to a historical version, or
+  selection against preserved history;
+- wildcard, pattern, prefix, range, or hierarchical Mission matching of any kind;
+- issuance of a Ratification Authority Snapshot, derivation of any authority root or envelope
+  commitment, or any addition to the `nexus-ratification-authority-snapshot/3` schema;
+- automatic Ratification-Ledger ingestion beyond the source contracts already ratified by
+  `NEXUS-RAT-2026-07-31-001` and `NEXUS-RAT-2026-08-03-001`;
+- any revision of Acceptance Semantics, Current Projection Applicability Selection, or
+  External Authoritative Applicability and Recording;
+- activation of the DORMANT `CorpusReadinessAcceptanceEvaluationInput` profile.
+
+Implementation of this section requires its own separate Sprint scope ratification.
+
+---
+
+# Policy Evaluation
+```
+
+### Site 8 — Policy Evaluation, bound selection reference
+
+**Location:** the `Policy Evaluation SHALL:` list, baseline line 2,310. One bullet is appended after
+the existing final bullet. All existing bullets are preserved verbatim.
+
+PRIOR TEXT (exact, the final bullet of that list):
+
+```
+- record which Policy Criteria were satisfied, which were violated, and which could not be deterministically evaluated.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- record which Policy Criteria were satisfied, which were violated, and which could not be deterministically evaluated;
+- as an additive precondition, consume exactly one bound `RepositoryPolicySelectionReference`, verify it in full under Pre-Use Verification — re-deriving the Repository Policy Corpus from the governed source octets its recorded corpus source revision pins, re-validating every attribution outcome against the exact pinned Ratification Authority Snapshot, and confirming the recorded candidate collection is that corpus's current-head universe — confirm the recomputed outcome is `Resolved`, and evaluate exactly the Repository Policy identity and version that reference binds (see Repository Policy Selection and Version Binding, above). Policy Evaluation SHALL NOT be attempted for a non-`Resolved` recomputed outcome, for a supplied outcome that diverges from the recomputed one, or for a reference that is internally consistent but fails any verification step; every such case resolves under Failure and Conflict Handling, below. This precondition adds no Policy Criterion, alters no Policy Criterion predicate, and changes no criterion evaluation semantics.
+```
+
+The terminating period of the existing final bullet becomes a semicolon. No word of the existing
+bullet is otherwise altered.
+
+### Site 9 — Governance Decision, recording requirement
+
+**Location:** baseline line 2,481.
+
+PRIOR TEXT (exact):
+
+```
+A Governance Decision SHALL reference: the Mission identity for which the evaluation was requested (see Mission-Scoped Governance Evaluation, above), the Repository Policy and version applied, the Policy Criteria evaluated and their individual results, the consumed Evidence references, the consumed Review reference, any applied Ratifications, and a deterministic timestamp/causality position consistent with the existing Domain Event envelope (RFC-0005).
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+A Governance Decision's recording shape depends on the recomputed `selectionOutcome` of the `RepositoryPolicySelectionReference` that governed the evaluation (see Repository Policy Selection and Version Binding, above). Exactly one of the two shapes below applies to any Governance Decision, and no Governance Decision SHALL carry both.
+
+Where the recomputed `selectionOutcome` is `Resolved`, a Governance Decision SHALL reference: the Mission identity for which the evaluation was requested (see Mission-Scoped Governance Evaluation, above), the Repository Policy and version applied, the Policy Criteria evaluated and their individual results, the consumed Evidence references, the consumed Review reference, any applied Ratifications, the complete `RepositoryPolicySelectionReference` that bound the applied Repository Policy identity and version — including its pinned corpus source identity, corpus source revision, and corpus root, its pinned Ratification Authority Snapshot schema version, source identity, source revision, and snapshot envelope commitment, and each candidate's complete Repository Policy Corpus Record, corpus record fingerprint, and re-validated attribution validation outcome — and a deterministic timestamp/causality position consistent with the existing Domain Event envelope (RFC-0005). The Ratification Authority Snapshot fingerprint that `NEXUS-RAT-2026-07-16-001` requires is a separate value, produced by `RatificationAttributionValidation` rather than carried on the selection reference, and continues to be recorded in escalation attribution and included in the complete deterministic input exactly as that ratification provides. A `RepositoryPolicySelectionReference` pins the envelope commitment and SHALL NOT be described, encoded, or recorded as carrying a Ratification Authority Snapshot fingerprint.
+
+Where the recomputed `selectionOutcome` is `NoCandidate`, `Ambiguous`, or `Unresolvable`, no Repository Policy version was selected, none was bound, none was applied, and no Policy Criterion was evaluated. Such a Governance Decision SHALL be **Escalation Required**, and SHALL reference: the Mission identity for which the evaluation was requested, the declared Governance Evaluation Input Profile, the complete `RepositoryPolicySelectionReference` — including its pinned corpus source identity, corpus source revision, and corpus root, its pinned Ratification Authority Snapshot schema version, source identity, source revision, and snapshot envelope commitment, and its complete ordered candidate collection — the exact condition that produced the outcome, and a deterministic timestamp/causality position consistent with the existing Domain Event envelope (RFC-0005). It SHALL NOT carry a selected, bound, or applied Repository Policy identity or version; SHALL NOT carry Policy Criteria evaluation results; SHALL NOT carry a superseded Repository Policy version as a substitute for the unresolved current head; and SHALL NOT be described, recorded, or reported as having applied or evaluated any Repository Policy version. The absence of an applicable Repository Policy version is the recorded fact, not a deficiency in the record.
+```
+
+The existing unconditional sentence is replaced by a conditional recording contract. Its every
+element is preserved verbatim in the `Resolved` shape; the second shape is new, and exists because
+Rules 6, 7, and 8 produce Governance Decisions for which no Repository Policy version was ever
+applied. This is an additive change to the Governance Decision recording contract and is stated as
+one under Scope Restrictions, above.
+
+### Site 10 — Failure and Conflict Handling, new table
+
+**Location:** baseline lines 2,575–2,579, the `Condition (any profile)` table and its lead-in. A new
+paragraph and a new table are appended after it, before the paragraph that follows. Every existing
+table and row in the section is unchanged.
+
+PRIOR TEXT (exact):
+
+```
+The following row applies to both profiles:
+
+| Condition (any profile) | Resulting Governance Decision |
+| --- | --- |
+| Undeclared, unknown, or ambiguous Governance Evaluation Input Profile | Escalation Required |
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+The following row applies to both profiles:
+
+| Condition (any profile) | Resulting Governance Decision |
+| --- | --- |
+| Undeclared, unknown, or ambiguous Governance Evaluation Input Profile | Escalation Required |
+
+The following rows apply to Repository Policy Selection, under both profiles. They are evaluated in the total precedence order declared under Stage Model and Total Precedence, above; the first condition that holds determines the outcome:
+
+| Condition (any profile; Repository Policy Selection) | Resulting Governance Decision |
+| --- | --- |
+| No obtainable governed source prepares to the recorded `corpusSourceRevision`, so the pinned corpus cannot be re-derived (Verification Step 1) | Escalation Required |
+| Re-derivation of the pinned corpus reports `Rejected` rather than `Assembled` (Verification Step 2); the corpus diagnostic is reported | Escalation Required |
+| The corpus root re-derived from the pinned governed source differs from the recorded `corpusRoot` (Verification Step 3) | Escalation Required |
+| The multiset of corpus record fingerprints recomputed from the recorded candidates differs from the current-head fingerprint multiset of the re-derived corpus — an omitted head, an injected record, or a substituted record (Verification Step 4) | Escalation Required |
+| The candidate collection contains a Repository Policy version that is not a current lineage head of the re-derived corpus — a superseded version assembled, substituted, promoted, or descended to for any reason, including the ineligibility, invalidity, indeterminacy, or `ScopeUndeclared` state of that identity's current head | Escalation Required |
+| The candidate collection omits a current lineage head that the re-derived corpus declares | Escalation Required |
+| The required issued Ratification Authority Snapshot artifact is not supplied; or more than one is supplied; or the supplied artifact's `snapshotSchemaVersion` differs from the recorded `authoritySnapshotSchemaVersion`; or its recomputed envelope commitment differs from the value it declares for itself; or its recomputed envelope commitment differs from the recorded `authoritySnapshotEnvelopeCommitment`, including an artifact re-issued from the same governed source at a different capture instant or by a different producer (Verification Step 5) | Escalation Required |
+| The supplied Snapshot artifact fails any step of the verification chain V1 through V8 of `NEXUS-RAT-2026-08-04-001` — an object that is not a complete ratified `Issued` result, whether by a missing field or an unrecognized one; a record that does not encode; a record fingerprint collection that does not match the collection recomputed from the records supplied; an authority root that does not recompute; a record count that does not agree; a record collection, authority root, or result count not derivable from the governed source at the pinned revision; or a declared issuance fact the ratified issuance contract refuses when re-derivation reruns issuance with it (Verification Step 5) | Escalation Required |
+| The verified artifact's `envelope.authoritySourceIdentity` differs from the recorded `authoritySourceIdentity` of field 7 — a recorded authority-source identity divergence, reported naming both values (Verification Step 5) | Escalation Required |
+| The verified artifact's `envelope.authoritySourceRevision` differs from the recorded `authoritySourceRevision` of field 8 — a recorded authority-source revision divergence, reported naming both values (Verification Step 5) | Escalation Required |
+| Any record of the supplied Snapshot artifact declares `lifecycleResolutionForm` `SegmentedLifecycle`, so `NEXUS-RAT-2026-08-04-001` refuses the artifact for want of a ratified scope-selection rule (Verification Step 5) | Escalation Required |
+| A candidate's re-validated attribution outcome, produced by `RatificationAttributionValidation` against the consumed state of the verified pinned Snapshot, differs from its recorded `attributionValidationOutcome` — a forged or stale attribution outcome (Verification Step 5) | Escalation Required |
+| A `corpusRecordFingerprint` does not equal the digest recomputed from the corpus record it accompanies | Escalation Required |
+| `RepositoryPolicySelectionReference` absent, structurally incomplete, or internally inconsistent (for example, `Resolved` without `selectedPolicyIdentity`, `selectedPolicyVersion`, or `selectedAuthorizingRatificationIdentifier`; or a non-`Resolved` outcome carrying any of them) | Escalation Required |
+| A carried corpus record's `missionApplicabilityScope` collection length does not match its `scopeDeclarationState`, or that collection carries two or more elements | Escalation Required |
+| `candidateSetFingerprint` does not match the value recomputed over the recorded corpus facts, snapshot facts, and candidate collection (Verification Step 6) | Escalation Required |
+| Supplied `selectionOutcome` or any supplied selected field diverges from the value recomputed from the verified inputs (Verification Step 7) | Escalation Required |
+| `authoritySourceRevision`, `corpusSourceRevision`, or `candidateSetFingerprint` is not exactly 64 lowercase hex characters; or `corpusRoot`, `authoritySnapshotEnvelopeCommitment`, or a `corpusRecordFingerprint` is not its ratified prefix — `cr-sha256-`, `ec-sha256-`, and `pc-sha256-` respectively — followed by exactly 64 lowercase hex characters; or `authoritySnapshotSchemaVersion` is not exactly `nexus-ratification-authority-snapshot/3` | Escalation Required |
+| `RepositoryPolicySelectionReference.missionId` differs from the evaluation request's Mission identity | Escalation Required |
+| `RepositoryPolicySelectionReference.declaredProfileKind` differs from the profile declared by the Policy Evaluation | Escalation Required |
+| `selectionOutcome` is `Unresolvable` — at least one candidate is indeterminate: its re-validated attribution validation outcome is `Unresolvable`, or its carried corpus record is internally inconsistent. One indeterminate candidate is sufficient, even where another candidate would otherwise be eligible | Escalation Required |
+| `selectionOutcome` is `NoCandidate` — every candidate is determinate and none satisfies the Eligibility Predicate for this Mission and declared profile kind, including the case where every candidate's attribution validation outcome is `Invalid`, the case where every candidate is `ScopeUndeclared`, and the case where no candidate's declared `MissionApplicabilityScope` is Mission-applicable to the request | Escalation Required |
+| `selectionOutcome` is `Ambiguous` — every candidate is determinate and two or more satisfy the Eligibility Predicate, whether or not their Policy Criteria contradict one another | Escalation Required |
+| The Repository Policy identity or version bound to the Governance Decision differs from the identity or version whose Policy Criteria were evaluated | Escalation Required |
+| A Governance Decision produced for a `NoCandidate`, `Ambiguous`, or `Unresolvable` selection outcome carries a selected, bound, or applied Repository Policy identity or version, or carries Policy Criteria evaluation results, or is described as having applied or evaluated a Repository Policy version | Escalation Required |
+
+An `Invalid` attribution validation outcome is a determinate exclusion, not indeterminacy: it renders that candidate ineligible and SHALL NOT by itself produce `Unresolvable`. An `Unresolvable` attribution validation outcome is indeterminacy and SHALL produce `Unresolvable` before cardinality is assessed. The exact underlying attribution result SHALL be preserved and reported in either case. An unrecognised authorizing Ratification identifier is neither of these conditions in itself: such a candidate is assembled unconditionally, and `RatificationAttributionValidation` alone determines its outcome. Neither outcome, and no other condition in this table, authorizes the assembly or selection of a superseded Repository Policy version; a candidate-set divergence naming a non-head version SHALL be reported as such and never as an eligibility failure.
+
+A reference that satisfies every recomputation in this specification while failing any re-derivation step is a **forged or stale reference**, not a valid one. Internal consistency SHALL NOT be accepted in place of verification, and no row above may be satisfied by recomputing a value over the reference's own recorded fields.
+
+No Repository Policy Selection condition produces **Deferred**, and none produces **Approved**. Selection failures are never resolved by normal engineering progression, because a Repository Policy comes into existence only through Ratification.
+```
+
+### Site 11 — Explainability
+
+**Location:** the identification list ending at baseline line 2,664. One bullet is appended after the
+existing final bullet. All existing bullets are preserved verbatim, and the paragraphs that follow the
+list are unchanged.
+
+PRIOR TEXT (exact, the final bullet of that list):
+
+```
+- for the Repository Policy version **referenced** by the evaluation, its declared `MissionApplicabilityScope` — the `scopeKind` and, when `MissionSet`, the complete canonically ordered `missions` collection — together with the evaluation request's Mission identity and the exact result of the Mission applicability predicate. A referenced version that fails the predicate SHALL NOT be described as applied; the term **applied** is reserved for a Repository Policy version that satisfied every required eligibility dimension and whose Policy Criteria were evaluated. When applicability failed, the exact failing condition SHALL be identified; when the referenced version was `ScopeUndeclared`, that SHALL be stated explicitly rather than reported as a scope mismatch.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- for the Repository Policy version **referenced** by the evaluation, its declared `MissionApplicabilityScope` — the `scopeKind` and, when `MissionSet`, the complete canonically ordered `missions` collection — together with the evaluation request's Mission identity and the exact result of the Mission applicability predicate. A referenced version that fails the predicate SHALL NOT be described as applied; the term **applied** is reserved for a Repository Policy version that satisfied every required eligibility dimension and whose Policy Criteria were evaluated. When applicability failed, the exact failing condition SHALL be identified; when the referenced version was `ScopeUndeclared`, that SHALL be stated explicitly rather than reported as a scope mismatch;
+- the complete `RepositoryPolicySelectionReference`: the Mission identity, the declared input profile kind, the pinned corpus source identity, corpus source revision, and corpus root, the pinned Ratification Authority Snapshot schema version, source identity, source revision, and snapshot envelope commitment, the ordered candidate policy references with each candidate's complete Repository Policy Corpus Record — its Policy identity, version, authorizing Ratification identifier, predecessor versions, scope declaration state, declared `MissionApplicabilityScope` where present, Policy Criterion declarations with their declared profile kinds, and content commitment — together with each candidate's corpus record fingerprint and re-validated attribution validation outcome, the candidate-set fingerprint, the selection outcome, and — when the outcome is `Resolved` — the selected Repository Policy identity, selected version, and selected authorizing Ratification identifier. When the outcome is `Ambiguous`, every eligible candidate SHALL be identified in Candidate Ordering Comparator order. When the outcome is `Unresolvable`, every indeterminate candidate and the exact condition that made it indeterminate SHALL be identified. When the outcome is `NoCandidate`, the exact failing eligibility conjunct SHALL be identified for each candidate; a candidate excluded because it was `ScopeUndeclared` SHALL be reported as `ScopeUndeclared` rather than as a scope mismatch; and a candidate excluded because its attribution validation outcome was `Invalid` SHALL be reported as `Invalid`, distinctly from a candidate that was `Unresolvable`, with the exact underlying attribution result preserved in both cases. Every candidate SHALL be identified as the current lineage head of its Policy identity at the recorded corpus source revision; where a candidate-set divergence was detected, the non-head or omitted `(policyIdentity, policyVersion)` pair SHALL be named as a candidate-set divergence and SHALL NOT be reported as an eligibility failure, and no superseded version SHALL be identified as a candidate, as considered, or as available. When the outcome is `NoCandidate`, `Ambiguous`, or `Unresolvable`, the Governance Decision SHALL identify no applied Repository Policy version and no evaluated Policy Criteria, because none exists; the identification requirements above that presuppose an evaluated Repository Policy version SHALL be read as applying only to the `Resolved` case.
+```
+
+The terminating period of the existing final bullet becomes a semicolon. No word of the existing
+bullet is otherwise altered.
+
+### Site 12 — Conformance
+
+**Location:** the conformance list ending at baseline line 2,731. Ten items are appended after the
+existing final item. All existing items are preserved verbatim.
+
+The anchor is the final Conformance item as it stands in v1.6, added by `NEXUS-RAT-2026-08-03-001` and untouched by `NEXUS-RAT-2026-08-04-001`.
+Earlier revisions of this draft anchored on the Mission Applicability Scope item, which is no longer
+final and whose text now terminates with a semicolon.
+
+PRIOR TEXT (exact, the final item of that list):
+
+```
+- derives the corpus root from governed octets alone so that two structurally independent implementations reading the same octets produce the same root, binds both fingerprint collections into that root, records no root, commitment, or fingerprint inside the governed source it commits to, reports exactly `Assembled` or `Rejected`, never `Issued`, `Valid`, `Invalid`, or `Unresolvable`, treats an empty corpus as `Assembled`, and never describes an assembled corpus as establishing that an authorizing Ratification is effective.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- derives the corpus root from governed octets alone so that two structurally independent implementations reading the same octets produce the same root, binds both fingerprint collections into that root, records no root, commitment, or fingerprint inside the governed source it commits to, reports exactly `Assembled` or `Rejected`, never `Issued`, `Valid`, `Invalid`, or `Unresolvable`, treats an empty corpus as `Assembled`, and never describes an assembled corpus as establishing that an authorizing Ratification is effective;
+- binds exactly one Repository Policy identity and version per Policy Evaluation, taken from a `RepositoryPolicySelectionReference` that passed every Pre-Use Verification step and whose recomputed outcome is `Resolved`, and never derives that version by recency, maximum-version, latest-ratification-date, scope-specificity, lineage descent, or defaulting;
+- assembles the candidate collection as exactly the current-head universe of one assembled Repository Policy Corpus that reported `Assembled`, assembles every current head unconditionally, applies no assembly-time filter of any kind, and in particular never omits a current head because its authorizing Ratification identifier is absent from or unrecognised by the pinned Snapshot, that disposition belonging exclusively to `RatificationAttributionValidation`;
+- carries in each candidate the complete ratified Repository Policy Corpus Record verbatim, a corpus record fingerprint recomputed from that record rather than copied, and an attribution validation outcome produced by the sole attribution authority, stores no derived projection of the record alongside it, and accepts no caller-supplied candidate entry, applicability fact, fingerprint, or outcome through any parameter, field, or channel;
+- verifies every supplied selection reference before use by re-deriving the Repository Policy Corpus from the governed source octets whose prepared-text digest equals the recorded corpus source revision, confirming the re-derived corpus root equals the recorded root, confirming the recomputed candidate fingerprint multiset equals the re-derived current-head fingerprint multiset, and re-validating every attribution outcome against the issued Ratification Authority Snapshot artifact supplied as an input and put through the complete verification chain V1 through V9 of `NEXUS-RAT-2026-08-04-001` — which requires the complete ratified `Issued` result shape, recomputes every fingerprint, the authority root, and the envelope commitment, requires the recomputed commitment to equal the recorded pin, and re-derives the record collection, the authority root, and all three result counts from the governed source at the pinned revision — never re-issuing an artifact in its place, never accepting a root-equivalent, never omitting governed-source re-derivation, and never treating that pin as the Ratification Authority Snapshot fingerprint of `NEXUS-RAT-2026-07-16-001`;
+- requires, as normative conditions of that same verification step and additional to the chain, that the verified artifact's `envelope.authoritySourceIdentity` equal the recorded authority source identity and that its `envelope.authoritySourceRevision` equal the recorded authority source revision, each octet for octet, reporting a divergence by naming both values and failing closed, and never assumes either comparison from the chain, whose pin carries only the schema version and the envelope commitment;
+- invokes the Ratification Authority Snapshot Consumption Correspondence of `NEXUS-RAT-2026-08-04-001` to obtain the state that authority consults rather than defining any transformation of its own, never describes the pinned envelope commitment as identifying a unique artifact, a unique issuance event, or a complete serialized issued state — it establishes commitment-equivalence over the eight basis fields and the committed record collection, which is what fixes the consumed state — and never accepts a reference on the strength of internal consistency, a reproducing candidate-set fingerprint, or a recomputed outcome alone;
+- never represents a reproducing candidate-set fingerprint as establishing candidate-set completeness, candidate provenance, corpus membership, or attribution authenticity, and never represents a recorded corpus root hashed beside a recorded candidate list as proving that list to be the root's current-head projection;
+- never assembles, substitutes, promotes, falls back to, or descends to a Repository Policy version that is not the current lineage head of its Policy identity in the re-derived corpus, under any condition whatever — including an `Invalid` or `Unresolvable` attribution outcome, a `ScopeUndeclared` head, an ineligible head, an internally inconsistent head, and a head whose exclusion would leave no eligible candidate — and reports a candidate collection containing a non-head or omitting a declared head as a candidate-set divergence naming the exact pair and the exact divergence kind, never as an eligibility failure;
+- evaluates Mission applicability within selection as exactly the ratified Mission applicability predicate over the candidate's own declared scope as its carried corpus record states it, treats a `ScopeUndeclared` candidate as ineligible without mutating, back-filling, or repairing it, without treating it as `RepositoryWide`, and without reviving an earlier explicitly scoped version of the same identity, and determines profile eligibility directly from that record's Policy Criterion declarations rather than from any stored or supplied projection of them;
+- treats an `Unresolvable` re-validated attribution outcome and an internally inconsistent carried corpus record as candidate indeterminacy that produces `Unresolvable` before cardinality is assessed, treats an `Invalid` re-validated attribution outcome as a determinate exclusion that produces ineligibility and never `Unresolvable`, never conflates the two, never anticipates either by filtering a candidate out of assembly, and preserves and reports the exact underlying attribution result in both cases;
+- records a Governance Decision whose shape matches its selection outcome: for `Resolved`, the bound and applied Repository Policy identity and version together with the evaluated Policy Criteria and their results; for `NoCandidate`, `Ambiguous`, and `Unresolvable`, the complete selection reference and the exact failing condition, carrying no selected, bound, or applied Repository Policy identity or version, carrying no Policy Criteria results, carrying no superseded version as a substitute, and never describing or reporting the Decision as having applied or evaluated a Repository Policy version;
+- encodes the three-field Candidate Policy Reference record and the ten-field Candidate Set record in ascending field-name order as declared, orders candidates by the length-prefixed encoding of the carried corpus record's Policy identity, fails closed on a duplicate identity, a misordered collection, a malformed prefixed digest, and a corpus record fingerprint that does not equal the digest of the record it accompanies, resolves `NoCandidate`, `Ambiguous`, and `Unresolvable` outcomes to `Escalation Required` and never to `Deferred` or `Approved`, fails closed on all candidate multiplicity without arbitration, and records the complete selection reference on every Governance Decision it produces.
+```
+
+The terminating period of the existing final item becomes a semicolon. No word of the existing item is
+otherwise altered.
+
+### Site 13 — Amendment History
+
+**Location:** appended after the existing final entry of `# Amendment History`, the `v1.6 (2026-08-04)`
+entry added by `NEXUS-RAT-2026-08-04-001` at v1.6 line 2,816, which is the file's final line. Every
+existing entry, including that one, is unchanged.
+
+TEXT TO APPEND (exact):
+
+```
+- v1.7 (2026-08-04) — Amended by `NEXUS-RAT-2026-08-02-001` to establish Repository Policy Selection and Version Binding as a new binding section, placed between Repository Policy Corpus Source and Policy Evaluation because it consumes the former and precedes the latter. Defines the deterministic determination of which single ratified Repository Policy version is applicable to exactly one Mission and exactly one declared Governance Evaluation Input Profile instance, and the exact binding of that version into the resulting Governance Decision. Establishes a three-stage model with total precedence — Candidate Set Assembly, Attribution Validation, Selection — in which Policy Evaluation follows Stage 3 and begins only on a `Resolved` outcome. Names the Candidate Set Assembly Authority as the producer of the candidate collection and fixes that collection as exactly the current-head universe of one assembled Repository Policy Corpus that reported `Assembled`, pinned by its `corpusSourceIdentity`, `corpusSourceRevision`, and `corpusRoot` as ratified by `NEXUS-RAT-2026-08-03-001`. **Assembly applies no filter**: every current head is assembled unconditionally, and a current head whose authorizing Ratification identifier is absent from or unrecognised by the pinned Snapshot is assembled like any other, because filtering it would both destroy completeness and usurp `RatificationAttributionValidation`, which alone determines whether such a Ratification is `Valid`, `Invalid`, or `Unresolvable`. Establishes, as a distinct consumer-side role, the **Selection Verification Authority** and a mandatory seven-step **Pre-Use Verification** path that must succeed in full before a bound reference is used for any purpose: pin the governed source by requiring an obtainable source whose prepared-text digest equals the recorded `corpusSourceRevision`; re-derive the corpus and require `Assembled`; re-derive the corpus root and require equality with the recorded root; recompute each candidate's corpus record fingerprint from its carried record and require the resulting multiset to equal exactly the re-derived current-head fingerprint multiset, reporting an injected, non-head, or omitted candidate by its exact pair; re-validate every attribution outcome through `RatificationAttributionValidation` against the verified issued Ratification Authority Snapshot artifact supplied as a required input, whose schema version is required to equal the recorded one and whose recomputed envelope commitment is required to equal the recorded pin, with no substitution and no re-issued equivalent permitted, and require equality with the recorded outcome; require, additionally and as normative conditions of that same step, that the verified artifact's own `envelope.authoritySourceIdentity` and `envelope.authoritySourceRevision` equal the recorded authority source identity and authority source revision of fields 7 and 8, octet for octet, reporting a divergence by naming both values — comparisons the verification chain does not perform, because the pin it accepts carries only the schema version and the envelope commitment, and which are therefore established at this step or nowhere; recompute the candidate-set fingerprint; and recompute the selection outcome and every selected field. **Self-consistency is expressly not authenticity.** The specification states, normatively, that recomputing a fingerprint over a reference's own recorded fields establishes only internal consistency, that a party altering the candidate collection, an attribution outcome, or the selection outcome and then recomputing produces an equally self-consistent artifact, and that no claim is made anywhere that hashing a recorded corpus root beside a recorded candidate list proves that list to be the root's current-head projection; no derivation from a recorded root to a recorded list is defined or asserted. An implementation performing only the two recomputation steps and omitting re-derivation expressly does not conform. Determinism is restated as resting on **pinning rather than on refusing to read**: the corpus read is fixed by prepared-text digest and the supplied Snapshot artifact is fixed by envelope commitment, so two verifiers obtain the same corpus and verify the same Snapshot artifact or fail closed, and the prior contract's blanket prohibition on evaluation-time reads is withdrawn as having been unable to distinguish a genuine reference from a consistently re-fingerprinted forgery. Establishes **Historical Version Non-Revival**: a superseded Repository Policy version is preserved history, remains the version of record for every Decision that cited it, and SHALL NOT be assembled as a candidate under any circumstance — in particular SHALL NOT be assembled, substituted, promoted, fallen back to, or descended to because its identity's current head is `Invalid`, `Unresolvable`, `ScopeUndeclared`, internally inconsistent, ineligible, or such that excluding it would leave no eligible candidate. There is no lineage walk: exactly one version per Policy identity is ever examined. A candidate collection containing a non-head version, or omitting a declared head, fails at Verification Step 4 as a candidate-set divergence naming the exact pair and divergence kind, before any eligibility or cardinality assessment, and is never reported as an eligibility failure. Introduces the immutable `RepositoryPolicySelectionReference` — fifteen fields in fixed order: Mission identity, declared input profile kind, pinned corpus source identity, corpus source revision, and corpus root, pinned authority snapshot schema version, authority source identity, authority source revision, and authority snapshot envelope commitment, ordered candidate policy references, candidate-set fingerprint, a closed four-value `selectionOutcome` (`Resolved | NoCandidate | Ambiguous | Unresolvable`), and the selected identity, version, and authorizing Ratification identifier present exactly when the outcome is `Resolved` — and a deliberately minimal three-field Candidate Policy Reference record carrying the complete ratified `RepositoryPolicyCorpusRecord` **verbatim and unaltered**, a `corpusRecordFingerprint` recomputed from that record rather than copied, and an `attributionValidationOutcome` produced by the sole attribution authority and re-validated against the pinned Snapshot. Each of the three has exactly one producer and one transformation, stated identically in the schema, the assembly rules, the traceability table, this history, and the vectors. No derived projection is stored: declared profile kinds are evaluated directly against the carried record's `criterionDeclarations`, and the earlier `declaredProfileKinds` collection and `policyVersionExistence` enumeration are both withdrawn — the former because a stored derivation may diverge from the record it derives from, the latter because a value recorded by the same party that recorded the collection cannot establish that collection's membership in a universe defined elsewhere. Current-head membership is accordingly no longer an eligibility conjunct but a property of the collection, established against the re-derived corpus. Defines a four-conjunct Eligibility Predicate over authoritative inputs: a re-validated `Valid` attribution outcome; a Policy Criterion declaration in the carried record whose Governance Evaluation Input Profile is the declared kind; a `Declared` scope declaration state; and satisfaction of the ratified Mission applicability predicate by the carried declared scope. Establishes one total mapping distinguishing candidate indeterminacy from determinate exclusion: an `Unresolvable` re-validated attribution outcome and an internally inconsistent carried record each make the candidate indeterminate and the whole selection `Unresolvable` before eligibility and cardinality are assessed, one such candidate being sufficient even where another is otherwise eligible; whereas an `Invalid` re-validated outcome is a determinately known negative that renders only that candidate ineligible and never produces `Unresolvable`. The exact underlying attribution result is preserved and reported in both cases, neither case revives a predecessor, and neither is anticipated by filtering during assembly. Establishes the complete and exclusive reconciliation of `ScopeUndeclared` candidates: such a current head is assembled so the candidate set stays verifiable against the re-derived current-head universe, is ineligible, is never bound and therefore never referenced by an evaluation, yields `NoCandidate` and **Escalation Required** where no candidate is eligible, does not by itself produce `Unresolvable` or `Ambiguous` where an eligible candidate exists, is never mutated, back-filled, annotated, or repaired, and never causes an earlier explicitly scoped version of the same identity to be assembled or selected. Defines ten Selection Rules applied in total precedence order after verification has succeeded in full, such that candidate-level validity strictly precedes eligibility and cardinality, making `Resolved` and `Unresolvable` mutually exclusive by construction, and restricting evaluation-time reads to exactly the two pinned reads verification requires. No eligible candidate resolves to `NoCandidate` → **Escalation Required**, explicitly never **Deferred**, because a Repository Policy arises only through Ratification and never through normal engineering progression. Two or more eligible candidates resolve to `Ambiguous` → **Escalation Required**, failing closed on all multiplicity whether or not the candidates' Policy Criteria contradict one another and without preferring `RepositoryWide` over `MissionSet`, the reverse, or a higher version over a lower; because candidates are current heads, that multiplicity arises from distinct Policy identities and never from two versions of one identity, and the existing Authority Hierarchy rule on contradictory applicable Policies is a narrower subset of it and remains in force, unmodified. Declares the complete canonical encoding this schema owes NCCS-1 rule 5: the Candidate Ordering Comparator over the carried record's Policy identity alone, compared in length-prefixed encoded form, which is total because the current-head universe holds at most one entry per identity and which makes two versions of one identity structurally inexpressible in a candidate collection; the uniqueness declaration and duplicate fail-closed policy; the empty-set encoding; the three-field Candidate Policy Reference record; the ten-field Candidate Set record encoded in ascending field-name order, matching the ratified corpus contract's convention for commitment-basis records; the SHA-256 hash representation; an explicit statement of what the candidate-set fingerprint does and does not establish; and the additional fail-closed conditions, including a corpus record fingerprint that does not equal the digest of the record it accompanies. Establishes exact version binding in both directions: one identity and one version per Decision, immutable for that Decision's life, never substituted, rebased, refreshed, or upgraded after binding, never retroactively rebound by a later version or a later version's scope, and never becoming applicable again to a new evaluation once superseded. Adds twenty-five Failure and Conflict Handling rows applicable under both profiles, none of which produces **Deferred** or **Approved**, and states that a reference satisfying every recomputation while failing any re-derivation step is a forged or stale reference rather than a valid one. States that a `RepositoryPolicySelectionReference` pins the authority snapshot envelope commitment and SHALL NOT be described, encoded, or recorded as carrying a Ratification Authority Snapshot fingerprint, while the fingerprint that `NEXUS-RAT-2026-07-16-001` requires continues to be produced by `RatificationAttributionValidation` and recorded in escalation attribution and the complete deterministic input exactly as that ratification provides. Makes the Governance Decision recording contract conditional on the selection outcome: a `Resolved` outcome records the bound and applied Repository Policy identity and version together with the evaluated Policy Criteria and their results, exactly as before; a `NoCandidate`, `Ambiguous`, or `Unresolvable` outcome records the complete selection reference and the exact failing condition while carrying no selected, bound, or applied Repository Policy identity or version, no Policy Criteria results, and no superseded version as a substitute, and is never described or reported as having applied or evaluated a Repository Policy version. Amends the `Escalation Required` required inputs and precondition accordingly, so that a Governance Decision arising from an unresolved selection is satisfiable, the absence of an applicable Repository Policy version being itself the recorded obstruction; the `Approved`, `Rejected`, and `Deferred` Decision values are unchanged. The amendment is additive in the precise sense that no existing rule, row, bullet, or clause is deleted, narrowed, or withdrawn; it does add a mandatory selection-and-verification precondition to Policy Evaluation, make the Governance Decision recording contract conditional, and widen the `Escalation Required` required inputs and precondition, and Policy Criterion evaluation semantics are unchanged. The version 3 record encoding is consumed exactly as `NEXUS-RAT-2026-08-04-001` establishes it, including its declaration that a schema version identifier names an exact canonical encoding and is therefore an encoding compatibility boundary; the recorded `authoritySnapshotSchemaVersion` is exactly `nexus-ratification-authority-snapshot/3`, an artifact declaring any other version is refused before a record is read, and no version 1 or version 2 artifact can satisfy Verification Step 5. Which Required Outcome Mapping conditions a conforming version 3 artifact can present is likewise recorded rather than assumed: structurally malformed record, unknown lifecycle status, duplicate identifier, and contradictory record are each unreachable through this path, each by a stated mechanism, and each remains unamended and binding on every other path. An earlier revision published a vector requiring an out-of-set lifecycle status to survive into the consumed state, which the record encoding refuses; that vector is withdrawn. **`NEXUS-RAT-2026-08-04-001` is not amended**; the Ratification Authority Snapshot Consumption Correspondence is a prerequisite of this amendment in two independent senses — it owns contracts Verification Step 5 invokes, and its own RFC-0011 amendment produces the v1.6 baseline this amendment is anchored against — and is consumed exactly as ratified. It owns the supplied-artifact verification chain V1 through V9, the canonical consumed order, the total transformation from a verified version 3 artifact to the Snapshot state `RatificationAttributionValidation` consults, the field-by-field provenance of every consumed field including the governed `ratificationSubject` it carries into the version 3 record, the preservation of missing, duplicate, unknown-status, and structural-completeness semantics, and the refusal of any artifact carrying a `SegmentedLifecycle` record; Verification Step 5 invokes all of these and defines, weakens, or excepts no part of any of them. Verification accordingly requires the complete ratified `Issued` result shape before any recomputation — refusing a missing field and refusing an unrecognized field rather than ignoring it, at the result, the `envelope`, and the `producingAttribution` — recomputes every record fingerprint from the record actually supplied, compares the order-insensitive fingerprint collection, recomputes the authority root and the envelope commitment, **re-derives the record collection, the authority root, and all three result counts from the governed source octets the artifact's `authoritySourceRevision` names, rerunning issuance with exactly the artifact's own declared `capturedAt` and `producingAttribution` and substituting neither, and requires each re-derived value to match**, and accepts nothing supplied as authority. That the counts must be established structurally and re-derived rather than inferred is itself a consequence the prerequisite states normatively: no result count, and no framing of the result as a whole, enters either commitment basis, so a correct root and a correct commitment establish nothing about the shape of what carries them. Two earlier revisions are withdrawn: one compared only a recomputed envelope commitment against the recorded pin, and so would have admitted a genuine envelope presented alongside altered records; the other added per-record recomputation but stopped there, establishing only self-consistency and equality with a pin carried on the mutable reference itself, both of which are reproducible by whoever wrote the artifact. Governed-source re-derivation is the external-authority anchor that closes that gap, and it is mandatory: every Ratification Authority Record consulted is a record the governed source at the pinned revision actually yields, so no attribution outcome can be produced that the governed Ratification Ledger does not support. A normative vector exhibits a wholly self-consistent forged artifact, with a matching forged selection reference, that passes every recomputation step and is refused at re-derivation; had it been consumed it would have reported a superseded Ratification as valid. Re-derivation does not make the envelope commitment pin redundant and the pin does not make re-derivation redundant: two issuances of the same governed octets share an authority root and differ in envelope commitment, so the pin narrows the supplied object to one commitment-equivalence class while re-derivation establishes that its records are governed, and both are required. What re-derivation does not establish is stated with it — the declared capture instant and producing attribution are not re-derivable, are fixed by the pin against substitution only, and are inputs to no attribution outcome. Where the governed source is not obtainable at the pinned revision, verification fails closed, with no fallback to the supplied artifact, no most-recent-source substitution, and no degradation to the recomputation-only chain. The consumed record order is derived from that committed fingerprint collection rather than from the artifact's declared record order, which is accordingly inert, and an earlier revision that preserved supplied order — under which two artifacts sharing a root and a commitment could yield different consumed states — is withdrawn. Normative end-to-end vectors carry an verified issued artifact through the chain, the correspondence, and the sole validation authority, reproducing every published attribution outcome unchanged, and exhibit that two artifacts differing only in producing attribution produce the identical consumed state while differing in envelope commitment — so no fingerprint over that state could have served as the artifact pin, while pinning the artifact fixes the consumed state and therefore any fingerprint derived over it. No rendering of the Ratification Authority Snapshot fingerprint is published or ratified here, because its derivation is owned by `RatificationAttributionValidation` and ratifying an octet length or digest of it would constrain that derivation in fact; an earlier revision that published such renderings as normative evidence is withdrawn. **`NEXUS-RAT-2026-08-03-001` is not amended**; the Repository Policy Corpus Source contract is consumed exactly as ratified, its records are carried verbatim, its assembly is invoked rather than restated, and selection enumerates no corpus, declares no corpus record, derives no current head of its own authority, computes or verifies no content commitment, issues no corpus artifact, populates no corpus, and adds no field to any corpus schema. **`NEXUS-RAT-2026-08-02-002` is not amended**; Mission Applicability Scope retains sole ownership of the scope, its closed union, its predicate, its Mission Ordering Comparator, and its canonical encoding, selection declares no scope and alters none, establishes no scope fingerprint, and authorizes no migration of a `ScopeUndeclared` version. **`NEXUS-RAT-2026-07-18-007` is not amended**; the `RepositoryPolicySelectionReference` is the output of the governed selection process and a bound component of the Policy Evaluation request, is not a field of either authorized profile, `ReviewGovernanceEvaluationInput` retains its v1.1 semantics, required inputs, failure handling, and wire contract exactly, `CorpusReadinessAcceptanceEvaluationInput` retains its exact field list and remains DORMANT, carrying a profile identifier as declared Policy Criterion data is not evaluation and does not activate the dormant profile, and the authorized profile set remains exactly two. **`NEXUS-RAT-2026-07-15-017` is not amended**; it retains sole authority over Ratification reference resolution and over its three closed outcomes, selection never produces one, and Pre-Use Verification invokes that authority rather than reimplementing, anticipating, or substituting for it. **`NEXUS-RAT-2026-07-16-001` is not amended**; its requirement that escalation attribution record, and that the complete deterministic input to a Governance Decision include, the Ratification Authority Snapshot fingerprint continues to be discharged by the existing mechanism, unchanged: that fingerprint is derived by `RatificationAttributionValidation` from the Snapshot state it consults and is consumed by escalation attribution and by the Governance Decision evaluation key. This amendment does not derive, record, rename, or replace it, and introduces no value that stands in for it. The `authoritySnapshotEnvelopeCommitment` recorded on a selection reference is a **different value** with a different input domain, derivation, representation, owner, and consumer; the specification states that distinction explicitly and asserts no equivalence between the two. No obligation of this ratification is deleted, narrowed, superseded, or excepted; no second or alternative evaluation key is introduced; and no existing persisted decision, evaluation key, or diagnostic is read, rewritten, or invalidated, since every `RepositoryPolicySelectionReference` is created under this section and none precedes it. **`NEXUS-RAT-2026-07-31-001` is amended in exactly one respect**: its deferral of *consuming a Snapshot in governance evaluation* is closed to the exact extent of Verification Step 5 of Repository Policy Selection, and to no greater extent, because that step makes governance-time consumption of an issued artifact architecturally mandatory and the deferral therefore cannot be described as intact. Every other deferral of that ratification is preserved verbatim and each is dispositioned individually in the ratification entry — production Snapshot issuance, authority-root pinning, version 1 migration, authorized-subject attestations in every form, attestation extraction and attestation-backed authority, legacy attestation migration, automatic Ledger ingestion beyond its source contract, and implementation or Sprint activation. Its Authorized Scope, Ownership Model, schemas, protocol constants, commitment layers, diagnostic vocabulary, and result contract are unchanged. Snapshot issuance remains governed solely by it, no Snapshot is issued here, nothing is added to, reserved in, or reinterpreted within the `nexus-ratification-authority-snapshot/3` schema, and a supplied Snapshot artifact is accepted only when its recomputed envelope commitment equals the exact pinned value, never re-issued, substituted, or accepted as a root-equivalent. Where an issued artifact is stored, who serves it, and how a commitment is resolved to it are established nowhere in this amendment and remain deferred in full; the recorded source identity and source revision name the governed source the artifact was issued from, are required by an explicit normative condition of Verification Step 5 to equal the verified artifact's own envelope facts octet for octet, and expressly do **not** locate an issuance — a claim to the contrary is made nowhere in the amendment, including in its normative Traceability tables. An earlier revision asserted that equality in prose, in the Traceability table, and in the Amendment History without any normative step performing it, so a caller could alter either recorded fact on an otherwise self-consistent reference, recompute the candidate-set fingerprint and the recorded outcomes, and pass every stated step while the immutable reference recorded a lineage the verified artifact does not carry; that omission is **corrected**, the comparison is now a stated condition of the step with its own two Failure and Conflict Handling rows, and vectors exhibit one altered reference for each field. The reference pins that ratification's **envelope commitment** — the commitment layer it defines as binding the authority root, both source facts, the canonical serialization protocol identifier, the capture instant, the producing attribution, the record count, and the snapshot schema version, and, through the authority root, the order-insensitive record fingerprint collection. That commitment establishes **commitment-equivalence** over exactly those fields and that collection; it does **not** identify a unique artifact or a unique issuance event, because two distinct issuances declaring identical basis facts produce the same commitment, and it binds neither wire framing, nor the artifact's declared record order, nor the three result counts. Commitment-equivalence is sufficient and is what this contract relies on: the canonical consumed order makes supplied order inert, the result shape is fixed structurally, and the counts are re-derived, so commitment-equivalent objects yield the identical consumed state. Every unique-artifact, unique-issuance, and complete-issued-state claim made in an earlier revision of this draft is **withdrawn**, and the specification carries a table of precisely the bound and unbound fields. The reference pins the envelope commitment because attribution validation's result depends on the artifact consulted and root equivalence is therefore strictly weaker than the commitment-equivalence that determines the consumed state; the authority root is deliberately **not** the pinned value, and an earlier revision of this draft that pinned it and directed the verifier to re-issue is withdrawn. The correspondence between an issued version 3 artifact and the record collection attribution validation consults is **not** deferred by this amendment and is **not** defined by it: it is ratified separately and in advance by `NEXUS-RAT-2026-08-04-001`, which this amendment consumes exactly as ratified, and application is gated on that prerequisite already being present in the Ledger. Two dependencies remain and approval discharges neither, and neither is silently assumed by any vector: production Snapshot issuance, which stays deferred, so that no conforming selection reference can be produced until it is separately authorized; and Segmented Lifecycle Scope Selection, the rule determining which governed scope of a segmented record a scope-free Ratification reference resolves against, which belongs to the authorities that own scope and resolution and which this amendment neither supplies nor works around. Because the governed corpus presently carries declarations in segmented form, an artifact issued from it is refused at Verification Step 5 and no conforming reference can be produced against it until that rule is separately ratified; the consequence is stated in the binding text and exhibited by vector SV6 rather than concealed. An earlier revision instead mapped a segmented record's divergent scoped statuses onto a status collection and reported it as a contradictory record, which made the validation authority assert a defect the issuance authority denies; that treatment is withdrawn in full. Its prohibition on recording a root, envelope commitment, or record fingerprint **inside the governed source they are derived from** is unaffected: a selection reference is not that source. The `ratificationSubject` field of the version 3 record is added by `NEXUS-RAT-2026-08-04-001` and not by this amendment, which neither alters nor reads it. Its declaration that schema version 2 is totally incompatible with version 1, and that migrating any version 1 artifact requires separate ratification, is neither discharged, narrowed, nor extended here. Every deferral it declared other than the single one dispositioned above remains in force, with authorized-subject attestations deferred in every form — no field, no collection, no subject-kind union, no placeholder, and no dormant extraction path. **Corpus Readiness Acceptance Evaluation is not revised**; Acceptance Semantics, Current Projection Applicability Selection, the "Historical validity is not current applicability" rule, and External Authoritative Applicability and Recording are unchanged, and the Corpus Readiness Acceptance Repository Policy retains sole ownership of its current-Projection selector. **RFC-0001 is not amended**; Mission identity is consumed by identity only. **RFC-0003 is not amended**; NCCS-1 is consumed exactly as RFC-0003 v1.1 defines it, and this section declares only the schema-owned ordering that NCCS-1 rule 5 delegates. Any separately issued, signed, or otherwise authenticated selection artifact that would permit re-derivation to be omitted is expressly deferred to its own future ratification. No Governance Decision value, Escalation category, Policy Criterion predicate, or Governance Evaluation Input Profile is introduced or modified. No Repository Policy authority over any subject other than the Mission is established. Specification text only; implementation requires separate Sprint scope ratification.
+```
+
+### Site 14 — Governance Decision, `Escalation Required` required inputs and precondition
+
+**Location:** baseline lines 2,472–2,473, within `## Escalation Required`. Sites are identified by
+number, not by position; application matches on the reproduced prior text and the order in which the
+fourteen sites are applied is immaterial, because every match is exact and disjoint.
+
+This site exists because Selection Rules 6, 7, 8, and 10 produce an `Escalation Required` Governance
+Decision in cases where **no** Repository Policy version is applicable, while the existing text
+presumes an applicable Policy version exists in every case. Without this amendment the Decision
+contract would be unsatisfiable for three of the four selection outcomes.
+
+PRIOR TEXT (exact):
+
+```
+- **Required inputs:** the applicable Repository Policy version and whatever inputs exist; the specific obstruction is an ambiguity, conflict, or unsupported condition, not a missing input.
+- **Precondition:** at least one applicable Policy Criterion could not be deterministically evaluated despite all required inputs being present (for example: conflicting applicable Repository Policies; a Policy Criterion referencing an undefined term; a Policy version gap), or the applicable Policy itself is ambiguous, conflicting, or absent for the case presented.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- **Required inputs:** where an applicable Repository Policy version was selected and bound, that version and whatever inputs exist; the specific obstruction is an ambiguity, conflict, or unsupported condition, not a missing input. Where Repository Policy Selection produced `NoCandidate`, `Ambiguous`, or `Unresolvable` (see Repository Policy Selection and Version Binding, above), no Repository Policy version is applicable, none is required, and the required inputs are instead the Mission identity, the declared Governance Evaluation Input Profile, and the complete `RepositoryPolicySelectionReference` carrying the exact condition that produced the outcome. The absence of an applicable Repository Policy version is itself the recorded obstruction, and a superseded Repository Policy version SHALL NOT be supplied in its place.
+- **Precondition:** at least one applicable Policy Criterion could not be deterministically evaluated despite all required inputs being present (for example: conflicting applicable Repository Policies; a Policy Criterion referencing an undefined term; a Policy version gap), or the applicable Policy itself is ambiguous, conflicting, or absent for the case presented, or Repository Policy Selection did not resolve exactly one applicable Repository Policy version for this Mission and declared input profile kind. In that last case no Policy Criterion was evaluated, and none SHALL be recorded as evaluated.
+```
+
+The first clause of each existing bullet is preserved verbatim and made conditional. No existing
+obstruction, example, or consequence is removed, narrowed, or reworded.
+
+## Traceability of Every Field
+
+Every fact carried by a `RepositoryPolicySelectionReference` has exactly one producer and exactly
+one transformation, and exactly one authority against which it is re-established before use. **No
+field is blocked, no field is filled by assertion, and no field is described as copied while in fact
+being derived.**
+
+### Reference-level fields
+
+| # | Field | Producer | Transformation | Re-established by |
+| --- | --- | --- | --- | --- |
+| 1 | `missionId` | Evaluation requester, per Mission-Scoped Governance Evaluation | none — carried as supplied | Equality against the evaluation request's Mission identity (Rule 5) |
+| 2 | `declaredProfileKind` | Evaluation requester | none — carried as supplied | Equality against the profile the Policy Evaluation declared (Rule 5) |
+| 3 | `corpusSourceIdentity` | Corpus assembly, `NEXUS-RAT-2026-08-03-001` | none — carried unaltered | Used to obtain the governed source in Verification Step 1 |
+| 4 | `corpusSourceRevision` | Corpus assembly | none — carried unaltered | Verification Step 1: an obtainable governed source SHALL prepare to exactly this digest |
+| 5 | `corpusRoot` | Corpus assembly | none — carried unaltered | Verification Step 3: re-derived from the pinned source and compared |
+| 6 | `authoritySnapshotSchemaVersion` | Snapshot issuance, `NEXUS-RAT-2026-07-31-001` | none — carried unaltered | Verification Step 5: the supplied artifact's `snapshotSchemaVersion` SHALL equal it; a version 1 or version 2 artifact is rejected before the envelope commitment is recomputed and before any record is read |
+| 7 | `authoritySourceIdentity` | Snapshot issuance | none — carried unaltered | Verification Step 5, as a **normative equality condition of that step**: it SHALL equal the verified artifact's `envelope.authoritySourceIdentity`, octet for octet, and a divergence fails the step closed naming both values. The verification chain does not perform this comparison and it is not assumed from the chain. It locates nothing, and no retrieval is performed or authorized. Bound by field 9 |
+| 8 | `authoritySourceRevision` | Snapshot issuance | none — carried unaltered | Verification Step 5, as a **normative equality condition of that step**: it SHALL equal the verified artifact's `envelope.authoritySourceRevision`, octet for octet, and a divergence fails the step closed naming both values. The verification chain does not perform this comparison and it is not assumed from the chain. It names which governed octets the artifact was issued from; it locates no issuance, and no retrieval is performed or authorized. Bound by field 9 |
+| 9 | `authoritySnapshotEnvelopeCommitment` | Snapshot issuance — the issued envelope commitment | none — carried unaltered | Verification Step 5: the supplied artifact is put through the complete verification chain V1–V9 of `NEXUS-RAT-2026-08-04-001`, which requires the complete ratified `Issued` result shape, recomputes every record fingerprint from the record supplied, compares the rule 6 collection, recomputes the authority root, recomputes the envelope commitment, re-derives the record collection and all three result counts from the governed source, and fixes the canonical consumed order; the recomputed commitment SHALL equal both the artifact's self-declared value and this recorded value. No substitution and no re-issued equivalent is admitted, and nothing supplied is accepted as authority. Equal envelope commitments establish **commitment-equivalence** over the eight `EnvelopeCommitmentBasis` fields and the committed record collection — which is what fixes the consumed state — and expressly not unique artifact or unique issuance identity. It is **not** the Ratification Authority Snapshot fingerprint of `NEXUS-RAT-2026-07-16-001`, which this contract neither records nor replaces |
+| 10 | `candidatePolicyReferences` | Candidate Set Assembly Authority, from the corpus current-head universe | ordered by the Candidate Ordering Comparator | Verification Step 4: fingerprint multiset equality against the re-derived current-head universe |
+| 11 | `candidateSetFingerprint` | Candidate Set Assembly Authority | SHA-256 over the ten-field Candidate Set record | Verification Step 6: recomputed and compared. Detects reordering and internal inconsistency only |
+| 12 | `selectionOutcome` | The governed selection process | computed by the Selection Rules | Verification Step 7: recomputed from verified inputs; the recomputed value governs |
+| 13–15 | `selectedPolicyIdentity`, `selectedPolicyVersion`, `selectedAuthorizingRatificationIdentifier` | The governed selection process | taken from the single eligible candidate's carried corpus record | Verification Step 7 |
+
+No reference-level field may be supplied by a caller as authority. Fields 1 and 2 are supplied by
+the requester and are only ever checked for equality; every other field is re-established against an
+authority outside the reference.
+
+### Candidate-level fields
+
+| # | Field | Producer | Transformation | Re-established by |
+| --- | --- | --- | --- | --- |
+| 1 | `corpusRecord` | Corpus assembly, `NEXUS-RAT-2026-08-03-001` | **none — carried verbatim and unaltered** | Verification Step 4, via its recomputed fingerprint's membership in the re-derived current-head universe |
+| 2 | `corpusRecordFingerprint` | The Candidate Set Assembly Authority | **recomputed** — the ratified corpus record fingerprint prefix followed by SHA-256 of field 1's canonical encoding; never copied, never accepted as supplied | Rule 4 recomputes it from field 1; Verification Step 4 compares it against the re-derived universe |
+| 3 | `attributionValidationOutcome` | `RatificationAttributionValidation`, `NEXUS-RAT-2026-07-15-017` | none — carried as that authority produced it | Verification Step 5: re-validated against the verified pinned Snapshot and compared |
+
+**Exactly one field is copied, exactly one is recomputed, and exactly one is produced by an external
+sole authority.** No candidate-level field is partly copied and partly derived.
+
+### Derivations that are evaluated, not stored
+
+| Derivation | Source | Where used | Why not stored |
+| --- | --- | --- | --- |
+| Declared profile kinds | `corpusRecord.criterionDeclarations` — the set of `evaluationInputProfile` values it carries | Eligibility Predicate conjunct 2 | A stored projection could diverge from the record it projects, requiring a reconciliation rule. Evaluating it directly makes divergence impossible |
+| Current-head membership | The re-derived corpus's current-head universe | Verification Step 4; Rule 10 | A value recorded by the same party that recorded the collection cannot establish that collection's membership in a universe defined elsewhere |
+| Policy identity and version for binding | `corpusRecord.policyIdentity`, `corpusRecord.policyVersion` | Rule 9 | Reading the carried record directly removes any possibility of a bound value diverging from the record it claims to come from |
+
+Every conjunct of the Eligibility Predicate has an authoritative producer: conjunct 1 from
+`RatificationAttributionValidation`, re-validated; conjuncts 2, 3, and 4 from the candidate's own
+carried corpus record, whose authenticity is established by Verification Step 4.
+
+## Reconciliation with the Ratification Authority Snapshot Contracts
+
+### Exact authority statement
+
+The value pinned by a `RepositoryPolicySelectionReference` is **the envelope commitment of one
+issued `nexus-ratification-authority-snapshot/3` artifact**. It identifies that artifact and nothing
+else. Verification Step 5 verifies a supplied artifact against it; it never re-issues one, never
+accepts a root-equivalent one, and never treats the commitment as a substitute for any other
+governed value.
+
+### The two values are distinct, and this section names the distinction rather than assuming it
+
+`NEXUS-RAT-2026-07-16-001` requires that escalation attribution record, and that the complete
+deterministic input to a Governance Decision include, **the Ratification Authority Snapshot
+fingerprint**. That obligation is discharged today by `RatificationAttributionValidation`, whose
+approved Sprint 55 delivery derives the value at
+`src/kernel/governance/ratification-attribution-validation.ts:64` using the helper at line 243.
+`NEXUS-RAT-2026-07-31-001` separately defines the **envelope commitment** as one of three named
+commitment layers of an issued artifact, carried as its own field of an `Issued` result. Nothing in
+either ratification states that these are the same value, and this entry does not assert that they
+are. The exact comparison:
+
+| | Snapshot fingerprint of `NEXUS-RAT-2026-07-16-001` | Envelope commitment of `NEXUS-RAT-2026-07-31-001` |
+| --- | --- | --- |
+| Input domain | the Snapshot state `RatificationAttributionValidation` consults — its source, its capture instant, and its record collection | the eight-field `EnvelopeCommitmentBasis` — authority root, both source facts, protocol identifier, capture instant, producing attribution, record count, schema version |
+| Derivation | canonical serialization of that state | SHA-256 over the NCCS-1 encoding of that basis |
+| Representation | a serialized structure, of unbounded length | the fixed prefix `ec-sha256-` followed by exactly 64 lowercase hex characters |
+| Owner | `RatificationAttributionValidation` | Ratification Authority Snapshot Issuance |
+| Consumer | escalation attribution and the Governance Decision evaluation key | this contract's Verification Step 5, as an artifact pin |
+| Recorded in a `RepositoryPolicySelectionReference` | **no** | **yes**, as `authoritySnapshotEnvelopeCommitment` |
+| Altered, renamed, or replaced by this entry | **no** | not applicable — consumed as issued |
+
+The two are therefore **recorded separately and never as synonyms**. This entry adds a pin; it
+removes nothing, renames nothing, and creates no second evaluation key. An earlier revision of this
+draft recorded the envelope commitment in a field named `authoritySnapshotFingerprint` and asserted
+that under `NEXUS-RAT-2026-07-31-001` the envelope commitment **is** the Snapshot fingerprint. That
+assertion had no basis in either ratification, silently gave a governed field a second meaning, and
+is **withdrawn in full**.
+
+### Claim 1 — what attribution validation consumes, and how the pin constrains it
+
+`NEXUS-RAT-2026-07-15-017` gives attribution validation an immutable Snapshot collection, and its
+Required Outcome Mapping is a function of that collection alone. Fixing the artifact fixes each of
+the following:
+
+| Consumed by validation | Bound through | Binding site |
+| --- | --- | --- |
+| Each Ratification Authority Record's complete content — `lifecycleAuthorityKind`, `ratificationIdentifier`, `ratificationDate`, `ratificationSubject`, `lifecycleResolutionForm`, `lifecycleDeclaringAuthority`, and every Lifecycle Segment with its status and relations | its `lr-sha256-` record fingerprint, **recomputed at Verification Step 5 from the record actually supplied**, over that record's complete `LifecycleAuthorityRecord` encoding | `EnvelopeCommitmentBasis` field 1 → `AuthorityRootBasis` field 1 |
+| The record **collection** as a collection, independent of read order, with a duplicate failing closed | the order-insensitive fingerprint collection, compared octet-for-octet at Verification Step 5 | as above |
+| The **consumed record order**, which the canonical consumed order of `NEXUS-RAT-2026-08-04-001` derives from that same collection, making the artifact's declared record order inert | the order-insensitive fingerprint collection, read in NCCS-1 rule 6 order | as above |
+| That the record collection is one the **governed source actually yields**, so that no attribution outcome can be produced which the governed Ratification Ledger does not support | re-derivation of the collection and the authority root from the governed octets `authoritySourceRevision` names, at Verification Step 5, chain step V8 | not a commitment field — an external-authority comparison, and the reason the commitment fields above can be relied on at all |
+| The number of records, so that none may be added or dropped undetected | `recordCount` | `EnvelopeCommitmentBasis` field 7, and `AuthorityRootBasis` field 5 |
+
+### Claim 2 — what the envelope binds without its being consumed state
+
+The remaining `EnvelopeCommitmentBasis` fields are **not** inputs to the Required Outcome Mapping.
+They are declared or fixed facts that narrow the commitment-equivalence class without entering the
+consumed state. They are listed separately so that no compatibility claim rests on treating them as
+consumed state:
+
+| Bound, but not consumed by validation | Field |
+| --- | --- |
+| The governed source the collection was issued from | `authoritySourceIdentity`, `authoritySourceRevision` — `EnvelopeCommitmentBasis` fields 2 and 3 |
+| The serialization under which the above were encoded | `canonicalSerializationProtocolId` — field 4 |
+| The declared capture instant, which distinguishes this capture from an otherwise identical later one | `capturedAt` — field 5 |
+| The declared producing implementation and its revision | `producingAttribution` — field 6 |
+| The schema under which the artifact is to be interpreted | `snapshotSchemaVersion` — field 8, independently recorded as `authoritySnapshotSchemaVersion` |
+
+The two claims together are exhaustive over the basis: `EnvelopeCommitmentBasis` has exactly eight
+fields, and each appears in exactly one of the two tables.
+
+**What the basis does not reach is stated with equal precision**, and this table is adopted from
+`NEXUS-RAT-2026-08-04-001` without extension:
+
+| Not bound by the envelope commitment | Established instead by |
+| --- | --- |
+| The artifact's declared record order | made inert by the canonical consumed order, chain step V9 |
+| The wire framing, encoding, transport, or serialization of the result as a whole | nothing — no complete artifact encoding is ratified, and none is proposed here |
+| `declarationCount`, `genericCount`, `segmentedCount` | structurally at chain step V1, and re-derived from governed law at V8 |
+| The identity of the issuance **event** | nothing — two distinct issuances declaring identical basis facts produce the same commitment |
+| Whether the declared capture instant or producing attribution is truthful | nothing — each is a declared fact, fixed against substitution and authenticated by neither party |
+
+**The commitment therefore establishes a commitment-equivalence class, not a unique artifact and not
+a unique issuance.** Every claim to the contrary that appeared in an earlier revision of this draft
+is **withdrawn**, and no such claim appears in this section, its schema, its traceability tables, its
+vectors, or its Amendment History entry.
+
+**What follows, and what does not.** Two verifications that both succeed against the same recorded
+commitment have verified artifacts agreeing in all eight of those fields and in the committed
+fingerprint collection, and therefore produce the **identical consumed state**, because
+`NEXUS-RAT-2026-08-04-001` derives that state — including its record order — from those values alone.
+Both have additionally established, at chain step V8, that the collection is one the governed source
+at the pinned revision yields.
+
+**Nothing stronger is claimed.** In particular this entry does **not** claim that the envelope
+commitment is a commitment to a serialized artifact as a whole, that it identifies a unique artifact,
+or that it identifies a unique issuance event; and it does not claim that the commitment fixes the
+artifact's declared record order, which the canonical consumed order makes inert, or the three result
+counts, which V1 and V8 establish instead. Nor does it claim that the declared capture instant or
+producing attribution is authenticated: neither is re-derivable, each is fixed by the pin against
+substitution only, and neither is an input to any attribution outcome.
+
+What *is* claimed is exactly sufficient: two verifications succeeding against the same recorded
+commitment have verified **commitment-equivalent** objects, and commitment-equivalent objects yield
+the identical consumed state.
+
+That the consumed state determines any fingerprint derived over it is a consequence of the
+correspondence, not of this entry: it is established by `NEXUS-RAT-2026-08-04-001`, which this entry
+consumes as a prerequisite rather than establishing. End-to-end vectors SC1 through SC10, below,
+exhibit the determination in full, and SC8 exhibits its converse — that no such fingerprint fixes the
+artifact.
+
+### Why the authority root alone would not suffice, stated exactly
+
+Two Snapshots issued from the same governed octets at different instants, or by different producers,
+share an authority root and differ in envelope commitment — `NEXUS-RAT-2026-07-31-001` states this is
+the expected and correct outcome. A pin on the root alone would therefore be satisfied by an artifact
+that is not the one the reference was produced against, differing in exactly the facts that
+ratification places in the envelope. Conformance Vector S1, below, exhibits two such Snapshots with
+an identical root and distinct envelope commitments, and Vector SV2 exhibits the substitution the root
+pin would have admitted. Root equivalence is strictly weaker than commitment-equivalence, and Step 5
+requires commitment-equivalence — which, unlike root equivalence, determines the consumed state
+completely.
+
+### Disposition of the Snapshot Issuance Deferrals
+
+`NEXUS-RAT-2026-07-31-001` deferred, in one bullet, *"issuing a production Snapshot, pinning any
+authority root, or consuming a Snapshot in governance evaluation."* Verification Step 5 makes
+governance-time consumption of an issued Snapshot architecturally mandatory, so that deferral cannot
+be described as intact. Its disposition here is exact:
+
+| Deferred item | Disposition by this entry |
+| --- | --- |
+| *consuming a Snapshot in governance evaluation* | **Closed**, to the exact extent of Pre-Use Verification Step 5 of Repository Policy Selection: an issued artifact, supplied as an input, re-derived from its declared governed source, and verified against a recorded envelope commitment, may be consulted by `RatificationAttributionValidation` during selection verification. Consumption in any other governance context remains deferred. |
+| *issuing a production Snapshot* | **Preserved.** This entry issues none and authorizes none. Recorded below as Dependency DEP1. |
+| *pinning any authority root* | **Preserved.** This entry pins no authority root. A `RepositoryPolicySelectionReference` records no root, and Verification Step 5 obtains every root it compares by recomputation or re-derivation rather than from a recorded value. |
+| *migration, upgrade, or partial reading of any version 1 snapshot artifact* | **Preserved**, neither discharged nor narrowed. |
+| *authorized-subject attestations in any form; attestation extraction, validation, or attestation-backed applicability authority; legacy attestation migration* | **Preserved** verbatim, in every form — no field, no collection, no subject-kind union, no placeholder, no dormant extraction path. |
+| *automatic Ratification-Ledger ingestion beyond that source contract* | **Preserved.** |
+| *implementation, Sprint proposal, or Sprint activation of any capability described there* | **Preserved.** This entry is specification text and activates no Sprint. |
+
+This is the **only** amendment this entry makes to `NEXUS-RAT-2026-07-31-001`. Its Authorized Scope,
+Ownership Model, schemas, protocol constants, commitment layers, diagnostic vocabulary, result
+contract, and every other deferral are unchanged.
+
+### The correspondence prerequisite, and the two remaining dependencies
+
+Verification Step 5 invokes `RatificationAttributionValidation` against a supplied
+`nexus-ratification-authority-snapshot/3` artifact. That authority consults a record collection whose
+schema is **not** the version 2 `LifecycleAuthorityRecord` schema, so a governed correspondence
+between the two is a precondition of Step 5 being executable at all. An earlier revision of this
+draft recorded that correspondence as a deferred implementation dependency while its own normative
+vectors already assumed it. That was incorrect and is **withdrawn**: a mandatory verification step
+may not rest on an absent cross-authority contract, and evidence may not silently supply what the
+binding text defers.
+
+The correspondence is therefore **not deferred and not defined here**. It is ratified separately, in
+advance, by `NEXUS-RAT-2026-08-04-001` — Ratification Authority Snapshot Consumption Correspondence —
+and this ratification **consumes** it exactly as it consumes `NEXUS-RAT-2026-08-03-001`. That
+prerequisite owns the supplied-artifact verification chain V1–V8, the canonical consumed order, the
+record and collection transformation, the exact Snapshot state passed to validation, the field-by-field
+provenance of every consumed field, the preservation of missing, duplicate, unknown-status, and
+structural-completeness semantics, the refusal of any artifact carrying a `SegmentedLifecycle`
+record, the failure precedence, the ownership boundary, and the compatibility statement. It also
+carries the governed `ratificationSubject` into the version 3 record, which is why every consumed
+field is governed evidence rather than an adapter's substitute. This entry adds nothing to it, alters
+nothing in it, and states no rule of it.
+
+Application is gated accordingly. **Stop Condition 11** fails application closed unless
+`NEXUS-RAT-2026-08-04-001` is already present in the Ratification Ledger. Approval of this
+ratification does not ratify that one, and the two SHALL be applied in that order.
+
+Two dependencies remain. **Neither is an architectural gap in this contract, and neither is silently
+assumed by any vector below**: every vector either avoids the deferred case or exhibits its refusal.
+Verification's authenticity anchor is **not** among them: governed-source re-derivation is defined,
+mandatory, and executable today, and depends on no deferred capability.
+
+- **DEP1 — production Snapshot issuance.** Step 5 presupposes that an issued artifact exists.
+  Issuance remains deferred by `NEXUS-RAT-2026-07-31-001` and is not authorized here. Until it is
+  separately authorized, no conforming `RepositoryPolicySelectionReference` can be produced.
+- **DEP2 — Segmented Lifecycle Scope Selection.** A `SegmentedLifecycle` record carries two or more
+  independently scoped segments; a Ratification reference recorded on a `RepositoryPolicy` version
+  carries no scope selector. No ratified rule says which segment answers a scope-free reference.
+  `NEXUS-RAT-2026-08-04-001` accordingly **refuses** any artifact carrying such a record, and this
+  entry consumes that refusal unchanged. **The consequence is stated plainly: while the Ratification
+  Ledger carries governed declarations in `SegmentedLifecycle` form, an artifact issued from it is
+  refused at Step 5, and no conforming reference can be produced against the present corpus.** The
+  missing rule belongs to the authorities that own scope and resolution, not to selection, and this
+  entry neither supplies it nor works around it. Vector SV6, below, exhibits the refusal.
+
+Both are dependencies on **implementation and supply**, not on the completeness of this contract.
+Every rule this section states is defined here or in a ratified prerequisite; nothing it requires at
+evaluation time is left to be settled later. What awaits authorization is the production of real
+artifacts a conforming reference could be built from.
+
+### Migration and compatibility
+
+No migration is required by this entry and none is authorized by it. `authoritySnapshotEnvelopeCommitment`
+is a new field of a new schema introduced here, holding a value `NEXUS-RAT-2026-07-31-001` already
+defines. No existing persisted record, evaluation key, diagnostic, or decision is read, rewritten, or
+invalidated: every `RepositoryPolicySelectionReference` is created under this section and none
+precedes it, and the Snapshot fingerprint of `NEXUS-RAT-2026-07-16-001` keeps its derivation, its
+representation, and its consumers exactly. The separate question of migrating any
+`nexus-ratification-authority-snapshot/1` artifact to version 2 is created by
+`NEXUS-RAT-2026-07-31-001`, which declares the two versions totally incompatible and requires separate
+ratification; that obligation is **neither discharged, narrowed, nor extended here**. An
+implementation still holding version 1 artifacts cannot satisfy Verification Step 5, whose recorded
+`authoritySnapshotSchemaVersion` is exactly `nexus-ratification-authority-snapshot/3`; that is a
+correct fail-closed outcome and not a compatibility exception.
+
+## Conformance Vectors (normative)
+
+These vectors are **normative** and are part of this ratification’s permanently traceable
+authorized text. A conforming implementation, when one is separately authorized by Sprint scope
+ratification, SHALL reproduce every octet count, digest, ordering result, verification step
+result, and selection outcome recorded below exactly.
+
+**Every vector is executable from exact authoritative inputs.** No value below is derived from an
+illustrative digest preimage standing in for a governed artifact. Every corpus value is derived by
+assembling exact governed source octets that are reproduced in full; every attribution outcome is
+derived by issuing a Ratification Authority Snapshot from exact governed source octets and applying
+the ratified Required Outcome Mapping to it. Earlier revisions of this draft published a
+`corpusSourceRevision` that was the SHA-256 of an unrelated ASCII string while asserting that the
+same value identified prepared text declaring three Repository Policy versions. Those two claims
+were incompatible, and every such preimage-derived value is **withdrawn**.
+
+Every value below was computed twice, by two separately written implementations in different
+runtimes, which agreed on every result.
+
+### Governed source entries
+
+Entries **E1 through E4** are the exact fixture entries ratified by `NEXUS-RAT-2026-08-03-001`,
+consumed verbatim and not restated here. Their identifiers `NEXUS-RAT-2999-12-31-001` through
+`-004` conform to the ratified identifier grammar, are not allocated, and will not be allocated.
+
+This ratification adds **three** further entries in the same reserved namespace, needed for
+scenarios the ratified four cannot express: a second Mission-applicable Policy identity, so that
+two candidates can be simultaneously eligible; and a Ratification whose lifecycle is `Superseded`
+by governed declaration, so that an `Invalid` attribution outcome is derivable rather than
+asserted. Each is stated as exact prepared text — UTF-8, Unicode NFC, `LF` separators, no trailing
+separator on the entry itself.
+
+**E5 — declares `policy-secondary-example` version 1, `MissionSet` over `mission-alpha`.** 43 lines, 928 octets.
+
+````text
+# NEXUS-RAT-2999-12-31-005
+
+## Ratification Identifier
+
+NEXUS-RAT-2999-12-31-005
+
+## Date
+
+2999-12-31
+
+## Subject
+
+An illustrative Ratification declaring a second Mission-applicable Repository Policy version.
+
+## Repository Policy Declarations
+
+```text
+nexus-repository-policy-declarations/1
+policy policy-secondary-example
+  version 1
+  predecessor initial
+  scope MissionSet
+    mission mission-alpha
+  content ## Repository Policy Version Content — policy-secondary-example v1
+  contentCommitment 12736dc30d8dd59916a6c5716ac5f5f98d98324727416618b23d3fb8a252886e
+  criterion criterion-review-outcome-accepted
+    profile ReviewGovernanceEvaluationInput
+  end-criterion
+end-policy
+end-block
+```
+
+## Repository Policy Version Content — policy-secondary-example v1
+
+Every Review Outcome SHALL be Accepted or Accepted With Observations.
+
+---
+
+No Finding of Severity Critical SHALL remain unresolved.
+
+## Current Status
+
+Active
+````
+
+**E6 — declares `policy-invalid-example` version 1, `RepositoryWide`. Its Current Status is not
+`Active`, so it resolves only through a governed lifecycle authority declaration.** 42 lines, 894 octets.
+
+````text
+# NEXUS-RAT-2999-12-31-006
+
+## Ratification Identifier
+
+NEXUS-RAT-2999-12-31-006
+
+## Date
+
+2999-12-31
+
+## Subject
+
+An illustrative Ratification whose lifecycle is Superseded by governed declaration.
+
+## Repository Policy Declarations
+
+```text
+nexus-repository-policy-declarations/1
+policy policy-invalid-example
+  version 1
+  predecessor initial
+  scope RepositoryWide
+  content ## Repository Policy Version Content — policy-invalid-example v1
+  contentCommitment 468aab0c55e15493e380627fc1a368b3d7b7f47b866fc5b828d66f2ef0f14972
+  criterion criterion-review-outcome-accepted
+    profile ReviewGovernanceEvaluationInput
+  end-criterion
+end-policy
+end-block
+```
+
+## Repository Policy Version Content — policy-invalid-example v1
+
+Every Review Outcome SHALL be Accepted or Accepted With Observations.
+
+---
+
+No Finding of Severity Critical SHALL remain unresolved.
+
+## Current Status
+
+Superseded
+````
+
+**E7 — the declaring authority, declaring E6 `Superseded`.** 30 lines, 560 octets.
+
+````text
+# NEXUS-RAT-2999-12-31-007
+
+## Ratification Identifier
+
+NEXUS-RAT-2999-12-31-007
+
+## Date
+
+2999-12-31
+
+## Subject
+
+An illustrative Ratification declaring the lifecycle of NEXUS-RAT-2999-12-31-006.
+
+## Lifecycle Authority Declarations
+
+```text
+nexus-lifecycle-authority-declarations/1
+declaration NEXUS-RAT-2999-12-31-006
+  sourceStatusDigest 0e6375960739d6741bcf68ccd6b2f16729f74c102a9c6081591c5de4b340fe4d
+  form WholeRecordLifecycle
+  status Superseded
+  relation SupersededBy NEXUS-RAT-2999-12-31-001
+end-declaration
+end-block
+```
+
+## Current Status
+
+Active
+````
+
+E7 is itself `Active`, and therefore Effective under the Generic Source Rule alone, as
+Ratification Authority Snapshot Issuance requires of a declaring authority. It does not name
+itself as its subject. Its `sourceStatusDigest`
+`0e6375960739d6741bcf68ccd6b2f16729f74c102a9c6081591c5de4b340fe4d` is the SHA-256 of the NCCS-1
+String encoding of E6’s single Current Status content line, `Superseded`, binding the declaration
+to the exact governed status octets it was written against.
+
+### Source universes
+
+A source is the concatenation of its entries in order, separated by `LF` `LF` `---` `LF` `LF`, with
+one trailing `LF`, exactly as `NEXUS-RAT-2026-08-03-001` defines source construction.
+
+| Universe | Entries | Prepared octets | Source revision | Corpus records | Current heads |
+| --- | --- | --- | --- | --- | --- |
+| **U0** | E1 | 215 | `55b3bbe6ffdf13387fd63fc8502c042bb4f8b8bf6439300b68361b075f509e66` | 0 | 0 |
+| **UA** | E1–E4 | 2,914 | `9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6` | 3 | 2 |
+| **UB** | E1–E7 | 5,317 | `0ec72b7c7c33351aaccdb1452942f9113f702b8f982fe6f6c0468e7f5927e2e4` | 5 | 4 |
+
+U0 and UA are ratified sources S1 and S4 of `NEXUS-RAT-2026-08-03-001`. Their revisions, record
+fingerprints, and roots reproduce that ratification’s vectors A1 and A4 exactly, which
+independently validates the derivation used for UB.
+
+| Universe | `corpusRoot` |
+| --- | --- |
+| U0 | `cr-sha256-4866834cccb0e8ed6d7eac8d9c987fbbab1896e8f95e476c8ee67650624d520a` |
+| UA | `cr-sha256-91edf2b85ca233b5e6bf2af91e58c9f68beb8ba1136b84fbf8ff3ed5562410e1` |
+| UB | `cr-sha256-cd2785090c8e4205ddd8b64d87730f42c82addd55ea89bf2e72ee122480a0e92` |
+
+**UA current heads:** `policy-review-acceptance` v2 (`MissionSet` [`mission-alpha`], Review),
+`policy-legacy-example` v1 (`ScopeUndeclared`, Review).
+
+**UB current heads:** the two above, plus `policy-secondary-example` v1 (`MissionSet`
+[`mission-alpha`], Review) and `policy-invalid-example` v1 (`RepositoryWide`, Review).
+
+Ratified corpus record fingerprints, reproduced:
+
+| Record | Corpus record fingerprint |
+| --- | --- |
+| `policy-review-acceptance` v1 | `pc-sha256-09552bc4e679c7400bc9209a9de7d104f8e9c4c07d874e3580f4454c9092f8b4` |
+| `policy-review-acceptance` v2 | `pc-sha256-9c8fe40977b8c7e20195c00f6bac71afa2a8efc61c7b305bd77ea0254107f109` |
+| `policy-legacy-example` v1 | `pc-sha256-979e385f66a31b2480e1f7566fcf8b5f928d41593844650a14d6002f5820ab28` |
+
+The first three are byte-identical to `NEXUS-RAT-2026-08-03-001`’s ratified values.
+
+### Snapshot fixtures
+
+Three Ratification Authority Snapshot issuances are exhibited, each from exact governed source
+octets under Ratification Authority Snapshot Issuance, above. Every entry whose Current Status is
+exactly `Active` resolves under the Generic Source Rule to `GenericSourceRule`,
+`WholeRecordLifecycle`, and a single `Effective` residual segment. E6 resolves through E7’s
+governed declaration to `GovernedDeclaration`, `WholeRecordLifecycle`, and a single `Superseded`
+residual segment carrying one `SupersededBy` relation to `NEXUS-RAT-2999-12-31-001`.
+
+Two **declared issuance facts** are required by `NEXUS-RAT-2026-07-31-001` and are declared here
+exactly. The producing attribution is `producingImplementationIdentity`
+`nexus-reference-snapshot-issuer` and `producingImplementationRevision` `1.0.0` for all three
+issuances. The capture instants differ and are given below.
+
+| Snapshot | Issued from | Records | `AuthorityRootBasis` octets | `authoritySourceRevision` | `authorityRoot` |
+| --- | --- | --- | --- | --- | --- |
+| **KA** | UA source | 4 | 629 | `9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6` | `ar-sha256-1bdb503249c79c786152f9222ac8aaff9375c821983fd3d31686d419ff247b66` |
+| **KA′** | UA source | 4 | 629 | `9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6` | `ar-sha256-1bdb503249c79c786152f9222ac8aaff9375c821983fd3d31686d419ff247b66` |
+| **KB** | UB source | 7 | 860 | `0ec72b7c7c33351aaccdb1452942f9113f702b8f982fe6f6c0468e7f5927e2e4` | `ar-sha256-6642920b73abd69f557f32430838350fa3cb892a801ecbde6248b128153151c7` |
+
+Because both derivations prepare the same octets by the same rules, each Snapshot’s
+`authoritySourceRevision` equals the corresponding corpus `corpusSourceRevision`. That equality is
+expected and carries no cross-artifact authority.
+
+**Envelope commitments.** Each `EnvelopeCommitmentBasis` encodes to exactly 555 octets — the field
+widths are fixed, and the capture instant is fixed-width by the ratified RFC 3339 form, so the
+three bases differ in content and not in length.
+
+| Snapshot | `capturedAt` | `EnvelopeCommitmentBasis` octets | `authoritySnapshotEnvelopeCommitment` (envelope commitment) |
+| --- | --- | --- | --- |
+| **KA** | `2026-08-02T00:00:00Z` | 555 | `ec-sha256-3c42aef6b1ce59504d92ae2c12f0bfc03ff82bb89c0080c026ac42e20ee0c6fc` |
+| **KA′** | `2026-08-02T00:00:01Z` | 555 | `ec-sha256-a0bb33ecf60e2664acf0c96e43f82ca3974edccc8685506e12a1140322aa28eb` |
+| **KB** | `2026-08-02T00:00:02Z` | 555 | `ec-sha256-eaf1393a83ee8102394dd1a7b4d4dddc5d214e009d654f93ede03899cdc702b3` |
+
+**Vector S1 — the root does not identify the artifact.** KA and KA′ are issued from byte-identical
+governed source octets by the same producer one second apart. Their authority roots are **equal**,
+because the authority root is derived from governed octets alone. Their envelope commitments
+**differ**, because the envelope binds the capture instant. A reference pinning only
+`ar-sha256-1bdb5032…` is therefore satisfied by either artifact; a reference pinning
+`ec-sha256-3c42aef6…` is satisfied by KA alone. This vector is the exact reason this section pins
+the envelope commitment, and a conforming implementation SHALL reproduce both commitments and
+their inequality.
+
+| Lifecycle authority record | Status | Record fingerprint |
+| --- | --- | --- |
+| `NEXUS-RAT-2999-12-31-001` | `Effective` | `lr-sha256-53af68f1f8a3edb34486bb93d6482c001a3846c048043f1b14166abce182e46b` |
+| `NEXUS-RAT-2999-12-31-002` | `Effective` | `lr-sha256-cb2ff8a0f44f468c2f5d07454f52a6830ef3c52fa460f2c85d62e66a065ffafe` |
+| `NEXUS-RAT-2999-12-31-003` | `Effective` | `lr-sha256-951274b5a0262ac25ccbdec6ef45ab5e69f1742549591e31591242be9834e1a0` |
+| `NEXUS-RAT-2999-12-31-004` | `Effective` | `lr-sha256-104f6684397df64f72757b647b8640d5cb745757d7bb330ab0d38091a966e683` |
+| `NEXUS-RAT-2999-12-31-005` | `Effective` (KB only) | `lr-sha256-8e2c244a4bd4d4f7ca2d9883994bcba0d2da6401a957a05b56659f1b5a7b7709` |
+| `NEXUS-RAT-2999-12-31-006` | **`Superseded`** (KB only) | `lr-sha256-2734e5845e0b45ec09b7a60d2a0910c62107c5063483876dbdef0393c94cdd7a` |
+| `NEXUS-RAT-2999-12-31-007` | `Effective` (KB only) | `lr-sha256-2f6026670e6ec2252436dcd8cea27e3de1deabc8d691674a9678be0118fb0bdf` |
+
+KA and KA′ carry the identical four records; that is precisely why their roots coincide.
+
+**Derived attribution outcomes**, by the ratified Required Outcome Mapping of
+`NEXUS-RAT-2026-07-15-017` — exactly one record explicitly `Effective` yields `Valid`; a record
+explicitly `Superseded` yields `Invalid`; no matching record yields `Unresolvable`:
+
+| Authorizing Ratification | Against KA | Against KB |
+| --- | --- | --- |
+| `NEXUS-RAT-2999-12-31-003` (`policy-review-acceptance` v2) | `Valid` | `Valid` |
+| `NEXUS-RAT-2999-12-31-004` (`policy-legacy-example` v1) | `Valid` | `Valid` |
+| `NEXUS-RAT-2999-12-31-005` (`policy-secondary-example` v1) | **`Unresolvable`** — no record | `Valid` |
+| `NEXUS-RAT-2999-12-31-006` (`policy-invalid-example` v1) | **`Unresolvable`** — no record | **`Invalid`** |
+
+KA′ produces outcomes identical to KA, having identical records. All three closed outcomes are
+therefore derivable from governed octets, none is asserted, and KA serves additionally as an exact
+stale-Snapshot fixture.
+
+### Snapshot artifact supply vectors (normative) — `SV`
+
+Verification Step 5 takes the issued Snapshot artifact as a **required supplied input**, and takes
+the governed source artifact as the authority against which that input is re-derived. These eight
+vectors fix the complete behaviour of both at the selection boundary. The fourteen `CV` vectors of
+`NEXUS-RAT-2026-08-04-001` fix the behaviour of the verification chain itself and are not restated
+here. Each is stated against reference **V1**, whose
+recorded pins are `authoritySnapshotSchemaVersion` = `nexus-ratification-authority-snapshot/3`,
+`authoritySourceIdentity` = `nexus-repository-ratification-ledger`, `authoritySourceRevision` =
+`9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6`, and
+`authoritySnapshotEnvelopeCommitment` = `ec-sha256-3c42aef6b1ce59504d92ae2c12f0bfc03ff82bb89c0080c026ac42e20ee0c6fc`
+— that is, KA.
+
+| Vector | Supplied artifact | Verification result |
+| --- | --- | --- |
+| **SV1 — absent** | none | **REJECTS** at Step 5. Reported as an unsupplied Snapshot artifact. No re-issuance is attempted, no store is consulted, and no default artifact exists. Escalation Required |
+| **SV2 — substituted** | **KA′** — same governed source revision, same four records, same authority root `ar-sha256-1bdb5032…`, capture instant one second later | **REJECTS** at Step 5, at chain step V7. Recomputed envelope commitment `ec-sha256-a0bb33ec…` ≠ recorded `ec-sha256-3c42aef6…`. This is the substitution a root pin would have admitted; see S1 and `CV3`. Escalation Required |
+| **SV2a — altered record under a genuine envelope** | **KA** with one record's content altered, its envelope and declared commitment left genuine | **REJECTS** at Step 5, at chain step V5. The record's fingerprint is recomputed from the record supplied and the rule 6 collection no longer matches the committed one. See `CV4`. Escalation Required |
+| **SV3 — wrong schema** | any artifact declaring `snapshotSchemaVersion` other than `nexus-ratification-authority-snapshot/3`, including any version 1 artifact | **REJECTS** at Step 5, before the envelope commitment is recomputed and before any record is read. Version 1 migration requires separate ratification under `NEXUS-RAT-2026-07-31-001` and is neither performed nor authorized here. Escalation Required |
+| **SV4 — ambiguous supply** | **KA and KA′ both** | **REJECTS** at Step 5. Exactly one artifact SHALL be supplied. Verification SHALL NOT select among supplied artifacts, SHALL NOT prefer the one whose commitment matches, and SHALL NOT report a match. Escalation Required |
+| **SV5 — self-inconsistent artifact** | an artifact carrying `envelope` equal to KA′'s while declaring `envelopeCommitment` = `ec-sha256-3c42aef6…` | **REJECTS** at Step 5, at chain step V7. The commitment is **recomputed** from the supplied `envelope` and compared both to the artifact's own declaration and to the recorded pin; nothing supplied is accepted as authority. Recomputation yields `ec-sha256-a0bb33ec…`, which matches neither. See `CV9`. Escalation Required |
+| **SV6 — segmented lifecycle** | **KC** — a genuinely issued artifact, passing V1 through V9 in full including governed-source re-derivation, one of whose records declares `lifecycleResolutionForm` `SegmentedLifecycle` — authority root `ar-sha256-1b998f85…`, envelope commitment `ec-sha256-a0b0b579…`, pinned to that commitment | **REJECTS** at Step 5. `NEXUS-RAT-2026-08-04-001` refuses the artifact as `segmented-lifecycle-scope-selection-unratified`, because no ratified rule selects which governed scope a scope-free Ratification reference resolves against. No scope is flattened, no segment is preferred, no record is dropped, and no attribution outcome is produced. See DEP2 and `CC9`. Escalation Required |
+| **SV7 — forged artifact with a matching forged reference** | **KF** — KB with one record fabricated, then every fingerprint, the collection, the authority root `ar-sha256-3460dbc7…`, and the envelope commitment `ec-sha256-da79fa8c…` recomputed correctly, pinned to that commitment on a selection reference whose candidate-set fingerprint and recorded outcomes are likewise recomputed to match | **REJECTS** at Step 5, at chain step **V8**. KF passes V1 through V7 in full; the governed source at the pinned revision does not yield its record collection, so it is refused as `authority-root-not-derivable-from-governed-source`. Had it been consumed it would have produced `Valid` for a Ratification the governed source records as `Superseded`. See `CC10` and `CV13`. Escalation Required |
+| **SV8 — governed source unobtainable** | **KA**, genuine and correctly pinned, where no obtainable governed source prepares to its `authoritySourceRevision` | **REJECTS** at Step 5, at chain step **V8**, as `governed-source-unobtainable`. Verification SHALL NOT fall back to the supplied artifact, SHALL NOT substitute a most-recent source, and SHALL NOT degrade to the recomputation-only chain. See `CV11`. Escalation Required |
+| **SV9 — the control for SV10 and SV11** | **KA**, genuine, on a reference recording `authoritySourceIdentity` `nexus-repository-ratification-ledger` and `authoritySourceRevision` `9da08b42…` — the values KA's own envelope carries | **ACCEPTS** Step 5. Both recorded authority-source facts equal the verified artifact's envelope facts, so the step's two equality conditions are satisfied and validation proceeds. This row exists so that SV10 and SV11 are known to fail for their altered field and for nothing else |
+| **SV10 — recorded authority-source identity altered** | **KA**, genuine and correctly pinned, on a reference recording `authoritySourceIdentity` `nexus-repository-ratification-ledger-mirror` while every other field, including the pin, the candidate-set fingerprint, and every recorded outcome, is recomputed to agree | **REJECTS** at Step 5, at the **recorded authority-source identity** equality condition, naming both values. The artifact passes V1 through V9 in full and the reference is entirely self-consistent; only the comparison of field 7 against the verified envelope detects the divergence. The immutable reference would otherwise have recorded a lineage the verified artifact does not carry. Escalation Required |
+| **SV11 — recorded authority-source revision altered** | **KA**, genuine and correctly pinned, on a reference recording `authoritySourceRevision` `0ec72b7c…` — a real revision, that of UB — while every other field is recomputed to agree | **REJECTS** at Step 5, at the **recorded authority-source revision** equality condition, naming both values. As with SV10 the artifact is genuine, the chain succeeds in full, and the reference is self-consistent. Substituting a genuine digest of a different governed revision, rather than an arbitrary one, is deliberate: the divergence is undetectable by any well-formedness or prefix check and is caught only by comparison against the verified envelope. Escalation Required |
+
+**Every row produces the same outcome**: all nine are Escalation Required, and Policy Evaluation
+proceeds in none of them. They differ only in the
+reported diagnostic. This is stated because absence is the case an implementation is most tempted to
+treat as recoverable — by re-issuing, by falling back to a most-recent artifact, or by proceeding
+without one — and none of those is permitted.
+
+**SV4 is not a lookup failure.** No lookup occurs. Verification does not search a supplied collection
+for a matching artifact, because searching would make the pin a selector over a caller-controlled
+set rather than a check on a single supplied input. Two supplied artifacts is a malformed input, not
+an ambiguous query.
+
+**These vectors establish no supply mechanism.** How an artifact reaches verification — as a field
+of the evaluation request, as an attached document, or otherwise — is deferred in full and is not
+ratified here. What is ratified is that verification consumes exactly one supplied artifact, verifies
+it by recomputation, and fails closed otherwise.
+
+### End-to-end consumption vectors (normative)
+
+These vectors take an verified issued version 3 artifact through the supplied-artifact verification
+chain and the ratified correspondence of `NEXUS-RAT-2026-08-04-001`, and then through
+`RatificationAttributionValidation` (`NEXUS-RAT-2026-07-15-017`). They exist because Verification
+Step 5 is not executable without those contracts, and because a contract whose vectors assume a
+transformation it does not name is not verifiable.
+
+**Every value below is computed under the amended version 2 schema**, in which
+`LifecycleAuthorityRecord` carries `ratificationSubject`. Values published in earlier revisions of
+this draft were computed under the unamended schema and are superseded.
+
+**SC1 — the canonical consumed order.** KA's four records are supplied in source-entry order
+`-001, -002, -003, -004`. Their recomputed record fingerprints place them in the canonical consumed
+order
+
+```
+NEXUS-RAT-2999-12-31-004, NEXUS-RAT-2999-12-31-001, NEXUS-RAT-2999-12-31-003, NEXUS-RAT-2999-12-31-002
+```
+
+and KB's seven records in the order
+
+```
+NEXUS-RAT-2999-12-31-004, -006, -007, -001, -005, -003, -002
+```
+
+The consumed order is a function of the committed fingerprint collection, and therefore of the pin.
+
+**SC2 — supply order is inert.** KA supplied with its records and its `recordFingerprints` collection
+both reversed passes the chain and produces a consumed state **identical in every field and in
+order** to SC1's. An implementation that preserved supplied record order would not conform.
+
+**SC3 — the consumed state of KA.** Its `source` is `nexus-repository-ratification-ledger` and its
+`capturedAt` is `2026-08-02T00:00:00Z`. Its first consumed record, in full, is
+
+```
+{"identifier":"NEXUS-RAT-2999-12-31-004","date":"2999-12-31","subject":"An illustrative Ratification declaring a ScopeUndeclared Repository Policy version.","lifecycleStatus":"Effective"}
+```
+
+`subject` carries the **governed subject text of the Ratification entry**, taken from its `## Subject`
+section. It is not the identifier, and no value stands in for it. An earlier revision of this draft
+filled `subject` with the record's own identifier and called it a non-semantic filler; that rule was
+never authorized by `NEXUS-RAT-2026-07-15-017`, whose binding field rule requires the subject *as
+recorded in the authority source*, and it is **withdrawn in full**.
+
+**SC4 — every published attribution outcome is reproduced.** Each outcome below was derived by
+supplying the verified artifact, running the verification chain, applying the correspondence, and
+applying the ratified Required Outcome Mapping to the produced state.
+
+| Authorizing Ratification | Against **KA** | Against **KB** | Diagnostic under KB |
+| --- | --- | --- | --- |
+| `NEXUS-RAT-2999-12-31-001` | `Valid` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-002` | `Valid` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-003` | `Valid` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-004` | `Valid` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-005` | `Unresolvable` | `Valid` | `valid-effective-record` |
+| `NEXUS-RAT-2999-12-31-006` | `Unresolvable` | **`Invalid`** | `invalid-superseded-record` |
+| `NEXUS-RAT-2999-12-31-007` | `Unresolvable` | `Valid` | `valid-effective-record` |
+
+Under KA the last three are `Unresolvable` with `unresolvable-no-matching-record`, because the KA
+source revision contains no such entry. This is the exact behaviour vector V4 depends on.
+
+**All fourteen outcomes are identical to those published under the unamended schema and the earlier
+correspondence.** Carrying the governed subject, verifying the whole chain, and canonicalizing the
+consumed order change no attribution result. They establish that these results are reachable by a
+governed route rather than an assumed one — which is the whole point of the correction.
+
+**SC5 — a withdrawn record maps to its own diagnostic.** A `WholeRecordLifecycle` record carrying
+`Withdrawn` and one `WithdrawnBy` relation produces `lifecycleStatus` `Withdrawn` with
+`withdrawnByRatificationId` set, and validation returns `Invalid` with `invalid-withdrawn-record` —
+distinct from `invalid-superseded-record`. Status and relation agree, so the contradiction rule is
+not triggered.
+
+**SC6 — missing and duplicate semantics survive the correspondence.** An identifier absent from the
+produced state returns `Unresolvable` with `unresolvable-no-matching-record`. Two produced records
+sharing an identifier return `Unresolvable` with `unresolvable-duplicate-identifier`. The second is
+unreachable from a conforming version 3 artifact, because issuance fails closed on duplicate entry
+identifiers; it is stated and vectored anyway, because a correspondence that deduplicated would make
+a governed check unreachable, and unreachability by adapter is not the same fact as unreachability by
+contract.
+
+**SC7 — which Required Outcome Mapping conditions this path can present.** The ratified mapping is
+**unamended and all ten of its conditions remain in force.** Four of them cannot be presented by a
+conforming version 3 artifact, and `NEXUS-RAT-2026-08-04-001` records that fact in full rather than
+claiming a pass-through the encoding prohibits:
+
+| Condition | Through a conforming version 3 artifact |
+| --- | --- |
+| Explicitly `Effective`; explicitly `Superseded`; explicitly `Withdrawn`; no matching record | **Reachable** — SC4, SC5, SC6 |
+| Structurally malformed record | **Not reachable.** Every required consumed field is carried as governed evidence; a record missing one does not encode and fails at chain step V3, and a source entry with no `## Subject` content line is never issued |
+| Unknown lifecycle status | **Not reachable.** `lifecycleStatus` is `Enumeration(Effective, Superseded, Withdrawn)`; an out-of-set value does not encode and fails at V3. Negative vector N23g |
+| Duplicate identifier | **Not reachable.** Issuance fails closed on duplicate entry identifiers and V5 fails closed on duplicate record fingerprints. The correspondence nevertheless preserves multiplicity rather than deduplicating, so the condition is unreachable **by contract** and not by adapter |
+| Contradictory record | **Not reachable.** Version 3 requires exact status/relation agreement within a segment. A record carrying divergent scoped statuses is `SegmentedLifecycle` and is refused before validation — it is **not** reported as contradictory. SC9 |
+
+An earlier revision of this draft published a vector requiring an out-of-set lifecycle status to
+survive the correspondence and resolve as `unresolvable-unknown-lifecycle-status`. That vector
+required an input the record encoding refuses, so no implementation could satisfy both obligations.
+It is **withdrawn in full**. Unreachability *through this path* narrows nothing: each condition
+remains binding on every other path by which a Snapshot state may be obtained.
+
+**SC8 — no Snapshot fingerprint identifies the artifact.** Let KA″ be issued from the same governed
+octets at the same capture instant as KA, by a different producing implementation. KA and KA″ produce
+the **identical** consumed state, and therefore any fingerprint derived over that state is identical,
+while their envelope commitments differ:
+`ec-sha256-3c42aef6b1ce59504d92ae2c12f0bfc03ff82bb89c0080c026ac42e20ee0c6fc` for KA against
+`ec-sha256-c6b93bb52a421ba577adf4f96b7b382beb3e031838d89d821359a479b4e4095d` for KA″.
+
+This settles the recording question in both directions. A Snapshot fingerprint does **not** identify
+the artifact, so it could not have served as the Step 5 pin; the envelope commitment does, so it can.
+And because the consumed state is a function of the pinned values alone, pinning the artifact fixes
+the consumed state and therefore any fingerprint derived over it — which is why recording the
+envelope commitment takes nothing away from `NEXUS-RAT-2026-07-16-001`. Vector S1 gives the
+complementary case: equal roots, distinct commitments, distinct consumed states.
+
+**SC9 — a segmented artifact is refused, not reinterpreted.** **KC** is genuinely issued from a
+governed source whose entry `NEXUS-RAT-2999-12-31-008` carries the Current Status
+`Partially Superseded` and resolves through `-009`'s governed declaration in `SegmentedLifecycle`
+form — a `GovernedScope` segment `clause-a` carrying `Superseded` with a `SupersededBy` relation, and
+a `ResidualScope` segment carrying `Effective`. Its authority root is `ar-sha256-1b998f85…` and its
+envelope commitment `ec-sha256-a0b0b579…`, and a reference pinning that commitment carries a
+correctly recorded artifact. KC **passes the verification chain in full, including governed-source
+re-derivation at V8**, and is then **refused** as `segmented-lifecycle-scope-selection-unratified`. No
+consumed state is produced, no scope is flattened, no segment is preferred, no record is dropped, and
+no diagnostic of the validation authority is emitted.
+
+An earlier revision of this draft mapped such a record onto `lifecycleStatus`
+`["Effective","Superseded"]` and reported `Invalid` with `invalid-contradictory-record`. That was
+incorrect and is **withdrawn in full**: the record is structurally valid under
+`NEXUS-RAT-2026-07-31-001`, which characterizes a genuinely contradictory version 3 record as
+structurally inexpressible, and reporting it as a defect would have made the validation authority
+assert something the issuance authority denies. The missing rule — which governed scope a scope-free
+Ratification reference resolves against — is named as DEP2 and deferred to the authorities that own
+it, not supplied here.
+
+**SC10 — a self-consistent forged artifact is refused at the external-authority check.** Let **KF**
+be constructed from KB by replacing the record for `NEXUS-RAT-2999-12-31-006` with a fabricated
+`WholeRecordLifecycle` record carrying `Effective` and no relation, and then recomputing —
+consistently and correctly — every record fingerprint, the `recordFingerprints` collection, the
+authority root `ar-sha256-3460dbc78c24cf5d6a57fd0807ce02f54bfd42b62bf959bebd08339d4a8f922c`, and the
+envelope commitment `ec-sha256-da79fa8cd1295f0c82fe169d84d3348616a59d18ab77270547da4a0993c4af42`. Let
+that commitment be recorded on a `RepositoryPolicySelectionReference` whose candidate-set fingerprint
+and recorded attribution outcomes are likewise recomputed to match.
+
+KF **passes chain steps V1 through V7 in full** — its collection matches, its root recomputes, its
+self-declared commitment matches, and its commitment equals the pin — and passes Selection Steps 1
+through 4, which re-derive the Repository Policy corpus and say nothing about the Ratification
+authority collection. It is **refused at V8** as
+`authority-root-not-derivable-from-governed-source`, because the governed source at the pinned
+revision does not yield its records.
+
+**Had it been consumed, KF would have produced `Valid` with `valid-effective-record` for
+`NEXUS-RAT-2999-12-31-006`, where the governed source yields `Invalid` with
+`invalid-superseded-record`.** This vector is the reason chain step V8 is mandatory, and a conforming
+implementation SHALL refuse KF. An implementation that omits V8 accepts it, and expressly does not
+conform.
+
+**The Snapshot fingerprint is not published here.** `NEXUS-RAT-2026-07-16-001` requires that
+fingerprint to be recorded in escalation attribution and included in the complete deterministic
+input to a Governance Decision, and its derivation is owned by `RatificationAttributionValidation`.
+This entry fixes the state that fingerprint is taken over — exactly the consumed state above — and
+publishes no rendering of it, because ratifying an octet length or a digest of a serialization this
+entry does not own would constrain that derivation in fact. `NEXUS-RAT-2026-08-04-001` records
+reproducible renderings as **informative** delivery evidence, and an implementation is not required
+to reproduce them.
+
+### Vector-to-universe table
+
+Every vector, with its exact pins and its expected result at each verification step. `✓` means the
+step succeeds. Every vector below pins KA or KB by envelope commitment; KA′ appears only in
+vector S1.
+
+| # | Corpus | `corpusRoot` | Snapshot | Mission | Steps 1–4 | Step 5 | Steps 6–7 | Disposition |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| V1 | UA | pinned UA root | KA | `mission-alpha` | ✓ | ✓ | ✓ | **`Resolved`** |
+| V2 | UB | pinned UB root | KB | `mission-alpha` | ✓ | ✓ | ✓ | **`Ambiguous`** |
+| V3 | UA | pinned UA root | KA | `mission-beta` | ✓ | ✓ | ✓ | **`NoCandidate`** |
+| V4 | UB | pinned UB root | KA | `mission-alpha` | ✓ | ✓ | ✓ | **`Unresolvable`** |
+| V5 | U0 | pinned U0 root | KA | `mission-alpha` | ✓ | ✓ | ✓ | **`NoCandidate`** |
+| F1 | UA | **forged** | KA | `mission-alpha` | **fails 3 and 4** | – | ✓ | Escalation Required |
+| F2 | UA | **forged** | KB | `mission-alpha` | **fails 3 and 4** | ✓ | ✓ | Escalation Required |
+| F2ᵀ | UA | pinned UA root | KB | `mission-alpha` | ✓ | ✓ | ✓ | **`Resolved`** — F2’s truthful counterpart |
+| F3 | UB | pinned UB root | KB | `mission-beta` | ✓ | **fails** | ✓ | Escalation Required |
+| F3ᵀ | UB | pinned UB root | KB | `mission-beta` | ✓ | ✓ | ✓ | **`NoCandidate`** — F3’s truthful counterpart |
+| H1 | UA | pinned UA root | KA | `mission-alpha` | **fails 4** | – | ✓ | Escalation Required |
+| G4 | UB | pinned UB root | KA | `mission-alpha` | **fails 4** | – | ✓ | Escalation Required |
+
+Every legitimate vector (V1–V5, F2ᵀ, F3ᵀ) passes all seven steps. Every forgery (F1, F2, F3, H1,
+G4) passes Steps 6 and 7 — the recomputations — and fails a named re-derivation step. **No two
+vectors demand conflicting results under identical pins**: each row differs from every other in at
+least one of corpus revision, corpus root, Snapshot envelope commitment, Mission identity, or
+candidate collection, and all twelve candidate-set fingerprints below are distinct.
+
+Each forgery is published alongside the reference that is correct under its exact pins, so that no
+row asserts an outcome another row contradicts: F1 and H1 against V1; F2 against F2ᵀ; F3 against
+F3ᵀ; G4 against V4.
+
+**Identifier convention.** Every normative identifier in this entry is unique, and each family has a
+namespace of its own. Governed source fixture entries are `E1` through `E7`. Conformance vectors
+are `V` (legitimate selection), `F` (forgery), `H` (historical revival), `G` (prohibited
+assembly), `S` (Snapshot issuance), `SV` (Snapshot artifact supply), `SC` (end-to-end
+consumption), `A` (attribution matrix, single candidate), `B` (attribution matrix alongside an
+eligible candidate), `C` (eligibility conjunct), `D` (Governance Decision shape), and `N`
+(negative). `DEP` names an activation dependency and is deliberately **not** a vector namespace.
+
+No identifier is reused across families. Two earlier collisions are corrected here and recorded so
+they are not reintroduced: `E5` and `E6` were used both as source entries and as revival
+vectors, and those vectors are now `H1` and `H2`; and the Snapshot supply vectors and the
+implementation dependencies were introduced as `A1`–`A5` and `D1`–`D2`, colliding with the
+attribution matrix and the Governance Decision shape vectors, and they are now `SV1`–`SV5` and
+`DEP1`. Every table, narrative reference, negative vector, and acceptance-evidence statement uses
+the corrected names.
+
+### Legitimate vectors
+
+Declared profile kind is `ReviewGovernanceEvaluationInput` throughout.
+
+| # | Candidates (in comparator order) with re-validated attribution | Set octets | `candidateSetFingerprint` | Outcome |
+| --- | --- | --- | --- | --- |
+| V1 | legacy-example v1 `Valid`; review-acceptance v2 `Valid` | 2,000 | `575f9c890cf80815a38e062d9517be71160077bc720f92fe18f14bf11ce0c3c7` | `Resolved` |
+| V2 | legacy-example v1 `Valid`; invalid-example v1 `Invalid`; review-acceptance v2 `Valid`; secondary-example v1 `Valid` | 3,328 | `600bfa4909f370562c70c8bf33e4cf60990af6a36779722e8f0ea98921ae0387` | `Ambiguous` |
+| V3 | legacy-example v1 `Valid`; review-acceptance v2 `Valid` | 1,999 | `0f909b807e8544d537a25af251f321f1e217ba36387d9b6e34fc53ca1b7dfaff` | `NoCandidate` |
+| V4 | legacy-example v1 `Valid`; invalid-example v1 `Unresolvable`; review-acceptance v2 `Valid`; secondary-example v1 `Unresolvable` | 3,342 | `af2341c3f4bd3eaf15275307c6aebca920f3be3a268bb953c15793b2dcf63495` | `Unresolvable` |
+| V5 | empty collection | 709 | `598d3e70925780a7842fd4fff92ecea6c10ebe08012353883b9a4421f697fa25` | `NoCandidate` |
+| F2ᵀ | legacy-example v1 `Valid`; review-acceptance v2 `Valid` | 2,000 | `51a262454b4acd24979defab5988432cf83da491508088d6ebed149b2a282ec8` | `Resolved` |
+| F3ᵀ | legacy-example v1 `Valid`; invalid-example v1 `Invalid`; review-acceptance v2 `Valid`; secondary-example v1 `Valid` | 3,327 | `6d72eed3d9d749117070b8e009c6998134bb24ed5de09ab07dc0768f6ae3da34` | `NoCandidate` |
+
+**V1 `Resolved`.** `policy-review-acceptance` v2 is `Valid`, declares the profile, is `Declared`,
+and its `MissionSet` scope contains `mission-alpha`. `policy-legacy-example` v1 is `Valid` but
+`ScopeUndeclared`, so it is ineligible under conjunct 3. Exactly one eligible candidate.
+
+**V2 `Ambiguous`.** Under UB and KB, `policy-review-acceptance` v2 and `policy-secondary-example`
+v1 are both `Valid`, both `MissionSet` over `mission-alpha`, and both declare the profile. Two
+eligible candidates of **distinct Policy identities**. `policy-invalid-example` v1 is `Invalid` and
+`policy-legacy-example` v1 is `ScopeUndeclared`, so neither contributes.
+
+**V3 `NoCandidate`.** Identical corpus, root, and Snapshot to V1; only the request Mission differs.
+`policy-review-acceptance` v2’s scope does not contain `mission-beta`, and
+`policy-legacy-example` v1 is `ScopeUndeclared`. No candidate is eligible. V1 and V3 carry
+**distinct** candidate-set fingerprints because `missionId` is bound into the Candidate Set record.
+
+**V4 `Unresolvable`.** The UB corpus is pinned against the **stale** Snapshot KA, which carries no
+record for `NEXUS-RAT-2999-12-31-005` or `-006`. Two candidates are therefore `Unresolvable`, and
+Rule 6 classifies the whole selection `Unresolvable` before cardinality, even though
+`policy-review-acceptance` v2 is `Valid` and eligible.
+
+**V5 `NoCandidate`.** The U0 corpus is empty, so the candidate collection is the empty ordered
+collection `le`. That is the correct collection, it matches the re-derived current-head universe of
+zero heads, and Verification Step 4 succeeds.
+
+**F2ᵀ `Resolved`.** The UA corpus pinned against the newer Snapshot KB. Both UA heads are `Valid`
+under KB, and exactly one is Mission-applicable and explicitly scoped. V1 and F2ᵀ carry the same
+candidates and the same corpus facts and differ **only** in the pinned Snapshot; their
+candidate-set fingerprints differ accordingly, which is exactly the sensitivity the envelope-
+commitment pin is required to have.
+
+**F3ᵀ `NoCandidate`.** The truthful reference under F3’s exact pins. `policy-invalid-example` v1 is
+`Invalid` — determinately ineligible, contributing no indeterminacy — and no remaining candidate is
+applicable to `mission-beta`.
+
+### Forgery vectors
+
+Each carries a candidate collection, digests, candidate-set fingerprint, and selection outcome all
+recomputed consistently over forged values. Each therefore **passes** Verification Steps 6 and 7,
+and each is rejected by a named re-derivation step.
+
+#### F1 — omission, with the corpus root re-derived over the reduced corpus
+
+| Property | Value |
+| --- | --- |
+| Candidate collection | `policy-review-acceptance` v2 only — `policy-legacy-example` v1 dropped |
+| Corpus / Snapshot | UA / KA |
+| Recorded `corpusSourceRevision` | `9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6` — genuine |
+| **Forged** `corpusRoot` | `cr-sha256-6da559833078c57aa5c2690e67c0290a344a56176280052ab99a53f0071bcb80` |
+| Set octets | 1,382 |
+| `candidateSetFingerprint` | `4bfa2186e322adfbd28fe729d4ae64ef670d1e90592e2c0333b67f5f9421b65b` |
+| Recorded outcome | `Resolved`, binding `policy-review-acceptance` v2 |
+| Steps 6–7 | **succeed** — fingerprint reproduces; `Resolved` is consistent with the forged collection |
+| **Step 3** | **REJECTS** — the corpus re-derived from the pinned revision has root `cr-sha256-91edf2b85ca233b5e6bf2af91e58c9f68beb8ba1136b84fbf8ff3ed5562410e1`, not the recorded forged root |
+| **Step 4** | **REJECTS** independently — the re-derived current-head multiset contains `pc-sha256-979e385f…`, which no recorded candidate matches; reported as an omitted candidate naming `(policy-legacy-example, 1)` |
+| Required result | Escalation Required |
+| Truthful reference, same pins | **V1** — 2,000 octets, `575f9c89…`, outcome `Resolved` over both heads |
+
+The forger cannot escape Step 3 by also altering `corpusSourceRevision`: no obtainable governed
+source prepares to an arbitrary digest, and Verification Step 1 then fails closed.
+
+#### F2 — injection, with the corpus root re-derived over the augmented corpus
+
+The mirror image of F1. The forger adds a Repository Policy version that the pinned corpus does not
+contain — `policy-secondary-example` v1, which exists in the UB source but **not** in the pinned UA
+source — and re-derives the corpus root over the augmented record and current-head collections, so
+that the reference is internally consistent in every respect. The Snapshot KB is genuine and is
+pinned honestly, so the injected candidate’s `Valid` outcome survives Step 5.
+
+| Property | Value |
+| --- | --- |
+| Candidate collection | `policy-legacy-example` v1 `Valid`; `policy-review-acceptance` v2 `Valid`; **`policy-secondary-example` v1 `Valid` — injected** |
+| Corpus / Snapshot | UA (pinned) / KB (genuine) |
+| Recorded `corpusSourceRevision` | `9da08b4298e1724c3cf9f646b3a482355a44f09675ebcb75f476d3b5ccbcfdb6` — genuine |
+| **Forged** `corpusRoot` | `cr-sha256-016e997ee8e001a6cdb71d353ff02d2baaa773cc78bd53d431444153d584903a` |
+| Recorded `authoritySnapshotEnvelopeCommitment` | `ec-sha256-eaf1393a83ee8102394dd1a7b4d4dddc5d214e009d654f93ede03899cdc702b3` — genuine |
+| Set octets | 2,670 |
+| `candidateSetFingerprint` | `46fea17329fafd135b4694af0de69ab12225f5d25bd80df10690f8ef4c137557` |
+| Recorded outcome | `Ambiguous` — two eligible candidates, blocking a decision that would otherwise resolve |
+| **Step 5** | **succeeds** — every recorded attribution outcome, including the injected candidate’s, is exactly what KB produces. Attribution validation cannot detect injection, because the injected Ratification is genuinely `Effective` |
+| Steps 6–7 | **succeed** — the fingerprint reproduces, and `Ambiguous` is exactly what the Selection Rules compute from the forged collection |
+| **Step 3** | **REJECTS** — the corpus re-derived from the pinned revision has root `cr-sha256-91edf2b85ca233b5e6bf2af91e58c9f68beb8ba1136b84fbf8ff3ed5562410e1`, not the recorded forged root |
+| **Step 4** | **REJECTS** independently — the injected candidate’s recomputed fingerprint `pc-sha256-…` is not a current-head fingerprint of the re-derived UA corpus; reported as an injected candidate naming `(policy-secondary-example, 1)` |
+| Required result | Escalation Required |
+| Truthful reference, same pins | **F2ᵀ** — 2,000 octets, `51a26245…`, outcome `Resolved` |
+
+**F2 is the vector that proves Step 4 is not redundant with Step 5.** A record may be perfectly
+attributable and still not belong to the pinned corpus. Only the comparison against the re-derived
+current-head universe detects it. F1 and F2 together show that Step 4 is a **multiset equality**,
+failing on a missing member and an extra member alike.
+
+#### F3 — forged attribution outcome
+
+The corpus, every corpus record, the corpus root, the source revision, the Snapshot, and its
+envelope commitment are all **genuine**. Only one attribution outcome is altered:
+`policy-invalid-example` v1’s authorizing Ratification `NEXUS-RAT-2999-12-31-006` is `Superseded`
+in KB and therefore `Invalid`, and the reference records `Valid`.
+
+| Property | Value |
+| --- | --- |
+| Corpus / Snapshot | UB / KB, both genuine |
+| Recorded `corpusRoot` | `cr-sha256-cd2785090c8e4205ddd8b64d87730f42c82addd55ea89bf2e72ee122480a0e92` — genuine |
+| Recorded `authoritySnapshotEnvelopeCommitment` | `ec-sha256-eaf1393a83ee8102394dd1a7b4d4dddc5d214e009d654f93ede03899cdc702b3` — genuine |
+| Request Mission | `mission-beta` |
+| Forged set octets | 3,325 |
+| Forged `candidateSetFingerprint` | `d2ee6375739a8f187bd6a72a4d7bdd900c9ae0fef5bb1b00911e04d1a854eda7` |
+| Forged recomputed outcome | **`Resolved`**, binding `policy-invalid-example` v1 |
+| **Steps 1–4** | **succeed** — the corpus, root, and candidate collection are all genuine and complete |
+| **Steps 6–7** | **succeed** — the fingerprint reproduces, and `Resolved` is exactly what the Selection Rules compute from a recorded `Valid` |
+| **Step 5** | **REJECTS** — `RatificationAttributionValidation`, invoked against the supplied artifact verified at envelope commitment `ec-sha256-eaf1393a…`, returns `Invalid` for `NEXUS-RAT-2999-12-31-006`. Reported as a forged or stale attribution outcome naming the candidate and both outcomes |
+| Required result | Escalation Required |
+| Truthful reference, same pins | **F3ᵀ** — 3,327 octets, `6d72eed3…`, outcome `NoCandidate` |
+
+**What this vector demonstrates, stated exactly.** The forgery converts a `NoCandidate` selection
+into a `Resolved` one that binds a Repository Policy version whose authorizing Ratification has
+been superseded. No recomputation over the reference’s own fields detects it, because the
+reference is internally consistent in every respect. Only re-validation against the pinned Snapshot
+does.
+
+**The forged reference is not byte-identical to any legitimate reference under these pins, and no
+such claim is made.** A legitimate `Valid` for `NEXUS-RAT-2999-12-31-006` could arise only under a
+different Snapshot, and `authoritySnapshotEnvelopeCommitment` is bound into the Candidate Set record, so
+any such reference necessarily differs in that field and therefore in its fingerprint. Under one
+immutable pinned Snapshot each Ratification identifier has exactly one authoritative outcome; the
+forged and truthful references above differ by two octets and carry distinct fingerprints. An
+earlier revision of this draft described a forgery as byte-identical to a legitimate reference
+under the same pins. That description was self-contradictory and is **withdrawn**.
+
+#### H1 — prohibited historical revival
+
+| Property | Value |
+| --- | --- |
+| Candidate collection | `policy-legacy-example` v1 and `policy-review-acceptance` **v1** — the superseded version substituted for head v2 |
+| Corpus / Snapshot | UA / KA, both genuine and correctly pinned |
+| Set octets | 1,985 |
+| `candidateSetFingerprint` | `11be1a70a97d089157f929b88b818eb9c421a28e34e25800398c2be75c5f4ae1` |
+| Recorded outcome | `Resolved`, binding `policy-review-acceptance` **v1**, whose scope is `RepositoryWide` |
+| Steps 6–7 | **succeed** — the fingerprint is self-consistent |
+| **Step 4** | **REJECTS** — the recomputed fingerprint `pc-sha256-09552bc4…` is a **preserved-history** fingerprint of the re-derived corpus and not a **current-head** fingerprint, and the head fingerprint `pc-sha256-9c8fe409…` is unmatched. Reported as a non-head candidate naming `(policy-review-acceptance, 1)` and an omitted head naming `(policy-review-acceptance, 2)` |
+| Required result | Escalation Required. **SHALL NOT** be `Resolved` |
+| Truthful reference, same pins | **V1** — 2,000 octets, `575f9c89…` |
+
+The distinction the corpus contract draws between preserved history and the current-head universe
+is exactly what makes revival detectable, and is why Verification Step 4 compares against the
+current-head multiset rather than the record multiset.
+
+#### H2 — revival made structurally inexpressible
+
+A collection carrying both `policy-review-acceptance` v1 and v2 encodes
+`24:policy-review-acceptance` twice. It **fails closed at encoding** under NCCS-1 rule 7 as a
+duplicate, before any fingerprint exists and before any rule is reached. No fingerprint is
+produced.
+
+#### G4 — prohibited assembly filter
+
+An assembler holding the UB corpus but the stale Snapshot KA filters out the two current heads
+whose authorizing Ratifications KA does not recognise, presenting only the two it can validate.
+
+| Property | Value |
+| --- | --- |
+| Candidate collection | `policy-legacy-example` v1, `policy-review-acceptance` v2 — `policy-secondary-example` v1 and `policy-invalid-example` v1 omitted |
+| Corpus / Snapshot | UB / KA |
+| Set octets | 2,000 |
+| `candidateSetFingerprint` | `2225680251e7faf68cd69f0689c17d96e6e2c4d064f69085a5304b4ae9b4176b` |
+| Recorded outcome | `Resolved`, binding `policy-review-acceptance` v2 |
+| Steps 6–7 | **succeed** |
+| **Step 4** | **REJECTS** — two re-derived current-head fingerprints are unmatched; reported as omitted candidates naming `(policy-secondary-example, 1)` and `(policy-invalid-example, 1)` |
+| Required result | Escalation Required |
+| Truthful reference, same pins | **V4** — 3,342 octets, `af2341c3…`, outcome `Unresolvable` |
+
+**G4 is the proof that assembly-time filtering is a defect and not a safe conservative choice.**
+Had verification not caught it, the filtered collection would have resolved to
+`policy-review-acceptance` v2 an evaluation whose correct outcome is `Unresolvable` — vector V4,
+over the same corpus and the same Snapshot, with the unrecognised heads assembled. Filtering does
+not fail safe; it silently converts an escalation into a decision.
+
+G4 and V1 encode to the same 2,000 octets and carry the same two candidates, yet their
+candidate-set fingerprints differ, because their pinned corpus facts differ. Equal length is not
+equal content.
+
+### Assembly-completeness vectors — unrecognised authorizing Ratification
+
+| # | Scenario | Required assembly behaviour | Attribution | Required outcome |
+| --- | --- | --- | --- | --- |
+| G1 | UB against KA; `policy-secondary-example` v1’s Ratification absent from KA | **Assembled**, unconditionally | `Unresolvable` | `Unresolvable` → Escalation Required |
+| G2 | UB against KB; `policy-invalid-example` v1’s Ratification `Superseded` | **Assembled**, unconditionally | `Invalid` | Determinately ineligible; contributes to neither indeterminacy nor eligibility |
+| G3 | UB against KA, the full four-head collection | **All four assembled**; Step 4 succeeds because the multiset equals the current-head universe | two `Valid`, two `Unresolvable` | `Unresolvable` → Escalation Required, even though one head is eligible — this is vector V4 |
+| G4 | As G3 but the unrecognised heads filtered out | **Defect** | – | Step 4 rejects; Escalation Required |
+
+G1 through G3 confirm that a current head survives assembly whatever its authorizing
+Ratification’s standing, and that the sole attribution authority — not selection — decides its
+disposition.
+
+### Consumed scope encodings (cross-check against `NEXUS-RAT-2026-08-02-002`)
+
+Recomputed as a cross-check that this contract consumes the ratified record unmodified. These are
+the scope records nested inside the carried corpus records.
+
+| Scope | Canonical bytes | Octets |
+| --- | --- | --- |
+| `RepositoryWide` | `ri2e9:scopeKind14:RepositoryWide8:missionslee` | 45 |
+| `MissionSet` over `mission-alpha` | `ri2e9:scopeKind10:MissionSet8:missionsl13:mission-alphaee` | 57 |
+
+Both reproduce `NEXUS-RAT-2026-08-02-002`'s ratified Vectors 1 and 2 byte-for-byte.
+
+### Ordering results
+
+**Candidate Ordering Comparator.** Comparison is byte-wise over the **length-prefixed** NCCS-1
+String encoding of each candidate's `corpusRecord.policyIdentity`. The four identities of universe
+UB encode and sort:
+
+| Bare identity | Encoded | Sort position |
+| --- | --- | --- |
+| `policy-legacy-example` | `21:policy-legacy-example` | 1 |
+| `policy-invalid-example` | `22:policy-invalid-example` | 2 |
+| `policy-review-acceptance` | `24:policy-review-acceptance` | 3 |
+| `policy-secondary-example` | `24:policy-secondary-example` | 4 |
+
+Sorting is by encoded octets, so the shorter length prefix orders first regardless of the bare
+text's alphabetical position; `policy-invalid-example` precedes `policy-review-acceptance` on the
+length prefix, and `policy-review-acceptance` precedes `policy-secondary-example` on the first
+differing octet of equal-length prefixes. Every multi-candidate vector above is presented in this
+order. An implementation that sorts raw identifiers would order them differently and would fail
+closed.
+
+### Attribution matrix — single candidate
+
+Every re-validated attribution outcome for one current head that is otherwise eligible.
+
+| # | Re-validated attribution | Determinate? | Required `selectionOutcome` | Required Decision |
+| --- | --- | --- | --- | --- |
+| A1 | `Valid` | yes | `Resolved` | proceeds to Policy Evaluation |
+| A2 | `Invalid` | yes | `NoCandidate` — ineligible by conjunct 1 | Escalation Required |
+| A3 | `Unresolvable` | **no** — Rule 6 | `Unresolvable` | Escalation Required |
+
+Earlier revisions carried a second dimension over a recorded `policyVersionExistence` value. That
+dimension is withdrawn: a candidate that is not a current head never reaches this matrix, because
+Verification Step 4 rejects the collection first. **In none of these rows is a predecessor version
+assembled, examined, or selected.**
+
+### Attribution matrix — alongside one eligible candidate
+
+The same three outcomes for a second current head of a **different** Policy identity, presented
+alongside one fully eligible candidate.
+
+| # | Second candidate | Required `selectionOutcome` | Required Decision | Realised by |
+| --- | --- | --- | --- | --- |
+| B1 | `Valid`, otherwise eligible | `Ambiguous` — two eligible candidates, Rule 8 | Escalation Required | V2 |
+| B2 | `Invalid` | `Resolved`, binding the eligible candidate — a determinate exclusion does not disturb cardinality | proceeds to Policy Evaluation | the `policy-invalid-example` candidate in V2's universe under KB |
+| B3 | `Unresolvable` | `Unresolvable` — one indeterminate candidate is sufficient | Escalation Required | V4 |
+
+B2 and B3 are the decisive pair: an `Invalid` companion leaves an eligible candidate resolvable, an
+`Unresolvable` companion does not. `Invalid` is a known negative; `Unresolvable` is an absence of
+determination. V4 realises B3 exactly — `policy-review-acceptance` v2 is `Valid` and eligible, and
+the selection is nonetheless `Unresolvable`.
+
+### Eligibility conjunct vectors
+
+One current head, re-validated `Valid`, varying exactly one conjunct. Each names the universe and
+Mission that realises it.
+
+| # | Case | Failing conjunct | Required `selectionOutcome` | Realised by |
+| --- | --- | --- | --- | --- |
+| C1 | Empty candidate collection — the re-derived corpus is empty | none — no candidate exists | `NoCandidate` | V5, universe U0 |
+| C2 | No `criterionDeclarations` element carries the declared profile kind | 2 | `NoCandidate` | UA under declared profile `CorpusReadinessAcceptanceEvaluationInput`, which neither head declares |
+| C3 | `scopeDeclarationState` is `ScopeUndeclared` | 3 | ineligible; `NoCandidate` if no other candidate is eligible | `policy-legacy-example` v1 in every vector |
+| C4 | `MissionSet` [`mission-alpha`], request Mission `mission-beta` | 4 | `NoCandidate` | V3 |
+| C5 | `MissionSet` [`mission-alpha`], request Mission `mission-alpha` | none | `Resolved` | V1 |
+| C6 | `RepositoryWide`, any request Mission | none | eligible on scope | `policy-invalid-example` v1, whose scope never fails, so that only its attribution outcome excludes it |
+| C7 | Two current heads of distinct identities, both fully eligible | none | `Ambiguous` — multiplicity alone suffices | V2 |
+| C8 | One fully eligible head alongside one `ScopeUndeclared` head of a different identity | 3, for the second only | `Resolved`, binding the eligible candidate | V1 |
+
+C8 is Reading A, accepted by the Owner: the unbound `ScopeUndeclared` candidate is excluded by
+eligibility and does not escalate an evaluation that one determinate, eligible candidate resolves.
+C4 fixes that membership is exact identity equality — `12:mission-beta` is not `13:mission-alpha`,
+and no prefix, pattern, or similarity comparison is performed. C6 is why
+`policy-invalid-example` v1 was given a `RepositoryWide` scope: its ineligibility in V2 is
+attributable to its attribution outcome alone, isolating that dimension.
+
+In C1 through C4 the correct outcome is `NoCandidate` or ineligibility; **an earlier version of the
+same identity SHALL NOT be assembled to rescue any of them.**
+
+### Governance Decision shape vectors
+
+One vector per selection outcome, fixing the presence and absence of every selected and applied
+field. `Y` means the Decision SHALL carry the item; `N` means it SHALL NOT.
+
+| Item | D1 `Resolved` | D2 `NoCandidate` | D3 `Ambiguous` | D4 `Unresolvable` |
+| --- | --- | --- | --- | --- |
+| Governance Decision value | Approved, Rejected, or Deferred per Policy Evaluation | Escalation Required | Escalation Required | Escalation Required |
+| Mission identity | Y | Y | Y | Y |
+| Declared Governance Evaluation Input Profile | Y | Y | Y | Y |
+| Complete `RepositoryPolicySelectionReference` | Y | Y | Y | Y |
+| Pinned corpus source identity, source revision, and root | Y | Y | Y | Y |
+| Pinned authority snapshot schema version, source identity, source revision, and snapshot envelope commitment | Y | Y | Y | Y |
+| Complete ordered candidate collection, each with its full corpus record | Y | Y | Y | Y |
+| `selectedPolicyIdentity`, `selectedPolicyVersion`, `selectedAuthorizingRatificationIdentifier` | Y | **N** | **N** | **N** |
+| Applied Repository Policy identity and version | Y | **N** | **N** | **N** |
+| Any superseded Repository Policy version, in any role | **N** | **N** | **N** | **N** |
+| Policy Criteria evaluated, with individual results | Y | **N** | **N** | **N** |
+| Consumed Evidence and Review references | Y | **N** | **N** | **N** |
+| Exact condition that produced the outcome | N/A | Y | Y | Y |
+| Every eligible candidate, in Candidate Ordering Comparator order | N/A | N/A | Y | N/A |
+| Every indeterminate candidate and its exact indeterminacy condition | N/A | N/A | N/A | Y |
+| Failing eligibility conjunct, per candidate | N/A | Y | N/A | N/A |
+| Deterministic timestamp / causality position | Y | Y | Y | Y |
+| Described or reported as having applied a Repository Policy version | Y | **N** | **N** | **N** |
+
+D2, D3, and D4 each carry no applied Repository Policy version and no evaluated Policy Criteria,
+because none exists. A Governance Decision carrying any of those items for a non-`Resolved` outcome
+is itself a failure condition and SHALL produce Escalation Required, per the Failure and Conflict
+Handling row added by Site 10. The superseded-version row is `N` in **all four** columns, including
+`Resolved`.
+
+### Negative vectors
+
+Each fixes an exact required failure. Where encoding fails closed before a fingerprint exists, none
+is produced.
+
+| # | Case | Exact input | Required result |
+| --- | --- | --- | --- |
+| N1 | Duplicate candidate identity | Two entries with an equal encoded `corpusRecord.policyIdentity` | Encoding fails closed (NCCS-1 rule 7); Escalation Required. See H2 |
+| N2 | Candidate collection misordered | `24:policy-review-acceptance` presented before `21:policy-legacy-example` | Encoding fails closed; Escalation Required |
+| N3 | Corpus record fingerprint does not match its record | `corpusRecordFingerprint` differs from the digest recomputed over field 1 | Rule 4; Escalation Required |
+| N4 | Malformed corpus record fingerprint | Not `pc-sha256-` followed by exactly 64 lowercase hex characters | Encoding fails closed; Escalation Required |
+| N5 | Scope presence coupling violated within the carried record | `Declared` with an empty `missionApplicabilityScope`, or `ScopeUndeclared` with one present | Fails closed under `NEXUS-RAT-2026-08-03-001`'s own coupling rules, unchanged; Escalation Required |
+| N6 | Scope variant coupling violated | `RepositoryWide` with a non-empty `missions`, or `MissionSet` with an empty `missions` | Fails closed under Mission Applicability Scope's own rules, unchanged; Escalation Required |
+| N7 | Malformed digest | `authoritySourceRevision`, `corpusSourceRevision`, or `candidateSetFingerprint` not exactly 64 lowercase hex characters | Encoding fails closed; Escalation Required |
+| N8 | Malformed prefixed value | `corpusRoot` not `cr-sha256-` + 64 hex; or `authoritySnapshotEnvelopeCommitment` not `ec-sha256-` + 64 hex; or a `corpusRecordFingerprint` not `pc-sha256-` + 64 hex; or `authoritySnapshotSchemaVersion` not exactly `nexus-ratification-authority-snapshot/3` | Encoding fails closed; Escalation Required |
+| N9 | Enumeration outside its closed set | `attributionValidationOutcome`, `selectionOutcome`, `scopeDeclarationState`, or `scopeKind` carrying an undeclared value | Encoding fails closed; Escalation Required |
+| N10 | Non-positive policy version | `corpusRecord.policyVersion` encoded as `i0e` or negative | Fails closed under the corpus contract, unchanged; Escalation Required |
+| N11 | Mission mismatch on the reference | Reference `missionId` differs from the request's Mission identity | Rule 5; Escalation Required regardless of outcome |
+| N12 | Profile mismatch on the reference | Reference `declaredProfileKind` differs from the profile the Policy Evaluation declared | Rule 5; Escalation Required regardless of outcome |
+| N13 | Structural incompleteness | `selectionOutcome` = `Resolved` with `selectedPolicyVersion` absent | Rule 4; Escalation Required |
+| N14 | Non-`Resolved` carrying selected fields | `selectionOutcome` = `NoCandidate` with `selectedPolicyIdentity` present | Rule 4; Escalation Required |
+| N15 | Mission identity absent or malformed | The evaluation request carries no resolvable `MissionId` | Fails under Mission-Scoped Governance Evaluation before selection is reached; selection neither supplies nor repairs a Mission identity |
+| N16 | **Pinned corpus source unobtainable** | No governed source prepares to the recorded `corpusSourceRevision` | Verification Step 1; Escalation Required. Internal consistency SHALL NOT substitute |
+| N17 | **Corpus re-derivation rejected** | Re-assembly from the pinned source reports `Rejected` | Verification Step 2; Escalation Required, reporting the corpus diagnostic |
+| N18 | **Corpus root divergence** | Re-derived root differs from the recorded `corpusRoot` | Verification Step 3; Escalation Required. See F1 |
+| N19 | **Omission** | A re-derived current head has no matching recorded candidate | Verification Step 4; Escalation Required, naming the omitted pair. See F1 and G4 |
+| N20 | **Injection** | A recorded candidate's recomputed fingerprint is not a current-head fingerprint of the re-derived corpus | Verification Step 4; Escalation Required, naming the injected pair. See F2 |
+| N21 | **Prohibited historical revival** | A recorded candidate's fingerprint is a preserved-history fingerprint rather than a current-head fingerprint | Verification Step 4; Escalation Required, naming the non-head pair and the omitted head. See H1 |
+| N22 | **Snapshot artifact not supplied** | The required issued Snapshot artifact is not supplied to verification | Verification Step 5; Escalation Required. No re-issuance is attempted and no default artifact exists. See SV1 |
+| N22a | **Ambiguous Snapshot supply** | More than one issued Snapshot artifact is supplied | Verification Step 5; Escalation Required. Exactly one SHALL be supplied; verification SHALL NOT select among them. See SV4 |
+| N23 | **Snapshot substitution** | The supplied artifact's recomputed envelope commitment differs from the recorded `authoritySnapshotEnvelopeCommitment`, including an artifact re-issued from the same governed source at a different capture instant or by a different producer | Verification Step 5; Escalation Required. Root equivalence is **not** the pinned artifact, and no substitution is permitted. See S1 and SV2 |
+| N23c | **Altered record under a genuine envelope** | A record's content differs from the record whose fingerprint the authority root commits | Verification Step 5, chain step V5; Escalation Required. Every fingerprint is recomputed from the record supplied. See SV2a and `CV4` |
+| N23d | **Segmented lifecycle record** | Any record of the supplied artifact declares `lifecycleResolutionForm` `SegmentedLifecycle` | Verification Step 5; Escalation Required. The artifact is refused as `segmented-lifecycle-scope-selection-unratified`. No scope is flattened and no outcome is produced. See DEP2, SV6, and `CC9` |
+| N23e | **Forged Snapshot artifact** | The supplied artifact is internally consistent and its recomputed envelope commitment equals the recorded pin, but the governed source at the pinned revision does not yield its record collection | Verification Step 5, chain step V8; Escalation Required. Reported as an artifact not derivable from its declared governed source. See SV7 and `CC10` |
+| N23f | **Governed source unobtainable at the pinned Snapshot revision** | No obtainable governed source prepares to the artifact's `authoritySourceRevision` | Verification Step 5, chain step V8; Escalation Required. There is no fallback, no most-recent-source substitution, and no degradation to the recomputation-only chain. See SV8 |
+| N23g | **Out-of-set lifecycle status** | A supplied record carries a `lifecycleStatus` outside `Effective`, `Superseded`, `Withdrawn` | Verification Step 5, chain step V3; Escalation Required. The record does not encode. The validation authority's `unresolvable-unknown-lifecycle-status` rule is unamended and is unreachable through a conforming version 3 artifact |
+| N23b | **Self-inconsistent Snapshot artifact** | The supplied artifact's envelope commitment recomputed from its own `envelope` differs from the `envelopeCommitment` it declares | Verification Step 5; Escalation Required. The declared value is never accepted as supplied. See SV5 |
+| N23a | **Wrong Snapshot schema version** | The supplied artifact's `snapshotSchemaVersion` differs from the recorded `authoritySnapshotSchemaVersion`, including any `nexus-ratification-authority-snapshot/1` artifact | Verification Step 5; Escalation Required, before the envelope commitment is recomputed and before any record is read. Migration of a version 1 or version 2 artifact requires separate ratification under `NEXUS-RAT-2026-07-31-001` and is neither performed nor authorized here. See SV3 |
+| N23h | **Incomplete or over-populated issued result** | The supplied object omits a field of the ratified `Issued` result schema, or carries an unrecognized field, at the result, the `envelope`, or the `producingAttribution` | Verification Step 5, chain step V1; Escalation Required. No commitment layer binds the result shape, so it is established structurally and before any recomputation. See `CV15`–`CV19` |
+| N23i | **Result count not derivable from governed law** | A supplied `declarationCount`, `genericCount`, or `segmentedCount` differs from the value re-derived from the governed source at the pinned revision | Verification Step 5, chain step V8; Escalation Required, naming the count. Such an artifact passes V1 through V7 in full, because no count enters either commitment basis. See `CV20`–`CV22` |
+| N23j | **Inadmissible declared issuance fact** | The artifact's declared `capturedAt` or `producingAttribution` is refused by the ratified issuance contract when re-derivation reruns issuance with it | Verification Step 5, chain step V8; Escalation Required, carrying the ratified issuance diagnostic — `malformed-capture-instant` or `malformed-attribution` — verbatim. The value is bound into a correctly recomputed envelope commitment, so V1 through V7 pass. See `CV23`–`CV25` |
+| N23k | **Recorded authority-source identity divergence** | The verified artifact's `envelope.authoritySourceIdentity` differs from the recorded field 7 | Verification Step 5, at that step's own equality condition; Escalation Required, naming both values. The chain does not perform this comparison and it is never assumed from the chain. See SV10 |
+| N23l | **Recorded authority-source revision divergence** | The verified artifact's `envelope.authoritySourceRevision` differs from the recorded field 8 | Verification Step 5, at that step's own equality condition; Escalation Required, naming both values. See SV11 |
+| N24 | **Forged or stale attribution outcome** | A candidate's re-validated outcome differs from its recorded `attributionValidationOutcome` | Verification Step 5; Escalation Required, naming the candidate and both outcomes. See F3 |
+| N25 | **Changed Policy content under an unchanged declaration** | A Policy version's content differs while its declaration block is unchanged | Rejected three times over: re-derivation fails with `content-binding-mismatch` (Step 2); no source prepares to the recorded `corpusSourceRevision` (Step 1); and the carried record's `contentCommitment` changes, so its recomputed fingerprint is not a current-head fingerprint (Step 4). Escalation Required |
+| N26 | **Ratification authorizing no Repository Policy** | A Ratification present and valid in the pinned Snapshot that declares no Repository Policy version | Contributes zero corpus records and therefore zero candidates. This is **correct behaviour, not a defect**, and SHALL NOT be reported as an omission. Entry E1 is exactly this case in every universe above |
+| N27 | **Assembly-time filtering** | An assembler omits a current head whose authorizing Ratification the pinned Snapshot does not recognise | Verification Step 4; Escalation Required. See G4 |
+| N28 | **Verification skipped** | An implementation performs Steps 6 and 7 only, omitting Steps 1 through 5 | **Non-conforming.** Every forgery vector F1, F2, F3, H1, and G4 passes such an implementation. Conformance requires all seven steps |
+
+## Files Changed
+
+1. `knowledge/specifications/rfc-0011-engineering-governance-model.md` — fourteen edit sites, Final
+   (Amended) v1.6 to Final (Amended) v1.7, exactly as reproduced under Full Ratification Text. The
+   resulting file is 3,943 lines, 354,349 octets, LF terminators, SHA-256
+   `77582bfda13654fc495e59a930328432de6b03ebf17ee268c175d8cfafca7313`. The baseline is the v1.6
+   `NEXUS-RAT-2026-08-04-001` produces; both amendments were applied in that order to a local copy of
+   the committed v1.5 and the result measured, and every protected region below was confirmed
+   byte-identical across this amendment.
+2. `knowledge/governance/RATIFICATION_LEDGER.md` — this entry appended, and nothing else changed.
+
+The Ledger change is **append-only on raw octets**. Every octet the file already holds SHALL be
+preserved unmodified and SHALL be a byte-identical prefix of the result. Preparing the Ledger for
+issuance or for corpus assembly — decoding UTF-8, applying Unicode NFC, folding line endings — is a
+**read** operation performed on a copy; the prepared text SHALL NOT be written back over the stored
+file.
+
+The appended region SHALL be encoded UTF-8 without a byte-order mark and SHALL use `LF`, matching the
+committed governed artifact, beginning with one `LF` followed by `---`. A mixed-terminator result is
+prohibited. No general trailing-whitespace removal SHALL be applied to either side of the boundary.
+
+The following regions of RFC-0011 SHALL be byte-identical before and after application:
+
+| Region | Why protected |
+| --- | --- |
+| `# Repository Policy`, including all of `## Mission Applicability Scope` | `NEXUS-RAT-2026-08-02-002` is not amended |
+| `# Ratification Authority Snapshot Issuance` and all subsections | This amendment edits no line of that section. Its only amendment to `NEXUS-RAT-2026-07-31-001` is the deferral disposition recorded in this Ledger entry, which changes no specification text; the `ratificationSubject` field that section carries in v1.6 is added by `NEXUS-RAT-2026-08-04-001` and is left exactly as that ratification leaves it |
+| `# Repository Policy Corpus Source` and all subsections | `NEXUS-RAT-2026-08-03-001` is not amended; the new section follows this one and consumes it |
+| `# Mission-Scoped Governance Evaluation` and all subsections | Not in scope; its `MissionId` no-inference rule is depended upon, not altered |
+| `# Corpus Readiness Acceptance Evaluation` and all subsections | Current Governance Decision applicability is not revised |
+| `## Approved`, `## Rejected`, `## Deferred` under `# Governance Decision` | Only `## Escalation Required` is amended, by Site 14; the other three Decision values are unchanged |
+| `# Authority Hierarchy` | The contradictory-applicable-Policies rule is preserved unmodified as a narrower subset of Selection Rule 8 |
+| `# Boundaries`, `# Non-Goals`, `# Implementation Guidance` | Not in scope |
+| Amendment History entries v0.1 through v1.6 | Immutable history |
+
+**No source file, test, Sprint Implementation Record, or implementation artifact is changed.**
+`IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are **not** changed. This amendment
+resolves no Milestone 12 Initial Capability Sequence stop condition and alters no Milestone 12
+planning text.
+
+## Stop Conditions
+
+Application SHALL stop and report, without partial application, if any of the following holds:
+
+1. Any prior text quoted under Full Ratification Text does not match
+   `knowledge/specifications/rfc-0011-engineering-governance-model.md` exactly, or matches more than
+   once.
+2. The target file does not present `**Version:** 1.6` at Site 1.
+3. Any region listed under Files Changed as byte-identical is not byte-identical after application.
+4. `knowledge/governance/RATIFICATION_LEDGER.md` does not present the expected append boundary — `LF`
+   used consistently throughout, no carriage return, and exactly one terminator after a non-empty
+   final line. The boundary SHALL fail closed rather than be repaired.
+5. The working-tree copy of `knowledge/governance/RATIFICATION_LEDGER.md` and its committed form use
+   different line terminators, or the repository does not pin the governed Markdown paths to `LF`.
+   That hygiene change SHALL be made as its own separate, explicit governed change **before**
+   application, and SHALL NOT be performed as a side effect of this append.
+6. The Ledger already contains an entry identified `NEXUS-RAT-2026-08-02-001`.
+7. Fewer or more than fourteen edit sites are matched.
+8. The Ledger does not contain an entry identified `NEXUS-RAT-2026-08-02-002`, or RFC-0011 does not
+   present the `## Mission Applicability Scope` section, which would indicate that prerequisite was
+   not applied and this ratification is being applied out of order.
+9. The Ledger does not contain an entry identified `NEXUS-RAT-2026-08-03-001`, or RFC-0011 does not
+   present the `# Repository Policy Corpus Source` section, which would indicate that prerequisite
+   was not applied and this ratification is being applied out of order.
+10. The target file already contains the heading `# Repository Policy Selection and Version Binding`.
+11. The Ledger does not contain an entry identified `NEXUS-RAT-2026-08-04-001`, which would indicate
+    that the Ratification Authority Snapshot Consumption Correspondence prerequisite was not applied
+    and this ratification is being applied out of order. Verification Step 5 invokes that
+    correspondence; applying this entry without it would ratify a mandatory step whose
+    cross-authority contract is absent.
+12. `knowledge/specifications/rfc-0011-engineering-governance-model.md` is not byte-identical to the
+    declared v1.6 baseline — 2,816 lines, 223,147 octets, LF, SHA-256
+    `71bd09692d0e24d5dfc641ba65501d9d855cce97cad46d476fb0fd0e609b01c4`. This entry is anchored against
+    the file **as `NEXUS-RAT-2026-08-04-001` leaves it**, not against the v1.5 committed on
+    2026-08-03, and SHALL NOT be applied to any other baseline.
+13. The target file does not present `ratificationSubject` in both arms of the
+    `LifecycleAuthorityRecord` schema, or does not present `nexus-ratification-authority-snapshot/3`
+    as the `snapshotSchemaVersion` protocol constant, either of which would indicate the same
+    out-of-order application.
+14. The resulting RFC-0011 file is not 3,943 lines, 354,349 octets, LF, SHA-256
+    `77582bfda13654fc495e59a930328432de6b03ebf17ee268c175d8cfafca7313`.
+
+Partial application is prohibited. The amendment applies in whole or not at all.
+
+**Stop Condition 11 is the correspondence gate.** The version 3 artifact to validation input
+correspondence is not deferred and is not defined here: it is ratified separately and in advance by
+`NEXUS-RAT-2026-08-04-001`, and Stop Condition 11 fails this application closed unless that entry is
+already present. An earlier revision of this draft recorded the correspondence as a deferred
+implementation dependency while its own normative vectors already assumed it; that treatment is
+withdrawn.
+
+**DEP1 and DEP2 are not stop conditions on application, and are not waived by it.** This entry is
+specification text; applying it appends normative text and amends RFC-0011, and neither act requires
+production Snapshot issuance to have been authorized or Segmented Lifecycle Scope Selection to have
+been ratified. Both are stop conditions on **implementation**: no Sprint may produce a conforming
+`RepositoryPolicySelectionReference` until issuance is separately authorized, and no such reference
+can be produced against a corpus carrying segmented declarations until scope selection is separately
+ratified. Applying this entry records the contract; it does not assert that a conforming reference
+exists.
+
+## Current Status
+
+Active
