@@ -1,0 +1,13 @@
+# Governed Markdown line-ending hygiene (C1-a).
+#
+# Governed artifacts under knowledge/ are stored and checked out with LF line
+# terminators, so the working-tree copy is byte-identical to the committed blob.
+#
+# Ratification digests and octet counts are computed over the LF form. With
+# core.autocrlf enabled and no attribute pinning these paths, a CRLF working
+# copy diverges silently from the value a Ratification Ledger entry attests to
+# while git status still reports clean.
+#
+# Required as a separate pre-application condition by NEXUS-RAT-2026-08-02-001.
+
+knowledge/**/*.md text eol=lf
