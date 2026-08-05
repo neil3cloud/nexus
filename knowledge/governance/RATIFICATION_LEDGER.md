@@ -21190,3 +21190,1042 @@ exists.
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-05-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-05-001
+
+## Date
+
+2026-08-05
+
+## Subject
+
+Segmented Lifecycle Scope Selection — the deterministic, fail-closed resolution of a scope-free
+Ratification reference against a structurally valid, recognized-status, noncontradictory
+`SegmentedLifecycle` record. Withdraws the artifact-level refusal established by
+`NEXUS-RAT-2026-08-04-001`, requires every verified record to be carried into the consumed state
+with its declared segments intact, and amends `NEXUS-RAT-2026-07-15-017` by addition so that such a
+reference resolves to `Unresolvable` with an exact diagnostic, evaluated only after every
+pre-existing validity condition has been applied unchanged. Discharges Dependency DEP2 of
+`NEXUS-RAT-2026-08-02-001` as to scope-free references only. DEP1 is untouched and remains open.
+
+## Originating Review Finding(s)
+
+None from a Reviewer finding. This ratification originates from the DEP2 governance cycle: a
+Planner proposal, an Owner review of that proposal rejecting residual-resolution as capable of both
+under-granting and over-granting authority on the live corpus, Planner draft r1 of this entry, an
+Owner review of r1 whose blocking findings established that the new condition's placement in
+precedence must be additive in fact and not merely in description (B1) and that
+`NEXUS-RAT-2026-08-02-001` is amended rather than untouched (B2), and an Owner review of r2 whose
+blocking findings established that widening the sole resolver's accepted input domain is itself an
+amendment to that resolver and must be named as one (B1), and that no published expectation may
+assert a Selection outcome the version 3 encoding makes unreachable (B2).
+
+## Governance Decision
+
+The Sprint Owner ratifies **Segmented Lifecycle Scope Selection** as follows.
+
+**The defect.** A `SegmentedLifecycle` record carries two or more independently scoped segments,
+each with its own scope key, governed description, status, and relations. A Ratification reference
+recorded on a `RepositoryPolicy` version carries **no scope selector**. Until now no ratified rule
+said which segment answers such a reference, and `NEXUS-RAT-2026-08-04-001` responded by refusing
+the entire artifact. That response is correct as a refusal to guess and wrong as a blast radius: it
+refuses artifacts whose every cited Ratification is whole-record, because one uncited record
+elsewhere in the same artifact is segmented.
+
+**The rule (binding, normative).** A scope-free Ratification reference that matches a
+**structurally valid, recognized-status, noncontradictory** record whose `lifecycleResolutionForm`
+is `SegmentedLifecycle` SHALL resolve to **`Unresolvable`**, with the exact diagnostic
+`unresolvable-scope-free-reference-to-segmented-record`.
+
+**The rule belongs to matched-record evaluation, and is reached only after every pre-existing
+validity condition has been applied unchanged.** It sits inside the sub-order that runs once the
+validation authority's pre-existing **malformed-Ratification-reference** and
+**Snapshot-source-unavailable** preconditions have succeeded. Those two preconditions are neither
+defined, reordered, narrowed, nor amended here; they continue to run first and to produce
+`Unresolvable` with their own diagnostics. Within matched-record evaluation, for a segmented record
+exactly as for any other: no matching record, duplicate identifier, structural malformation, an
+unrecognized lifecycle status, and contradiction under the existing meaning of that term each
+retain their pre-existing outcome and their pre-existing diagnostic. The new condition sits
+**after** all of them and **immediately before** the lifecycle status mapping. It reroutes none of
+them.
+
+**The invariant, stated exactly.** Once the pre-existing validity conditions have passed, **no
+segment status participates in scope selection, preference, aggregation, or the final
+lifecycle-status mapping.** The pre-existing conditions do read segment fields — that is how
+malformation, an unrecognized status, and contradiction are detected — and they continue to. What
+never happens is that a segment is *chosen* to answer the reference, or that its status is *mapped*
+to `Valid` or `Invalid`. Where the new condition is reached, no segment is selected, preferred,
+aggregated, flattened, ranked, or arbitrated among, and neither the reserved `residual` segment nor
+any `GovernedScope` segment is privileged.
+
+Divergent statuses across distinct valid segments remain **noncontradictory** exactly as
+`NEXUS-RAT-2026-08-04-001` already ratified, and such a record is never reported as
+`invalid-contradictory-record`.
+
+**Why nothing weaker is authorized.** Structural completeness — exactly one `ResidualScope` segment
+per record, under the reserved key `residual` — proves that the *encoding* covers the whole record.
+It does not prove that an identifier-only reference *names* the residual scope rather than the
+whole entry or a carved governed scope. The live corpus demonstrates both unsafe directions:
+`NEXUS-RAT-2026-07-16-003` carries an `Effective` governed segment under a `Superseded` residual,
+where residual-resolution would under-grant; `NEXUS-RAT-2026-07-16-018` and
+`NEXUS-RAT-2026-07-17-012` each carry `Superseded` governed segments under an `Effective` residual,
+where residual-resolution would validate a reference whose actual authority may have derived from a
+superseded clause. Because the reference carries no selector, no validator can distinguish these
+cases from the reference alone. Selecting any segment would therefore be semantic inference from
+prose that issuance is expressly forbidden to perform, and would breach the no-default rule of
+`NEXUS-RAT-2026-07-15-017` and Canon 12. **`Unresolvable` is the only outcome that is determinate
+without being inferred.**
+
+**Ownership.** The rule is resolution, and resolution has exactly one owner.
+`NEXUS-RAT-2026-07-15-017` is amended **by addition, in exactly two named respects** — its accepted
+input domain and its Required Outcome Mapping — and remains the sole resolver and the sole producer
+of the three closed outcomes. No fourth authority is created. The Consumption Correspondence
+transports; Selection invokes and compares; neither resolves.
+
+**Why the input domain is the resolver's own amendment.** The correspondence owns the
+transformation into the state the resolver consults, but it cannot unilaterally widen what the
+resolver accepts. The resolver now receives and reads `lifecycleResolutionForm` and
+`lifecycleSegments`, including segment scope, status, and relation fields, none of which belonged to
+the prior flat consumed record; and the new outcome condition itself depends on the added form
+field. An earlier revision of this draft listed the resolver's `RatificationAuthorityRecord` field
+rule as unchanged while feeding it those fields. That is **withdrawn**: the input-domain widening is
+named here as the first of two additions to `NEXUS-RAT-2026-07-15-017`.
+
+## Objective
+
+```text
+Verified version 3 artifact (V1–V9 pass)
+        ↓
+Consumption Correspondence — carries ALL records, segments intact
+        ↓
+RatificationAttributionValidation — sole resolver
+        ↓
+  reference and source preconditions, unchanged and first
+        ↓
+  matched-record evaluation: pre-existing conditions, unchanged
+        ↓
+  scope-free reference → valid SegmentedLifecycle record
+        ↓
+    Unresolvable
+  unresolvable-scope-free-reference-to-segmented-record
+```
+
+## Governing Authority
+
+- RFC-0011 v1.7 — Governed Declaration Block Grammar; Lifecycle Segments and Structural
+  Completeness; Ratification Authority Snapshot Issuance; Repository Policy Selection and Version
+  Binding.
+- `NEXUS-RAT-2026-07-15-017` — sole authority over Ratification reference resolution, the closed
+  `Valid | Invalid | Unresolvable` outcome set, the Required Outcome Mapping, and the no-default
+  fail-closed rule. **Amended by addition in exactly two named respects — accepted input domain and
+  Required Outcome Mapping — and in no other.**
+- `NEXUS-RAT-2026-07-31-001` — Ratification Authority Snapshot Issuance; segment declaration and
+  the version 3 record encoding. **Not amended.**
+- `NEXUS-RAT-2026-08-04-001` — Consumption Correspondence, chain V1–V9, canonical consumed order,
+  and the doctrine that a condition unreachable through a verified version 3 artifact remains
+  binding on every other path. **Amended in exactly two respects.**
+- `NEXUS-RAT-2026-08-02-001` — Repository Policy Selection and Version Binding; DEP1 and DEP2.
+  **Amended to a named extent and in no other.**
+- `NEXUS-RAT-2026-07-16-001` — the Ratification Authority Snapshot fingerprint. **Not amended.**
+- Kernel Canon 9 (determinism), Canon 10 (explainability), Canon 12 (human authority; no silent
+  resolution of ambiguity).
+
+## Authorized Scope
+
+1. Amendment of RFC-0011 from Final (Amended) v1.7 to v1.8 across exactly **seven** edit sites in
+   exactly one file. The complete authorized text is reproduced verbatim under Full Ratification
+   Text below, and that reproduction — not any external document — is what this ratification
+   authorizes.
+2. Appending this entry to `knowledge/governance/RATIFICATION_LEDGER.md`.
+
+Exactly two files are changed by this ratification.
+
+## Deferred and Prohibited Scope
+
+The following are deferred and are **NOT** authorized by this ratification:
+
+- **Scope-bearing Ratification references.** No reference form carrying a scope selector is
+  defined, reserved, encoded, or hinted at. This ratification discharges DEP2 only by fixing the
+  deterministic fail-closed result for the reference forms that are **presently expressible**,
+  which are scope-free. It authorizes **no positive resolution of a carved governed scope** by any
+  means. A future scope-bearing contract requires its own ratification and may then define scope
+  reporting;
+- any rule by which a segment is selected, preferred, ranked, aggregated, flattened, or arbitrated
+  among, whether by scope kind, scope key, declaration order, status severity, relation depth, or
+  description text;
+- any extension of the validation outcome contract. No `scopeKey`, segment reference, or scope
+  projection is added to any outcome. The outcome set remains exactly `Valid | Invalid |
+  Unresolvable`;
+- any amendment to the ten pre-existing conditions of the Required Outcome Mapping, to their
+  outcomes, to their diagnostics, or to their precedence relative to one another. This ratification
+  **adds one condition at one stated position within matched-record evaluation** and alters none.
+  In particular the pre-existing **malformed-Ratification-reference** and
+  **Snapshot-source-unavailable** conditions, which run before matched-record evaluation, are
+  neither defined, reordered, narrowed, nor amended here;
+- any removal of a pre-existing condition on the ground that a conforming version 3 artifact cannot
+  present it. Preservation on every other path is a ratified doctrine of
+  `NEXUS-RAT-2026-08-04-001` and is honored, not narrowed;
+- any change to the whole-record arm of the consumed record. It is preserved exactly, and
+  `lifecycleResolutionForm` is **not** added to it — doing so would change every whole-record
+  consumed state and invalidate the compatibility conclusion of this entry;
+- any change to the version 3 artifact encoding, its schemas, its field order, its schema version
+  identifier, its ordering rules, its diagnostic vocabulary, or any of its three commitment layers;
+- any change to the derivation of the Ratification Authority Snapshot fingerprint, which remains
+  owned by `RatificationAttributionValidation`. **No fingerprint, authority root, or envelope
+  commitment rendering is published or ratified anywhere in this entry**, because publishing one
+  would constrain a derivation this ratification does not own;
+- any canonical segment-order transformation. Segment order is carried and is non-authoritative for
+  resolution; no ordering rule over segments is defined, and defining one would require its own
+  ratification;
+- migration, upgrade, rewriting, back-filling, repair, or re-declaration of any governed lifecycle
+  declaration. The three live segmented declarations —
+  `NEXUS-RAT-2026-07-16-003`, `NEXUS-RAT-2026-07-16-018`, `NEXUS-RAT-2026-07-17-012` — are
+  **preserved exactly as governed evidence**. Rewriting them to `WholeRecordLifecycle` would
+  destroy the record of what was partially withdrawn and is expressly prohibited;
+- editing any prior Ledger entry's octets or `## Current Status`, adding or modifying any
+  `## Lifecycle Authority Declarations` block, and recomputing any `sourceStatusDigest`;
+- issuing a production Ratification Authority Snapshot. **DEP1 remains open and is not
+  discharged, narrowed, excepted, or worked around**;
+- any store, registry, resolver, locator, index, or retrieval protocol for issued artifacts;
+- implementation, Sprint proposal, or Sprint activation of any capability described here;
+- any Git operation.
+
+**Implementation requires separate Sprint scope ratification.**
+
+## Ownership Model (ratified)
+
+Unchanged in every respect except the one stated.
+
+Ratification Authority Snapshot Issuance owns the issued artifact, its schemas, its schema version,
+its segment declaration contract, and its three commitment layers. It resolves nothing.
+
+The Consumption Correspondence owns the verification chain and the total function from a verified
+result to the input of the validation authority. **It now carries segmented records instead of
+refusing artifacts that contain them.** It still resolves no Ratification, produces no outcome,
+emits no diagnostic from the validation authority's vocabulary, and derives no fingerprint. It
+performs no reference resolution, no status aggregation, no scope preference, and no outcome
+production over segments.
+
+`RatificationAttributionValidation` owns resolution, the three closed outcomes, the diagnostic
+vocabulary, and the fingerprint derivation. **The segment-selection rule is resolution and is
+therefore owned here.** It also owns **what it accepts as input**, so the widening of its
+`RatificationAuthorityRecord` input domain to the closed structural two-arm union is an amendment
+to it, made here by addition and named as such — not a consequence the correspondence imposes on
+it. Both additions are its own.
+
+Repository Policy Selection invokes and compares. It produces, defaults, infers, and overrides no
+attribution outcome, and it interprets no segment. **Its ownership boundary is unchanged**; what
+changes for it is the behavior it consumes at Verification Step 5.
+
+## Full Ratification Text
+
+The following is the complete authorized amendment to
+`knowledge/specifications/rfc-0011-engineering-governance-model.md`, taking it from Final (Amended)
+v1.7 to Final (Amended) v1.8 across exactly seven edit sites. It is reproduced here in full so that
+this Ledger entry carries its own binding meaning and depends on no external document.
+
+**Target file:** `knowledge/specifications/rfc-0011-engineering-governance-model.md`
+**Baseline:** Final (Amended) v1.7, 3,943 lines, 354,349 octets, LF terminators, SHA-256
+`77582bfda13654fc495e59a930328432de6b03ebf17ee268c175d8cfafca7313`, as committed on 2026-08-04.
+**Site count:** seven — six exact-match replacements and one file-end append.
+**Result:** 3,985 lines, 376,120 octets, LF terminators, SHA-256
+`3e68e9c35d8e7d7426fbb99df3526e91e0e6742740c45b56be844b2ba264a1ea`.
+
+Line numbers identify the baseline v1.7 file. Application SHALL match on the reproduced prior text,
+not on line number alone. Every PRIOR TEXT block below occurs **exactly once** in the baseline file,
+verified by ordinal string search.
+
+````markdown
+### Site 1 of 7 — Version metadata (line 4)
+
+PRIOR TEXT (exact):
+
+```
+**Version:** 1.7
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+**Version:** 1.8
+```
+
+### Site 2 of 7 — Amendment provenance sentence, final clause (line 8)
+
+PRIOR TEXT (exact):
+
+```
+`NEXUS-RAT-2026-08-04-001` is not amended; the Ratification Authority Snapshot Consumption Correspondence, its supplied-artifact verification chain, and its canonical consumed order are consumed exactly as ratified, and its refusal of any artifact carrying a `SegmentedLifecycle` record is neither narrowed nor excepted.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+`NEXUS-RAT-2026-08-04-001` is not amended by that amendment; the Ratification Authority Snapshot Consumption Correspondence, its supplied-artifact verification chain, and its canonical consumed order are consumed exactly as ratified. Amended by `NEXUS-RAT-2026-08-05-001` to establish Segmented Lifecycle Scope Selection (see Repository Policy Selection and Version Binding → Pre-Use Verification, below, and Amendment History). That amendment withdraws in full the correspondence's artifact-level refusal of any artifact carrying a `SegmentedLifecycle` record, together with its refusal reason `segmented-lifecycle-scope-selection-unratified`, and requires every verified record to be carried into the consumed state with its declared segments intact and its carried segment order non-authoritative for resolution. It locates the scope-free resolution rule where resolution is owned: `NEXUS-RAT-2026-07-15-017` is amended **by addition only, and in exactly two respects**. First, its accepted `RatificationAuthorityRecord` input domain becomes a **closed structural union of exactly two arms, distinguished by field presence and not by any shared discriminant field**: the pre-existing whole-record arm, preserved exactly, on which `lifecycleResolutionForm` and `lifecycleSegments` are absent and forbidden and the existing record-level status and relation fields apply; and a new segmented arm, on which `lifecycleResolutionForm` is required and exactly `SegmentedLifecycle`, `lifecycleSegments` is required, and the record-level status and relation fields are forbidden. Every other field combination is structurally malformed. Second, its Required Outcome Mapping gains exactly one condition, under which a scope-free Ratification reference matching a **structurally valid, recognized-status, noncontradictory** record whose `lifecycleResolutionForm` is `SegmentedLifecycle` resolves to `Unresolvable` with the exact diagnostic `unresolvable-scope-free-reference-to-segmented-record`. That condition is inserted into **matched-record evaluation alone**. It is reached only after the pre-existing malformed-Ratification-reference and Snapshot-source-unavailable preconditions have succeeded — neither of which is defined, reordered, narrowed, or amended by this amendment — and only after every pre-existing matched-record validity condition has been applied unchanged and in its existing order: a segmented record that is structurally malformed remains `Invalid`, one carrying an unrecognized lifecycle status remains `Unresolvable` under the pre-existing unknown-status condition, and one that is contradictory under the existing meaning of that term remains `Invalid`, each with its own pre-existing diagnostic. Those three outcomes are not reachable through a conforming version 3 artifact, which refuses such a record at V3 as `record-not-encodable` before any consumed state exists; they are preserved as obligations of the validation authority on every other path, exactly as that authority's conditions were already preserved. Divergent statuses across distinct valid segments remain noncontradictory exactly as already ratified. Thereafter no segment is selected, preferred, aggregated, flattened, or arbitrated among, no segment status is mapped to a lifecycle outcome, and neither the reserved `residual` segment nor any `GovernedScope` segment is privileged. **Within the Required Outcome Mapping and the diagnostic vocabulary of `NEXUS-RAT-2026-07-15-017`, and scoped to those alone, no existing condition, outcome, diagnostic, row, or clause is deleted, narrowed, reworded, or withdrawn**, and the pre-existing whole-record input arm is preserved exactly; elsewhere the amendment does withdraw the correspondence's artifact-level refusal and three published expectations, each named exactly in the ratification entry. The closed outcome set remains exactly `Valid`, `Invalid`, and `Unresolvable`, and scope-bearing references, together with any positive resolution of a carved governed scope, are deferred in full. `NEXUS-RAT-2026-08-02-001` is amended by that ratification to a named extent and in no other: Pre-Use Verification Step 5 consumes the amended correspondence, its segmented failure row and its segmented conformance obligation are replaced, its Dependency DEP2 is discharged for scope-free references only, and its published expectations `SV6` and `N23d` are withdrawn and restated. Every other selection rule, ownership boundary, verification step, eligibility conjunct, and dependency of that ratification — including Dependency DEP1 — is preserved verbatim, and its entry octets and Current Status are untouched. `NEXUS-RAT-2026-07-31-001` is not amended; the version 3 record encoding, its schemas, its schema version identifier, its ordering rules, and its three commitment layers are unchanged, and no artifact is migrated, because none has been issued. `NEXUS-RAT-2026-07-16-001` is not amended; the derivation of the Ratification Authority Snapshot fingerprint remains owned by `RatificationAttributionValidation`, and no rendering of it is published here.
+```
+
+### Site 3 of 7 — Repository Policy Selection, Pre-Use Verification Step 5, refusal paragraph (lines 2750–2759)
+
+PRIOR TEXT (exact):
+
+```
+**A refused artifact is a failed step.** `NEXUS-RAT-2026-08-04-001` refuses an artifact that fails
+any refusal-producing step of its chain — V1 through V8, V9 being total — and refuses an artifact any
+of whose records declares
+`lifecycleResolutionForm` `SegmentedLifecycle`, because no ratified rule selects which governed scope
+a scope-free Ratification reference resolves against. Every such refusal SHALL fail this step closed,
+and Policy Evaluation SHALL NOT proceed. Selection SHALL NOT flatten, prefer, arbitrate among, or
+otherwise interpret segment statuses, and SHALL NOT report a refused artifact as an attribution
+outcome of any kind. The consequence is stated rather than concealed: while the governed corpus
+carries declarations in `SegmentedLifecycle` form, an artifact issued from it is refused, and no
+conforming reference can be produced against it. That is recorded as Dependency DEP2 below.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+**A refused artifact is a failed step.** `NEXUS-RAT-2026-08-04-001` refuses an artifact that fails
+any refusal-producing step of its chain — V1 through V8, V9 being total. Every such refusal SHALL
+fail this step closed, and Policy Evaluation SHALL NOT proceed. Selection SHALL NOT report a refused
+artifact as an attribution outcome of any kind. A record that does not encode under the version 3
+schemas — including a segmented record missing a required field, carrying a lifecycle status outside
+the closed enumeration, or whose segment status and relations disagree — fails **V3** as
+`record-not-encodable`, so no such record ever reaches this step's consumed state.
+
+**A `SegmentedLifecycle` record is carried, not refused.** As amended by
+`NEXUS-RAT-2026-08-05-001`, the correspondence carries **every** verified record into the consumed
+state — whole-record and segmented alike — with each segmented record's declared segments intact.
+The artifact-level refusal of that correspondence's first revision, and its refusal reason
+`segmented-lifecycle-scope-selection-unratified`, are **withdrawn in full**; the reason is retired
+rather than reused, and no diagnostic of this section replaces it. Artifact acceptance is not an
+assertion that a scope-free reference to every carried record is valid.
+
+**Resolution belongs to the validation authority alone.** A scope-free Ratification reference
+matching a **structurally valid, recognized-status, noncontradictory** record whose
+`lifecycleResolutionForm` is `SegmentedLifecycle` resolves to **`Unresolvable`**, with the exact
+diagnostic `unresolvable-scope-free-reference-to-segmented-record`, under
+`RatificationAttributionValidation` as amended by addition by the same ratification. That condition
+belongs to **matched-record evaluation** and is reached only after that authority's pre-existing
+malformed-reference and Snapshot-source-unavailable preconditions have succeeded — neither of which
+is amended — and only after every pre-existing matched-record validity condition has been applied
+unchanged and in its existing order: for a segmented record exactly as for any other, no matching
+record, duplicate identifier, structural malformation, an unrecognized lifecycle status, and
+contradiction under the existing meaning of that term each retain their pre-existing outcome and
+their pre-existing diagnostic. Divergent statuses across distinct valid segments remain
+noncontradictory exactly as already ratified. Only thereafter does the record's
+`lifecycleResolutionForm` decide. Selection SHALL NOT select, prefer, aggregate, flatten, arbitrate
+among, or otherwise interpret segments; SHALL NOT map any segment status to a lifecycle outcome;
+SHALL NOT privilege the reserved `residual` segment or any `GovernedScope` segment; and SHALL NOT
+anticipate, substitute for, or override that outcome. It invokes the sole authority and compares,
+exactly as for every other outcome. An `Unresolvable` re-validated outcome makes that candidate
+indeterminate and the whole selection `Unresolvable` under the Selection Rules already stated,
+before eligibility and cardinality are assessed.
+
+The consequence is stated rather than concealed, in both directions. An artifact issued from the
+present governed corpus is **no longer refused**, so verification can complete against it and a
+candidate whose authorizing Ratification is whole-record is no longer blocked by an unrelated
+segmented record elsewhere in the same artifact. A candidate whose authorizing Ratification **is**
+recorded by a segmented declaration still yields no `Resolved` selection — now because the
+scope-free reference to it is `Unresolvable` by rule, rather than because no rule exists. Positive
+resolution of a carved governed scope requires a scope-bearing reference, which is deferred in
+full and is not authorized here.
+```
+
+### Site 4 of 7 — Repository Policy Selection, Pre-Use Verification Step 5, absence/substitution/forgery paragraph (lines 2775–2784)
+
+PRIOR TEXT (exact):
+
+```
+**Absence, substitution, and forgery are the same outcome.** If no artifact is supplied, if more than
+one is supplied, if the supplied artifact fails any step of the verification chain — including an
+artifact re-issued from the same governed source at a different capture instant or by a different
+producer, an artifact whose records the governed source does not yield, and the case where no
+governed source is obtainable at the pinned revision — or if it is refused for carrying a segmented
+record, this step SHALL fail closed and Policy Evaluation SHALL NOT proceed. There is no fallback to
+the supplied artifact, no most-recent-source substitution, and no degradation to the
+recomputation-only chain. The conditions are distinguished only in the reported diagnostic; they are
+never distinguished in the outcome. Vectors SV1 through SV8, below, fix each, and SV9 through SV11 fix
+the two recorded authority-source equality conditions together with their control.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+**Absence, substitution, and forgery are the same outcome.** If no artifact is supplied, if more than
+one is supplied, or if the supplied artifact fails any step of the verification chain — including an
+artifact re-issued from the same governed source at a different capture instant or by a different
+producer, an artifact whose records the governed source does not yield, and the case where no
+governed source is obtainable at the pinned revision — this step SHALL fail closed and Policy
+Evaluation SHALL NOT proceed. There is no fallback to
+the supplied artifact, no most-recent-source substitution, and no degradation to the
+recomputation-only chain. The conditions are distinguished only in the reported diagnostic; they are
+never distinguished in the outcome. Vectors SV1 through SV8, below, fix each, and SV9 through SV11 fix
+the two recorded authority-source equality conditions together with their control. A verified
+artifact carrying a `SegmentedLifecycle` record is **not** among these conditions: it is accepted,
+and a scope-free reference to such a record is resolved by the validation authority under its own
+Required Outcome Mapping.
+```
+
+### Site 5 of 7 — Failure and Conflict Handling, segmented row (line 3735)
+
+PRIOR TEXT (exact):
+
+```
+| Any record of the supplied Snapshot artifact declares `lifecycleResolutionForm` `SegmentedLifecycle`, so `NEXUS-RAT-2026-08-04-001` refuses the artifact for want of a ratified scope-selection rule (Verification Step 5) | Escalation Required |
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+| A candidate's `corpusRecord.authorizingRatificationIdentifier` matches a structurally valid, recognized-status, noncontradictory record of the verified Snapshot artifact whose `lifecycleResolutionForm` is `SegmentedLifecycle`, so `RatificationAttributionValidation` resolves the scope-free reference to `Unresolvable` with `unresolvable-scope-free-reference-to-segmented-record` and the candidate is indeterminate; the artifact itself is not refused, no segment is selected or mapped to a lifecycle outcome, and a record carried but not cited by any candidate has no effect (Verification Step 5) | Escalation Required |
+```
+
+### Site 6 of 7 — Conformance, final bullet (line 3920)
+
+PRIOR TEXT (exact):
+
+```
+- encodes the three-field Candidate Policy Reference record and the ten-field Candidate Set record in ascending field-name order as declared, orders candidates by the length-prefixed encoding of the carried corpus record's Policy identity, fails closed on a duplicate identity, a misordered collection, a malformed prefixed digest, and a corpus record fingerprint that does not equal the digest of the record it accompanies, resolves `NoCandidate`, `Ambiguous`, and `Unresolvable` outcomes to `Escalation Required` and never to `Deferred` or `Approved`, fails closed on all candidate multiplicity without arbitration, and records the complete selection reference on every Governance Decision it produces.
+```
+
+REPLACEMENT TEXT (exact):
+
+```
+- encodes the three-field Candidate Policy Reference record and the ten-field Candidate Set record in ascending field-name order as declared, orders candidates by the length-prefixed encoding of the carried corpus record's Policy identity, fails closed on a duplicate identity, a misordered collection, a malformed prefixed digest, and a corpus record fingerprint that does not equal the digest of the record it accompanies, resolves `NoCandidate`, `Ambiguous`, and `Unresolvable` outcomes to `Escalation Required` and never to `Deferred` or `Approved`, fails closed on all candidate multiplicity without arbitration, and records the complete selection reference on every Governance Decision it produces;
+- consumes a verified artifact carrying any `SegmentedLifecycle` record rather than refusing it, carries every such record into the consumed state on the segmented arm of the closed structural union of consumed records with its declared segments intact, treats the carried segment order as non-authoritative for resolution, never drops, flattens, aggregates, reorders, deduplicates, or arbitrates among segments, and obtains the `Unresolvable` outcome and the exact `unresolvable-scope-free-reference-to-segmented-record` diagnostic of a scope-free reference to a structurally valid, recognized-status, noncontradictory segmented record from `RatificationAttributionValidation` alone, never by selection, preference, inference, or a diagnostic of its own.
+
+A conforming version 3 artifact cannot present a segmented record that is structurally malformed, carries an unrecognized lifecycle status, or is internally contradictory: such a record fails **V3** as `record-not-encodable`, the artifact is refused, and no consumed state is produced. The preservation of those pre-existing conditions is therefore an obligation of `RatificationAttributionValidation` over a consumed state, not a consumption obligation of the supplied-artifact path, and it is stated as such: applied to any such state, each condition SHALL yield its pre-existing outcome — `Invalid`, `Unresolvable`, and `Invalid` respectively — with its pre-existing diagnostic, at its pre-existing position in matched-record evaluation, and SHALL NOT be rerouted to the scope-free segmented-reference condition or its diagnostic.
+```
+
+### Site 7 of 7 — Amendment History, new final entry
+
+INSERTION POINT: immediately after the `v1.7 (2026-08-04)` entry, as the new final list item at
+end of file.
+
+INSERTED TEXT: the `v1.8 (2026-08-05)` Amendment History entry, reproduced in the ratification
+entry's own Amendment History Text section below and applied verbatim.
+````
+
+**Note on the `v1.7` Amendment History entry.** It is **not** edited. It records what
+`NEXUS-RAT-2026-08-02-001` did at the time, including the then-correct statement that a segmented
+artifact is refused at Verification Step 5. Amendment History is a historical record, and prior
+practice does not rewrite it: the `v1.3` entry still cites
+`nexus-ratification-authority-snapshot/2`, and `NEXUS-RAT-2026-08-04-001` expressly tolerated
+`/2` citations inside `# Amendment History` while requiring their removal everywhere else. The new
+`v1.8` entry states the change; the `v1.7` entry preserves the record of what preceded it.
+
+## Amendment History Text (applied verbatim at Site 7)
+
+- v1.8 (2026-08-05) — Amended by `NEXUS-RAT-2026-08-05-001` to establish **Segmented Lifecycle Scope Selection**, discharging Dependency DEP2 of `NEXUS-RAT-2026-08-02-001` as to scope-free Ratification references. Fixes, deterministically and fail-closed, what a scope-free reference resolves to when it matches a **structurally valid, recognized-status, noncontradictory** record whose `lifecycleResolutionForm` is `SegmentedLifecycle`: **`Unresolvable`**, with the exact diagnostic `unresolvable-scope-free-reference-to-segmented-record`. **The new condition is genuinely additive, and its position in precedence is what makes it so.** It is inserted into **matched-record evaluation alone** — the sub-order that runs after the validation authority's pre-existing malformed-Ratification-reference and Snapshot-source-unavailable preconditions have succeeded, neither of which is defined, reordered, narrowed, or amended here — and within that sub-order it is evaluated only after every pre-existing validity condition has been applied unchanged and in its existing order, so that matched-record evaluation reads: no matching record; duplicate identifier; structural completeness; unknown lifecycle status; contradiction under the existing meaning of that term; **scope-free reference to a structurally valid, recognized-status, noncontradictory `SegmentedLifecycle` record**; then the lifecycle status mapping. A segmented record that is structurally malformed therefore remains `Invalid`, one carrying an unrecognized lifecycle status remains `Unresolvable` under the pre-existing unknown-status condition, and one that is contradictory remains `Invalid`, each with its own pre-existing diagnostic and none rerouted to the new one. Those three conditions are **not reachable through a conforming version 3 artifact**, which refuses such a record at V3 as `record-not-encodable` before any consumed state exists; they are preserved as obligations of the validation authority over a consumed state on every other path, and are stated as such rather than as consumption obligations of the supplied-artifact path. An earlier revision of this amendment placed the new condition ahead of those three and asserted that no segment status is read on any path; that placement overrode pre-existing conditions for segmented records while claiming to add to them, and both it and that assertion are **withdrawn**. The correct invariant is narrower and is stated normatively: **no segment status participates in scope selection, preference, aggregation, or the final lifecycle-status mapping once the pre-existing validity conditions have passed.** Divergent statuses across distinct valid segments remain noncontradictory exactly as `NEXUS-RAT-2026-08-04-001` already ratified, and such a record is never reported as `invalid-contradictory-record`. Where the new condition is reached, no segment is selected, preferred, aggregated, flattened, ranked, or arbitrated among, and neither the reserved `residual` segment nor any `GovernedScope` segment is privileged. Residual-resolution was considered and **rejected**: structural completeness proves that the encoding covers the whole record, not that an identifier-only reference names the residual scope, and the live governed corpus exhibits both unsafe directions — an `Effective` governed segment beneath a `Superseded` residual, where residual-resolution under-grants, and `Superseded` governed segments beneath an `Effective` residual, where it would validate a reference whose authority may have derived from a superseded clause. Because the reference carries no selector, no validator can distinguish these from the reference alone, so any selection would be semantic inference from prose that issuance is forbidden to perform and would breach the no-default rule of `NEXUS-RAT-2026-07-15-017` and Canon 12. `Unresolvable` is the only determinate outcome that is not inferred. The amendment separates two defects that the prior text conflated. The **artifact-level refusal** established by `NEXUS-RAT-2026-08-04-001`, under which one segmented record refused the whole artifact — including artifacts whose every cited Ratification was whole-record — is **withdrawn in full**, together with its refusal reason `segmented-lifecycle-scope-selection-unratified`, which is retired and not reused. The correspondence now carries **every** verified record into the consumed state, whole-record and segmented alike, with each segmented record's declared segments carried verbatim and its carried segment order declared **non-authoritative for resolution**, so that two artifacts differing only in declared segment order produce the identical attribution outcome; byte-identical consumed state is expressly not required, and no canonical segment-order transformation is defined or implied. The consumed record becomes a **closed structural union of exactly two arms, distinguished by field presence and not by any shared discriminant field**, because the whole-record arm is intentionally unchanged and therefore carries no form field to discriminate on: on the `WholeRecordLifecycle` arm, `lifecycleResolutionForm` and `lifecycleSegments` are absent and forbidden and the existing flat status and relation fields apply, byte-for-byte the existing field set; on the `SegmentedLifecycle` arm, `lifecycleResolutionForm` is required and exactly `SegmentedLifecycle`, `lifecycleSegments` is required and carries at least two segments — each carrying scope kind, scope key, description exactly when the kind is `GovernedScope`, status, and the two relation fields exactly when declared — and the record-level status and relation fields are forbidden, since a segmented record has no record-level status and synthesizing one would be the flattening this amendment prohibits. Every other field combination is structurally malformed, and an unrecognized field on either arm is rejected rather than ignored. The outer consumed Snapshot state — `source`, `capturedAt`, `records` — is unchanged, and the distinction between a stable outer shape and a widened element type is stated rather than elided. Artifact acceptance is expressly not an assertion that a scope-free reference to every carried record is valid. The **record-level ambiguity** is resolved where resolution is owned. **`NEXUS-RAT-2026-07-15-017` is amended by addition, in exactly two named respects, and in no other**: first, its accepted `RatificationAuthorityRecord` input domain becomes the closed structural two-arm union described above, preserving the prior whole-record arm exactly and adding the segmented arm, an addition the correspondence cannot make unilaterally because the sole resolver's accepted input domain is the resolver's own contract, and one the new outcome condition depends on because that condition reads the added form field; second, its Required Outcome Mapping gains exactly one condition at the matched-record position stated above. It remains the sole resolver and the sole producer of the three closed outcomes. All ten pre-existing conditions, their outcomes, their diagnostics, and their precedence relative to one another remain in force verbatim, as do the pre-existing whole-record input arm, all of its original fields, and all whole-record behavior; the closed outcome set remains exactly `Valid`, `Invalid`, and `Unresolvable`; the no-default rule is unchanged; no fourth authority is created; and the outcome contract gains no `scopeKey`, segment reference, or scope projection, explainability being supplied instead by the exact diagnostic and the referenced Ratification identifier. **`NEXUS-RAT-2026-08-04-001` is amended in exactly two respects**: the artifact-level segmented refusal is withdrawn, and the record transformation becomes total over both lifecycle resolution forms. Its verification chain V1 through V9, its canonical consumed order, its field provenance for whole-record records, its preservation of absence, multiplicity, verbatim status values, and structural completeness, its preservation of the validation authority's conditions on every path including those its own reachability table records as unreachable through a verified version 3 artifact, and its precedence rule that every verification refusal precedes every consuming check are each unchanged; V1–V9 precedence is preserved exactly, so a verification failure still refuses the artifact before correspondence or attribution validation is reached, and its refusal enumeration reduces to the twenty-one verification refusals of V1 through V8. Its reachability table's contradictory-record row is restated on the ground that survives the withdrawal: that condition remains unreachable through a conforming version 3 artifact because the encoding requires exact status and relation agreement within each segment and divergent statuses across distinct valid segments are noncontradictory by ratified rule, rather than because the artifact is refused. Its vector `CC9` is withdrawn and restated. **`NEXUS-RAT-2026-08-02-001` is amended to a named extent and in no other**: Pre-Use Verification Step 5 consumes the amended correspondence, its segmented failure row and its segmented conformance obligation are replaced, its Dependency DEP2 is discharged for scope-free references only, and its published expectations `SV6` and `N23d` are withdrawn and restated. Its Candidate Set Assembly, Selection Verification Authority, seven verification steps, four-conjunct Eligibility Predicate, ten Selection Rules, Historical Version Non-Revival, `RepositoryPolicySelectionReference` schema, indeterminacy/exclusion distinction, `ScopeUndeclared` reconciliation, Governance Decision recording contract, and Dependency DEP1 are each preserved verbatim; its ownership boundary is unchanged, selection still invoking and comparing rather than resolving. Three published expectations that required the withdrawn refusal — vector `CC9` of the correspondence, and vector `SV6` and negative vector `N23d` of the selection contract — are **explicitly withdrawn and restated** in the ratification entry rather than silently deleted. **`NEXUS-RAT-2026-07-31-001` is not amended**; the version 3 record encoding, its schemas, field order, schema version identifier, ordering rules, diagnostic vocabulary, commitment layers, and every deferral it declared are unchanged, and its deferral of production Snapshot issuance — Dependency DEP1 — is neither discharged, narrowed, nor excepted, so no conforming `RepositoryPolicySelectionReference` can be produced until issuance is separately authorized. **`NEXUS-RAT-2026-07-16-001` is not amended**; the Ratification Authority Snapshot fingerprint remains derived and owned by `RatificationAttributionValidation`, whole-record consumed states are unchanged so whole-record fingerprint behavior is unchanged, segmented artifacts previously produced no consumed state at all so no prior segmented consumed-state fingerprint exists to migrate or preserve, and no fingerprint, authority root, or envelope commitment rendering is published or ratified. No governed lifecycle declaration is rewritten, back-filled, repaired, migrated, or re-declared, no `sourceStatusDigest` is recomputed, and no prior Ledger entry's octets or `## Current Status` are edited: the three live segmented declarations are preserved exactly as governed evidence of what was partially withdrawn. Scope-bearing references, and any positive resolution of a carved governed scope, are **deferred in full**. **RFC-0003 is not amended**; NCCS-1 is consumed exactly as RFC-0003 v1.1 defines it. No Governance Decision value, Escalation category, Policy Evaluation mechanism, Policy Criterion predicate, or Governance Evaluation Input Profile is introduced or modified. Specification text only; implementation requires separate Sprint scope ratification.
+
+## Exact Amendment Inventory
+
+Three ratifications are amended. Each is amended to exactly the extent stated and to no other. In
+every case the amended entry's **octets and `## Current Status` are untouched**: binding law
+changes through this entry, not by rewriting the entry that established it.
+
+### `NEXUS-RAT-2026-07-15-017` — amended by addition, in exactly two respects
+
+| # | What changes | What does not |
+| --- | --- | --- |
+| 1 | Its accepted `RatificationAuthorityRecord` **input domain** becomes the closed structural two-arm union defined below: the prior whole-record arm preserved exactly, plus a new segmented arm | The whole-record arm itself, field for field; all of its original fields; all whole-record resolution behavior; the requirement that identifier, date, and subject be as recorded in the authority source with no field inferred from prose, intent, or Builder assumption, which the segmented arm satisfies identically |
+| 2 | Its **Required Outcome Mapping** gains **exactly one** condition, at exactly one stated position within matched-record evaluation | All ten pre-existing conditions, their outcomes, their diagnostics, and their precedence relative to one another; the malformed-reference and source-unavailable preconditions that run before matched-record evaluation; the closed three-outcome set; the no-default rule; sole ownership of resolution; Snapshot cardinality; the closed lifecycle statuses |
+
+**Why two and not one.** The correspondence owns the transformation, but the sole resolver owns what
+it accepts. The resolver now receives and reads `lifecycleResolutionForm` and `lifecycleSegments`,
+including segment scope, status, and relation fields, none of which belonged to the prior flat
+consumed record — and the added outcome condition is defined in terms of the added form field, so
+respect 2 is not statable without respect 1. An earlier revision of this draft asserted that the
+resolver's field rule was unchanged while widening what it consumes; that assertion is **withdrawn**.
+
+### `NEXUS-RAT-2026-08-04-001` — amended in exactly two respects
+
+| # | What changes | Consequential restatements |
+| --- | --- | --- |
+| 1 | The artifact-level refusal of any artifact carrying a `SegmentedLifecycle` record, and its refusal reason `segmented-lifecycle-scope-selection-unratified`, are withdrawn in full | Its **reachability table's contradictory-record row** is restated: that condition remains not reachable through a conforming version 3 artifact, but now because the encoding requires exact status/relation agreement within each segment and divergent statuses across distinct valid segments are noncontradictory — **not** because the artifact is refused. Its vector **`CC9`** is withdrawn and restated as `CC9′` |
+| 2 | The record transformation becomes total over **both** lifecycle resolution forms rather than over `WholeRecordLifecycle` only | The consumed record becomes a closed structural two-arm union, defined below |
+
+Unchanged: chain V1–V9 and its order; the canonical consumed order; whole-record field provenance;
+preservation of absence, multiplicity, verbatim status values, and structural completeness; the
+doctrine that a condition unreachable through this path remains binding on every other; and the
+failure-precedence rule that every verification refusal precedes every consuming check. Its refusal
+enumeration reduces to the twenty-one verification refusals of V1 through V8.
+
+### `NEXUS-RAT-2026-08-02-001` — amended to a named extent
+
+**Four RFC edit sites fall within the section this ratification established** (Repository Policy
+Selection and Version Binding):
+
+| Site | Change |
+| --- | --- |
+| 3 | Pre-Use Verification Step 5's refusal paragraph is replaced: the segmented artifact-level refusal is withdrawn and resolution is located at the validation authority |
+| 4 | Step 5's absence/substitution/forgery paragraph drops the segmented refusal from its enumerated conditions |
+| 5 | The segmented Failure and Conflict Handling row is replaced by **exactly one** row, covering the only segmented condition a verified artifact can present |
+| 6 | The final Conformance bullet gains a companion bullet stating the segmented consumption obligation, and a following paragraph stating the preserved pre-existing conditions as a **validation-authority obligation over a consumed state**, expressly not as a supplied-artifact consumption obligation |
+
+**Three Ledger-level obligations of that entry change:**
+
+| Obligation | Disposition |
+| --- | --- |
+| Dependency **DEP2** | **Discharged for scope-free references only.** Not discharged for scope-bearing references, which remain deferred in full |
+| Vector **SV6** | **Withdrawn and restated** as `SV6′` |
+| Negative vector **N23d** | **Withdrawn and restated** as `N23d′` |
+
+**Preserved verbatim:** Candidate Set Assembly and its no-filter rule; the Selection Verification
+Authority; all seven verification steps other than the Step 5 text named above; the four-conjunct
+Eligibility Predicate; the ten Selection Rules; Historical Version Non-Revival; the fifteen-field
+`RepositoryPolicySelectionReference` and three-field Candidate Policy Reference schemas; the
+indeterminacy-versus-determinate-exclusion distinction; the `ScopeUndeclared` reconciliation; the
+conditional Governance Decision recording contract; every other Failure and Conflict Handling row;
+and **Dependency DEP1**. Its ownership boundary is unchanged: selection invokes and compares, and
+resolves nothing.
+
+## The Amendment by Addition to `NEXUS-RAT-2026-07-15-017`
+
+Two additions, both by addition only, neither narrowing anything.
+
+### First addition — the accepted input domain
+
+The record type `RatificationAttributionValidation` accepts becomes the **closed structural union**
+tabulated under *The consumed record is a closed structural union* below. The whole-record arm is
+the prior input domain, preserved exactly; the segmented arm is new. Every other field combination
+is structurally malformed and is decided by the pre-existing structural-completeness condition,
+which is unchanged.
+
+This addition is recorded against the resolver rather than against the correspondence because the
+resolver alone owns what it accepts. It is a widening: no record that the prior domain admitted is
+excluded, no field of the prior arm changes, and no whole-record resolution outcome changes.
+
+### Second addition — the Required Outcome Mapping
+
+The Required Outcome Mapping gains **exactly one row**. All ten pre-existing rows are reproduced
+here unaltered so that the amended mapping is readable in one place; **only the emboldened row is
+new**, and no other row, outcome, or diagnostic is deleted, narrowed, reworded, or withdrawn.
+
+| Condition | Required Outcome |
+| --- | --- |
+| Exactly one structurally valid record, canonical lifecycle status explicitly `Effective` | Valid |
+| Record explicitly `Superseded` | Invalid |
+| Record explicitly `Withdrawn` | Invalid |
+| Contradictory record (e.g., simultaneously marked `Superseded` and `Withdrawn`, or conflicting explicit statuses) | Invalid |
+| Structurally malformed record (missing required fields) | Invalid |
+| No matching record found | Unresolvable |
+| Duplicate identifier (more than one record resolves to the same reference) | Unresolvable |
+| Unknown/unrecognized lifecycle status | Unresolvable |
+| Malformed Ratification reference on the `RepositoryPolicy` | Unresolvable |
+| Snapshot source unavailable | Unresolvable |
+| **Scope-free Ratification reference matching a structurally valid, recognized-status, noncontradictory record whose `lifecycleResolutionForm` is `SegmentedLifecycle`** | **Unresolvable** |
+
+Diagnostic for the new condition, exact: `unresolvable-scope-free-reference-to-segmented-record`.
+
+The no-default rule is unchanged and continues to bind: no outcome other than the three closed
+values is authorized, and every condition not listed SHALL be treated as `Unresolvable` rather than
+guessed toward `Valid`.
+
+### Matched-record evaluation precedence
+
+**Scope of this list.** It states the order in which the validation authority evaluates a **matched
+record**, and it is reached only after that authority's applicable **reference and source
+preconditions have succeeded** — the pre-existing *malformed Ratification reference* and *Snapshot
+source unavailable* conditions, each of which produces `Unresolvable` with its own diagnostic and
+each of which runs before any record is examined. This ratification inserts the new condition into
+**this sub-order alone**. It does not define, reorder, narrow, or amend either precondition, and
+this list is expressly **not** the validation authority's complete global precedence.
+
+An earlier revision of this draft presented the seven steps as the full precedence "within the
+validation authority", which omitted those two preconditions. That framing is **withdrawn** and
+replaced by the qualification above; the seven steps themselves are unchanged.
+
+Within matched-record evaluation, precedence is stated in full and changes **only by insertion at
+position 6**:
+
+1. no matching record;
+2. duplicate identifier;
+3. structural completeness / malformed record;
+4. unknown lifecycle status;
+5. contradiction under the existing meaning of that term;
+6. **scope-free reference to a structurally valid, recognized-status, noncontradictory
+   `SegmentedLifecycle` record** *(new)*;
+7. lifecycle status mapping.
+
+**Why position 6 and not position 3.** An earlier revision of this draft placed the new condition
+before structural completeness, unknown status, and contradiction, reasoning that `Unresolvable` is
+the safer claim than `Invalid`. That placement was wrong and is **withdrawn**: it changed the
+outcome of a malformed, unknown-status, or contradictory segmented record from its pre-existing
+mapping to the new condition, which is overriding those conditions, not adding to them — whatever
+the surrounding prose claimed. That several of those conditions are unreachable through a
+conforming version 3 artifact does not retire them; `NEXUS-RAT-2026-08-04-001` expressly preserves
+them on every other path, and this ratification preserves that preservation.
+
+At position 6 the new condition is reached only by a record that has already been established
+valid, recognized, and noncontradictory. Steps 1 through 5 behave for a segmented record exactly as
+for any other record, with their own outcomes and their own diagnostics.
+
+### What the invariant actually says
+
+The correct invariant is narrower than "no segment status is read", which an earlier revision
+asserted and which is **withdrawn** as false — the pre-existing validity conditions do read segment
+fields, and must, in order to detect malformation, an unrecognized status, and contradiction.
+
+**Once the pre-existing validity conditions have passed, no segment status participates in scope
+selection, preference, aggregation, or the final lifecycle-status mapping.** No segment is chosen
+to answer the reference; no segment's status is mapped to `Valid` or `Invalid`; step 7 is not
+reached for a segmented record.
+
+Divergent statuses across distinct valid segments remain **noncontradictory**, exactly as ratified,
+so such a record passes step 5 and reaches step 6. It is never reported as
+`invalid-contradictory-record`; that diagnostic retains exactly the meaning
+`NEXUS-RAT-2026-07-15-017` gave it, and the treatment that mapped divergent scoped statuses onto it
+— withdrawn in full by `NEXUS-RAT-2026-08-04-001` — stays withdrawn.
+
+## The Amended Correspondence
+
+### First respect — the artifact-level refusal is withdrawn in full
+
+Its section *Disposition of `SegmentedLifecycle` records* required that, if any record of the
+verified artifact declared `lifecycleResolutionForm` `SegmentedLifecycle`, the correspondence refuse
+the artifact with the reason `segmented-lifecycle-scope-selection-unratified`, producing no consumed
+state, no partial state, and no outcome. **That requirement, and that refusal reason, are
+withdrawn.** The reason is **retired, not reused**: no condition of this or any other authority
+emits it, and no diagnostic is renamed onto it.
+
+Three of the four normative properties that refusal carried are **retained verbatim**, because they
+were never properties of the refusal but of the correspondence's neutrality:
+
+- **No scope is erased.** The correspondence does not flatten segments into a status collection,
+  does not prefer the `residual` segment, does not prefer a governed segment, and does not
+  arbitrate;
+- **No existing diagnostic is reused or reinterpreted.** A structurally valid scoped record is
+  never reported as `invalid-contradictory-record`;
+- **No diagnostic of the validation authority is emitted by the correspondence**, whose vocabulary
+  belongs to that authority and describes resolution rather than transformation.
+
+The fourth property — *the whole artifact is refused, not the individual record* — was the
+reasoning for the blast radius and is **withdrawn with it**. Its stated justification survives and
+is honored by the new design: dropping the record would make a reference to it report
+`unresolvable-no-matching-record`, falsely asserting that the authority source does not contain the
+Ratification. **The record is therefore not dropped. It is carried**, and a reference to it reports
+`unresolvable-scope-free-reference-to-segmented-record`, which asserts only what is true.
+
+**Consequential restatement of the reachability table.** That entry's row for the contradictory-record
+condition read, in part, that a record carrying divergent scoped statuses "is `SegmentedLifecycle`
+and is refused before validation, by the rule below". That mechanism is withdrawn with the refusal.
+The row is **restated**: the contradictory-record condition remains **not reachable** through a
+conforming version 3 artifact, because version 3 requires exact status/relation agreement within
+each segment, so no conforming segment can be internally contradictory; and divergent statuses
+across distinct valid segments are noncontradictory by ratified rule, so they do not make the record
+contradictory either. Such a record is now **carried and resolved at position 6**, not refused. The
+condition remains binding on every other path, unamended.
+
+### Second respect — the transformation becomes total over both forms
+
+It was total over `WholeRecordLifecycle` records; it is now total, full stop. Each verified record
+produces exactly one consumed record. No record is dropped, merged, deduplicated, reordered, or
+synthesized.
+
+Everything else is **unchanged**: chain V1 through V9 and its order; the canonical consumed order
+ascending by encoded recomputed fingerprint; the field provenance of whole-record records; the
+preservation of absence, multiplicity, verbatim status values, and structural completeness; and the
+failure-precedence rule that every verification refusal precedes every consuming check, produces no
+partial state, and emits no consuming diagnostic. **V1–V9 precedence is preserved exactly**: any
+verification failure still refuses the artifact before the correspondence or the validation
+authority is reached. The refusal enumeration reduces from "the twenty-one verification refusals of
+V1 through V8 and the segmented-lifecycle refusal" to exactly **the twenty-one verification refusals
+of V1 through V8**; V9 remains total and produces no refusal.
+
+### The consumed record is a closed structural union
+
+**The outer consumed Snapshot state is unchanged**: `source` exactly
+`envelope.authoritySourceIdentity`; `capturedAt` exactly `envelope.capturedAt`; `records` the
+transformation applied to each element in the canonical consumed order, preserving order and
+multiplicity.
+
+**The consumed record element type widens.** That is a contract change and is stated as one. The
+consumed record is a **closed structural union of exactly two arms, distinguished by field presence
+and no third arm**. It is **not** discriminated on a shared field: the whole-record arm is
+deliberately unchanged and therefore carries no `lifecycleResolutionForm` to discriminate on. An
+earlier revision of this draft called it "a closed two-arm union discriminated on
+`lifecycleResolutionForm`" while also requiring that field absent from one arm; that description is
+**withdrawn** as internally inconsistent, and the structural rule below replaces it.
+
+`lifecycleResolutionForm` is **not** added to the whole-record arm. Adding it would change every
+whole-record consumed state and invalidate this entry's compatibility conclusion, so it is expressly
+prohibited above.
+
+**The structural rule, exactly:**
+
+| | Whole-record arm | Segmented arm |
+| --- | --- | --- |
+| `lifecycleResolutionForm` | **absent — forbidden** | **required**, and exactly `SegmentedLifecycle` |
+| `lifecycleSegments` | **absent — forbidden** | **required** |
+| `lifecycleStatus`, `supersededByRatificationId`, `withdrawnByRatificationId` at record level | the existing flat fields apply, under their existing presence rules | **forbidden** |
+
+**Every other field combination is structurally malformed** and is decided by the pre-existing
+structural-completeness condition at matched-record evaluation step 3, with its pre-existing
+outcome `Invalid` and its pre-existing diagnostic. An unrecognized field on either arm SHALL be
+**rejected, not ignored**, consistent with the existing convention by which the ratified `Issued`
+result refuses a missing field and refuses an unrecognized one.
+
+**Arm 1 — `WholeRecordLifecycle`.** Byte-for-byte the existing field set, unchanged in every
+respect. Let S be the record's single `residual` segment:
+
+| Consumed field | Version 3 field | Governed source | Presence |
+| --- | --- | --- | --- |
+| `identifier` | `R.ratificationIdentifier` | first content line of `## Ratification Identifier` | required |
+| `date` | `R.ratificationDate` | single content line of `## Date` | required |
+| `subject` | `R.ratificationSubject` | content lines of `## Subject`, joined by a single `LF` | required |
+| `lifecycleStatus` | `S.lifecycleStatus` | the Generic Source Rule over `## Current Status`, or the `status` line of the governed declaration | required |
+| `supersededByRatificationId` | `relationTarget` of S's `SupersededBy` relation | the `relation SupersededBy` line | exactly when that relation is declared |
+| `withdrawnByRatificationId` | `relationTarget` of S's `WithdrawnBy` relation | the `relation WithdrawnBy` line | exactly when that relation is declared |
+
+Forbidden on this arm: `lifecycleSegments`, and any field not listed.
+
+**Arm 2 — `SegmentedLifecycle`.** New:
+
+| Consumed field | Version 3 field | Governed source | Presence |
+| --- | --- | --- | --- |
+| `identifier` | `R.ratificationIdentifier` | first content line of `## Ratification Identifier` | required |
+| `date` | `R.ratificationDate` | single content line of `## Date` | required |
+| `subject` | `R.ratificationSubject` | content lines of `## Subject`, joined by a single `LF` | required |
+| `lifecycleResolutionForm` | `R.lifecycleResolutionForm` | the `form` line of the governed declaration | required; the discriminant |
+| `lifecycleSegments` | `R.lifecycleSegments` | the `segment` groups of the governed declaration | required; at least two elements |
+
+Forbidden on this arm: `lifecycleStatus`, `supersededByRatificationId`,
+`withdrawnByRatificationId` — a segmented record has no record-level status, and synthesizing one
+would be the flattening this ratification prohibits — and any field not listed.
+
+Each carried segment SHALL carry, verbatim:
+
+| Consumed segment field | Version 3 field | Presence |
+| --- | --- | --- |
+| `scopeKind` | `S.scopeKind` | required |
+| `scopeKey` | `S.scopeKey` | required |
+| `scopeDescription` | `S.scopeDescription` | exactly when `scopeKind` is `GovernedScope`; forbidden when `ResidualScope` |
+| `lifecycleStatus` | `S.lifecycleStatus` | required |
+| `supersededByRatificationId` | `relationTarget` of S's `SupersededBy` relation | exactly when that relation is declared |
+| `withdrawnByRatificationId` | `relationTarget` of S's `WithdrawnBy` relation | exactly when that relation is declared |
+
+`R.lifecycleAuthorityKind` and `R.lifecycleDeclaringAuthority` are **not** carried on either arm:
+they record how the lifecycle was established, which is issuance-side provenance.
+
+**Every consumed field is present in the verified artifact as governed evidence, and no consumed
+field is fabricated, defaulted, substituted, derived from prose, or inferred from Builder
+assumption.** Because V8 re-derives the record collection from the governed source at the pinned
+revision, each value is not merely claimed to come from that section — it is established to.
+
+**The artifact schema does not change.** The `nexus-ratification-authority-snapshot/3` identifier,
+the version 3 record and segment schemas, their field order, and the three commitment layers are
+untouched. What widens is the **consumed state**, which no commitment layer binds and which is
+produced by the correspondence rather than carried by the artifact.
+
+**Why the segments are carried at all, given that resolution does not select among them.** Three
+reasons, each independent. Dropping them would make the consumed state a lossy projection of a
+verified artifact, so that two different governed sources could yield the same consumed state.
+Carrying them keeps the correspondence a transformation rather than an interpreter — dropping a
+field is a judgement about what matters, and that judgement belongs to the resolver. And the
+pre-existing validity conditions **require** them: malformation, an unrecognized status, and
+contradiction cannot be detected in a record whose segments were discarded.
+
+**Segment order is carried but non-authoritative.** The correspondence preserves the verified
+segment order because it preserves the artifact; it does **not** treat that order as priority,
+precedence, or preference. Conformance requires **order-insensitive outcome equality**, not
+byte-identical consumed state: two governed sources differing only in declared segment order are
+different governed octets and produce different record fingerprints, so requiring identical
+consumed bytes would be false. What is required, and what is vectored, is that they produce the
+**identical attribution outcome and diagnostic**. No canonical segment-order transformation is
+defined, ratified, or implied here.
+
+## Withdrawal and Restatement of Published Expectations
+
+Three published expectations required the withdrawn refusal as their normative expected result.
+Each is **withdrawn in full and restated in the same breath**. None is silently deleted.
+
+### `CC9` of `NEXUS-RAT-2026-08-04-001` — withdrawn and restated
+
+**Withdrawn text (verbatim, no longer binding):**
+
+> **CC9 — segmented lifecycle refusal.** KC is issued from UC, which is a genuine governed source:
+> its entry `-008` carries the Current Status `Partially Superseded` and resolves through `-009`'s
+> governed declaration, in `SegmentedLifecycle` form, with a `GovernedScope` segment `clause-a`
+> carrying `Superseded` and one `SupersededBy` relation, and a `ResidualScope` segment carrying
+> `Effective`. KC **passes V1 through V9 in full**, including governed-source re-derivation against
+> UC, and is then **refused** with `segmented-lifecycle-scope-selection-unratified`. No consumed
+> state is produced, no record is dropped, no scope is flattened, and no diagnostic of the
+> validation authority is emitted.
+
+**Restated as `CC9′`:** KC, unchanged as a fixture, passes V1 through V9 in full including
+governed-source re-derivation against UC, and is then **accepted**. Its consumed state carries
+every record of KC in the canonical consumed order, including the `-008` record on the
+`SegmentedLifecycle` arm with both its `clause-a` `GovernedScope` segment (`Superseded`, one
+`SupersededBy` relation) and its `ResidualScope` segment (`Effective`), each carried verbatim. No
+record is dropped, no scope is flattened, no segment is preferred, and no diagnostic of the
+validation authority is emitted by the correspondence. A scope-free reference to `-008` against
+that consumed state passes matched-record steps 1 through 5 and resolves at step 6 to `Unresolvable`
+with `unresolvable-scope-free-reference-to-segmented-record`. This fixture is exactly the polarity
+that residual-resolution would have reported `Valid`.
+
+### `SV6` of `NEXUS-RAT-2026-08-02-001` — withdrawn and restated
+
+**Withdrawn text (verbatim, no longer binding):**
+
+> | **SV6 — segmented lifecycle** | **KC** — a genuinely issued artifact, passing V1 through V9 in
+> full including governed-source re-derivation, one of whose records declares
+> `lifecycleResolutionForm` `SegmentedLifecycle` — authority root `ar-sha256-1b998f85…`, envelope
+> commitment `ec-sha256-a0b0b579…`, pinned to that commitment | **REJECTS** at Step 5.
+> `NEXUS-RAT-2026-08-04-001` refuses the artifact as
+> `segmented-lifecycle-scope-selection-unratified`, because no ratified rule selects which governed
+> scope a scope-free Ratification reference resolves against. No scope is flattened, no segment is
+> preferred, no record is dropped, and no attribution outcome is produced. See DEP2 and `CC9`.
+> Escalation Required |
+
+**Restated as `SV6′`:** KC, pinned to its own envelope commitment, **passes** Step 5's verification
+chain and is **accepted**; the artifact is not refused. Where a candidate's
+`corpusRecord.authorizingRatificationIdentifier` matches the segmented record, that candidate's
+re-validated attribution outcome is `Unresolvable` with
+`unresolvable-scope-free-reference-to-segmented-record`, which makes the candidate indeterminate
+and the whole selection `Unresolvable` before eligibility and cardinality are assessed →
+**Escalation Required**. Where no candidate cites the segmented record, that record has no effect
+on the selection outcome, and candidates citing whole-record Ratifications resolve exactly as they
+would in an artifact containing no segmented record at all. No scope is flattened, no segment is
+preferred, and no record is dropped. See `CC9′` and `SS1`–`SS18`. The withdrawn row's authority
+root and envelope commitment renderings are **not restated**: they are informative checkpoint
+values, not durable pins, and nothing in this entry publishes or relies on one.
+
+### `N23d` of `NEXUS-RAT-2026-08-02-001` — withdrawn and restated
+
+**Withdrawn text (verbatim, no longer binding):**
+
+> | N23d | **Segmented lifecycle record** | Any record of the supplied artifact declares
+> `lifecycleResolutionForm` `SegmentedLifecycle` | Verification Step 5; Escalation Required. The
+> artifact is refused as `segmented-lifecycle-scope-selection-unratified`. No scope is flattened and
+> no outcome is produced. See DEP2, SV6, and `CC9` |
+
+**Restated as `N23d′`, one row and no more:**
+
+| N23d′ | **Scope-free reference to a valid segmented record** | A candidate's authorizing Ratification identifier matches a verified, structurally valid, recognized-status, noncontradictory record whose `lifecycleResolutionForm` is `SegmentedLifecycle` | Verification Step 5; Escalation Required. The artifact is **not** refused. `RatificationAttributionValidation` resolves the scope-free reference at matched-record evaluation step 6 to `Unresolvable` with `unresolvable-scope-free-reference-to-segmented-record`; the candidate is indeterminate and the selection is `Unresolvable`. No segment is selected, preferred, flattened, arbitrated among, or mapped to a lifecycle outcome. A carried segmented record that no candidate cites has no effect. See `SV6′` and `CC9′` |
+
+**No companion Selection row is published for a malformed, unrecognized-status, or contradictory
+segmented record.** An earlier revision of this draft added both a second Failure and Conflict
+Handling row at Site 5 and a negative vector `N23i` describing such a candidate as reaching
+`RatificationAttributionValidation` through Verification Step 5. **Both are withdrawn and are not
+restated.** No supplied version 3 artifact can present such a record: it fails **V3** as
+`record-not-encodable`, the artifact is refused, and no consumed state is produced, so no Selection
+outcome of that description is reachable. Publishing one would have recreated exactly the
+unreachability defect that invalidated `CC7` of Revision 2 of the correspondence. The artifact path
+is covered by the pre-existing RFC failure row for a record that does not encode; the preservation
+of those three conditions is covered separately, as a validation-authority obligation over a
+constructed consumed state, by `SS6`–`SS8`.
+
+## Compatibility
+
+**Artifact encoding.** No change. The `nexus-ratification-authority-snapshot/3` schema, its record
+and segment schemas, its field order, its ordering rules, and its three commitment layers are
+untouched. The schema version identifier does **not** advance, because no artifact encoding
+changed. No record fingerprint, authority root, or envelope commitment computed under version 3 is
+altered by this ratification.
+
+**Consumed state.** The outer shape — `source`, `capturedAt`, `records` — is unchanged. The record
+element type widens from one shape to a closed structural two-arm union, distinguished by field
+presence. The whole-record arm is byte-for-byte the existing field set, and `lifecycleResolutionForm`
+is deliberately **not** added to it, so **every whole-record consumed state is unchanged, field for
+field**, and **whole-record fingerprint behavior is unchanged**. No previously conforming
+whole-record consumed state, or any value derived from one, is migrated, rewritten, or invalidated.
+That conclusion depends on the whole-record arm carrying no discriminant field, which is why the
+union is structural.
+
+**Validator input domain.** The widening is an amendment to `NEXUS-RAT-2026-07-15-017`, named as the
+first of that authority's two additions. It is a strict widening: every record the prior domain
+admitted is still admitted, with the same fields and the same outcome. What is new is the segmented
+arm, for which no prior behavior existed to preserve.
+
+**Segmented consumed states.** There are none to migrate. Under the prior law a segmented artifact
+produced **no consumed state at all** — the artifact was refused before any state existed.
+Therefore no previously conforming segmented consumed-state fingerprint exists, and none is
+migrated, preserved, recomputed, or invalidated. This ratification creates a consumed state for a
+case that previously had none; it changes none that existed.
+
+**The Snapshot fingerprint derivation is not constrained here.** `NEXUS-RAT-2026-07-16-001`
+requires the Ratification Authority Snapshot fingerprint to be recorded in escalation attribution
+and included in the complete deterministic input to a Governance Decision. That fingerprint is
+derived by `RatificationAttributionValidation` over the state it consults, and **that derivation
+remains owned by it and is not amended, narrowed, extended, or constrained by this correspondence
+amendment.** This entry publishes **no normative fingerprint, authority root, or envelope
+commitment rendering**, because ratifying an octet length or digest of a value whose derivation is
+owned elsewhere would constrain that derivation in fact.
+
+**Production artifacts.** None has been issued under any version of the schema. Nothing is
+migrated, rewritten, or invalidated. That fact removes migration cost and is expressly not a reason
+for any rule stated here.
+
+**Governed declarations.** None is rewritten, back-filled, repaired, migrated, or re-declared. No
+`sourceStatusDigest` is recomputed. No prior entry's octets or `## Current Status` are edited. The
+three live segmented declarations are preserved exactly, as governed evidence of what was partially
+withdrawn.
+
+**Implementation.** `SegmentedLifecycle`, `lifecycleResolutionForm`,
+`RepositoryPolicySelectionReference`, and `authoritySnapshotEnvelopeCommitment` appear nowhere in
+`src/`. No implementation exists to migrate, deprecate, or window.
+
+## Conformance Vectors
+
+Eighteen vectors, all normative. No vector publishes or relies on a fingerprint, authority root,
+or envelope commitment rendering. `WR` denotes a `WholeRecordLifecycle` record, `SG` a
+`SegmentedLifecycle` record. Step numbers refer to matched-record evaluation as qualified above.
+
+**Two paths, never merged.** A malformed, unrecognized-status, or contradictory segmented record is
+vectored twice, on two paths that no text of this entry conflates.
+
+- **The artifact path** is vectored by `SS5` alone. Such a record does not encode under version 3,
+  so the **artifact is refused at V3** as `record-not-encodable` and no consumed state exists. No
+  Selection outcome, no Failure and Conflict Handling row, and no negative vector describes such a
+  record reaching `RatificationAttributionValidation` through Verification Step 5.
+- **The constructed-state path** is vectored by `SS6`, `SS7`, and `SS8`, which are exhibited over a
+  **constructed consumed state** and are obligations of the validation authority alone. This is the
+  same device `NEXUS-RAT-2026-08-04-001` used to vector the duplicate-identifier condition, and for
+  the same reason — the conditions remain **binding on every other path**, and a vector preserving
+  them must therefore be stated over a state rather than over an artifact.
+
+Stating `SS6`–`SS8` over artifacts would make them unsatisfiable, which is precisely the defect that
+invalidated `CC7` of Revision 2 of the correspondence.
+
+| # | Fixture | Required result |
+| --- | --- | --- |
+| **SS1 — whole-record control** | A verified artifact of `WR` records only; a scope-free reference to an `Effective` record | `Valid`. Byte-for-byte the pre-amendment behavior; the consumed state is identical to the one `NEXUS-RAT-2026-08-04-001` already requires |
+| **SS2 — polarity A, valid** | `SG` with a `GovernedScope` segment `Effective` and `residual` `Superseded` (the shape of `NEXUS-RAT-2026-07-16-003`) | Artifact **accepted**. Passes matched-record steps 1–5; resolves at step 6 → `Unresolvable`, `unresolvable-scope-free-reference-to-segmented-record`. Residual-resolution would have returned `Invalid` |
+| **SS3 — polarity B, valid** | `SG` with `GovernedScope` segments `Superseded` and `residual` `Effective` (the shape of `-07-16-018` and `-07-17-012`) | Artifact **accepted**. The **same** outcome and the **same** diagnostic as SS2, reached at the same step. Residual-resolution would have returned `Valid` |
+| **SS4 — polarity equality** | SS2 and SS3 compared | Identical outcome and diagnostic. Neither is reached by comparing the two shapes: both pass steps 1–5 on their own terms and both stop at step 6 |
+| **SS5 — defective segmented record, artifact path** | A supplied version 3 artifact whose `SG` record is missing a required field, or carries a segment status outside `Effective`, `Superseded`, `Withdrawn`, or has a segment whose status and relations disagree — one case each | **Refused at V3** as `record-not-encodable`. No consumed state is produced, no partial state exists, the correspondence is not reached, `RatificationAttributionValidation` is not invoked, and **no** matched-record evaluation step runs. This is the whole of the artifact path for such a record |
+| **SS6 — malformed segmented record, constructed state** | A **constructed consumed state** carrying an `SG` record missing a required field, or presenting a field combination the structural union forbids | `Invalid` with the **pre-existing** structural-malformation diagnostic, at matched-record step 3. The segmented condition is **not** reached. Not reachable through any artifact — see SS5 |
+| **SS7 — unrecognized status, constructed state** | A **constructed consumed state** carrying an `SG` record one of whose segments carries a status outside `Effective`, `Superseded`, `Withdrawn` | `Unresolvable` with the **pre-existing** `unresolvable-unknown-lifecycle-status`, at matched-record step 4. **Not** the segmented diagnostic. Not reachable through any artifact — see SS5 |
+| **SS8 — contradictory record, constructed state** | A **constructed consumed state** carrying an `SG` record one of whose segments is internally contradictory — a status and relations that disagree | `Invalid` with the **pre-existing** `invalid-contradictory-record`, at matched-record step 5. **Not** the segmented diagnostic. Not reachable through any artifact — see SS5 |
+| **SS9 — divergent statuses are not contradiction** | `SG` whose distinct valid segments carry `Withdrawn`, `Effective`, and `Superseded` (the shape of `NEXUS-RAT-2026-07-16-003`) | Passes step 5 — divergence across distinct valid segments is **noncontradictory**, exactly as ratified — and resolves at step 6 with the segmented diagnostic. **Never** `invalid-contradictory-record`. Contrast with SS8, whose defect is *within* one segment and which no artifact can deliver |
+| **SS10 — mixed artifact** | A verified artifact carrying both `WR` and `SG` records; a candidate citing only the `WR` record | The artifact is **accepted**; the `WR` reference resolves exactly as in SS1. **This is the case the withdrawn refusal blocked.** The presence of an uncited `SG` record has no effect whatever |
+| **SS11 — carried but uncited** | As SS10, with the `SG` record cited by no candidate | The `SG` record is present in the consumed state, in the canonical consumed order, on the segmented arm with its segments intact, and contributes to no outcome |
+| **SS12 — unmatched identifier** | A scope-free reference to an identifier no record carries, in an artifact containing `SG` records | `Unresolvable` with `unresolvable-no-matching-record`, at matched-record step 1. **Not** the segmented diagnostic |
+| **SS13 — duplicate identifier** | Two consumed records sharing an identifier, at least one `SG` | `Unresolvable` with `unresolvable-duplicate-identifier`, at matched-record step 2. **Not** the segmented diagnostic. Multiplicity is preserved, never deduplicated |
+| **SS14 — preconditions run first** | A malformed Ratification reference, and separately an unavailable Snapshot source, each against an artifact containing `SG` records | Each yields `Unresolvable` with its **own pre-existing** diagnostic, before any matched-record step runs. Neither is amended, reordered, or narrowed by this ratification, and neither is rerouted to the segmented diagnostic |
+| **SS15 — segment order insensitivity** | Two verified artifacts whose `SG` records differ only in declared segment order | **Identical attribution outcome and identical diagnostic.** Consumed bytes are **not** required to be identical, and no canonical segment-order transformation is defined or implied |
+| **SS16 — V1–V9 precedence preserved** | An artifact carrying an `SG` record that also fails a chain step — one case per refusal-producing step V1 through V8 | **Refused at the failing chain step**, with that step's own reason, before the correspondence or the validation authority is reached. No matched-record step is evaluated and no attribution diagnostic is emitted |
+| **SS17 — KC end to end, and the three live declarations** | KC, the ratified fixture of `CC9`, issued from UC; and separately the governed corpus as it stands — `NEXUS-RAT-2026-07-16-003`, `-07-16-018`, `-07-17-012` | KC passes V1–V9 including governed-source re-derivation and is **accepted**; its consumed state carries the `-008` record on the segmented arm with both segments verbatim; a scope-free reference to `-008` resolves at step 6 with the segmented diagnostic, restating `CC9` as `CC9′`. Each live declaration is likewise carried on the segmented arm with its segments verbatim, passes steps 1–5, and resolves at step 6 with the segmented diagnostic. No declaration is rewritten and no `sourceStatusDigest` is recomputed. Every other entry of the corpus resolves exactly as before |
+| **SS18 — two independent implementations** | Two structurally independent implementations over SS1–SS17 | Agreement on **every normative result**: acceptance or refusal, the refusing step where refused, the consumed record set, its canonical order, the union arm of each record and the field-presence rule that decided it, the carried segments and their fields, the matched-record step at which resolution occurs, the outcome, and the exact diagnostic |
+
+## Conformance
+
+An implementation conforms to this ratification when:
+
+**Correspondence obligations.** It executes V1 through V9 unchanged, in order, stopping at the
+first failure and producing no partial result; it **accepts** a verified artifact carrying any
+`SegmentedLifecycle` record; it carries every verified record into the consumed state in the
+canonical consumed order, preserving order and multiplicity; it produces the closed structural union
+exactly as tabulated, deciding the arm by field presence, treating every other field combination as
+structurally malformed, and rejecting rather than ignoring an unrecognized or forbidden field; it
+carries each segmented record's declared segments verbatim; it treats carried segment order as
+non-authoritative for resolution; it refuses at **V3** as `record-not-encodable` a record that does
+not encode, including a defective segmented record, without producing partial state; and it emits
+neither the retired reason `segmented-lifecycle-scope-selection-unratified` nor any diagnostic of
+the validation authority.
+
+**Resolution obligations.** It accepts the closed structural union as its input domain, preserving
+the whole-record arm exactly; it runs the pre-existing malformed-reference and
+source-unavailable preconditions first and unchanged; it applies the seven-step matched-record
+evaluation precedence exactly as stated; it returns the pre-existing outcome and pre-existing
+diagnostic for a malformed, unrecognized-status, or contradictory segmented record **presented in
+any consumed state, whether or not an artifact could produce that state**; it treats divergence
+across distinct valid segments as noncontradictory; it resolves a scope-free reference matching a
+valid segmented record to `Unresolvable` with exactly
+`unresolvable-scope-free-reference-to-segmented-record`; and it reproduces every result of SS1
+through SS18.
+
+**Prohibited behaviors.** An implementation that selects, prefers, ranks, aggregates, flattens, or
+arbitrates among segments; that privileges the `residual` segment or any `GovernedScope` segment;
+that maps a segment status to a lifecycle outcome; that reaches the segmented condition before the
+pre-existing validity conditions or before the reference and source preconditions; that reroutes a
+malformed, unrecognized-status, or contradictory segmented record to the segmented diagnostic; that
+adds `lifecycleResolutionForm` to the whole-record arm or otherwise alters that arm; that accepts a
+consumed record whose field combination matches neither arm; that admits a defective segmented
+record past **V3** on the artifact path; that reports divergence across distinct valid
+segments as `invalid-contradictory-record`; that drops a segmented record from the consumed state;
+that synthesizes a record-level `lifecycleStatus` for a segmented record; that treats carried
+segment order as priority; that emits the retired refusal reason; that returns `Valid` or `Invalid`
+for a scope-free reference to a valid segmented record; or that refuses an artifact for carrying
+one, **expressly does not conform**.
+
+Reproducing any fingerprint rendering is **not** a conformance requirement, because this entry
+publishes none.
+
+## Disposition of DEP1 and DEP2
+
+**DEP2 — discharged, to exactly the stated extent.** The deterministic, fail-closed result of a
+scope-free Ratification reference against a `SegmentedLifecycle` record is now ratified. DEP2 is
+discharged **only** as to scope-free references — the only reference form presently expressible.
+It is **not** discharged as to scope-bearing references, and this ratification authorizes no
+positive resolution of a carved governed scope by any means.
+
+**DEP1 — preserved verbatim and separately open.** Production Snapshot issuance remains deferred by
+`NEXUS-RAT-2026-07-31-001` and is not authorized, narrowed, excepted, or implied here. **Until
+issuance is separately authorized, no conforming `RepositoryPolicySelectionReference` can be
+produced**, whatever this ratification settles. Nothing in this entry may be read as authorizing
+issuance, implementation, a conforming production selection reference, or scope-bearing resolution.
+
+The two dependencies are independent in both directions: neither is a prerequisite of the other's
+ratification. DEP2's closure makes verification able to complete against the present corpus; DEP1's
+closure is what would make an artifact exist to verify.
+
+## Files Changed
+
+Exactly two:
+
+1. `knowledge/specifications/rfc-0011-engineering-governance-model.md` — amended v1.7 → v1.8 across
+   seven edit sites.
+2. `knowledge/governance/RATIFICATION_LEDGER.md` — appended.
+
+No other file is changed. No prior Ledger entry is edited in place, no `## Current Status` section
+is altered, and no `## Lifecycle Authority Declarations` block is added or modified.
+
+## Stop Conditions
+
+Application SHALL stop and report, without partial application, if any of the following holds:
+
+1. The Ledger already contains an entry identified `NEXUS-RAT-2026-08-05-001`.
+2. `knowledge/specifications/rfc-0011-engineering-governance-model.md` is not byte-identical to the
+   declared v1.7 baseline — 3,943 lines, 354,349 octets, LF, SHA-256
+   `77582bfda13654fc495e59a930328432de6b03ebf17ee268c175d8cfafca7313`.
+3. Any PRIOR TEXT block of the amendment does not occur in that file exactly once, or fewer or more
+   than seven edit sites are matched.
+4. `knowledge/governance/RATIFICATION_LEDGER.md` is not byte-identical to its declared baseline —
+   21,192 lines, 1,828,805 octets, LF, SHA-256
+   `6cf0743e06d4923293aa5ac308852b51f1ab3cd586176c9fd2018d44f8b75ffc` — or does not present the
+   expected append boundary: `LF` used consistently throughout, no carriage return, and exactly one
+   terminator after a non-empty final line. The boundary SHALL fail closed rather than be repaired.
+5. The working-tree copy of either governed file and its committed form use different line
+   terminators, or the repository does not pin the governed Markdown paths to `LF`.
+6. The Ledger does not contain an entry identified `NEXUS-RAT-2026-07-15-017`, or
+   `NEXUS-RAT-2026-07-31-001`, or `NEXUS-RAT-2026-08-04-001`, or `NEXUS-RAT-2026-08-02-001`.
+7. The resulting RFC-0011 file is not **3,985 lines, 376,120 octets, LF, SHA-256
+   `3e68e9c35d8e7d7426fbb99df3526e91e0e6742740c45b56be844b2ba264a1ea`**.
+8. The resulting file does not present exactly **three** occurrences of
+   `segmented-lifecycle-scope-selection-unratified` — one in the amendment provenance sentence, one
+   in the Pre-Use Verification Step 5 withdrawal statement, and one in the `v1.8` Amendment History
+   entry, each stating the reason as withdrawn and retired — or presents, outside
+   `# Amendment History`, any surviving statement that an artifact is refused for carrying a
+   `SegmentedLifecycle` record.
+9. The resulting file does not present exactly **one** Failure and Conflict Handling row citing
+   `unresolvable-scope-free-reference-to-segmented-record`, or presents any Failure row, negative
+   vector, or Selection-path statement asserting that a malformed, unrecognized-status, or
+   contradictory segmented record reaches `RatificationAttributionValidation` through Verification
+   Step 5.
+10. Application would edit any Ledger entry other than by append, alter any `## Current Status`
+    section, add or modify any `## Lifecycle Authority Declarations` block, or recompute any
+    `sourceStatusDigest`.
+
+Partial application is prohibited.
+
+## Current Status
+
+Active
