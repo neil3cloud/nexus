@@ -22622,3 +22622,324 @@ Sprint 82 — Ratification Authority Snapshot Issuance Capability (Milestone 12,
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-06-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-06-002
+
+## Date
+
+2026-08-06
+
+## Subject
+
+**Stage 2 activation.** Activates Sprint 82 — Ratification Authority Snapshot Issuance Capability — as **Current
+Sprint on the independent Milestone 12 Supporting-Governance Prerequisite Track, item SGP-1**, established by
+`NEXUS-RAT-2026-08-06-001`.
+
+This instrument lifts **only** the `implementation` and `Sprint activation` limbs of `NEXUS-RAT-2026-07-31-001`'s
+deferral, and lifts them **only for the exact scope already defined by `NEXUS-RAT-2026-08-06-001`**, which is
+neither widened, narrowed, repaired, nor reinterpreted by one word. It creates the Sprint Implementation Record at
+`knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`, opens exactly one
+Builder task at the governed repository-root `builder-task.md`, and authorizes exactly the four implementation
+files, thirteen test files, and seven conformance-oracle files forecasted by `NEXUS-RAT-2026-08-06-001`
+§ Forecasted Future Activation and Builder Inventory.
+
+SGP-1 remains **outside** the binding six-step Initial Capability Sequence. This instrument inserts no step, alters
+no dependency order, and has **no effect on Step 3A Stop Conditions 1, 2, or 4**. It does not reopen completed
+Milestone 9. **Dependency DEP1 of `NEXUS-RAT-2026-08-02-001` is not discharged, not narrowed, and not excepted.**
+Authority-root pinning remains deferred and prohibited. No RFC, Kernel Canon document, or prior Ledger entry is
+amended.
+
+## Originating Review Finding(s)
+
+None from a Reviewer finding. This instrument is Stage 2 of the two-stage authorization model that
+`NEXUS-RAT-2026-08-06-001` § Two-Stage Authorization Model declares and that `NEXUS-RAT-2026-07-21-004` enforced
+by correction. It follows the Owner's placement decision of 2026-08-06 and the human approval of this activation
+package. Its drafting cycle comprised Revision 1; a Final Owner Review of 2026-08-06, disposition **REJECT**, with
+findings B1 (an unqualified application stop condition that would have prohibited the instrument's own
+application), M1 (contradictory assignment of sole authority), M2 (an incorrect present-tense evaluation of
+`NEXUS-RAT-2026-08-06-001`'s spent Stage 1 application conditions), and m1 (misclassification of application files
+as governance artifacts); and Revision 2, which applies all five Named Corrections. The Owner review recorded the
+activation design, the application inventory, the 24-file Builder inventory, DEP1 preservation, Boundary A, and
+the synchronized Milestone 12 Status-line correction as otherwise supported by the reviewed authority.
+
+## RFC Coverage
+
+- **RFC-0011 — Engineering Governance Model, Final (Amended) v1.8** (Primary), `# Ratification Authority Snapshot
+  Issuance`, as amended by `NEXUS-RAT-2026-08-04-001` and `NEXUS-RAT-2026-08-05-001`. Governing sections, all
+  within that heading: Purpose and Ownership Boundary; Canonical Serialization; The Source Input Domain; Governed
+  Source Text Preparation; Fenced Regions; Governed Entry Extraction Grammar; Governed Declaration Block Grammar;
+  The Two Source Facts; Fixed Protocol Constants; Lifecycle Authority Records; Lifecycle Segments and Structural
+  Completeness; Canonical Schemas and Field Order; The Generic Source Rule; Governed Lifecycle Authority
+  Declarations; Two Distinct Graphs; Authority Root and Envelope Commitment; Declared Issuance Facts;
+  Deterministic Ordering; The Total Result Contract; Relationship to `NEXUS-RAT-2026-07-15-017`; Two Structurally
+  Independent Implementations; Schema Version and Compatibility; Deferred Concepts. Also binding: `# Failure and
+  Conflict Handling → ## Ratification Authority Snapshot Issuance Failures`; `# Conformance`.
+- **RFC-0003 — Shared Reality Projection Model § Canonical Serialization Protocol (NCCS-1)** (Referenced,
+  read-only), rules 1–12 and the normative **Conformance Vectors**. Consumed exactly; not amended, not extended,
+  not reinterpreted.
+- **Kernel Canon 9** (determinism), **Canon 10** (explainability), **Canon 12** (human authority).
+- RFC-0001, RFC-0002, RFC-0005, RFC-0006, RFC-0013 — not consumed.
+
+## Deferred Concepts
+
+Identical, without addition or subtraction, to `NEXUS-RAT-2026-08-06-001` § Deferred and Prohibited Scope, minus
+only the two limbs this instrument expressly lifts (*implementation of the defined scope*; *creation and
+activation of Sprint 82, its Sprint Implementation Record, and its Builder Task*). Every other deferral is carried
+forward in force and is reproduced in full in the Sprint Implementation Record's § Deferred and Prohibited Scope.
+
+## Governance Decision
+
+**APPROVED — SPRINT 82 ACTIVATED (MILESTONE 12 INDEPENDENT SUPPORTING-GOVERNANCE PREREQUISITE TRACK, SGP-1).**
+
+Sprint 82 is activated as Current Sprint on SGP-1. `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` are
+synchronized at the sites identified in the Changed-File List below, recording SGP-1's activation as Sprint 82 and
+correcting the Milestone 12 Status lines so that neither publishes a false Current-Sprint statement. The complete
+Sprint Implementation Record is created at
+`knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`, reproducing
+`NEXUS-RAT-2026-08-06-001`'s complete Defined Scope, Deferred and Prohibited Scope, RFC Coverage and Ownership
+Boundaries, Deterministic Failure Behavior, independence and agreement obligations, Required Tests T1–T21, exact
+inventory, Acceptance Evidence, and **Stop Conditions 1–10 verbatim and unchanged**, with Builder Results,
+Validation Summary, Reviewer Notes, and Final Disposition reserved. `builder-task.md` is replaced to record
+`BT-082-001` as the one Open Builder Task, carrying prior Sprint 81/80/79 Resolved Builder Tasks forward for
+traceability.
+
+### Authority chain (binding)
+
+1. `IMPLEMENTATION_CONSTITUTION.md` governs.
+2. **This entry, `NEXUS-RAT-2026-08-06-002`, recorded in `knowledge/governance/RATIFICATION_LEDGER.md`, is the
+   permanent authorization authority for Sprint 82.** Per `IMPLEMENTATION_CONSTITUTION.md` § Sprint Owner
+   Ratifications, the Ratification Ledger is the authoritative repository and single source of truth for
+   ratifications.
+3. The Sprint Implementation Record at
+   `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` is the
+   **self-contained operative Sprint Specification** for Sprint 82, subordinate to the Constitution and to this
+   entry, and is the document the Builder works from day to day.
+4. `builder-task.md` is a **transient implementation artifact carrying no independent authority.** It may
+   reference this entry and the Sprint Implementation Record and carries no scope of its own.
+
+**Conflict rule.** If the Sprint Implementation Record and this entry ever diverge, **this entry prevails** and
+the record is corrected under the Constitution's normal process. No subordinate artifact may enlarge, narrow, or
+reinterpret the Authorized Builder Scope below.
+
+### Two mutation phases, not one
+
+| Phase | What changes | Authorized by |
+| --- | --- | --- |
+| **Activation-instrument application** (this instrument, on approval) | Exactly five **application files**: the Ledger, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, the new Sprint Implementation Record, and `builder-task.md`. | This instrument |
+| **Builder implementation** (later, by the Builder, under this entry as operationalized by the Sprint Implementation Record) | Exactly the 4 implementation files, 13 test files, and 7 conformance-oracle files listed under Authorized Builder Scope. | This instrument's Authorized Builder Scope |
+
+**No source file, test file, or oracle file is created or modified by application of this instrument itself.** Any
+reading of this instrument that would permit a `src/` or `test/` edit during application of the activation package
+is void. Post-delivery evidence in `IMPLEMENTATION_REPORT.md` and Reviewer evidence in `REVIEW_HISTORY.md` are a
+third, later phase, authorized by neither of the two above.
+
+## Authorized Builder Scope
+
+Exactly twenty-four files — the complete forecasted inventory of `NEXUS-RAT-2026-08-06-001`, reproduced here in
+full so that this entry is self-contained. No path below is a pattern. No wildcard, "at minimum", or open-ended
+directory allowance forms any part of this authorization. No consolidation, split, or renaming of this inventory is
+authorized without a prior Sprint Owner approval.
+
+**Implementation files (4):**
+
+1. `src/kernel/governance/ratification-authority-snapshot-issuance.types.ts`
+2. `src/kernel/governance/ratification-authority-snapshot-issuance.errors.ts`
+3. `src/kernel/governance/ratification-authority-snapshot-issuance.contract.ts`
+4. `src/kernel/governance/ratification-authority-snapshot-issuance.ts`
+
+**Test files (13):**
+
+1. `test/kernel/governance/ratification-authority-snapshot-issuance-source-domain.test.ts` — T1, T2, T3
+2. `test/kernel/governance/ratification-authority-snapshot-issuance-entry-structure.test.ts` — T4, T5
+3. `test/kernel/governance/ratification-authority-snapshot-issuance-declarations.test.ts` — T6, T7, T8
+4. `test/kernel/governance/ratification-authority-snapshot-issuance-records.test.ts` — T9, T10
+5. `test/kernel/governance/ratification-authority-snapshot-issuance-graphs.test.ts` — T11
+6. `test/kernel/governance/ratification-authority-snapshot-issuance-commitments.test.ts` — T12, T14
+7. `test/kernel/governance/ratification-authority-snapshot-issuance-declared-facts.test.ts` — T13
+8. `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts` — T15, T16
+9. `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts` — T17, T18
+10. `test/kernel/governance/ratification-authority-snapshot-issuance-schema-version.test.ts` — T19
+11. `test/kernel/governance/ratification-authority-snapshot-issuance-boundary.test.ts` — T20
+12. `test/kernel/governance/ratification-authority-snapshot-issuance-conformance-checkpoint.test.ts` — the
+    live-corpus conformance checkpoint
+13. `test/kernel/governance/nccs1-conformance-vectors.test.ts` — T21, the prior-vector rule
+
+**Conformance-oracle files (7):**
+
+1. `test/kernel/governance/issuance-oracle/nccs1-encoder.oracle.ts`
+2. `test/kernel/governance/issuance-oracle/schema-table.oracle.ts`
+3. `test/kernel/governance/issuance-oracle/source-parser.oracle.ts`
+4. `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`
+5. `test/kernel/governance/issuance-oracle/issuance.oracle.ts`
+6. `test/kernel/governance/issuance-oracle/oracle-independence.test.ts`
+7. `test/kernel/governance/issuance-oracle/oracle-agreement.test.ts`
+
+All fixture octets are constructed inline within the test files above. No fixture directory, fixture file, or
+generated-artifact path is authorized. The live Ratification Ledger is read from its existing repository path and
+is never written.
+
+## Scope Restrictions
+
+This instrument, and the Builder work it authorizes, SHALL NOT:
+
+- discharge, narrow, except, or work around **DEP1** of `NEXUS-RAT-2026-08-02-001`. DEP1 closes only after a
+  separate production-issuance ratification **and** actual production Snapshot issuance under that authority.
+  Neither Sprint 82's implementation nor its conformance checkpoint discharges it, and neither may be described as
+  doing so;
+- authorize production Snapshot issuance, artifact custody, retrieval, serialization, re-issuance, or any
+  superseded-revision lifecycle decision;
+- pin any authority root, envelope commitment, or record fingerprint anywhere, or write any conformance-checkpoint
+  value into `RATIFICATION_LEDGER.md`. The authority-root-pinning deferral is preserved in full;
+- authorize scope-bearing Ratification references, any positive resolution of a carved governed scope, or any
+  broadening of DEP2's scope-free-only discharge;
+- authorize consumer-side schema-version readability or v1/v2 refusal, the V1–V9 Consumption Correspondence,
+  Repository Policy Selection, Pre-Use Verification, Repository Policy Corpus Source assembly, or any host,
+  adapter, Domain Event, or durable-persistence surface;
+- compose the capability into `createKernelServices()`, or change `src/kernel/common/create-kernel-services.ts` or
+  `test/integration/kernel-boundary-certification.integration.test.ts`;
+- modify any Sprint 54 module, or merge, alias, rename, or re-type Sprint 54's `RatificationAuthorityRecord` with
+  the v3 `LifecycleAuthorityRecord`;
+- amend RFC-0011, RFC-0003, any Kernel Canon document, any prior Ledger entry, `IMPLEMENTATION_REPORT.md`, or
+  `REVIEW_HISTORY.md` during application of this activation package;
+- execute the conformance checkpoint during application of this activation package. The checkpoint belongs to
+  Builder delivery and remains non-production evidence;
+- resolve, weaken, satisfy, substitute for, or otherwise affect Step 3A Stop Conditions 1, 2, or 4; activate Step
+  3A; insert SGP-1 into the Step 1 → 6 dependency order; or reopen completed Milestone 9;
+- correct, reword, or reinterpret any historical narrative text in `IMPLEMENTATION_PLAN.md` or
+  `IMPLEMENTATION_MANIFEST.md`, including the Milestone 8 history recording Sprint 51 as Current as of
+  2026-07-15. Any such reconciliation is a separate documentation-accuracy governance act;
+- perform any Git operation. Commit, amend, and push remain reserved to the human operator per
+  `knowledge/CLAUDE.md`.
+
+## Builder Stop Conditions (carried verbatim and unchanged from `NEXUS-RAT-2026-08-06-001`)
+
+Conditions 1–10 below are reproduced **verbatim and unchanged** from `NEXUS-RAT-2026-08-06-001` § Stop
+Conditions, which requires exactly that carriage. They bind the Builder. The same ten conditions are reproduced,
+identically, in the Sprint Implementation Record.
+
+1. **The scope attempts to decide the production-issuance authority, the declared production facts, artifact custody, retrieval, serialization, or the re-issuance and superseded-revision lifecycle.** Each belongs to a separate production-issuance ratification; deciding any of them here would redefine architecture, prohibited by `IMPLEMENTATION_CONSTITUTION.md`:559.
+2. **This instrument or the future Sprint is described as discharging DEP1.** Neither does. A scope ratification defines future implementation scope; an activation ratification authorizes implementation; DEP1 closes only when production issuance is separately authorized and an artifact is actually issued under that authority.
+3. **Any commitment value is proposed for the Ledger, or any authority root is proposed for pinning.** Both are prohibited by RFC-0011 § Authority Root and Envelope Commitment, and the authority-root pinning deferral is preserved in full.
+4. **Any Sprint 54 module modification becomes necessary.** `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability does permit an explicitly authorized extension of an approved capability — but **Boundary A defines no Sprint 54 modification**, and none appears in the forecasted inventory. The Builder therefore stops and returns for explicit scope amendment and ownership review; the reason is absence from the approved inventory, not a universal constitutional prohibition. Separately and unconditionally, merging, aliasing, renaming, or re-typing the consumed-state `RatificationAuthorityRecord` and the v3 `LifecycleAuthorityRecord` into one another remains prohibited.
+5. **Composition into `createKernelServices()` becomes necessary**, or any change to `src/kernel/common/create-kernel-services.ts` or `test/integration/kernel-boundary-certification.integration.test.ts` is required. Boundary A defines neither.
+6. **The scope drifts** into the Consumption Correspondence, consumer-side version readability, the resolver's two-arm input domain, Repository Policy Selection, or the Corpus Source contract.
+7. **Any scope-bearing reference concept, or any positive resolution of a carved governed scope, appears.** DEP2's discharge is scope-free-only and is not broadened.
+8. **A governed-source correction appears necessary** to make the live corpus issue — a separate governance act under separate authority, never a Builder repair.
+9. **The oracle is derived from the implementation, or agreement is reported before both RFC-0003 Conformance Vector checks pass.** Either destroys the independence evidence RFC-0011 line 1357 requires.
+10. **Any file outside the forecasted inventory requires creation or modification.**
+
+## Application Stop Conditions (bind application of this instrument; evaluated immediately before any file is written)
+
+A1. **Identifier collision.** `NEXUS-RAT-2026-08-06-002` is no longer absent from
+`knowledge/governance/RATIFICATION_LEDGER.md`, or the calendar date has advanced past 2026-08-06. Stop; re-derive
+the next free identifier; do not reuse a taken one and do not silently renumber.
+
+A2. **Sprint allocation or activation collision.** Stop if **any** of the following five live current-state
+surfaces fails its stated condition:
+
+  i. `IMPLEMENTATION_PLAN.md`'s Milestone 12 Status line designates no Sprint as Current;
+  ii. `IMPLEMENTATION_MANIFEST.md`'s Milestone 12 Status line designates no Sprint as Current;
+  iii. the Independent Supporting-Governance Prerequisite Track SGP-1 block, in both `IMPLEMENTATION_PLAN.md` and
+  `IMPLEMENTATION_MANIFEST.md`, records Sprint 82 as allocated and **unactivated**;
+  iv. the governed repository-root `builder-task.md` designates no Sprint as Current and records no Open Builder
+  Task; and
+  v. `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` does not exist.
+
+If any limb fails, the allocation and activation must be re-decided by the Owner.
+
+**This condition tests only the live current-state surfaces that this activation changes.** Historical narrative
+prose elsewhere in the planning documents — including, but not limited to, the Milestone 8 history at
+`IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` recording that Sprint 51 (`NEXUS-RAT-2026-07-15-012`)
+"is Current" as of 2026-07-15 — is immutable history, is **not** a live current-state designation, is not
+corrected or touched by this instrument, and **SHALL NOT** trigger this condition.
+
+A3. **Baseline mismatch.** `HEAD` is not `b2f91e32b0d4c724dc387c5d006fc0eefacade88`, the working tree is not clean,
+the branch is not synchronized with its upstream, or any governed baseline this instrument cites — RFC-0011 v1.8,
+RFC-0003's normative Conformance Vectors, `NEXUS-RAT-2026-07-31-001`, `-08-02-001`, `-08-04-001`, `-08-05-001`,
+`-08-06-001`, or the Milestone 12 planning text — differs from the assessed state. Stop and re-verify.
+
+A4. **Anchor mismatch.** Any of the five insertion or replacement anchors named in the Changed-File List is
+absent, is no longer unique, has moved, or no longer matches its quoted text. Stop; do not insert or replace by
+line number alone.
+
+A5. **Payload integrity.** The applied Sprint Implementation Record does not reproduce Stop Conditions 1–10
+verbatim and unchanged, or omits any Defined Scope item, any Deferred and Prohibited Scope item, any Required Test
+T1–T21, or any inventory path; or any applied artifact asserts an authority chain other than the one stated under
+§ Governance Decision → Authority chain. Stop; the package SHALL NOT be applied partially.
+
+A6. **Exact file scope.** Application would create or modify any file other than the exactly five application
+files named in the Changed-File List — in particular any file under `src/` or `test/`, `IMPLEMENTATION_REPORT.md`,
+`REVIEW_HISTORY.md`, any RFC, any Kernel Canon document, or any prior Ledger entry. Stop.
+
+A7. **Plan/Manifest synchronization.** Application would leave the SGP-1 activation sentence or the Milestone 12
+Status-line tail differing between `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md`, or would change one
+file without the other. Stop; do not synchronize one file alone.
+
+**Relationship to `NEXUS-RAT-2026-08-06-001` Conditions 11–14.** Those four conditions bound application of the
+Stage 1 instrument, which has already been applied. They are spent, are not Stage 2 gates, and are neither
+reinterpreted nor repaired by this entry, which leaves `NEXUS-RAT-2026-08-06-001` Active and untouched.
+Application of this instrument is governed by A1–A7 alone.
+
+## Changed-File List (exact)
+
+Exactly five **application files**. No source file. No test file. No oracle file. No RFC. No Kernel Canon change.
+No `IMPLEMENTATION_REPORT.md`. No `REVIEW_HISTORY.md`. No prior Ledger entry edited. No historical narrative text
+edited.
+
+1. `knowledge/governance/RATIFICATION_LEDGER.md` — this entry appended in full, `Current Status: Active`. No prior
+   entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest` edited.
+2. `IMPLEMENTATION_PLAN.md` — three sites: the Milestone 12 Status-line tail; one new Ratification list item
+   appended immediately after the `NEXUS-RAT-2026-08-06-001` item, that item preserved unedited; the SGP-1 block's
+   final Allocated-Sprint-number sentence.
+3. `IMPLEMENTATION_MANIFEST.md` — two sites: the Milestone 12 Status-line tail, producing a tail byte-identical to
+   the Plan's; and the SGP-1 block's final Allocated-Sprint-number sentence, byte-identical to the Plan's.
+4. `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` — new file, the
+   complete Sprint 82 Sprint Implementation Record.
+5. `builder-task.md` — replaced to record `BT-082-001` as the one Open Builder Task, with prior Sprint 81/80/79
+   Resolved Builder Tasks carried forward for traceability.
+
+## Related Sprint(s) / Related Review(s)
+
+Activates Sprint 82 (Milestone 12, SGP-1). Stage 1 scope authority: `NEXUS-RAT-2026-08-06-001`. Contract authority:
+`NEXUS-RAT-2026-07-31-001`, as amended by `NEXUS-RAT-2026-08-04-001` and `NEXUS-RAT-2026-08-05-001`. DEP1 recorded
+by `NEXUS-RAT-2026-08-02-001` and preserved. Untouched: `NEXUS-RAT-2026-07-15-017`, `NEXUS-RAT-2026-07-16-001`.
+Related prior slice: Sprint 54 (`NEXUS-REV-2026-07-16-001`), consumed by ownership boundary only and not modified.
+Activation precedents: `NEXUS-RAT-2026-07-21-005` (Sprint 79), `NEXUS-RAT-2026-07-21-007` (Sprint 80),
+`NEXUS-RAT-2026-07-22-002` (Sprint 81). Two-stage corrective precedent: `NEXUS-RAT-2026-07-21-003` /
+`NEXUS-RAT-2026-07-21-004`. Self-containment precedent: `NEXUS-RAT-2026-07-28-002`. Documentation-accuracy
+precedent for any future historical "is Current" reconciliation: `NEXUS-RAT-2026-07-28-001` / `-07-28-002`.
+Related Review: none yet; independent Reviewer certification of Sprint 82 is required and is recorded in
+`REVIEW_HISTORY.md` after delivery.
+
+## Full Ratification Text
+
+> Sprint 82 — Ratification Authority Snapshot Issuance Capability — is activated as Current Sprint on the
+> independent Milestone 12 Supporting-Governance Prerequisite Track, item SGP-1, established by
+> `NEXUS-RAT-2026-08-06-001`. This is the Stage 2 activation instrument that Stage 1 reserved. It lifts exactly
+> two deferral limbs — `implementation` and `Sprint activation` — and lifts them exactly for the scope
+> `NEXUS-RAT-2026-08-06-001` already defined, which is neither widened, narrowed, repaired, nor reinterpreted.
+> This entry is the permanent authorization authority for Sprint 82; the Sprint Implementation Record created at
+> `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` is the self-contained
+> operative Sprint Specification subordinate to it; and `builder-task.md`, which opens exactly one Builder task,
+> `BT-082-001`, carries no independent authority. Where the record and this entry diverge, this entry prevails.
+> Exactly twenty-four files are authorized for Builder delivery — four implementation files, thirteen test files,
+> and seven conformance-oracle files — and no other. Application of this instrument itself changes exactly five
+> application files and no source, test, or oracle file. SGP-1 remains outside the binding six-step Initial
+> Capability Sequence: no step is inserted, no dependency order is altered, and Step 3A Stop Conditions 1, 2, and
+> 4 remain open, unresolved, and unaffected. Completed Milestone 9 is not reopened, and no historical narrative
+> text is corrected or reinterpreted. **Dependency DEP1 of `NEXUS-RAT-2026-08-02-001` is not discharged, not
+> narrowed, and not excepted: DEP1 closes only when production issuance is separately authorized and an artifact
+> is actually issued under that authority — neither this activation nor Sprint 82's implementation nor its
+> conformance checkpoint discharges it.** Authority-root pinning remains deferred and prohibited; no commitment
+> value is pinned and no conformance-checkpoint value is written into the Ledger. DEP2's scope-free-only discharge
+> is not broadened. No RFC, no Kernel Canon document, and no prior Ledger entry is amended.
+
+## Current Status
+
+Active
