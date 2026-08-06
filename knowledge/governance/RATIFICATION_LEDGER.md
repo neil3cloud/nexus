@@ -22229,3 +22229,396 @@ Partial application is prohibited.
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-06-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-06-001
+
+## Date
+
+2026-08-06
+
+## Subject
+
+Milestone 12 Independent Supporting-Governance Prerequisite Track — **definition of the future implementation scope** of Sprint 82, Ratification Authority Snapshot Issuance Capability.
+
+This instrument **defines future implementation scope only**. It lifts the `Sprint proposal` limb of `NEXUS-RAT-2026-07-31-001`'s deferral of *implementation, Sprint proposal, or Sprint activation of any capability described here*, for the exact scope stated below and for nothing else. **The `implementation` and `Sprint activation` limbs of that deferral are preserved in full and are lifted only by a later, separate, human-approved activation ratification.**
+
+**DEP1 of `NEXUS-RAT-2026-08-02-001` — issuing a production Snapshot — is not discharged, not narrowed, not excepted, and not worked around.** Authority-root pinning remains deferred and prohibited. Sprint 82 is not created and is not activated by this instrument.
+
+## Originating Request
+
+None from a Reviewer finding. This instrument originates from the DEP1 governance cycle:
+
+1. a Claude Planner assessment of 2026-08-05 (Revision 1);
+2. an Owner review of that assessment (findings M1–M4, m1) establishing that BA-1 through BA-3 were overstated as blockers, that consumer-side schema behavior had been imported into an issuance-only slice, that the composition boundary contradicted the file inventory, and that the independent-implementation evidence was underspecified;
+3. Planner Revision 2 incorporating those corrections;
+4. an Owner review of Revision 2 establishing that a production-issuance act lifts production issuance only and not authority-root pinning (M1), that deferred custody does not make Pre-Use Verification Step 5 architecturally unperformable (M2), that the Sprint 54 stop condition must recognize separately authorized extension (m1), and that the forecasted test inventory must be exact rather than a pattern (m2); Final Binding Direction: *Option 1 — Act A first, Boundary A*;
+5. Draft r1 of this instrument;
+6. an Owner review of Draft r1, disposition **CLARIFICATION REQUIRED**, findings B1 (authorization/activation contradiction, the same defect corrected historically by `NEXUS-RAT-2026-07-21-004`), B2 (no governed milestone placement), M1 (application files conflated with future delivery), M2 (no application-collision protection);
+7. the Owner's placement decision of 2026-08-06 selecting the independent Milestone 12 supporting-governance prerequisite track.
+
+## Governance Decision
+
+The Sprint Owner ratifies a **Milestone 12 planning amendment** establishing an independent supporting-governance prerequisite track and defining, within it, the complete future implementation scope of Sprint 82.
+
+### What is authorized
+
+**Definition of future implementation scope only**, together with the exact `IMPLEMENTATION_PLAN.md` and `IMPLEMENTATION_MANIFEST.md` insertions reproduced in § Exact Insertion Sites and Proposed Text, and the appending of this entry to `RATIFICATION_LEDGER.md`.
+
+### What is not authorized
+
+This instrument authorizes **no** implementation, **no** source change, **no** test change, **no** Sprint Implementation Record, **no** Builder Task or Builder handoff, **no** Sprint activation, **no** Current Sprint advancement, **no** `IMPLEMENTATION_REPORT.md` change, **no** `REVIEW_HISTORY.md` change, **no** Snapshot issuance, **no** conformance checkpoint execution, **no** scope-bearing reference work, and **no** broadening of DEP2.
+
+### Two-Stage Authorization Model
+
+This instrument adopts, and is bound by, the two-stage model the repository already declares and which `NEXUS-RAT-2026-07-21-004` enforced by correction:
+
+| Stage | Instrument | Effect |
+| --- | --- | --- |
+| 1 — Scope (this instrument) | `NEXUS-RAT-2026-08-06-001` | Defines the future implementation scope. Lifts the `Sprint proposal` deferral limb only. Changes only Ledger, Plan, Manifest. |
+| 2 — Activation (future, separate, human-approved) | not drafted, not identified, not reserved | Lifts the `implementation` and `Sprint activation` deferral limbs for the exact scope; creates the Sprint Implementation Record and `builder-task.md`; authorizes the exact implementation, test, and oracle inventory; advances Sprint 82 to Current. |
+
+No Active Ledger entry produced by Stage 1 may be read as authorizing Builder work. Where any sentence of this instrument could be read as authorizing implementation, this section governs and the implementation reading is void.
+
+## Disposition of DEP1
+
+**DEP1 remains open.**
+
+A scope ratification defines future implementation scope; an activation ratification authorizes implementation. **Neither closes DEP1.** DEP1 closes only when production issuance is separately authorized by its own ratification and an artifact is actually issued under that authority. No Sprint outcome, conformance checkpoint, test artifact, or agreement report contemplated here discharges it, and none may be described as doing so.
+
+**Authority-root pinning is a separately dispositioned deferred item and remains deferred and prohibited.** `NEXUS-RAT-2026-08-02-001` establishes that a `RepositoryPolicySelectionReference` pins the **envelope commitment**, not the authority root, and that every compared root is recomputed or re-derived. A future production-issuance ratification therefore lifts *issuing a production Snapshot* only, for one exact issuance; it does not require, and SHALL NOT be read as, lifting the independent authority-root-pinning deferral. An issuance ratification states the contract and the declared inputs; it does not record a derived root in the governed source. Any change to the authority-root-pinning deferral requires a separate, expressly justified proposal.
+
+**Custody, retrieval, and serialization remain deferred, with their consequence stated exactly.** `NEXUS-RAT-2026-08-04-001` and `NEXUS-RAT-2026-08-05-001` each expressly defer any store, registry, resolver, locator, index, or retrieval protocol for issued artifacts, and the former additionally defers any complete artifact encoding, wire format, framing, or commitment over a serialized issued result as a whole. The consequence, stated without overstatement:
+
+> Step 5 remains performable only when exactly one conforming artifact and its governed source are supplied by an authorized path; this Act establishes no durable availability, retrieval, or repeatability guarantee.
+
+## Milestone Placement and Sequence Effects
+
+**Owning milestone:** Milestone 12 — Corpus Review and Implementation Readiness (🟡 ACTIVE, opened by `NEXUS-RAT-2026-07-18-004`).
+
+**Track:** a new, expressly **independent Supporting-Governance Prerequisite Track**, established by this instrument, sitting **outside** the binding six-step Initial Capability Sequence established by `NEXUS-RAT-2026-07-19-006` and amended by `NEXUS-RAT-2026-07-21-006` / `NEXUS-RAT-2026-07-22-001`. Track item identifier: **SGP-1**.
+
+**Why Milestone 12 and why outside the sequence.** Milestone 12 already records, at `IMPLEMENTATION_PLAN.md:4455` and the identical `IMPLEMENTATION_MANIFEST.md:3262`, under *Named blocking dependencies, excluded from this sequence*, the **Corpus Readiness Acceptance Repository Policy (RFC-0011 v1.2's dormant contract)** as "RFC-0013's own named future, separately authorized work." That is a governed, already-declared, expressly out-of-sequence bucket for RFC-0011 supporting work that Milestone 12 depends on without sequencing. Ratification Authority Snapshot issuance is the RFC-0011 capability on which any future Repository Policy Selection — and therefore that named dependency — ultimately rests. Placing SGP-1 there uses an existing governed seam rather than inventing one.
+
+**Milestone 9 is not reopened.** Milestone 9 — Engineering Governance Automation is formally complete. This instrument makes no change to it, its status, its certification, or any of its Sprints.
+
+**Dependencies of SGP-1.** RFC-0011 Final (Amended) v1.8 as amended through `NEXUS-RAT-2026-08-05-001`; RFC-0003's NCCS-1 and its normative Conformance Vectors; the approved Sprint 54 vertical slice, consumed by ownership boundary only and not modified. SGP-1 depends on **no** step of the Initial Capability Sequence.
+
+**Non-effects (binding).**
+
+1. SGP-1 is **not** inserted into, and does not alter, the dependency order Step 1 → Corrective Prerequisite 1A → Step 2A → Step 3 → Step 3A → Step 4 → Step 5 → Step 6.
+2. SGP-1 **does not** resolve, weaken, satisfy, substitute for, or otherwise affect any of Step 3A's four independent stop conditions. Stop Condition 3 remains resolved by `NEXUS-RAT-2026-07-28-003`; Stop Conditions 1, 2, and 4 remain open.
+3. SGP-1 **does not** advance any Sprint to Current. Consistent with the existing Milestone 12 status text, **no next Sprint is Current**.
+4. SGP-1 **does not** contribute to, accelerate, or condition Milestone 12 completion, and its absence does not block Milestone 12 closure. It is a supporting-governance prerequisite, not a capability step.
+5. SGP-1 is **not** a prerequisite of, and is not blocked by, the named excluded dependencies (Reproducible Context Integration; Corpus Readiness Acceptance Repository Policy). It supports the latter; it does not authorize, implement, or discharge it.
+6. The binding sequencing and certification gating rule ("no step's Sprint may be authorized, and no Builder work may begin on it, before every step it depends on has received an independent Reviewer PASS or Approved disposition") is unchanged and continues to bind the six-step sequence exactly as written. SGP-1, being outside that sequence, neither relaxes it nor claims exemption from independent Reviewer certification of its own future Sprint.
+7. Milestone 12's binding Objective and Architectural Boundary from `NEXUS-RAT-2026-07-18-004` are unchanged. SGP-1 creates no parallel execution or governance architecture, introduces no second Review/Governance/execution model, and performs no self-authorized implementation.
+
+## Exact Insertion Sites and Proposed Text
+
+Three sites. The Plan and Manifest texts are **synchronized**: the new track block is byte-identical in both files.
+
+### Site 1 — `IMPLEMENTATION_PLAN.md`, Milestone 12 Ratification list
+
+**Anchor:** immediately after the existing final list item beginning `- \`NEXUS-RAT-2026-07-28-004\` — reconciles eleven Milestone 12 planning sites…` (currently line 4414), preserving that item unedited.
+
+**Insert one new list item:**
+
+````markdown
+- `NEXUS-RAT-2026-08-06-001` — establishes an independent Supporting-Governance Prerequisite Track within Milestone 12, outside and without changing the binding six-step Initial Capability Sequence, and defines within it the complete future implementation scope of SGP-1 / Sprint 82 (Ratification Authority Snapshot Issuance Capability, RFC-0011 v1.8, Boundary A pure library). Planning amendment only: defines future implementation scope, authorizes no implementation, no Builder Task, no Sprint Implementation Record, and no Sprint activation; advances no Sprint to Current; does not resolve, weaken, or affect any of Step 3A's four independent stop conditions; does not reopen completed Milestone 9; does not discharge Dependency DEP1 of `NEXUS-RAT-2026-08-02-001`; preserves the authority-root-pinning deferral in full; broadens no part of DEP2's scope-free-only discharge.
+````
+
+### Site 2 — `IMPLEMENTATION_PLAN.md`, Milestone 12 track block
+
+**Anchor:** immediately after the paragraph beginning `Named blocking dependencies, excluded from this sequence:` (currently line 4455) and immediately before the paragraph beginning `Sequencing and certification gating (binding):` (currently line 4457). The anchor paragraphs are preserved unedited.
+
+### Site 3 — `IMPLEMENTATION_MANIFEST.md`, Milestone 12 track block
+
+**Anchor:** immediately after the paragraph beginning `Named blocking dependencies, excluded from this sequence:` (currently line 3262) and immediately before the paragraph beginning `Sequencing and certification gating (binding):` (currently line 3264). The anchor paragraphs are preserved unedited.
+
+### Proposed text for Sites 2 and 3 (identical in both files)
+
+````markdown
+Independent Supporting-Governance Prerequisite Track (established by `NEXUS-RAT-2026-08-06-001`)
+
+This track sits **outside** the Initial Capability Sequence. It is not a step, is not inserted into the Step 1 → 6 dependency order, resolves no Step 3A stop condition, advances no Sprint to Current, and neither conditions nor accelerates Milestone 12 completion. Each item requires its own separate human-approved activation ratification before any Builder work may begin.
+
+SGP-1. **Ratification Authority Snapshot Issuance Capability** — future implementation scope defined by `NEXUS-RAT-2026-08-06-001`; no implementation authorized by that entry. Implements the RFC-0011 Final (Amended) v1.8 § Ratification Authority Snapshot Issuance contract, as amended by `NEXUS-RAT-2026-08-04-001` and `NEXUS-RAT-2026-08-05-001`, as a pure, standalone, directly invoked Kernel library capability (Boundary A): given exactly one governed octet sequence in the single declared carrier type plus exactly two declared issuance facts (`capturedAt`, `producingAttribution`), it produces exactly one total result — `Issued` or `Rejected` — conforming octet-for-octet to the Total Result Contract, certified by two structurally independent implementations agreeing on the complete public result field for field and each cross-checked against RFC-0003's normative Conformance Vectors beforehand. Boundary A is binding: the capability is composed by no Kernel service, is not composed by `createKernelServices()`, and changes neither `src/kernel/common/create-kernel-services.ts` nor `test/integration/kernel-boundary-certification.integration.test.ts`; it modifies no Sprint 54 module. Depends on no sequence step. Expressly excludes production Snapshot issuance, pinning any authority root or commitment value, consumer-side schema-version readability and v1/v2 refusal, the V1–V9 Consumption Correspondence, Repository Policy Selection and Pre-Use Verification, Repository Policy Corpus Source assembly, artifact custody/retrieval/serialization, scope-bearing Ratification references, and any host, adapter, Domain Event, or durable persistence surface. **Dependency DEP1 of `NEXUS-RAT-2026-08-02-001` is not discharged by this scope, and is not discharged by the future Sprint's implementation or conformance checkpoint: DEP1 closes only when production issuance is separately authorized and an artifact is actually issued under that authority.** Allocated Sprint number: **Sprint 82 — unactivated; requires its own separate human-approved activation ratification.**
+````
+
+### Status-line effect
+
+**No change is proposed to the Milestone 12 Status lines** at `IMPLEMENTATION_PLAN.md:4387` and `IMPLEMENTATION_MANIFEST.md:3212`. Those lines record Initial Capability Sequence progress and Current-Sprint state. SGP-1 changes neither, and "no next Sprint is advanced to Current" remains true after this instrument. Amending them would misrepresent an out-of-sequence track as sequence progress.
+
+## Scope-Ratification Application List (exact — what approval of this instrument changes)
+
+Exactly three files. No source file, test file, oracle file, Sprint record, Builder task, report, or review-history file is created or modified by this instrument.
+
+| # | File | Change |
+| --- | --- | --- |
+| 1 | `knowledge/governance/RATIFICATION_LEDGER.md` | This entry appended in full. No prior entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest` edited. |
+| 2 | `IMPLEMENTATION_PLAN.md` | Site 1 (one new Ratification list item) and Site 2 (the track block) inserted exactly as reproduced above. |
+| 3 | `IMPLEMENTATION_MANIFEST.md` | Site 3 (the track block) inserted exactly as reproduced above, byte-identical to Site 2. |
+
+**Expressly not changed by this instrument:** `IMPLEMENTATION_REPORT.md`; `REVIEW_HISTORY.md`; every file under `src/`; every file under `test/`; `knowledge/implementation/sprints/` (no Sprint record created); `IMPLEMENTATION_CONSTITUTION.md`; `IMPLEMENTATION_GATE.md`; `knowledge/specifications/rfc-0011-engineering-governance-model.md`; `knowledge/specifications/rfc-0003-shared-reality-projection-model.md`; every Kernel Canon document.
+
+## Reserved for the Activation Package
+
+The following are **named here for forecasting only** and are created **exclusively** by the later, separate activation ratification, consistent with the Sprint 79–81 activation precedents (`NEXUS-RAT-2026-07-21-005`, `NEXUS-RAT-2026-07-21-007`, `NEXUS-RAT-2026-07-22-002`):
+
+1. `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` — the Sprint Implementation Record.
+2. The Sprint 82 Builder handoff (`builder-task.md`) at the path the activation ratification specifies.
+3. Authorization of the exact implementation, test, and oracle inventory reproduced under § Forecasted Future Activation and Builder Inventory.
+4. Advancement of Sprint 82 to Current Sprint.
+5. Subsequent Builder delivery evidence in `IMPLEMENTATION_REPORT.md` and Reviewer evidence in `REVIEW_HISTORY.md`.
+
+Application-time scope files, activation files, Builder delivery files, and Reviewer evidence files are **three distinct mutation phases** and SHALL NOT be represented as one.
+
+---
+
+## Future Implementation Scope (Sprint 82) — defined, not authorized
+
+Everything below defines what a future Sprint 82 would implement **if and when** a separate activation ratification authorizes it. Nothing below authorizes any present action.
+
+## Governing Authority
+
+- **RFC-0011 — Engineering Governance Model, Final (Amended) v1.8**, `knowledge/specifications/rfc-0011-engineering-governance-model.md`. Governing sections, all within `# Ratification Authority Snapshot Issuance`: Purpose and Ownership Boundary; Canonical Serialization; The Source Input Domain; Governed Source Text Preparation; Fenced Regions; Governed Entry Extraction Grammar; Governed Declaration Block Grammar; The Two Source Facts; Fixed Protocol Constants; Lifecycle Authority Records; Lifecycle Segments and Structural Completeness; Canonical Schemas and Field Order; The Generic Source Rule; Governed Lifecycle Authority Declarations; Two Distinct Graphs; Authority Root and Envelope Commitment; Declared Issuance Facts; Deterministic Ordering; The Total Result Contract; Relationship to `NEXUS-RAT-2026-07-15-017`; Two Structurally Independent Implementations (line 1355); Schema Version and Compatibility (line 1368); Deferred Concepts. Also binding: `# Failure and Conflict Handling → ## Ratification Authority Snapshot Issuance Failures`; `# Conformance`.
+- **RFC-0003 — Shared Reality Projection Model § Canonical Serialization Protocol (NCCS-1)**, `knowledge/specifications/rfc-0003-shared-reality-projection-model.md`, rules 1–12 and the normative **Conformance Vectors** (line 295). Consumed exactly; not amended, not extended, not reinterpreted.
+- **`NEXUS-RAT-2026-07-31-001`** — establishes the Issuance Contract and owns issuance, its derivation, and its commitments; establishes the conformance checkpoint as the ratified non-production evidence form. Its `Sprint proposal` deferral limb is lifted for this scope alone; its `implementation` and `Sprint activation` limbs are preserved.
+- **`NEXUS-RAT-2026-08-04-001`** — `ratificationSubject` on both record arms; schema version `nexus-ratification-authority-snapshot/3`; the complete `Issued` result schema.
+- **`NEXUS-RAT-2026-08-02-001`** — records DEP1; establishes that a `RepositoryPolicySelectionReference` pins the envelope commitment and that every compared root is recomputed or re-derived.
+- **`NEXUS-RAT-2026-08-05-001`** — DEP2 discharged for scope-free references only; DEP1 preserved.
+- **`NEXUS-RAT-2026-07-15-017`**, **`NEXUS-RAT-2026-07-16-001`** — untouched.
+- **Kernel Canon 9** (determinism), **Canon 10** (explainability), **Canon 12** (human authority).
+- **`IMPLEMENTATION_CONSTITUTION.md`** §§ Vertical Slice Policy, Approved Vertical Slice Immutability (397), RFC Coverage, Stop Conditions, Sprint Specifications, Sprint Owner Ratifications.
+- **`IMPLEMENTATION_GATE.md`** Gates 1–15; Gate 3, Gate 8, Gate 10, Gate 11 to be evidenced explicitly by the future Sprint.
+
+## Defined Scope
+
+One capability, `RatificationAuthoritySnapshotIssuance`:
+
+> Given exactly one governed octet sequence in the single declared carrier type, plus exactly two declared issuance facts (`capturedAt`, `producingAttribution`), produce exactly one total result — `Issued` or `Rejected` — conforming octet-for-octet to the Total Result Contract.
+
+**Why this is the smallest coherent slice.** It is the whole of one ratified ownership boundary and no part of any other. Every candidate reduction breaks the contract's own totality requirement: dropping any diagnostic phase breaks *Issuance SHALL be total*; dropping the commitment layers leaves no `Issued` result to produce; dropping either source fact is prohibited by § The Two Source Facts; dropping declaration handling silently reintroduces the generic rule over its exclusive domain.
+
+**Boundary A is binding.** The capability is a pure function with no constructed state, no dependency, and no host reachability. It is **not** composed by `createKernelServices()`. It is invoked directly by its own tests and by nothing else. `src/kernel/common/create-kernel-services.ts` and `test/integration/kernel-boundary-certification.integration.test.ts` are **not** changed. Composition would enlarge the integration surface without supplying any capability this pure function requires.
+
+1. **Source input domain** — exactly one declared concrete carrier type; every other carrier rejected as `invalid-input`, whether or not it holds the same octets.
+2. **Governed source text preparation** — UTF-8 decode (`invalid-utf8`), BOM at any position (`byte-order-mark-present`), NCCS-1 rules 2 and 3. No trimming, padding, folding, or case normalization anywhere. Preparation produces the issuance input only and writes nothing back.
+3. **Fence-aware region handling** — opening fence at column 0 with N ≥ 3 backticks, closing at M ≥ N; both fence lines belong to the region; no heading or entry boundary recognized inside one; unterminated region → `unterminated-fenced-region` in `EntryStructure`.
+4. **Governed entry extraction grammar** — entry boundaries, section order, and extraction of identifier, date, subject, and current status; `missing-subject` fails closed in `EntryStructure` before any record exists.
+5. **Governed declaration block grammar** — the `nexus-lifecycle-authority-declarations/1` block, exactly tokenized; no element inferred from prose. Issuance accepts **no caller-supplied declaration object** and exposes no parameter, field, or channel through which one could be supplied.
+6. **The Generic Source Rule** — Current Status *exactly* `Active` → `WholeRecordLifecycle`, one `Effective` residual segment, kind `GenericSourceRule`; exclusive over its own domain.
+7. **Governed declarations** — `declarant-not-effective`; `self-referential-declaration`; `status-binding-mismatch`; `absent-declaration-subject`; `duplicate-declaration`.
+8. **Records and segments** — the seven declared fields; discriminated union on `lifecycleAuthorityKind` with illegal combinations structurally inexpressible, not merely rejected; `scopeKind` discrimination; exactly one reserved `residual` segment per record; `lifecycleResolutionForm` as a representation form, never a fourth status.
+9. **Two distinct graphs** — declarant-authority and lifecycle-relation, with the complete normative DFS cycle selection, `closed`-marking as normative rather than an optimization, and the exact reported-path construction.
+10. **Three commitment layers** — record fingerprint (`lr-sha256-`); authority root (`ar-sha256-`, governed octets alone, issuer- and time-independent); envelope commitment (`ec-sha256-`). Order-insensitive fingerprint collection per NCCS-1 rule 6; duplicate fingerprint fails closed.
+11. **Declared issuance facts** — the `capturedAt` grammar with every rejected form; non-empty `producingImplementationIdentity` and `producingImplementationRevision`; **no internal clock read**; unrecognized declared field rejected, never ignored.
+12. **Deterministic ordering** — every ordering term of § Deterministic Ordering.
+13. **Total result contract** — the exact `Issued` field list with the three derived counts; `Rejected` with code, phase, precedence rank, discriminated payload, and canonical rendering. No partial snapshot, ever.
+14. **Eight-phase diagnostic model** — phase order is execution order; phases atomic; within-phase precedence and target selection order; the closed public vocabulary and the contract-violation partition.
+15. **Fixed protocol constants** — `nexus-repository-ratification-ledger`, `NCCS-1`, `nexus-ratification-authority-snapshot/3`, the three prefixes, `residual`, `Active`, `nexus-lifecycle-authority-declarations/1`. Not parameterized, not environment-derived, not caller-supplied.
+16. **Issuer-side schema version emission only** — every `Issued` result carries `snapshotSchemaVersion` equal to the fixed v3 constant, encoded in declared schema order per NCCS-1 rule 8 and bound into the envelope commitment. **No consumer-side readability decision and no v1/v2 refusal behavior is within scope.**
+17. **The second structurally independent implementation** (conformance oracle) and its independence, prior-vector, and complete-result agreement evidence.
+18. **One conformance checkpoint** over the live Ratification Ledger at the exact revision current when the Sprint runs, reported in the Sprint Implementation Record and the review record only.
+
+## Deferred and Prohibited Scope
+
+- **Production Snapshot issuance. DEP1 remains open, undischarged, unnarrowed.**
+- **Implementation of any part of the defined scope**, until a separate activation ratification authorizes it.
+- **Creation or activation of Sprint 82**, the Sprint Implementation Record, or any Builder Task, until that same activation ratification.
+- **Pinning any authority root, envelope commitment, or record fingerprint anywhere** — a separately dispositioned deferral, preserved in full, and expressly not inside the governed source per RFC-0011 § Authority Root and Envelope Commitment: *a ratification that authorizes issuance SHALL therefore state the contract, never pin a value produced by it.*
+- **Consumer-side schema-version readability and refusal** — deciding from `snapshotSchemaVersion` alone whether a held encoding is readable, and refusing v1 and v2 outright. A consuming-boundary obligation (RFC-0011 line 1377), not an issuance obligation.
+- The V1–V9 Consumption Correspondence of `NEXUS-RAT-2026-08-04-001` and the canonical consumed order.
+- The two-arm structural input-domain widening and the added Required Outcome Mapping condition of `NEXUS-RAT-2026-08-05-001`.
+- Repository Policy Selection, Pre-Use Verification Steps 1–5, `RepositoryPolicySelectionReference`, and every eligibility, cardinality, and binding rule of `NEXUS-RAT-2026-08-02-001`.
+- Repository Policy Corpus Source assembly (`NEXUS-RAT-2026-08-03-001`).
+- Any store, registry, resolver, locator, index, or retrieval protocol for issued artifacts.
+- Any signature, certificate, key, trust anchor, or authenticated issuance registry.
+- Any complete artifact encoding, wire format, framing, or commitment over a serialized issued result as a whole.
+- Authorized-subject attestations in every form — no field, no collection, no subject-kind union, no placeholder, no dormant extraction path.
+- Automatic Ratification-Ledger ingestion beyond this source contract.
+- v1/v2 artifact migration, upgrade, or partial reading.
+- Scope-bearing Ratification references and any positive resolution of a carved governed scope. **DEP2's discharge is not broadened by one word.**
+- Any host surface, adapter surface, VS Code command, Domain Event, or durable persistence — including any `createKernelServices()` composition (Boundary A).
+- Any modification to `src/kernel/common/create-kernel-services.ts` or `test/integration/kernel-boundary-certification.integration.test.ts`.
+- Any modification to any Sprint 54 module.
+- Any change to Milestone 9, to the Milestone 12 Initial Capability Sequence, or to any Step 3A stop condition.
+- Any Git operation, and any edit to a prior Ledger entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest`.
+
+## RFC Coverage and Ownership Boundaries
+
+| Concern | Owner | Future Sprint 82 |
+| --- | --- | --- |
+| Derivation of the immutable record collection, its schemas, schema version, three commitment layers, declared issuance facts, diagnostic vocabulary, phase model | Ratification Authority Snapshot Issuance (`NEXUS-RAT-2026-07-31-001`, amended by `-08-04-001`) | **In defined scope** |
+| Ratification reference resolution; the closed `Valid \| Invalid \| Unresolvable` set; the Required Outcome Mapping; the Snapshot fingerprint derivation | `RatificationAttributionValidation` (`NEXUS-RAT-2026-07-15-017`, `-07-16-001`, amended by `-08-05-001`) | **Untouched.** Issuance produces exactly `Issued` or `Rejected` and SHALL NEVER produce any of the three outcomes. |
+| V1–V9 verification chain; canonical consumed order; consumer-side version readability | Consumption Correspondence (`NEXUS-RAT-2026-08-04-001`) | **Untouched, not invoked** |
+| Candidate assembly, eligibility, cardinality, version binding | Repository Policy Selection (`NEXUS-RAT-2026-08-02-001`) | **Untouched, not invoked** |
+| Which Repository Policy versions exist; corpus root; content commitment | Repository Policy Corpus Source (`NEXUS-RAT-2026-08-03-001`) | **Untouched, not invoked** |
+| Sprint 54's `RatificationAuthoritySnapshot`, `RatificationAuthorityRecord`, `IRatificationAuthoritySnapshotRepository`, `RatificationAttributionValidationService` | Approved vertical slice (`NEXUS-REV-2026-07-16-001`) | **Behavior preserved; not redefined; not extended; not modified.** |
+
+**Sprint 54 restriction, by ownership.** `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability permits a subsequent Sprint to consume approved capabilities, to extend them where explicitly authorized, and to correct review-identified defects, while prohibiting redefinition of approved behavior, unauthorized scope expansion, and modification for architectural preference. The binding restriction here is narrower than provenance: the consumed-state `RatificationAuthorityRecord` and the v3 issued `LifecycleAuthorityRecord` are **two structures with two distinct owners and two distinct shapes**, and SHALL NOT be merged, aliased, renamed, or re-typed into one another. Boundary A defines no Sprint 54 modification of any kind.
+
+**Naming boundary (Gate 3):** the issued v3 record is `LifecycleAuthorityRecord`; Sprint 54's in-memory consumed-state type is `RatificationAuthorityRecord`.
+
+## Deterministic Failure Behavior
+
+Issuance is total. Every governed input yields exactly `Issued` or `Rejected`; an unhandled failure, a thrown exception escaping the boundary, or an absent result is a **contract violation**, not a diagnostic. Eight governed phases ranked 0–7, plus the ninth contract-violation partition. Phase order is execution order; a phase is atomic and runs to a decision before the next begins. When a source carries several independent defects, the reported diagnostic is always drawn from the **lowest-ranked phase containing any defect**, wherever in the source the defects sit.
+
+| Condition | Outcome |
+| --- | --- |
+| Octets outside the declared source input domain | `Rejected` · `SourceIntegrity` |
+| Invalid UTF-8, or a byte order mark | `Rejected` · `SourceIntegrity` |
+| Unreadable entry structure, or an unclosed fenced region | `Rejected` · `EntryStructure` |
+| Malformed structured declaration block | `Rejected` · `DeclarationGrammar` |
+| Declaring authority not Effective under the generic rule | `Rejected` · `DeclarantAuthority` |
+| Declaration self-reference, or a declarant-authority cycle | `Rejected` · `DeclarantAuthority` |
+| Absent subject, generic-rule conflict, status-binding mismatch, or duplicate declaration | `Rejected` · `DeclarationBinding` |
+| Absent relation target, self-referential relation, or a lifecycle-relation cycle | `Rejected` · `LifecycleGraph` |
+| An entry with neither generic resolution nor a governed declaration | `Rejected` · `Resolution` |
+| Inadmissible declared capture instant or producing attribution | `Rejected` · `Envelope` |
+| All phases pass | `Issued` |
+
+Issuance failures are **not** Governance Decisions and SHALL NOT be mapped onto `Approved`, `Rejected`, `Deferred`, or `Escalation Required`. Recovery is re-invocation: a `Rejected` result leaves no partial artifact and no stored value to reconcile. Correcting a rejection is a **governed-source correction under separate authority** — never a repair, normalization, back-fill, or re-declaration performed by issuance or by the Builder. A `Rejected` result on the live corpus is a legitimate, informative Sprint outcome, not a Sprint failure.
+
+## The Second Structurally Independent Implementation
+
+RFC-0011 line 1355 requires at least two implementations with **no shared encoder, no shared schema table, no shared vocabulary structure, and no shared parsing component**, agreeing on **the complete public result, field for field** — *not merely on fingerprints* — and both cross-checked against RFC-0003's normative Conformance Vectors **before** any agreement between them is claimed.
+
+**Independence is enforced three ways.**
+
+1. **Authoring rule.** The oracle is written from the specification text alone. It SHALL NOT be derived from, refactored out of, or diffed against the implementation. This is attested in the Sprint Implementation Record and verified by the Reviewer.
+2. **Mechanical import-graph assertion.** `oracle-independence.test.ts` asserts by static import-graph traversal that none of the five oracle modules — `nccs1-encoder.oracle.ts`, `schema-table.oracle.ts`, `source-parser.oracle.ts`, `vocabulary.oracle.ts`, `issuance.oracle.ts` — transitively imports any module under `src/`. The assertion fails on any such edge. `oracle-agreement.test.ts` is the single authorized place where both sides are imported together.
+3. **Prior-vector rule.** Both encoders are cross-checked independently against RFC-0003's Conformance Vectors in `nccs1-conformance-vectors.test.ts`, and **agreement between the two implementations SHALL NOT be reported until both vector checks pass.**
+
+**Agreement means deep structural equality on the complete public result value**, for every input in the agreement corpus:
+
+- for `Issued`: `result`; the complete `envelope`, all eight fields, including both members of `producingAttribution`; `envelopeCommitment`; the complete `records` collection field for field, including every segment and every relation on every record; the complete `recordFingerprints` collection; and `declarationCount`, `genericCount`, `segmentedCount`;
+- for `Rejected`: `result`; `diagnosticCode`; `diagnosticPhase`; `diagnosticPrecedence`; the discriminated `diagnosticPayload` including its canonical rendering; and `detail`.
+
+**Digest-only, envelope-only, or selected-field comparison is insufficient and SHALL NOT be reported as agreement.**
+
+**Agreement corpus:** the live Ratification Ledger at the Sprint's exact revision; every fixture exercising T1–T20; and every code in the closed public vocabulary.
+
+## Required Tests
+
+| # | Area | Obligation |
+| --- | --- | --- |
+| T1 | Carrier domain | Declared carrier accepted; every other carrier rejected `invalid-input`, including one holding byte-identical octets |
+| T2 | Source integrity | `invalid-utf8`; `byte-order-mark-present` at start, middle, and end |
+| T3 | Preparation | CRLF and lone CR fold to LF; NFC applied; a trailing-whitespace `Active ` does **not** resolve as Effective; no stored octet mutated |
+| T4 | Fenced regions | Inner fence enclosed verbatim by a longer outer fence; heading inside a region not recognized; `unterminated-fenced-region` |
+| T5 | Entry structure | Boundary and section extraction; section order by first occurrence; `missing-subject` |
+| T6 | Declaration grammar | Exact tokenization; every malformed form rejected; **negative test that no API surface accepts a caller-supplied declaration object** |
+| T7 | Generic source rule | Exactly `Active` → `WholeRecordLifecycle` + one `Effective` residual; exclusivity — a declaration targeting a generically resolved entry is rejected |
+| T8 | Declaration binding | `declarant-not-effective`; `self-referential-declaration`; `status-binding-mismatch`; `absent-declaration-subject`; `duplicate-declaration` |
+| T9 | Records | Seven fields; `ratificationSubject` carried verbatim, never derived or normalized; illegal arm combinations structurally inexpressible at type level, not runtime-only |
+| T10 | Segments | `scopeKind` discrimination; exactly one reserved `residual` per record; `lifecycleResolutionForm` never treated as a status |
+| T11 | Graphs and cycles | Both graphs independently; a multi-cycle source returns the exact normatively selected path; `closed`-marking hides no cycle |
+| T12 | Commitments | Record fingerprint, authority root, envelope commitment, each with correct prefix; duplicate fingerprint fails closed; **root invariant under differing declared facts**; **envelope commitment varies with them** |
+| T13 | Declared facts | Every rejected `capturedAt` form (offsets, fractional seconds, local time, `24:00:00`, leap seconds, impossible calendar dates); empty attribution member; unrecognized declared field rejected not ignored; **no clock read**, asserted by construction |
+| T14 | Ordering | Every ordering term; NCCS-1 rule 6 collection order; supply-order independence of the root |
+| T15 | `Issued` shape | Exact field list; three counts derived and re-derivable; `declarationCount + genericCount = recordCount`; `segmentedCount` added to neither; missing or extra field rejected; **an object with correct root and correct commitment but a falsified count is still not an `Issued` result** |
+| T16 | `Rejected` shape | Code, phase, precedence, discriminated payload, canonical rendering for each payload variant; no partial snapshot |
+| T17 | Phase precedence | A source carrying defects in several phases reports the lowest-ranked phase's diagnostic; within-phase precedence and target selection each covered |
+| T18 | Vocabulary | Every code in the closed public vocabulary reachable by at least one test; no code outside it emitted |
+| T19 | Issuer-side schema version | Every `Issued` result carries `snapshotSchemaVersion` exactly `nexus-ratification-authority-snapshot/3`; the constant is not parameterized, not caller-supplied, not environment-derived; it encodes in declared schema order and binds into the envelope commitment. **No consumer-side readability or v1/v2 refusal behavior is implemented or tested** |
+| T20 | Boundary | Import-graph test: issuance imports no `GovernanceDecision`, `PolicyEvaluation`, event, host, or adapter surface, and is not referenced by `src/kernel/common/create-kernel-services.ts`; issuance never returns `Valid`/`Invalid`/`Unresolvable`; no Sprint 54 module is modified |
+| T21 | Independence and agreement | The import-graph independence assertion over the five oracle modules; both encoders' RFC-0003 Conformance Vector checks; complete-result field-for-field agreement across the whole corpus |
+
+**All fixture octets are constructed inline within the test files enumerated below. No fixture directory, fixture file, or generated-artifact path is within scope.** The live Ratification Ledger is read from its existing repository path and is never written.
+
+## Forecasted Future Activation and Builder Inventory
+
+**Not created or modified by this instrument.** These paths are forecast so the later activation ratification can authorize an exact inventory. No path below is a pattern. No wildcard, "at minimum", or open-ended directory allowance forms part of it. A file not listed here would not be authorized by that activation ratification without a further amendment.
+
+### Implementation files (4)
+
+1. `src/kernel/governance/ratification-authority-snapshot-issuance.types.ts`
+2. `src/kernel/governance/ratification-authority-snapshot-issuance.errors.ts`
+3. `src/kernel/governance/ratification-authority-snapshot-issuance.contract.ts`
+4. `src/kernel/governance/ratification-authority-snapshot-issuance.ts`
+
+### Test files (13)
+
+| # | Exact path | Covers |
+| --- | --- | --- |
+| 1 | `test/kernel/governance/ratification-authority-snapshot-issuance-source-domain.test.ts` | T1, T2, T3 |
+| 2 | `test/kernel/governance/ratification-authority-snapshot-issuance-entry-structure.test.ts` | T4, T5 |
+| 3 | `test/kernel/governance/ratification-authority-snapshot-issuance-declarations.test.ts` | T6, T7, T8 |
+| 4 | `test/kernel/governance/ratification-authority-snapshot-issuance-records.test.ts` | T9, T10 |
+| 5 | `test/kernel/governance/ratification-authority-snapshot-issuance-graphs.test.ts` | T11 |
+| 6 | `test/kernel/governance/ratification-authority-snapshot-issuance-commitments.test.ts` | T12, T14 |
+| 7 | `test/kernel/governance/ratification-authority-snapshot-issuance-declared-facts.test.ts` | T13 |
+| 8 | `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts` | T15, T16 |
+| 9 | `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts` | T17, T18 |
+| 10 | `test/kernel/governance/ratification-authority-snapshot-issuance-schema-version.test.ts` | T19 |
+| 11 | `test/kernel/governance/ratification-authority-snapshot-issuance-boundary.test.ts` | T20 |
+| 12 | `test/kernel/governance/ratification-authority-snapshot-issuance-conformance-checkpoint.test.ts` | The live-corpus conformance checkpoint |
+| 13 | `test/kernel/governance/nccs1-conformance-vectors.test.ts` | Both encoders against RFC-0003's Conformance Vectors (T21, prior-vector rule) |
+
+### Conformance-oracle files (7)
+
+1. `test/kernel/governance/issuance-oracle/nccs1-encoder.oracle.ts`
+2. `test/kernel/governance/issuance-oracle/schema-table.oracle.ts`
+3. `test/kernel/governance/issuance-oracle/source-parser.oracle.ts`
+4. `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`
+5. `test/kernel/governance/issuance-oracle/issuance.oracle.ts`
+6. `test/kernel/governance/issuance-oracle/oracle-independence.test.ts`
+7. `test/kernel/governance/issuance-oracle/oracle-agreement.test.ts`
+
+### Activation-package governance files (2)
+
+1. `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` — Sprint Implementation Record
+2. The Sprint 82 Builder handoff (`builder-task.md`), at the path the activation ratification specifies
+
+### Post-delivery evidence files (2)
+
+1. `IMPLEMENTATION_REPORT.md` — Builder delivery evidence, written after implementation
+2. `REVIEW_HISTORY.md` — Reviewer findings and disposition, written after review
+
+### Expressly not changed at any stage
+
+`src/kernel/common/create-kernel-services.ts`; `test/integration/kernel-boundary-certification.integration.test.ts`; `src/kernel/governance/ratification-authority-snapshot.ts`; `src/kernel/governance/ratification-attribution-validation.ts`; `src/kernel/governance/ratification-attribution.contract.ts`; `src/kernel/governance/ratification-attribution.errors.ts`; `src/kernel/governance/ratification-attribution.types.ts`; `src/kernel/governance/ratification-authority.repository.ts`; `knowledge/specifications/rfc-0011-engineering-governance-model.md`; `knowledge/specifications/rfc-0003-shared-reality-projection-model.md`; and every Kernel Canon document. No prior Ledger entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest` is edited at any stage.
+
+## Acceptance Evidence (of the future Sprint, not of this instrument)
+
+1. **Two structurally independent implementations agree on the complete public result, field for field**, across the agreement corpus, with independence mechanically enforced and both encoders cross-checked against RFC-0003's Conformance Vectors **before** agreement is reported.
+2. **One conformance checkpoint** over the live Ratification Ledger at the exact revision current when the Sprint runs, reporting the total result. If `Issued`: record count, `authoritySourceRevision`, authority root, envelope commitment, and the three counts. If `Rejected`: the exact code, phase, precedence, payload, and canonical rendering.
+   - This is a **conformance checkpoint** in the sense `NEXUS-RAT-2026-07-31-001` § Conformance Checkpoint Status names. It is **not** a production Snapshot, **not** a durable pin, and **does not discharge DEP1**.
+   - Every value is reported in the Sprint Implementation Record and the review record. **No value is written into `RATIFICATION_LEDGER.md`** — self-inclusion is prohibited.
+3. **Repository validation**: `tsc --noEmit`, ESLint, the full Vitest suite, `npm run build`, and `npm run test:extension-host:build`, all clean.
+4. **`IMPLEMENTATION_GATE.md` Gates 1–15 = PASS**, with Gate 3, Gate 8, Gate 10, and Gate 11 evidenced explicitly.
+5. **Independent Reviewer disposition** recorded in `REVIEW_HISTORY.md`.
+
+## Stop Conditions
+
+Conditions 1–10 bind the future Builder and SHALL be carried into the activation ratification unchanged. Conditions 11–14 bind **application of this instrument** and are evaluated immediately before any file is written.
+
+1. **The scope attempts to decide the production-issuance authority, the declared production facts, artifact custody, retrieval, serialization, or the re-issuance and superseded-revision lifecycle.** Each belongs to a separate production-issuance ratification; deciding any of them here would redefine architecture, prohibited by `IMPLEMENTATION_CONSTITUTION.md`:559.
+2. **This instrument or the future Sprint is described as discharging DEP1.** Neither does. A scope ratification defines future implementation scope; an activation ratification authorizes implementation; DEP1 closes only when production issuance is separately authorized and an artifact is actually issued under that authority.
+3. **Any commitment value is proposed for the Ledger, or any authority root is proposed for pinning.** Both are prohibited by RFC-0011 § Authority Root and Envelope Commitment, and the authority-root pinning deferral is preserved in full.
+4. **Any Sprint 54 module modification becomes necessary.** `IMPLEMENTATION_CONSTITUTION.md` § Approved Vertical Slice Immutability does permit an explicitly authorized extension of an approved capability — but **Boundary A defines no Sprint 54 modification**, and none appears in the forecasted inventory. The Builder therefore stops and returns for explicit scope amendment and ownership review; the reason is absence from the approved inventory, not a universal constitutional prohibition. Separately and unconditionally, merging, aliasing, renaming, or re-typing the consumed-state `RatificationAuthorityRecord` and the v3 `LifecycleAuthorityRecord` into one another remains prohibited.
+5. **Composition into `createKernelServices()` becomes necessary**, or any change to `src/kernel/common/create-kernel-services.ts` or `test/integration/kernel-boundary-certification.integration.test.ts` is required. Boundary A defines neither.
+6. **The scope drifts** into the Consumption Correspondence, consumer-side version readability, the resolver's two-arm input domain, Repository Policy Selection, or the Corpus Source contract.
+7. **Any scope-bearing reference concept, or any positive resolution of a carved governed scope, appears.** DEP2's discharge is scope-free-only and is not broadened.
+8. **A governed-source correction appears necessary** to make the live corpus issue — a separate governance act under separate authority, never a Builder repair.
+9. **The oracle is derived from the implementation, or agreement is reported before both RFC-0003 Conformance Vector checks pass.** Either destroys the independence evidence RFC-0011 line 1357 requires.
+10. **Any file outside the forecasted inventory requires creation or modification.**
+11. **Identifier collision.** `NEXUS-RAT-2026-08-06-001` is no longer absent from `knowledge/governance/RATIFICATION_LEDGER.md`, or the calendar date has advanced past 2026-08-06. Stop; re-derive the next free identifier; do not reuse a taken one and do not silently renumber.
+12. **Sprint-number collision.** Sprint 82 is no longer unallocated in `IMPLEMENTATION_PLAN.md` or `IMPLEMENTATION_MANIFEST.md`. Stop; the allocation must be re-decided by the Owner.
+13. **Baseline mismatch.** The expected parent commit is not `65bf54beec011e817e9273400c9fc501a50a51a7`, the working tree is not clean, or any governed baseline this instrument cites — RFC-0011 v1.8, RFC-0003's Conformance Vectors, `NEXUS-RAT-2026-07-31-001`, `-08-02-001`, `-08-04-001`, `-08-05-001`, or the Milestone 12 planning text — differs from the assessed state. Stop and re-verify.
+14. **Insertion-site mismatch.** Any of the three anchors — the `IMPLEMENTATION_PLAN.md` Milestone 12 Ratification list item for `NEXUS-RAT-2026-07-28-004`, the `IMPLEMENTATION_PLAN.md` *Named blocking dependencies, excluded from this sequence* paragraph, or the identical `IMPLEMENTATION_MANIFEST.md` paragraph — is absent, has moved, or no longer matches the text quoted in § Exact Insertion Sites and Proposed Text. Stop; do not insert by line number alone, and do not synchronize one file without the other.
+
+## Related Sprint(s) / Related Review(s)
+
+Sprint 82 — Ratification Authority Snapshot Issuance Capability (Milestone 12, SGP-1). **Not created. Not activated.** Creation and activation require a separate human-approved activation ratification. Related prior slice: Sprint 54 (`NEXUS-REV-2026-07-16-001`), consumed by ownership boundary only and not modified. Related activation precedents for the future Stage 2 instrument: `NEXUS-RAT-2026-07-21-005` (Sprint 79), `NEXUS-RAT-2026-07-21-007` (Sprint 80), `NEXUS-RAT-2026-07-22-002` (Sprint 81). Related corrective precedent for the two-stage model: `NEXUS-RAT-2026-07-21-003` / `NEXUS-RAT-2026-07-21-004`.
+
+## Current Status
+
+Active
