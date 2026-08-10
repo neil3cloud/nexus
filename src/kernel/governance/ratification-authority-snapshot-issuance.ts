@@ -920,10 +920,14 @@ interface AuthorityCommitmentStage {
   readonly authorityRoot: string;
 }
 
+type AuthorityCommitmentResult =
+  | { readonly result?: undefined; readonly value: AuthorityCommitmentStage }
+  | { readonly result: RatificationAuthoritySnapshotIssuanceResult; readonly value?: undefined };
+
 function deriveAuthorityCommitment(
   preparedText: string,
   records: readonly RatificationAuthoritySnapshotRecord[],
-): { readonly result?: RatificationAuthoritySnapshotIssuanceResult; readonly value: AuthorityCommitmentStage } | { readonly result: RatificationAuthoritySnapshotIssuanceResult; readonly value?: undefined } {
+): AuthorityCommitmentResult {
   const authoritySourceRevision = sha256Hex(encodeNccsString(preparedText));
   const recordFingerprints = records.map((record) =>
     `${ratificationAuthoritySnapshotRecordFingerprintPrefix}${sha256Hex(encodeLifecycleAuthorityRecord(record))}`,
@@ -931,16 +935,12 @@ function deriveAuthorityCommitment(
 
   const seenFingerprints = new Set<string>();
 
-  for (let index = 0; index < recordFingerprints.length; index += 1) {
-    const fingerprint = recordFingerprints[index];
-
-    if (fingerprint !== undefined && seenFingerprints.has(fingerprint)) {
+  for (const [index, fingerprint] of recordFingerprints.entries()) {
+    if (seenFingerprints.has(fingerprint)) {
       return { result: reject('duplicate-record-fingerprint', entryPayload(records[index]?.ratificationIdentifier ?? '')) };
     }
 
-    if (fingerprint !== undefined) {
-      seenFingerprints.add(fingerprint);
-    }
+    seenFingerprints.add(fingerprint);
   }
 
   const encodedFingerprints = encodeNccsOrderInsensitiveStrings(recordFingerprints);
