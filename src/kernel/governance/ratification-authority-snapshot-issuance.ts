@@ -929,18 +929,20 @@ function deriveAuthorityCommitment(
   records: readonly RatificationAuthoritySnapshotRecord[],
 ): AuthorityCommitmentResult {
   const authoritySourceRevision = sha256Hex(encodeNccsString(preparedText));
-  const recordFingerprints = records.map((record) =>
-    `${ratificationAuthoritySnapshotRecordFingerprintPrefix}${sha256Hex(encodeLifecycleAuthorityRecord(record))}`,
-  );
 
+  const recordFingerprints: string[] = [];
   const seenFingerprints = new Set<string>();
 
-  for (const [index, fingerprint] of recordFingerprints.entries()) {
+  for (const record of records) {
+    const fingerprint =
+      `${ratificationAuthoritySnapshotRecordFingerprintPrefix}${sha256Hex(encodeLifecycleAuthorityRecord(record))}`;
+
     if (seenFingerprints.has(fingerprint)) {
-      return { result: reject('duplicate-record-fingerprint', entryPayload(records[index]?.ratificationIdentifier ?? '')) };
+      return { result: reject('duplicate-record-fingerprint', entryPayload(record.ratificationIdentifier)) };
     }
 
     seenFingerprints.add(fingerprint);
+    recordFingerprints.push(fingerprint);
   }
 
   const encodedFingerprints = encodeNccsOrderInsensitiveStrings(recordFingerprints);

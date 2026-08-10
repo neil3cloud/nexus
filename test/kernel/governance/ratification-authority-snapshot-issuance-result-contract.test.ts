@@ -10,6 +10,7 @@ import {
   ratificationAuthoritySnapshotDiagnosticCodes,
   ratificationAuthoritySnapshotDiagnosticPhases,
 } from '../../../src/kernel/governance/ratification-authority-snapshot-issuance.types';
+import type { RatificationAuthoritySnapshotDiagnosticPayload } from '../../../src/kernel/governance/ratification-authority-snapshot-issuance.types';
 import { RatificationAuthoritySnapshotSource } from '../../../src/kernel/governance/ratification-authority-snapshot-issuance.types';
 
 const facts = {
@@ -170,9 +171,40 @@ describe('RatificationAuthoritySnapshotIssuance total result contract', () => {
     expect(issuedResult).not.toHaveProperty('diagnosticPayload');
     expect(issuedResult).not.toHaveProperty('detail');
   });
+
+  it('rule-4 guard — createRatificationAuthoritySnapshotRejectedResult raises RatificationAuthoritySnapshotIssuanceContractError carrying undeclared-diagnostic for each contract-violation code', () => {
+    const contractViolationCodes = [
+      'undeclared-diagnostic',
+      'malformed-diagnostic-payload',
+      'internal-invariant-violation',
+    ] as const;
+
+    for (const code of contractViolationCodes) {
+      let thrown: unknown;
+
+      try {
+        createRatificationAuthoritySnapshotRejectedResult(
+          code as never,
+          { payloadKind: 'NoPayload' },
+        );
+      } catch (error) {
+        thrown = error;
+      }
+
+      expect(thrown).toBeInstanceOf(RatificationAuthoritySnapshotIssuanceContractError);
+
+      if (thrown instanceof RatificationAuthoritySnapshotIssuanceContractError) {
+        expect(thrown.contractViolationCode).toBe('undeclared-diagnostic');
+        expect(thrown.diagnosticPhase).toBe('ContractViolation');
+        expect(thrown.diagnosticPrecedence).toBe(9);
+      }
+    }
+  });
 });
 
-function buildValidPayload(payloadKind: string): Record<string, unknown> {
+function buildValidPayload(
+  payloadKind: RatificationAuthoritySnapshotDiagnosticPayload['payloadKind'],
+): RatificationAuthoritySnapshotDiagnosticPayload {
   switch (payloadKind) {
     case 'NoPayload':
       return { payloadKind: 'NoPayload' };
@@ -201,8 +233,6 @@ function buildValidPayload(payloadKind: string): Record<string, unknown> {
       return { payloadKind: 'RelationPathPayload', pathIdentifiers: ['A', 'B'] };
     case 'DeclaredInputPayload':
       return { payloadKind: 'DeclaredInputPayload', declaredField: 'someField' };
-    default:
-      throw new Error(`Unknown payloadKind: ${payloadKind}`);
   }
 }
 
