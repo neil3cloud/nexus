@@ -132,9 +132,9 @@ Twelve tasks now exist across the Sprint's full remediation history. Current sta
 **All remediation falls within the existing twenty-four-file authorized inventory. No new path is required and no
 further scope ratification is required.** The Reviewer's recorded dependency order from
 `NEXUS-REV-2026-08-07-003` § Builder Task Recommendation — restated unchanged by `NEXUS-REV-2026-08-09-001` — is
-preserved and SHALL NOT be reordered:
-(1) `BT-082-006`; (2) `BT-082-010`; (3) `BT-082-007`, `-008`, `-009`, `-011`, `-012`;
-(4) `DOC-082-001` last, once the evidence it describes exists.
+**superseded** by `NEXUS-RAT-2026-08-10-001` and SHALL NOT be followed. The mandatory order is enumerated
+**once only**, in § Builder Instructions, which governs exclusively; no other text in this document enumerates
+task order. `BT-082-007` is first, and nothing precedes it or is bundled with it.
 
 **Re-verification status (`NEXUS-REV-2026-08-09-001`, 2026-08-09 — most recent cycle).** No Builder work occurred
 since `NEXUS-REV-2026-08-07-003`. The independent Reviewer content-inspected every file targeted by an open task and
@@ -362,8 +362,10 @@ Implementations.
 **Required work:**
 
 1. `vocabulary.oracle.ts`: add `duplicate-record-fingerprint`; add the `Commitment` phase at rank 7;
-   change `malformed-capture-instant` and `malformed-attribution` precedence from 7 to 8; move
-   `Envelope` to 8 and `ContractViolation` to 9.
+   move `ContractViolation` to 9. **The `malformed-capture-instant` and `malformed-attribution`
+   precedence rows, and the move of `Envelope` to 8, were already applied under `BT-082-007` by
+   `NEXUS-RAT-2026-08-10-002` § Governance Decision E2, so that the two natural agreement fixtures
+   remain green at that boundary. Confirm they read 8 and do not re-apply them.**
 2. `issuance.oracle.ts`: derive the authority source revision, the record fingerprints in record
    order, the record-order uniqueness check, the order-insensitive encoding, and the authority root
    **before** any declared-fact examination; return the governed
@@ -421,8 +423,37 @@ channel.
 Governing RFC: RFC-0011 Final (Amended) v1.9 § The Total Result Contract → Diagnostic Phases,
 Within-Phase Precedence, Target Selection Order, The Closed Public Vocabulary, Contract Violations.
 
-**Targets (exact, four files):** `…issuance.types.ts`, `…issuance.errors.ts`,
-`…issuance.contract.ts`, `…issuance.ts`.
+**Targets (exact, seven files):** production — `…issuance.types.ts`, `…issuance.errors.ts`,
+`…issuance.contract.ts`, `…issuance.ts`; evidence, added by `NEXUS-RAT-2026-08-10-002` § Governance
+Decision E2 — `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts`,
+`test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts`, and
+`test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`. All seven are already inside the
+twenty-four-file authorized inventory; it is **not** enlarged and no new file may be created.
+
+**Required evidence work, in addition to the production changes below:**
+
+- `…-diagnostics.test.ts`: change the closed-vocabulary length assertion from 46 to 47; add
+  objective test 3, asserting `diagnosticPhase` `Envelope` and `diagnosticPrecedence` 8 for both
+  `malformed-capture-instant` and `malformed-attribution`.
+- `…-result-contract.test.ts`: add objective test 5 — five cases against the validated constructor
+  (wrong payload variant for the code; a missing declared field; an extra field; a wrongly typed
+  field; an empty String field and an empty `pathIdentifiers`), each raising
+  `RatificationAuthoritySnapshotIssuanceContractError` carrying `malformed-diagnostic-payload`. Add
+  objective test 7 as the exhaustive central-construction test specified by
+  `NEXUS-RAT-2026-08-10-002` § Governance Decision E5: enumerate the complete 47-code public
+  vocabulary, construct a valid declared payload for each code's declared `payloadKind`, construct
+  every corresponding `Rejected` result through
+  `createRatificationAuthoritySnapshotRejectedResult`, and assert that every returned
+  `diagnosticCode` and `diagnosticPhase` lies inside the closed 47-code and 9-phase public
+  partitions; assert that the three contract-violation codes and the `ContractViolation` phase are
+  absent from those partitions and cannot be returned as an `Issued` or `Rejected` result; and
+  assert that an `Issued` result carries no diagnostic fields. Sampling does not satisfy this test.
+- `vocabulary.oracle.ts`: **metadata only** — change `malformed-capture-instant` and
+  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.9
+  § Diagnostic Phases and from no implementation source. Add nothing else. The `Commitment` phase,
+  `duplicate-record-fingerprint`, the collision and encoder-disagreement mechanisms, and the
+  stage-order trace remain `BT-082-010`. The oracle SHALL NOT import any `src/` module, and
+  `oracle-independence.test.ts` SHALL continue to pass unchanged.
 
 **Required changes:**
 
@@ -460,8 +491,12 @@ does not satisfy this task.
 or `EnvelopeCommitmentBasis`; no change to the snapshot schema version; no contract-violation code
 in `…types.ts` or in any result field; no new file.
 
-**Acceptance:** objective tests 1, 2, 2b, 3, 5, 6, and 7 pass; no exception escapes for any governed
-input; repository validation clean.
+**Acceptance:** objective tests **3, 5, and 7** pass; no exception escapes for any governed input;
+**repository validation is clean, with no failing test of any kind**. Objective tests 1, 2, 2b, and
+6 are **deferred to `BT-082-006`**, whose authorized D8a, D8b, and D8c mechanisms and authorized
+test file supply them; they SHALL NOT be claimed, cited, or asserted at this boundary. Objective
+test 4 is `BT-082-008`. Restated by `NEXUS-RAT-2026-08-10-002` § Governance Decision E1, E2, E4,
+and E5.
 
 ## BT-082-008 — Implement the `undeclared-diagnostic` classification
 
@@ -477,13 +512,18 @@ the contract error; never substitute a governed code for an undeclared one.
 **Authority:** `NEXUS-RAT-2026-08-10-001` D5 and objective test 4. Governing RFC: RFC-0011 Final
 (Amended) v1.9 § Contract Violations rule 4.
 
-**Target (exact, one file):** `…issuance.contract.ts`.
+**Targets (exact, two files):** `…issuance.contract.ts`; and
+`test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts`, which
+carries objective test 4. Both are inside the twenty-four-file authorized inventory. Evidence
+allocation per `NEXUS-RAT-2026-08-10-002` § Governance Decision E4. This task SHALL NOT alter,
+weaken, or re-scope the objective test 5 or objective test 7 assertions delivered by `BT-082-007`.
 
 **Required work:** add the vocabulary-membership check to the validated constructor created by
 `BT-082-007`, raising `RatificationAuthoritySnapshotIssuanceContractError` carrying
 `undeclared-diagnostic`; delete `assertKnownDiagnosticCode` entirely.
 
-**Acceptance:** objective test 4 passes; repository validation clean.
+**Acceptance:** objective test 4 passes, evidenced in `…-result-contract.test.ts`; repository
+validation is clean, with no failing test of any kind.
 
 ## BT-082-009 — Make the T6 negative test assert the property it claims
 

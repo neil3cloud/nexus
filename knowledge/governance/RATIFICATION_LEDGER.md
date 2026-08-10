@@ -23767,3 +23767,523 @@ amended at named clauses). Owner Reviews of 2026-08-09 and 2026-08-10.
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-10-002
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-10-002
+
+*Availability rechecked at HEAD `f0dd99ac394a486790658f545794f74d0b3ae980`: zero occurrences of this
+identifier anywhere in the governed corpus. It SHALL be rechecked immediately before application.*
+
+## Date
+
+2026-08-10
+
+## Subject
+
+Repair of Sprint 82 Builder task sequencing, target allocation, and acceptance measurement
+established by `NEXUS-RAT-2026-08-10-001`, so that every task boundary is independently executable
+and leaves repository validation clean. No architectural decision of RFC-0011 Final (Amended) v1.9
+is altered, narrowed, extended, or reopened.
+
+## Originating Review Finding(s)
+
+Owner pre-dispatch review of 2026-08-10, disposition **RATIFICATION REQUIRED**: Blocking B1
+(`BT-082-007` cannot satisfy its binding acceptance criteria) and Major M1 (`builder-task.md`
+contains two contradictory mandatory orders), with Named Corrections NC1 through NC4. Claude
+Planner's pre-dispatch validation of the same date, which additionally identified a third necessary
+boundary failure not named in B1. Owner review of this instrument's first revision, disposition
+**APPROVE WITH NAMED CORRECTIONS**: Blocking B1 (the instrument was not self-contained), Major M1
+(two operative order enumerations), and Major M2 (objective test 7 narrower than the ratified
+obligation), with Named Corrections NC1 through NC4 of that review.
+
+## RFC Coverage
+
+**No RFC is amended.** RFC-0011 Final (Amended) v1.9 is consumed exactly as
+`NEXUS-RAT-2026-08-10-001` established it: nine governed phases 0–8 with `Commitment` at rank 7, the
+forty-seven-code closed public vocabulary, the three contract-violation codes on the non-public
+channel, and the `Commitment`-before-`Envelope` execution order. RFC-0003 is not amended. This
+instrument governs task sequencing and evidence allocation only.
+
+## Governance Decision
+
+### E1 — The defect is a measurement defect, not an architectural one
+
+`BT-082-007` shifts `malformed-capture-instant` and `malformed-attribution` from precedence 7 to 8
+in the implementation and appends the forty-seventh public code. Three existing assertions in the
+authorized inventory observe those two facts:
+
+1. `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts:34` —
+   `expect(ratificationAuthoritySnapshotDiagnosticCodes).toHaveLength(46)`.
+2. `test/kernel/governance/issuance-oracle/oracle-agreement.test.ts:47` — a complete-result
+   comparison over a corpus whose `malformed-capture-instant` fixture at line 112 carries
+   `diagnosticPrecedence`.
+3. The same comparison for the `malformed-attribution` fixture at line 115.
+
+`BT-082-007`'s prior target list of four production files cannot reach any of them. The prior
+acceptance clause therefore required evidence that the task's own scope forbade producing. That is
+repaired by moving the observing sites into the task, not by relaxing the clean-validation gate.
+
+**Declaring the failures "expected" is prohibited.** Repository validation SHALL be clean after
+every task boundary.
+
+### E2 — Corrected target allocation for `BT-082-007`
+
+`BT-082-007` targets **seven** files, all already inside the twenty-four-file authorized inventory.
+The inventory is **not** enlarged and no new path is created.
+
+Production (unchanged from `NEXUS-RAT-2026-08-10-001`):
+
+1. `src/kernel/governance/ratification-authority-snapshot-issuance.types.ts`
+2. `src/kernel/governance/ratification-authority-snapshot-issuance.errors.ts`
+3. `src/kernel/governance/ratification-authority-snapshot-issuance.contract.ts`
+4. `src/kernel/governance/ratification-authority-snapshot-issuance.ts`
+
+Evidence, added by this instrument:
+
+5. `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts` — the
+   closed-vocabulary length assertion becomes 47; objective test 3 lands here.
+6. `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts` —
+   objective tests 5 and 7 land here. This file already owns the central `Issued` and `Rejected`
+   shape contract (T15 and T16), which makes it the coherent home for the exhaustive
+   constructor-boundary evidence required by E5.
+7. `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts` — **metadata only**: the two
+   `Envelope` precedence values move from 7 to 8.
+
+### E3 — The oracle metadata move does not breach structural independence
+
+Only the two precedence integers move, and only because RFC-0011 v1.9 § Diagnostic Phases states the
+rank. The Builder SHALL derive them from the RFC text alone. The oracle SHALL NOT gain the
+`Commitment` algorithm, the `duplicate-record-fingerprint` code, the collision mechanism, the
+encoder-disagreement mechanism, or the stage-order trace at this boundary — all remain
+`BT-082-010`. The oracle SHALL NOT import `…issuance.errors.ts`, `…issuance.contract.ts`,
+`…issuance.types.ts`, or `…issuance.ts`, and `oracle-independence.test.ts` SHALL continue to pass
+unchanged. The binding authoring rule of `BT-082-010` is preserved verbatim and extended to this
+edit.
+
+### E4 — Objective-test ownership, exact and non-overlapping
+
+| Objective test | Owning task | Evidence file |
+| --- | --- | --- |
+| 3 — precedence rank shift to 8 | `BT-082-007` | `…-diagnostics.test.ts` |
+| 5 — `malformed-diagnostic-payload`, five cases | `BT-082-007` | `…-result-contract.test.ts` |
+| 7 — closed public result-construction boundary | `BT-082-007` | `…-result-contract.test.ts` |
+| 4 — `undeclared-diagnostic` | `BT-082-008` | `…-result-contract.test.ts` |
+| 1, 2, 2b, 6, 8 | `BT-082-006` | `…-commitments.test.ts` |
+| 9, 9b, 9c, 10, 11, 12 | `BT-082-010` | the three oracle files |
+
+Objective tests 1, 2, 2b, and 6 SHALL NOT be claimed, cited, or asserted before `BT-082-006`
+supplies them: their authorized D8a, D8b, and D8c mechanisms and their single authorized test file
+belong to that task alone.
+
+Sequential reuse of `…-result-contract.test.ts` by `BT-082-007` and `BT-082-008` is authorized.
+Ownership is of obligations and evidence, not of physical files: objective test 5 and objective
+test 7 belong only to `BT-082-007`, and objective test 4 belongs only to `BT-082-008`. Neither task
+may alter, weaken, or re-scope the other's assertions.
+
+### E5 — Objective test 7 is an exhaustive central-construction test
+
+Objective test 7 SHALL NOT be satisfied by sampling. It SHALL, in
+`…-result-contract.test.ts`:
+
+1. enumerate the complete forty-seven-code public vocabulary from
+   `ratificationAuthoritySnapshotDiagnosticCodes`, and assert the enumeration is exhaustive by
+   comparing it as a set against that exported constant;
+2. for each code, construct a valid payload of the `payloadKind` declared for that code in
+   `ratificationAuthoritySnapshotDiagnosticMetadata`, and construct the corresponding `Rejected`
+   result through the governed constructor
+   `createRatificationAuthoritySnapshotRejectedResult`;
+3. assert for every constructed result that `diagnosticCode` is a member of the closed
+   forty-seven-code public partition and `diagnosticPhase` is a member of the closed nine-phase
+   public partition `ratificationAuthoritySnapshotDiagnosticPhases`;
+4. assert that `undeclared-diagnostic`, `malformed-diagnostic-payload`, and
+   `internal-invariant-violation` are absent from the public code partition, that
+   `ContractViolation` is absent from the public phase partition, and that none of the four can be
+   returned as an `Issued` or a `Rejected` result — the contract-violation channel raises
+   `RatificationAuthoritySnapshotIssuanceContractError` and never returns a result; and
+5. assert that an `Issued` result carries no `diagnosticCode`, `diagnosticPhase`,
+   `diagnosticPrecedence`, or `diagnosticPayload` field.
+
+This is the closed result-construction boundary, not a per-file property. It supersedes any narrower
+single-file or single-sample formulation.
+
+### E6 — One operative order enumeration
+
+The mandatory order is `BT-082-007` → `BT-082-008` → `BT-082-006` → `BT-082-010` →
+`BT-082-009` / `-011` / `-012` → `DOC-082-001`, and it is enumerated in exactly **one** operative
+location: `builder-task.md` § Builder Instructions, items 1 through 10, which is not modified by
+this instrument. Site 1 of § Application Sites removes the competing enumeration and states only
+that the prior review order is superseded and that § Builder Instructions governs exclusively; it
+does not reprint the sequence. No other operative text in `builder-task.md` enumerates task order.
+
+For this instrument, an **operative order enumeration** is a contiguous text block that names three
+or more distinct `BT-082-` task identifiers in intended execution sequence, and that is not inside
+`# Reviewer Notes`, a dated review-history quotation, or a completed-task narrative. A severity or
+status grouping, an alphabetical listing, and a historical account of when tasks were generated are
+**not** enumerations, because none states a sequence in which work is to be taken. Under that
+definition `builder-task.md` at the pinned blob contains exactly two — § Builder Instructions items
+1–10, and the stale block at lines 132–137 — and after application contains exactly one.
+
+The count is mechanically derived by scanning every line of the pinned blob naming three or more
+`BT-082-` identifiers and classifying each. Those are lines 42, 71, 96, 127, 136, 258, 610, 665,
+679, 769, and 775.
+
+- **136** — the stale enumeration, removed by S1.
+- **769** — inside the single surviving enumeration, § Builder Instructions items 1–10 at lines
+  757–770. Not edited.
+- **127** — the completed/retired/open severity grouping, which classifies `BT-082-006` and
+  `BT-082-010` as Major and the remaining five open tasks as Minor. It states no sequence.
+- **258** and **610** — alphabetical listings of the four tasks blocked by the Owner Review of
+  2026-08-09. Line 258 expressly defers sequence to § Builder Instructions; line 610 records that no
+  task is presently blocked.
+- **42**, **71**, **665**, **679**, **775** — historical generation, completion, and documentation
+  narrative naming tasks by identifier only.
+- **96** — the regeneration history of this document.
+
+None of these is an order enumeration, and none is edited by this instrument. After application the
+same scan yields exactly one enumeration.
+
+The occurrences in `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`
+at line 736 and in `REVIEW_HISTORY.md` at line 98 are inside Reviewer-owned historical material —
+`# Reviewer Notes`, which begins at line 566, and the dated entry `NEXUS-REV-2026-08-09-001`
+respectively. They are exempt, SHALL NOT be edited, and SHALL remain byte-identical.
+
+### E7 — Boundary matrix
+
+Repository validation SHALL be clean at every row. "Clean" means `npm run validate` — `tsc --noEmit`,
+`eslint`, `vitest run --exclude "test/extension-host/**"`, and `node esbuild.js` — completing with no
+failure of any kind.
+
+| After | Validation state | Newly satisfied |
+| --- | --- | --- |
+| `BT-082-007` | Clean | 3, 5, 7 |
+| `BT-082-008` | Clean | 4 |
+| `BT-082-006` | Clean | 1, 2, 2b, 6, 8 |
+| `BT-082-010` | Clean | 9, 9b, 9c, 10, 11, 12 |
+| `BT-082-009`, `-011`, `-012` | Clean | test-accuracy findings |
+| `DOC-082-001` | Clean | recorded counts restated |
+
+No completed deliverable is knowingly broken between tasks.
+
+## Application Sites
+
+This section is the **complete and sufficient** application authority for `builder-task.md`. No
+external document is required to apply this instrument. Any reproduction of this section elsewhere
+is a convenience copy and carries no independent authority.
+
+**Target file:** `builder-task.md`.
+**Pinned pre-application blob:** `b1679043797fdf41906b0c720b4f8355440a9d98`, 1,136 lines.
+**Matching mode for every site:** exact literal byte match, UTF-8, LF line terminators, no regular
+expression, no normalization, no whitespace tolerance. Every FIND block and every REPLACE block
+below ends with a final LF. Each FIND SHALL match exactly once before its write and zero times
+after; each REPLACE SHALL match exactly once after its write. Sites SHALL be applied in the order
+S1 through S6, one write per site.
+
+### S1 — Remove the stale competing order
+
+FIND:
+
+```text
+**All remediation falls within the existing twenty-four-file authorized inventory. No new path is required and no
+further scope ratification is required.** The Reviewer's recorded dependency order from
+`NEXUS-REV-2026-08-07-003` § Builder Task Recommendation — restated unchanged by `NEXUS-REV-2026-08-09-001` — is
+preserved and SHALL NOT be reordered:
+(1) `BT-082-006`; (2) `BT-082-010`; (3) `BT-082-007`, `-008`, `-009`, `-011`, `-012`;
+(4) `DOC-082-001` last, once the evidence it describes exists.
+```
+
+REPLACE:
+
+```text
+**All remediation falls within the existing twenty-four-file authorized inventory. No new path is required and no
+further scope ratification is required.** The Reviewer's recorded dependency order from
+`NEXUS-REV-2026-08-07-003` § Builder Task Recommendation — restated unchanged by `NEXUS-REV-2026-08-09-001` — is
+**superseded** by `NEXUS-RAT-2026-08-10-001` and SHALL NOT be followed. The mandatory order is enumerated
+**once only**, in § Builder Instructions, which governs exclusively; no other text in this document enumerates
+task order. `BT-082-007` is first, and nothing precedes it or is bundled with it.
+```
+
+### S2 — `BT-082-007` targets and evidence work
+
+FIND:
+
+```text
+**Targets (exact, four files):** `…issuance.types.ts`, `…issuance.errors.ts`,
+`…issuance.contract.ts`, `…issuance.ts`.
+```
+
+REPLACE:
+
+```text
+**Targets (exact, seven files):** production — `…issuance.types.ts`, `…issuance.errors.ts`,
+`…issuance.contract.ts`, `…issuance.ts`; evidence, added by `NEXUS-RAT-2026-08-10-002` § Governance
+Decision E2 — `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts`,
+`test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts`, and
+`test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`. All seven are already inside the
+twenty-four-file authorized inventory; it is **not** enlarged and no new file may be created.
+
+**Required evidence work, in addition to the production changes below:**
+
+- `…-diagnostics.test.ts`: change the closed-vocabulary length assertion from 46 to 47; add
+  objective test 3, asserting `diagnosticPhase` `Envelope` and `diagnosticPrecedence` 8 for both
+  `malformed-capture-instant` and `malformed-attribution`.
+- `…-result-contract.test.ts`: add objective test 5 — five cases against the validated constructor
+  (wrong payload variant for the code; a missing declared field; an extra field; a wrongly typed
+  field; an empty String field and an empty `pathIdentifiers`), each raising
+  `RatificationAuthoritySnapshotIssuanceContractError` carrying `malformed-diagnostic-payload`. Add
+  objective test 7 as the exhaustive central-construction test specified by
+  `NEXUS-RAT-2026-08-10-002` § Governance Decision E5: enumerate the complete 47-code public
+  vocabulary, construct a valid declared payload for each code's declared `payloadKind`, construct
+  every corresponding `Rejected` result through
+  `createRatificationAuthoritySnapshotRejectedResult`, and assert that every returned
+  `diagnosticCode` and `diagnosticPhase` lies inside the closed 47-code and 9-phase public
+  partitions; assert that the three contract-violation codes and the `ContractViolation` phase are
+  absent from those partitions and cannot be returned as an `Issued` or `Rejected` result; and
+  assert that an `Issued` result carries no diagnostic fields. Sampling does not satisfy this test.
+- `vocabulary.oracle.ts`: **metadata only** — change `malformed-capture-instant` and
+  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.9
+  § Diagnostic Phases and from no implementation source. Add nothing else. The `Commitment` phase,
+  `duplicate-record-fingerprint`, the collision and encoder-disagreement mechanisms, and the
+  stage-order trace remain `BT-082-010`. The oracle SHALL NOT import any `src/` module, and
+  `oracle-independence.test.ts` SHALL continue to pass unchanged.
+```
+
+### S3 — `BT-082-007` acceptance
+
+FIND:
+
+```text
+**Acceptance:** objective tests 1, 2, 2b, 3, 5, 6, and 7 pass; no exception escapes for any governed
+input; repository validation clean.
+```
+
+REPLACE:
+
+```text
+**Acceptance:** objective tests **3, 5, and 7** pass; no exception escapes for any governed input;
+**repository validation is clean, with no failing test of any kind**. Objective tests 1, 2, 2b, and
+6 are **deferred to `BT-082-006`**, whose authorized D8a, D8b, and D8c mechanisms and authorized
+test file supply them; they SHALL NOT be claimed, cited, or asserted at this boundary. Objective
+test 4 is `BT-082-008`. Restated by `NEXUS-RAT-2026-08-10-002` § Governance Decision E1, E2, E4,
+and E5.
+```
+
+### S4 — `BT-082-008` targets
+
+FIND:
+
+```text
+**Target (exact, one file):** `…issuance.contract.ts`.
+```
+
+REPLACE:
+
+```text
+**Targets (exact, two files):** `…issuance.contract.ts`; and
+`test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts`, which
+carries objective test 4. Both are inside the twenty-four-file authorized inventory. Evidence
+allocation per `NEXUS-RAT-2026-08-10-002` § Governance Decision E4. This task SHALL NOT alter,
+weaken, or re-scope the objective test 5 or objective test 7 assertions delivered by `BT-082-007`.
+```
+
+### S5 — `BT-082-008` acceptance
+
+FIND:
+
+```text
+**Acceptance:** objective test 4 passes; repository validation clean.
+```
+
+REPLACE:
+
+```text
+**Acceptance:** objective test 4 passes, evidenced in `…-result-contract.test.ts`; repository
+validation is clean, with no failing test of any kind.
+```
+
+### S6 — `BT-082-010` oracle-vocabulary item
+
+FIND:
+
+```text
+1. `vocabulary.oracle.ts`: add `duplicate-record-fingerprint`; add the `Commitment` phase at rank 7;
+   change `malformed-capture-instant` and `malformed-attribution` precedence from 7 to 8; move
+   `Envelope` to 8 and `ContractViolation` to 9.
+```
+
+REPLACE:
+
+```text
+1. `vocabulary.oracle.ts`: add `duplicate-record-fingerprint`; add the `Commitment` phase at rank 7;
+   move `ContractViolation` to 9. **The `malformed-capture-instant` and `malformed-attribution`
+   precedence rows, and the move of `Envelope` to 8, were already applied under `BT-082-007` by
+   `NEXUS-RAT-2026-08-10-002` § Governance Decision E2, so that the two natural agreement fixtures
+   remain green at that boundary. Confirm they read 8 and do not re-apply them.**
+```
+
+## Simulation Evidence
+
+Performed read-only against the repository, in an isolated scratch tree with a directory junction to
+`node_modules`. The test command is the governed one, `vitest run --exclude "test/extension-host/**"`,
+as defined by `package.json` § scripts.
+
+| Run | `tsc --noEmit` | Test files | Tests |
+| --- | --- | --- | --- |
+| Baseline, unmodified copy | exit 0 | 5 failed, 129 passed (134) | 5 failed, 810 passed (815) |
+| E2 metadata deltas applied | exit 0 | 5 failed, 129 passed (134) | 5 failed, 810 passed (815) |
+| Control, production deltas only | — | 2 failed (2) | 2 failed, 1 passed (3) |
+
+The five failures common to the baseline and delta runs are harness artifacts, identical in both and
+unrelated to Sprint 82: five tests invoke `git diff --name-only` to assert that Host and Adapter
+surfaces are unchanged, which cannot succeed outside a git repository. None is in the Sprint 82
+inventory, and all five pass in the repository itself. The honest reading is therefore **green
+before, green after**. The control run, with the two production deltas and pristine oracle and
+diagnostics files, reproduces exactly the two boundary failures this instrument repairs:
+
+```text
+AssertionError: expected [ 'invalid-input', …(46) ] to have a length of 46 but got 47
+AssertionError: malformed-capture-instant: expected { result: 'Rejected', …(5) } to deeply equal { result: 'Rejected', …(5) }
+```
+
+The `oracle-agreement` failure surfaces as one failing test because the comparison aborts at the
+first mismatching fixture; both the `malformed-capture-instant` and `malformed-attribution` fixtures
+are affected.
+
+**Simulation extent.** The simulation exercises the complete metadata-visible surface: the 47-code
+vocabulary, the `Commitment` phase name, precedence 8 on both `Envelope` codes, and full oracle
+agreement across the corpus including the live Ledger. It does not execute the internal
+`deriveAuthorityCommitment` refactor or the new objective tests 3, 5, and 7, which are Builder work
+not performed during drafting. The refactor's bit-identity obligation is unchanged from
+`NEXUS-RAT-2026-08-10-001` D2 and D6 and is evidenced by the Builder's own boundary run.
+
+## Amendment Matrix
+
+### `NEXUS-RAT-2026-08-10-001` — amended by named extent
+
+Amended in exactly four respects and no other:
+
+1. `BT-082-007`'s target list gains the three evidence files of E2.
+2. The acceptance clauses of `BT-082-007` and `BT-082-008` are restated to cite only evidence
+   available at their own boundary.
+3. Objective test 7 is restated as the exhaustive central-construction test of E5.
+4. `BT-082-010`'s oracle-vocabulary item is reduced by the two precedence rows and the `Envelope`
+   move reallocated to `BT-082-007`.
+
+Preserved verbatim: D1, D2, D3, D4, D5, D6, D7, D8a, D8b, D8c, D9, D10, D11, D12; the Amendment
+Matrix; the Three Vocabulary Sets; objective tests 1, 2, 2b, 3, 4, 5, 6, 8, 9, 9b, 9c, 10, 11, and
+12; Builder Stop Conditions 1–12; the twenty-four-file inventory; and the mandatory order.
+
+### Instruments not amended
+
+`NEXUS-RAT-2026-07-31-001`, `NEXUS-RAT-2026-08-06-001`, `NEXUS-RAT-2026-08-06-002`,
+`NEXUS-RAT-2026-07-16-001`, `NEXUS-RAT-2026-07-15-017`. No prior Ledger entry's octets,
+`## Current Status`, declaration block, or `sourceStatusDigest` is edited. RFC-0011 remains at v1.9;
+its version line and amendment history are not touched.
+
+## Preserved Invariants
+
+Encoded octets of `LifecycleAuthorityRecord`, `AuthorityRootBasis`, and `EnvelopeCommitmentBasis`;
+the schema version `nexus-ratification-authority-snapshot/3`; every fingerprint, authority root, and
+envelope commitment; the twenty-four-file inventory; Sprint 82 Stop Conditions 1–10 and Builder Stop
+Conditions 11–12; oracle structural independence; the Sprint record's `# Reviewer Notes`; Sprint 82's
+disposition of Approved with Findings; and all deferred and prohibited scope.
+
+## Changed-File List (exact)
+
+**File 1 — `knowledge/governance/RATIFICATION_LEDGER.md`.** Pinned pre-application blob
+`954f81f5e00373ac2c04ffd80501def3c751027d`, 23,769 lines. One append at end of file. The file's last
+line is `Active`. Append a blank line, then `---`, then a blank line, then this entry in full. No
+other change.
+
+**File 2 — `builder-task.md`.** Pinned pre-application blob
+`b1679043797fdf41906b0c720b4f8355440a9d98`, 1,136 lines. Six sites, S1 through S6 of § Application
+Sites of this entry, applied in that order, one write per site.
+
+**No `src/`, `test/`, or oracle file is changed by application.** Builder implementation is
+authorized only after application completes.
+
+### Expected post-application results
+
+Application is deterministic. Both results below were computed independently, from the pinned
+pre-application blobs and the application rules of this entry, before any write.
+
+**File 2 — `builder-task.md`.** Expected post-application Git blob
+`1c59f0bb4e6126ed32ef09782bb2119111d6c3ab`, 1,176 lines, SHA-256
+`dca7ef42e01833c3ab89ffac0ea77f8908b2618424ca5d5bc20b90b152dcb7f9`. These values are binding; a
+mismatch is a stop condition requiring restoration.
+
+**File 1 — `knowledge/governance/RATIFICATION_LEDGER.md`.** A numeric hash of the post-application
+Ledger cannot be stated inside this entry, because the post-application Ledger *contains* this
+entry, and any digest written here would alter the content it purports to describe. The expected
+result is therefore stated constructively and is equally deterministic: the post-application file
+SHALL be byte-identical to the octets of pinned blob
+`954f81f5e00373ac2c04ffd80501def3c751027d`, followed by LF, `---`, LF, LF, followed by the complete
+octets of this entry, and SHALL differ from the pinned blob by pure append with zero deletion and
+zero modification of any pre-existing octet. The applier SHALL compute the resulting Git blob and
+SHA-256, record both in the Application Report, and compare them against the values stated in the
+accepted submission that authorized application; a mismatch is a stop condition requiring
+restoration. The expected line count is the pinned 23,769 plus the line count of this entry plus 3.
+
+## Application Stop Conditions
+
+Evaluated immediately before any edit, and the post-application limbs immediately after. Any failure
+stops application entirely and requires restoration from verified pre-application scratch copies.
+`git checkout --` SHALL NOT be used.
+
+1. HEAD is not `f0dd99ac394a486790658f545794f74d0b3ae980`.
+2. Either pinned blob does not match.
+3. `NEXUS-RAT-2026-08-10-002` occurs anywhere in the governed corpus before application.
+4. Any FIND block in § Application Sites matches other than exactly once before its write, or any
+   REPLACE block matches other than exactly once after its write, or any FIND block still matches
+   after its write.
+5. **One-enumeration check.** After application, the count of operative order enumerations in
+   `builder-task.md`, as defined in E6, is not exactly 1, and that one is not § Builder Instructions
+   items 1–10.
+6. **Zero-stale check.** After application, the literal string
+   ``(1) `BT-082-006`; (2) `BT-082-010`;`` occurs a number of times other than 0 in `builder-task.md`,
+   or any operative text in `builder-task.md` directs `BT-082-006` or `BT-082-010` to precede
+   `BT-082-007`.
+7. **Internal-reference closure.** Any `§`-prefixed internal reference in this entry does not
+   resolve to a section that exists in this entry, or any reference to an external proposal document
+   as application authority is present.
+8. **Non-target byte and path closure.** Immediately before the first write, record the complete
+   `git status --porcelain` path set and byte hashes for every existing modified or untracked file
+   outside the two named targets. Immediately after application, the non-target status path set
+   SHALL be identical and every recorded non-target file SHALL be byte-identical to its
+   pre-application hash; no additional path may exist. Any mismatch is a stop condition requiring
+   restoration of both targets from verified pre-application copies.
+
+   The Application Report SHALL show the before/after non-target path-set equality and hash-total
+   equality without exposing file contents. Untracked directories reported in abbreviated form SHALL
+   be expanded to individual files, by `git status --porcelain --untracked-files=all`, so that the
+   recorded set is file-level.
+
+9. **Deterministic-output closure.** After application, `builder-task.md` is not Git blob
+   `1c59f0bb4e6126ed32ef09782bb2119111d6c3ab` at 1,176 lines; or
+   `knowledge/governance/RATIFICATION_LEDGER.md` is not byte-identical to the constructive result
+   defined in § Changed-File List (exact) → Expected post-application results, or its computed Git
+   blob and SHA-256 do not equal the values stated in the accepted submission that authorized
+   application.
+
+## Builder Stop Conditions
+
+Conditions 1–10 of `NEXUS-RAT-2026-08-06-001` and 11–12 of `NEXUS-RAT-2026-08-10-001` are carried
+verbatim and unchanged. This instrument adds one:
+
+13. **Repository validation is not clean at a task boundary.** The Builder SHALL stop and report.
+    Test failures SHALL NOT be declared expected, waived, or deferred to a later task, and later
+    tasks SHALL NOT be bundled forward to make a boundary green.
+
+## Related Sprint(s) / Related Review(s)
+
+Sprint 82 — Ratification Authority Snapshot Issuance Capability (Milestone 12, SGP-1).
+`NEXUS-RAT-2026-08-10-001` (amended by named extent). Owner pre-dispatch review of 2026-08-10.
+Owner review of this instrument's first revision, 2026-08-10. `NEXUS-REV-2026-08-10-001`.
+
+## Current Status
+
+Active
