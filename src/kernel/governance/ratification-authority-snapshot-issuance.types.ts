@@ -12,6 +12,7 @@ export const ratificationAuthoritySnapshotDiagnosticPhases = [
   'DeclarationBinding',
   'LifecycleGraph',
   'Resolution',
+  'Commitment',
   'Envelope',
 ] as const;
 
@@ -63,6 +64,7 @@ export const ratificationAuthoritySnapshotDiagnosticCodes = [
   'self-referential-relation',
   'cyclic-lifecycle-relation',
   'unresolved-lifecycle',
+  'duplicate-record-fingerprint',
   'malformed-capture-instant',
   'malformed-attribution',
 ] as const;
