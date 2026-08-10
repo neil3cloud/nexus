@@ -22943,3 +22943,827 @@ Related Review: none yet; independent Reviewer certification of Sprint 82 is req
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-10-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-10-001
+
+## Date
+
+2026-08-10
+
+## Subject
+
+**Governed duplicate-record-fingerprint classification and contract-violation representation.**
+Amends RFC-0011 to v1.9 to add one governed diagnostic phase, `Commitment`, one public diagnostic
+code, `duplicate-record-fingerprint`, and the exact representation of the three non-public
+contract-violation codes. Amends, by named semantic extent and without editing any prior entry's
+octets, `NEXUS-RAT-2026-07-31-001` (phase model, public vocabulary, precedence,
+duplicate-fingerprint outcome, contract-violation representation), `NEXUS-RAT-2026-08-06-001`
+(Defined Scope item 14 and Required Tests T12, T14, T16, T17, T18), and `NEXUS-RAT-2026-08-06-002`
+(authorization of the amended semantics within the unchanged twenty-four-file inventory, and
+replacement of the remediation task order). Authorizes no new file, no new schema version, no new
+Sprint, and no activation.
+
+## Originating Review Finding(s)
+
+Owner Review of 2026-08-09, `sprint-82-claude-corrective-direction.md`, findings B1, B2, M1, M2.
+Owner Review of 2026-08-09, `sprint-82-owner-review-claude-revision-2.md`, findings B1, B2, M1,
+M2, M3, M4, m1. Owner Review of 2026-08-09,
+`sprint-82-owner-review-claude-revision-3.md`, findings B1, M1, M2, M3, M4, M5, m1. Owner Review of
+2026-08-09, `sprint-82-owner-review-claude-revision-4.md`, findings B1 and B2, and its resolution
+of the two open design choices. Owner Review of 2026-08-10,
+`sprint-82-owner-review-claude-revision-5.md`, findings B1 and m1. Owner Review of 2026-08-10,
+`sprint-82-owner-review-claude-revision-6.md`, finding B1 (ratification-identity date
+correction; disposition APPROVE WITH NAMED CORRECTIONS). These findings
+are recorded here, in this instrument's provenance, and nowhere else. No independent Reviewer has
+adopted them, and this instrument neither authorizes nor anticipates any entry in
+`REVIEW_HISTORY.md`. A later independent Reviewer may verify the applied artifacts and the Builder
+delivery under its own review identifier and its own findings.
+
+## RFC Coverage
+
+RFC-0011 — Engineering Governance Model, Final (Amended), v1.8 → v1.9,
+`# Ratification Authority Snapshot Issuance`, sections: Authority Root and Envelope Commitment;
+Deterministic Ordering; The Total Result Contract → Diagnostic Phases, Within-Phase Precedence,
+Target Selection Order, The Closed Public Vocabulary, Contract Violations.
+
+RFC-0003 — Shared Reality Projection Model, NCCS-1 rules 6, 7, 11, 12: consumed unchanged.
+RFC-0003 is **not** amended. Rule 7 is the rule this instrument gives a governed public
+representation to; its content is untouched.
+
+No other RFC and no Kernel Canon document is amended.
+
+## Deferred Concepts
+
+Production issuance authority, declared production facts, artifact custody, retrieval,
+re-issuance, authority-root pinning, consumer-side version readability, the Consumption
+Correspondence, Repository Policy Selection, and every scope-bearing reference concept remain
+deferred exactly as before. **Dependency DEP1 of `NEXUS-RAT-2026-08-02-001` is not discharged, not
+narrowed, and not excepted.** DEP2's scope-free-only discharge is not broadened.
+
+## The Three Vocabulary Sets
+
+These four sets are named here and are used by these names throughout this instrument and every
+artifact it governs. They SHALL NOT be conflated.
+
+| Set | Name | Members | Cardinality |
+| --- | --- | --- | --- |
+| **V** | The closed public vocabulary | Every public diagnostic code declared by RFC-0011 v1.9 | **47** |
+| **R** | Conceptually reachable from governed octets and declared facts under the contract | V in its entirety, including `duplicate-record-fingerprint`, because a colliding pair of governed records *is* governed octets | **47** |
+| **E** | Exhibited by natural governed fixtures in the agreement corpus | V minus `duplicate-record-fingerprint`, which no fixture can exhibit without a known SHA-256 collision | **46** |
+| **S** | Exhibited only through authorized deterministic digest substitution, asserted at the public issuance result | `duplicate-record-fingerprint` | **1** |
+
+**E ∪ S = V, and E ∩ S = ∅.** R = V. The 46-code natural-fixture completeness assertion is
+**kept**, unweakened; the 47th code is asserted separately through the mechanism of D8a; and the
+union is asserted to cover V. No artifact describes E as the complete reachable set.
+
+## Governance Decision
+
+### D1 — A duplicate record fingerprint is a governed fail-closed issuance condition
+
+Two Ratification Authority Records whose `LifecycleAuthorityRecord` encodings yield the same
+SHA-256 digest produce two equal members of the record-fingerprint collection. This is a governed
+condition, not an implementation defect. It can arise from two valid governed records without any
+defect, because this specification asserts no injectivity and no collision resistance of SHA-256
+over record encodings. RFC-0011's existing rule "A duplicate fingerprint fails closed" is
+preserved and given an exact public representation.
+
+### D2 — One new governed phase, `Commitment`, at rank 7
+
+`Commitment` is inserted between `Resolution` (6) and `Envelope`, which moves to rank 8.
+`ContractViolation` moves to rank 9. There are nine governed phases, 0 through 8, and a tenth
+partition at rank 9 that is not a governed outcome.
+
+`Commitment` precedes `Envelope` for two reasons, both drawn from the existing table's shape and
+from RFC-0011 § Diagnostic Ownership by Boundary:
+
+1. A duplicate record fingerprint is a defect in the governed source octets and is completely
+   independent of the declared issuance facts. Every `Envelope` code is attributable to the caller
+   alone. The table's existing shape is: all governed-source phases first, the single
+   caller-attributable phase last. Inserting `Commitment` at 7 preserves that shape; appending it
+   at 8 would break it.
+2. Phase order is execution order. If `Commitment` ran after `Envelope`, a caller supplying a
+   malformed `capturedAt` would mask a governed-source defect, and whether the governed defect was
+   reported at all would depend on the caller's declared facts.
+
+**The `Commitment` phase comprises exactly, and in this order:** derivation of
+`authoritySourceRevision` from the complete prepared source text; derivation of the record
+fingerprints in record order; the record-order fingerprint-uniqueness check; the canonical
+order-insensitive encoding of the fingerprint collection; and derivation of `AuthorityRootBasis`
+and the authority root. **All five SHALL complete before any `Envelope` examination begins.** The
+phase does **not** comprise derivation of the envelope commitment, which binds declared facts and
+therefore follows `Envelope`. This split mirrors the two bases exactly: `AuthorityRootBasis` is
+governed-only, `EnvelopeCommitmentBasis` is governed plus declared.
+
+An implementation that returns an `Envelope` diagnostic without having completed all five steps
+does not conform to this decision.
+
+### D3 — One new public diagnostic code, `duplicate-record-fingerprint`
+
+- Code: `duplicate-record-fingerprint`.
+- Phase: `Commitment`. Precedence: 7.
+- Payload variant: `EntryPayload`. No new payload variant is created; the seven-variant payload
+  vocabulary is unchanged.
+- Payload target: the `ratificationIdentifier` of the **second** record, under record order, whose
+  fingerprint equals the fingerprint of an earlier record under that order.
+- Within-phase precedence: `Commitment` declares exactly one code, so its within-phase precedence
+  is trivial. The declared-code order rule still applies and is stated for completeness.
+- The closed public vocabulary becomes exactly forty-seven codes.
+
+### D4 — Totality is preserved without any cryptographic assumption
+
+For every governed input the contract returns exactly `Issued` or `Rejected`. The
+duplicate-fingerprint condition — including the collision case — now has a governed `Rejected`
+result, so no governed input reaches the contract-violation channel, and the argument for that no
+longer depends on hash injectivity.
+
+### D5 — Exact representation of the three contract-violation codes
+
+A contract violation is surfaced by raising one named error type, never returned. The named type
+is `RatificationAuthoritySnapshotIssuanceContractError`, declared in
+`src/kernel/governance/ratification-authority-snapshot-issuance.errors.ts` — a file already inside
+the authorized inventory and presently imported by nothing. It carries the contract-violation code
+and the phase `ContractViolation` at rank 9. The contract-violation code union is declared in
+`…errors.ts`, never in `…types.ts`, so it cannot enter the public result union.
+
+`malformed-diagnostic-payload` is discharged by **exact runtime validation at the single
+construction site**, mechanism (b) of the Owner's two options. Mechanism (a) — a code-indexed
+mapped constructor — is rejected as insufficient, not as undesirable: RFC-0011 requires every
+payload field to be a non-empty String and `pathIdentifiers` to be a non-empty ordered list of
+non-empty Strings, and no type in this codebase expresses non-emptiness. A static mapping would
+make variant mismatch inexpressible while leaving emptiness unchecked, so the RFC's "missing
+field, extra field, wrongly typed field, empty path" rule would remain unenforced. The runtime
+validation covers variant, field set, field type, and emptiness together.
+
+`undeclared-diagnostic` is discharged at the same construction site by a membership check against
+the declared vocabulary. `assertKnownDiagnosticCode`, which is unwired and maps an unknown code to
+`invalid-input` rather than to `undeclared-diagnostic`, is deleted.
+
+`internal-invariant-violation` is retained for exactly one reachable-in-principle site: the
+canonical order-insensitive encoder refusing the fingerprint collection after the `Commitment`
+uniqueness pass has admitted it. The `as never` cast is removed.
+
+### D6 — The snapshot schema version does not change
+
+`nexus-ratification-authority-snapshot/3` is unchanged. RFC-0011 § Schema Version and
+Compatibility binds the identifier to the canonical encoding: "Any change to a schema in this
+section that alters the octets a conforming record encodes to SHALL take a new schema version
+identifier." No field is added to, removed from, or reordered within `LifecycleAuthorityRecord`,
+`AuthorityRootBasis`, or `EnvelopeCommitmentBasis`.
+
+The exact compatibility claim is this and no more: **no octets of `LifecycleAuthorityRecord`,
+`AuthorityRootBasis`, or `EnvelopeCommitmentBasis` change, and every record fingerprint, authority
+root, and envelope commitment is bit-identical for every input that issues under both versions.**
+Behavior on a colliding input changes from a malformed internal failure to a governed rejection,
+and two diagnostic precedence values change. Those are result-contract changes, not encoding
+changes.
+
+**This is expressly not a claim that the public result contract is unchanged.** It changes, and
+§ Compatibility and Migration Impact states exactly how. RFC-0011 § Schema Version and
+Compatibility is **not** edited by this instrument.
+
+### D7 — Corrected commitment and ordering evidence (amends T12 and T14)
+
+Differently ordered but otherwise equivalent governed source texts are **different prepared
+texts**, therefore different `authoritySourceRevision` values, therefore — since
+`authoritySourceRevision` is field 3 of `AuthorityRootBasis` — necessarily different authority
+roots. No test SHALL assert that two differently ordered source texts produce the same authority
+root. The three concepts are separated:
+
+1. **Record and entry output order** follows prepared-text order.
+2. **Fingerprint-collection encoding order** is NCCS-1 rule 6, ascending by encoded octets, and is
+   independent of the order the fingerprints were produced in.
+3. **Authority-root derivation** is bound to one unchanged `authoritySourceRevision`, and is
+   invariant under permutation of *internal enumeration* over that one source revision — not under
+   permutation of the source text.
+
+### D8a — Exact authorized mechanism for the digest-collision test
+
+A natural SHA-256 collision cannot be exhibited. The governed classification is reached by
+**deterministic test-time substitution of the digest function**, on each implementation
+separately, by the following exact mechanism.
+
+**Structural precondition.** The implementation's digest function `sha256Hex`, presently
+module-private at `…issuance.ts:1349`, is relocated to a named export of
+`…issuance.contract.ts`, and `…issuance.ts` imports it. The oracle already exports
+`oracleSha256Hex` from `test/kernel/governance/issuance-oracle/nccs1-encoder.oracle.ts`; for the
+oracle, the record encoder `encodeRecord` at `issuance.oracle.ts:1058` is additionally exported as
+`oracleEncodeLifecycleAuthorityRecord`. The implementation's record encoder,
+`encodeLifecycleAuthorityRecord`, is already exported from `…issuance.contract.ts:215`. These are
+the only structural changes the mechanism requires. No parameter is added to any function, no
+field to any input, and nothing to any public entry point.
+
+**Exact discriminator.** Substring inspection of encoded bytes is prohibited: the prepared source
+text is itself hashed and may contain any field name. The discriminator is exact byte-array
+identity, established as follows, in `…-commitments.test.ts`:
+
+1. Run `issueRatificationAuthoritySnapshot` once on the two-entry governed fixture **with no
+   substitution active**. It returns `Issued`.
+2. Take `result.records[0]` and `result.records[1]` and encode each with the exported
+   `encodeLifecycleAuthorityRecord`. Call the two byte sequences `encodedA` and `encodedB`. They
+   are the exact byte sequences the implementation will hash for those two records, because the
+   encoder is a pure function of the record.
+3. Enable the substitution. The replacement `sha256Hex(bytes)` returns the fixed constant
+   `'0'.repeat(64)` when `bytes.length === encodedA.length && Buffer.compare(bytes, encodedA) === 0`,
+   or when the same holds of `encodedB`; **for every other byte sequence it delegates to the real
+   SHA-256 function**. No other input is affected, including the prepared-source-text hash and
+   both basis hashes.
+4. Re-run `issueRatificationAuthoritySnapshot` on the same fixture and assert the exact public
+   result.
+
+**Module substitution and isolation.** The substitution is performed by the test runner's module
+registry (`vi.mock` of `…issuance.contract`, factory built over `importActual`, so every other
+export is the real one). The toggle is a module-scoped mutable flag, default off. The test file
+calls `vi.resetModules()` and clears the flag in `afterEach`, so no other case in the file or the
+suite inherits the substitution. The oracle test does the equivalent over
+`nccs1-encoder.oracle.ts`, with its two byte sequences built by
+`oracleEncodeLifecycleAuthorityRecord` from the oracle's own records.
+
+**Why this is not a production caller parameter.** The digest function is an internal module
+binding. No signature on the path from `issueRatificationAuthoritySnapshot` to the result accepts
+it, and no governed input can influence it. Substituting a module binding at test time is
+observable only to the test runner. Boundary A is preserved: no composition, no constructed state,
+no host reachability. The twenty-four-file inventory is not enlarged.
+
+### D8b — Exact authorized mechanism for the encoder-disagreement test
+
+**Scope of this decision.** D8b evidences exactly one thing: that a canonical order-insensitive
+encoder refusing an already-admitted fingerprint collection is classified as
+`internal-invariant-violation` on the non-public channel. It forces a refusal at step 4 of the
+`Commitment` phase, so step 5 does not execute and D8b **SHALL NOT** be cited as evidence of the
+order of step 5 relative to `Envelope`. That property is evidenced separately and only by D8c.
+
+After the `Commitment` uniqueness pass admits a fingerprint collection, the canonical
+order-insensitive encoder cannot refuse it without an implementation defect. The site is therefore
+forced by a second, separately toggled substitution, in the same file and under the same isolation
+rules:
+
+- The replacement `encodeNccsOrderInsensitiveStrings(values)` returns `undefined` when `values`
+  has the exact expected content — length 2, and both members equal, in order, to the two
+  fingerprints the unsubstituted run produced — and **delegates to the real implementation for
+  every other input**.
+- Because the digest substitution of D8a is *not* enabled for this case, the two fingerprints are
+  distinct and the uniqueness pass admits them. The encoder then refuses. The site raises
+  `RatificationAuthoritySnapshotIssuanceContractError`.
+- Asserted fields: the error is an instance of that class; `contractViolationCode` equals
+  `'internal-invariant-violation'`; `diagnosticPhase` equals `'ContractViolation'`;
+  `diagnosticPrecedence` equals `9`; and no `Issued` or `Rejected` value is produced.
+- The same `vi.resetModules()` / flag-clearing `afterEach` applies. The oracle's counterpart is its
+  `requiredBytes` guard at `issuance.oracle.ts:1371`, which is retargeted from a bare `Error` to
+  the oracle's own independently declared contract-violation signal and exercised by the oracle's
+  own substitution of `oracleOrderInsensitiveStrings`.
+- This substitution never becomes a production parameter and never weakens Boundary A, for the
+  same reasons stated in D8a.
+
+### D8c — Exact authorized mechanism for the complete-stage-order test
+
+D2 requires all five `Commitment` steps to complete before any `Envelope` examination begins. No
+failing mechanism can evidence that, because a mechanism that fails at step *n* proves only that
+step *n* ran. The complete-stage order is therefore evidenced by a **non-failing, deterministic,
+delegating call trace** over the digest binding. Every digest output is the real one; nothing is
+substituted; the evidence is the recorded sequence of digest **inputs**.
+
+**Mechanism, on the public implementation, in `…-commitments.test.ts`.**
+
+1. Reuse the same test-only module wrapper around `sha256Hex` that D8a establishes — the `vi.mock`
+   of `…issuance.contract` built over `importActual`. A second module-scoped mutable flag, default
+   off, enables **tracing**. When tracing is on, the wrapper pushes a copy of each input byte array
+   onto a module-scoped log **and returns the real SHA-256 result unchanged**. Both the D8a digest
+   substitution and the D8b encoder substitution are **off** for this case.
+2. Obtain an unsubstituted, untraced baseline: invoke `issueRatificationAuthoritySnapshot` on the
+   two-entry governed fixture with a well-formed `capturedAt`. It returns `Issued`. Retain
+   `baseline.envelope.authoritySourceRevision`, `baseline.records` (which the `Issued` result
+   exposes **in record order**), `baseline.recordFingerprints`, and
+   `baseline.envelope.recordCount`.
+3. Construct the exact expected `AuthorityRootBasis` byte array **independently, in the test**,
+   from the real exported NCCS-1 primitives and the real exported fixed constants — nothing is
+   copied from the implementation's internals:
+
+   ```ts
+   const expectedAuthorityRootBasis = encodeNccsRecord([
+     ['authorityRecordFingerprints', encodeNccsOrderInsensitiveStrings(baseline.recordFingerprints)!],
+     ['authoritySourceIdentity', encodeNccsString(ratificationAuthoritySnapshotSourceIdentity)],
+     ['authoritySourceRevision', encodeNccsString(baseline.envelope.authoritySourceRevision)],
+     [
+       'canonicalSerializationProtocolId',
+       encodeNccsString(ratificationAuthoritySnapshotCanonicalSerializationProtocolId),
+     ],
+     ['recordCount', encodeNccsInteger(baseline.envelope.recordCount)],
+     ['snapshotSchemaVersion', encodeNccsString(ratificationAuthoritySnapshotSchemaVersion)],
+   ]);
+   ```
+
+   `encodeNccsOrderInsensitiveStrings` re-sorts by encoded octets internally, so passing the
+   already-sorted `recordFingerprints` from the result yields the identical collection encoding.
+   `encodeNccsInteger(n)` is byte-identical to the inline `i<n>e` encoding the implementation uses.
+   All seven exports — the four encoding functions `encodeNccsRecord`, `encodeNccsString`,
+   `encodeNccsInteger`, and `encodeNccsOrderInsensitiveStrings`, together with the three fixed
+   constants `ratificationAuthoritySnapshotSourceIdentity`,
+   `ratificationAuthoritySnapshotCanonicalSerializationProtocolId`, and
+   `ratificationAuthoritySnapshotSchemaVersion` — are already public exports of
+   `…issuance.contract.ts` at the pinned baseline. `encodeLifecycleAuthorityRecord`, used in step 4
+   below, is likewise already exported there. No new export is required by D8c beyond the
+   `sha256Hex` relocation D8a already requires.
+4. Construct the complete expected **`Commitment` digest-input sequence**, independently, in the
+   test, in exactly the order the five steps require:
+
+   ```ts
+   const preparedText = new TextDecoder('utf-8', { fatal: true })
+     .decode(fixtureBytes)
+     .normalize('NFC')
+     .replace(/\r\n/g, '\n')
+     .replace(/\r/g, '\n');
+
+   const expectedCommitmentDigestInputs = [
+     encodeNccsString(preparedText),
+     ...baseline.records.map(encodeLifecycleAuthorityRecord),
+     expectedAuthorityRootBasis,
+   ];
+   ```
+
+   Its length is `recordCount + 2`: one authority-source-revision input (step 1), one input per
+   record **in record order** (step 2), and one authority-root-basis input (step 5). Steps 3 and 4
+   perform no digest. `preparedText` is reconstructed from the fixture bytes by the same
+   deterministic normalization the specification states — UTF-8 decode, NFC, CRLF and CR to LF —
+   and is not read out of the implementation.
+5. Clear the log, enable tracing, and invoke `issueRatificationAuthoritySnapshot` on the **same
+   governed source** with a **malformed `capturedAt`**.
+6. Assert all of the following:
+   - the returned value is `Rejected` with `malformed-capture-instant`, phase `Envelope`,
+     precedence 8 — the call is non-failing and the ordinary `Envelope` outcome is produced;
+   - the log has **at least** `recordCount + 2` entries, and its final `recordCount + 2` entries
+     equal `expectedCommitmentDigestInputs` **element for element, in order**, each compared by
+     length plus `Buffer.compare`; substring inspection is prohibited here for the same reason as
+     in D8a;
+   - the final entry of the **complete** log is byte-identical to `expectedAuthorityRootBasis`,
+     which establishes that no envelope-commitment basis digest occurred after it.
+
+   **The measured invariant is the ordered suffix, not the total length of the trace.** The same
+   `sha256Hex` binding also serves `currentStatusDigest` derivation during entry parsing — at
+   `…issuance.ts:340`, `currentStatusDigest: sha256Hex(encodeNccsString(currentStatus))`, once per
+   accepted entry — and those calls occur **before** `Commitment` and are lawfully recorded by a
+   wrapper that traces the entire invocation. The test therefore SHALL NOT assert that the complete
+   log length is `recordCount + 2`, and SHALL NOT assert that no digest call preceded `Commitment`.
+   Any such assertion would fail against a conforming implementation.
+
+   Every recorded entry precedes the return by construction, because the log is written during the
+   call and read after it. The assertion that the exact ordered `Commitment` suffix is present, and
+   that it terminates the whole log, therefore *is* the assertion that all five `Commitment` steps
+   completed, in order, before the `Envelope` rejection was produced, and that nothing was digested
+   after them.
+
+**Independent oracle counterpart.** The oracle performs the equivalent **suffix** assertion over
+`oracleSha256Hex`, and constructs its expected prepared text, its per-record encodings in record
+order, and its expected authority-root basis using **only** its own independently authored
+encoders, its own records, and its own declared constants. It SHALL NOT import any implementation
+module and SHALL NOT import any expected byte array from the implementation-side test. The oracle
+likewise calls the same digest binding before `Commitment` — `oracleSha256Hex(oracleString(status))`
+for status-digest derivation at `test/kernel/governance/issuance-oracle/issuance.oracle.ts:1309` —
+so the oracle case measures the same ordered suffix and lawfully allows those earlier entries.
+Objective test 9c.
+
+**Isolation and prohibitions.** The tracing flag obeys exactly the rules of D8a and D8b:
+`vi.resetModules()` and the clearing of every flag and of the log in `afterEach`; no other case in
+the file or the suite observes tracing; the wrapper is never reachable from any production call
+path, is never exported from the capability's public entry point, and is never influenced by any
+governed input or caller-supplied value. Tracing adds no parameter to any function, no field to any
+input, and nothing to the public API. Boundary A is preserved and the twenty-four-file inventory is
+not enlarged.
+
+**Failure property (the Owner's required closure evidence).** If authority-root derivation is moved
+to any point after `validateEnvelopeInput` — including after declared-fact examination — then on a
+malformed-`capturedAt` input the call returns before the root digest runs, the expected
+`AuthorityRootBasis` entry is absent from the log, the final `recordCount + 2` entries do not equal
+`expectedCommitmentDigestInputs`, the log does not end at the expected authority-root-basis input,
+and objective tests 2b and 9c both fail. The suffix form fails on weaker deviations too: if any
+record encoding is digested out of record order, or if the authority-source-revision digest is
+taken after the record digests, the ordered suffix comparison fails element for element. Objective
+tests 6 and 9b are unaffected by any of those moves and continue to prove the exact
+`internal-invariant-violation` representation independently.
+
+### D9 — The agreement claim is not extended to substituted inputs
+
+Both implementations SHALL independently implement the `Commitment` phase, the
+`duplicate-record-fingerprint` code, and the record-order uniqueness rule, and SHALL continue to
+agree field-for-field on the complete public result for every **governed** input in the agreement
+corpus — the set E of § The Three Vocabulary Sets. Agreement is **not** asserted over
+substituted-digest or substituted-encoder inputs, because a substituted internal binding is not a
+governed input and agreement over a non-governed input demonstrates nothing about conformance.
+Each implementation's collision classification and each implementation's encoder-disagreement
+behavior are asserted separately, against that implementation's own independently authored
+substitution. The D8c call trace is **not** a substitution — every digest output under it is the
+real one and the returned result is a governed result — but its *evidence* is a call trace, which
+is an internal observation and is likewise not agreement evidence. Each implementation's
+complete-stage order is therefore also asserted separately, each against its own independently
+constructed expected authority-root basis. The authoring rule is unchanged and remains binding: the oracle is written from
+specification text alone and SHALL NOT be derived from, refactored out of, or diffed against the
+implementation, and SHALL NOT import `…issuance.errors.ts`, `…issuance.contract.ts`,
+`…issuance.types.ts`, or `…issuance.ts`.
+
+### D10 — Vocabulary completeness is recalculated by the three named sets
+
+Let **V** be the closed public vocabulary (47 codes); **R** the codes conceptually reachable from
+governed octets and declared facts under this contract (all 47, because a colliding pair of
+governed records is governed octets); and **E** the codes exhibited by natural governed fixtures
+in the agreement corpus (46 — V minus `duplicate-record-fingerprint`). Let **S** be
+`{ duplicate-record-fingerprint }`, exhibited at the public issuance result only through the D8a
+substitution. **R = V. E ∪ S = V. E ∩ S = ∅.**
+
+`oracle-agreement.test.ts:50` presently asserts
+`expect(reachedCodes).toEqual(new Set(oracleDiagnosticCodes))`. It SHALL assert that
+`reachedCodes` equals **E** exactly, with `duplicate-record-fingerprint` named in the exclusion and
+the reason stated inline: not that it is unreachable, but that no natural governed fixture can
+exhibit it. A second assertion in the same file SHALL assert that the union of **E** and the
+separately evidenced **S** equals **V**, so that no code is left unaccounted for.
+
+**This is not a weakening of `BT-082-003` and does not reopen it.** Every one of the 46 codes it
+made reachable remains asserted; the completeness guarantee that resolved `NEXUS-REV-0082-MAJ-001`
+is mechanically intact and is now stated over a named set rather than an implicit one.
+
+RFC-0011 § The Closed Public Vocabulary requires every public code to "be reachable through the
+public issuance contract from governed octets and declared facts alone."
+`duplicate-record-fingerprint` satisfies that sentence as written, because a colliding pair of
+governed records is governed octets. Reachability and fixture exhibitability are distinct
+properties, and only the former is what that sentence requires. That sentence is therefore **not**
+amended.
+
+### D11 — Prior instruments amended by named semantic extent
+
+`NEXUS-RAT-2026-07-31-001`, `NEXUS-RAT-2026-08-06-001`, and `NEXUS-RAT-2026-08-06-002` are
+**amended** by this instrument, at exactly the clauses enumerated in § Amendment Matrix and at no
+others. Preserving their octets is not the same as preserving their binding meaning, and this
+instrument does not claim otherwise.
+
+No prior Ledger entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest` is
+edited, restatused, reworded, or re-digested. Amendment is effected by this later append-only
+instrument, as the Ledger requires.
+
+`NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, `NEXUS-RAT-2026-08-02-001`,
+`NEXUS-RAT-2026-08-02-002`, `NEXUS-RAT-2026-08-03-001`, `NEXUS-RAT-2026-07-15-017`, and every other
+prior entry are **not** amended in octets or in meaning.
+
+### D12 — Post-amendment authority chain
+
+1. `IMPLEMENTATION_CONSTITUTION.md` governs.
+2. `NEXUS-RAT-2026-08-06-002`, **as amended by this instrument**, is the permanent authorization
+   authority for Sprint 82. Its authority is not displaced, superseded, or shared.
+3. This instrument is the binding **amendment** authority for exactly the semantics named in
+   § Amendment Matrix, and for nothing else. It authorizes no activation, no new Sprint, no new
+   file, and no scope beyond the amended extent.
+4. `NEXUS-RAT-2026-08-06-001`, as amended at the named clauses, remains the Defined Scope.
+5. `NEXUS-RAT-2026-07-31-001`, as amended at the named clauses, remains the contract authority.
+6. The Sprint Implementation Record remains the self-contained operative Sprint Specification,
+   subordinate to the Constitution and to items 2–5.
+7. `builder-task.md` remains a transient implementation artifact carrying no independent
+   authority.
+
+Where this instrument and `NEXUS-RAT-2026-08-06-002` differ within the named amended extent, this
+instrument prevails; outside that extent, `NEXUS-RAT-2026-08-06-002` prevails unamended.
+
+## Amendment Matrix
+
+The exact clause-level extent of every amendment effected by this instrument. **No prior Ledger
+entry's octets are edited.** Amendment is by named semantic extent, effected by the later
+instrument, as the Ledger's append-only rule requires.
+
+### `NEXUS-RAT-2026-07-31-001` — Issuance contract
+
+| Clause | Disposition |
+| --- | --- |
+| § Full Ratification Text → Edit Site 5 → *The Total Result Contract → Diagnostic Phases* (eight governed phases, ranks 0–7, ninth partition at 8) | **AMENDED.** Nine governed phases, ranks 0–8; `Commitment` at 7; `Envelope` at 8; `ContractViolation` at 9. |
+| Same → *Within-Phase Precedence* | **AMENDED**, by addition only: `Commitment`'s trivial within-phase precedence and the normative statement of its placement before `Envelope`. |
+| Same → *Target Selection Order* | **AMENDED**, by addition only: the `Commitment` row, record order. |
+| Same → *The Closed Public Vocabulary* ("Exactly forty-six public diagnostic codes are declared") | **AMENDED.** Forty-seven. One code added, `duplicate-record-fingerprint` (EntryPayload), in `Commitment`. |
+| Same → *Contract Violations* | **AMENDED**, by addition only: the exact non-public representation of the three codes. The three codes themselves, their names, and their exclusion from the public contract are **retained unchanged**. |
+| Same → *Authority Root and Envelope Commitment*, "A duplicate fingerprint fails closed" | **RETAINED.** Given an exact public representation; the rule itself is not weakened, narrowed, or removed. |
+| Same → *Result Schemas*, *Structured Diagnostic Payloads*, *Canonical Schemas and Field Order*, *Deterministic Ordering*, *Schema Version and Compatibility*, *Two Structurally Independent Implementations*, *Deferred Concepts* | **RETAINED UNCHANGED.** |
+| § Ownership Model; § Lifecycle Authority Declarations; § Basis of Each Declaration; § Conformance Checkpoint Status; § Current Status `Active` | **RETAINED UNCHANGED.** |
+| § Deferred and Prohibited Scope, `implementation` and `Sprint activation` limbs | **RETAINED** as already lifted by `NEXUS-RAT-2026-08-06-002`, for the same scope, now as amended by this instrument. |
+
+### `NEXUS-RAT-2026-08-06-001` — Sprint 82 scope
+
+| Clause | Disposition |
+| --- | --- |
+| § Defined Scope item 14, "**Eight-phase diagnostic model**" | **AMENDED.** Nine-phase diagnostic model, with the closed public vocabulary at forty-seven codes and the contract-violation partition represented as RFC-0011 v1.9 § Contract Violations defines. |
+| § Required Tests **T12** | **AMENDED.** "Duplicate fingerprint fails closed" is refined to the exact governed result and reached by the authorized substitution mechanism. |
+| § Required Tests **T14** | **AMENDED.** "Supply-order independence of the root" is corrected: differently ordered source texts are different prepared texts and necessarily different roots. |
+| § Required Tests **T16** | **AMENDED**, by addition only: one row for the `Commitment` code. |
+| § Required Tests **T17** | **AMENDED**, by addition only: two multi-phase cases — `Commitment` step 3 before `Envelope`, and `Commitment` step 5 before `Envelope` by non-failing call trace — plus the two `Envelope` codes' precedence changing 7 → 8. |
+| § Required Tests **T18** | **AMENDED.** Denominator V = 47, evidenced as E (46, natural fixtures) ∪ S (1, substituted digest). |
+| § Defined Scope items 1–13 and 15–18 | **RETAINED UNCHANGED.** Item 10's "duplicate fingerprint fails closed" is retained and given its representation. |
+| § Required Tests T1–T11, T13, T15, T19, T20, T21 | **RETAINED UNCHANGED.** |
+| § Deferred and Prohibited Scope, in full | **RETAINED UNCHANGED**, including DEP1, authority-root pinning, DEP2's scope-free-only discharge, and Boundary A. |
+| § Forecasted Future Activation and Builder Inventory (24 files) | **RETAINED UNCHANGED.** Not enlarged by one path. |
+| § Milestone Placement and Sequence Effects items 1–7 | **RETAINED UNCHANGED.** |
+| § Stop Conditions 1–10 | **RETAINED VERBATIM.** Two are added, 11 and 12; none is edited. |
+| § Current Status | **RETAINED UNCHANGED.** |
+
+### `NEXUS-RAT-2026-08-06-002` — Sprint 82 activation
+
+| Clause | Disposition |
+| --- | --- |
+| § Subject, "**neither widened, narrowed, repaired, nor reinterpreted by one word**" | **AMENDED IN EXTENT ONLY.** That sentence bound the activation to `NEXUS-RAT-2026-08-06-001`'s scope *as it then stood*. This instrument amends that scope by the named semantic extent above and authorizes implementation of the amended scope. Outside the named extent the sentence continues to bind exactly as written. |
+| § Governance Decision → *Authority chain (binding)* item 2, "permanent authorization authority for Sprint 82" | **RETAINED, AS AMENDED.** `NEXUS-RAT-2026-08-06-002` remains the permanent authorization authority for Sprint 82. See § Governance Decision → D12 of this instrument. |
+| § Governance Decision → *Two mutation phases, not one* | **RETAINED UNCHANGED.** Application of this instrument is a governance-artifact mutation and touches no `src/` or `test/` file. |
+| § Authorized Builder Scope, the twenty-four files | **RETAINED UNCHANGED.** No file added, removed, split, renamed, or consolidated. |
+| § Scope Restrictions, in full | **RETAINED UNCHANGED.** |
+| § Builder Stop Conditions 1–10 | **RETAINED VERBATIM**; 11 and 12 added. |
+| The remediation task order operationalized under it (`NEXUS-REV-2026-08-07-003`, restated by `NEXUS-REV-2026-08-09-001`) | **REPLACED.** The prior order required duplicate-fingerprint acceptance evidence before the result-contract implementation that evidence depends on. |
+| § Current Status | **RETAINED UNCHANGED.** |
+
+### Instruments not amended
+
+`NEXUS-RAT-2026-08-04-001` (the `ratificationSubject` field, schema version
+`nexus-ratification-authority-snapshot/3`, the complete `Issued` result schema),
+`NEXUS-RAT-2026-08-05-001`, `NEXUS-RAT-2026-08-02-001`, `NEXUS-RAT-2026-08-02-002`,
+`NEXUS-RAT-2026-08-03-001`, `NEXUS-RAT-2026-07-15-017`, and every other Ledger entry are **not**
+amended in octets or in meaning. RFC-0003 is not amended. No Kernel Canon document is amended.
+`IMPLEMENTATION_CONSTITUTION.md` and `IMPLEMENTATION_GATE.md` are not amended.
+
+`NEXUS-RAT-2026-07-31-001` § Full Ratification Text reproduces the v1.3 amendment text
+historically. That reproduction is a historical record and is **not edited**; the operative
+specification is `knowledge/specifications/rfc-0011-engineering-governance-model.md`, which this
+instrument amends to v1.9.
+
+## Exact Amendment and Supersession Scope
+
+**RFC amended:** RFC-0011, Final (Amended), v1.8 → v1.9, at exactly eleven sites enumerated in
+§ Changed-File List. The amendment is not wholly append-only: the version header is replaced, six
+sites are replaced in place, four are insertions, and the Amendment History gains one appended
+line. This Ledger entry itself is append-only.
+
+**Ledger entries amended by named semantic extent, octets untouched:**
+`NEXUS-RAT-2026-07-31-001`, `NEXUS-RAT-2026-08-06-001`, `NEXUS-RAT-2026-08-06-002`, per
+§ Amendment Matrix.
+
+**Superseded in meaning at exactly one RFC site:** RFC-0011 v1.8 § Contract Violations, the
+sentence "A code emitted outside the declared vocabulary SHALL be replaced by
+`undeclared-diagnostic` rather than passed through." v1.9 retains the sentence and states its
+exact operational meaning: the requirement is that an undeclared code never be passed through; the
+replacement it names is the classification carried on the non-public error channel, not the
+substitution of one governed code for another. No implementation was relying on the prior reading,
+because no implementation of the rule exists.
+
+**Superseded within Sprint 82:** the T12, T14, T16, T17, and T18 acceptance criteria; the current
+`BT-082-006`, `BT-082-007`, `BT-082-008`, and `BT-082-010` task statements; and the mandatory
+Builder order in `builder-task.md` § Builder Instructions.
+
+**Not amended:** RFC-0003; every other RFC; every Kernel Canon document; RFC-0011 § Schema Version
+and Compatibility; RFC-0011 § Structured Diagnostic Payloads; RFC-0011 § The Total Result Contract
+→ Result Schemas; every Ledger entry other than the three named; `IMPLEMENTATION_CONSTITUTION.md`;
+`IMPLEMENTATION_GATE.md`.
+
+## Compatibility and Migration Impact
+
+| Dimension | Consequence |
+| --- | --- |
+| RFC version | 1.8 → 1.9. |
+| Snapshot schema version | **Unchanged**, `nexus-ratification-authority-snapshot/3`. |
+| Canonical encodings | `LifecycleAuthorityRecord`, `AuthorityRootBasis`, `EnvelopeCommitmentBasis` unchanged, field for field. No octets of any of the three change. |
+| Derived values | Every record fingerprint, authority root, and envelope commitment is bit-identical for every input that issues under both versions. Behavior on a colliding input changes from malformed internal failure to governed rejection. |
+| Public result union | Unchanged: exactly `Issued \| Rejected`. |
+| `RatificationAuthoritySnapshotDiagnosticCode` | Widens 46 → 47. Exhaustive `switch` consumers break at compile time. Intended. |
+| `RatificationAuthoritySnapshotDiagnosticPhase` | Widens 8 → 9, with `Commitment` inserted between `Resolution` and `Envelope`. Exhaustive consumers break at compile time. Intended. |
+| Diagnostic precedence ranks | Exactly two public codes change rank: `malformed-capture-instant` 7 → 8 and `malformed-attribution` 7 → 8. The other forty-four pre-existing public codes are unchanged. `ContractViolation` moves 8 → 9 and is non-public, so no public result field carries it. |
+| Payload variant vocabulary | Unchanged, exactly seven variants. |
+| Execution order | The complete `Commitment` stage moves ahead of `Envelope` validation. An input carrying both a governed-source commitment defect and a malformed declared fact now reports the former; previously it reported the latter. |
+| Consumers outside Sprint 82 | None. Boundary A: the capability is composed by nothing and invoked only by its own tests. |
+| Implementation | `…types.ts` (+1 code, +1 phase), `…contract.ts` (+1 metadata row, 2 precedence values, validated constructor, exported `sha256Hex`, deleted `assertKnownDiagnosticCode`), `…errors.ts` (code union and fields), `…issuance.ts` (`deriveAuthorityCommitment` before `validateEnvelopeInput`, `AuthorityCommitmentStage`, `as never` removed). |
+| Oracle | `vocabulary.oracle.ts` (+1 code, +1 phase, 2 precedence values), `issuance.oracle.ts` (`Commitment` stage before envelope examination, uniqueness rule, exported record encoder, contract-violation signal replacing the bare `Error` in `requiredBytes`), `nccs1-encoder.oracle.ts` (unchanged in behavior). Written independently from RFC-0011 v1.9 text. The oracle carries three independently authored evidence cases of its own: the forced collision (9), the required encoder-disagreement signal (9b), and the complete-stage call trace (9c). |
+| Agreement corpus | Unchanged in membership. `oracle-agreement.test.ts:50` recalculated to set **E** per D10, plus the E ∪ S = V assertion. Agreement not extended to substituted inputs per D9. |
+| T16 | Gains one row: the `Commitment` code's phase, precedence, payload, and canonical rendering. |
+| T17 | Gains two cases, by two distinct mechanisms: `Commitment` step 3 before `Envelope`, evidenced by the D8a forced duplicate returning the governed rejection instead of the `Envelope` diagnostic; and `Commitment` step 5 before `Envelope`, evidenced by the D8c non-failing digest call trace containing the exact `AuthorityRootBasis` encoding. Every existing multi-phase case keeps its expected code; only the two `Envelope` codes' expected `diagnosticPrecedence` changes from 7 to 8. |
+| T18 | V = 47, evidenced as E (46, natural fixtures) ∪ S (1, substituted digest), with the union asserted. |
+| Live-corpus conformance checkpoint | Unchanged in outcome. Appending this entry changes `authoritySourceRevision`, but the checkpoint asserts `Rejected` with `identifier-grammar-violation`, decided in `EntryStructure` at rank 1 on an entry that precedes this one in entry order. This entry introduces no earlier-ordered defect. No commitment value is written to the Ledger. Stop Condition 3 is observed. |
+| Migration | None required. No production artifact has been issued under any version of this schema. |
+
+## Objective Tests
+
+**Public implementation.**
+
+1. **Governed collision classification.** The D8a mechanism forces two distinct record encodings to
+   one fingerprint; `issueRatificationAuthoritySnapshot` returns `Rejected` with code
+   `duplicate-record-fingerprint`, phase `Commitment`, precedence 7, an `EntryPayload` naming the
+   second record under record order, and `detail` equal to that identifier.
+2. **`Commitment` uniqueness precedes `Envelope`.** A source carrying both a forced fingerprint
+   duplicate and a malformed `capturedAt` reports `duplicate-record-fingerprint`, not
+   `malformed-capture-instant`.
+   **2b. The complete `Commitment` stage precedes `Envelope` — authority-root derivation
+   included.** By the D8c mechanism, with no substitution active and tracing on: a malformed
+   `capturedAt` is supplied over the same governed source; the call returns `Rejected` with
+   `malformed-capture-instant`, phase `Envelope`, precedence 8; and the **final `recordCount + 2`
+   entries** of the recorded digest-input trace equal, element for element and in order, the
+   independently constructed sequence `[encodeNccsString(preparedText), …record encodings in record
+   order, expectedAuthorityRootBasis]`, each compared by length plus `Buffer.compare`, with the
+   authority-root-basis entry also being the final entry of the complete trace. This proves that all
+   five steps of `Commitment` completed in order before `Envelope` validation and that no
+   envelope-commitment digest occurred. The complete trace is **longer** than `recordCount + 2`,
+   because the same digest binding derives `currentStatusDigest` once per accepted entry before
+   `Commitment`; those earlier entries are expressly permitted and are not asserted over. Moving
+   authority-root derivation after `validateEnvelopeInput` makes this test fail.
+3. **Rank shift.** `malformed-capture-instant` and `malformed-attribution` each report
+   `diagnosticPrecedence` 8.
+4. **`undeclared-diagnostic`.** Constructing a `Rejected` result with a code outside the vocabulary
+   raises the contract error carrying `undeclared-diagnostic`, and produces no result.
+5. **`malformed-diagnostic-payload`.** Five cases — wrong variant for the code; a missing declared
+   field; an extra field; a wrongly typed field; an empty String field and an empty
+   `pathIdentifiers` — each raises the contract error carrying `malformed-diagnostic-payload`.
+6. **`internal-invariant-violation`.** The D8b mechanism forces the encoder-disagreement site; the
+   contract error is raised carrying `internal-invariant-violation`, phase `ContractViolation`,
+   precedence 9, and no result is produced. This test evidences the classification of the step-4
+   refusal and nothing about step 5; it is independent of objective test 2b and remains passing if
+   the phase order regresses.
+7. **Non-public boundary.** No `Issued` or `Rejected` result produced anywhere in the suite carries
+   a `diagnosticCode` or `diagnosticPhase` outside the 47-code, 9-phase public partitions.
+8. **Corrected T14.** Two differently ordered source texts produce **different**
+   `authoritySourceRevision` values and **different** authority roots, asserted positively; the
+   fingerprint collection is asserted equal to the independently computed
+   ascending-by-encoded-octets order; the authority root is asserted invariant across differing
+   declared facts over one unchanged source revision; and the envelope commitment is asserted to
+   vary with them.
+
+**Independent oracle.**
+
+9. The oracle independently classifies the same forced-collision condition, using its own
+   `oracleSha256Hex` substitution discriminated by `oracleEncodeLifecycleAuthorityRecord`, and
+   reports the same code, phase, precedence, and payload.
+   **9b.** The oracle independently exhibits its own encoder-disagreement signal through its own
+   `oracleOrderInsensitiveStrings` substitution. **Required, not optional**, per the Owner's
+   resolution: it verifies the oracle's independently implemented non-public contract channel.
+   **9c.** The oracle independently proves complete-stage order by the D8c mechanism over
+   `oracleSha256Hex`, asserting the same ordered `Commitment` suffix of length `recordCount + 2`
+   against its own prepared text, its own per-record encodings in record order, and an expected
+   authority-root basis constructed from oracle encoders and oracle constants alone, and asserting
+   that the complete trace ends at that basis. It lawfully allows its own earlier
+   `oracleSha256Hex(oracleString(status))` calls and asserts nothing about the total trace length.
+   It imports no implementation module and no implementation-side fixture.
+10. `oracle-independence.test.ts` continues to pass unchanged; the oracle imports no implementation
+    module, including `…issuance.errors.ts`.
+11. `oracle-agreement.test.ts` agrees field-for-field on every governed corpus case; the
+    completeness assertion is over set **E**; and a second assertion establishes **E ∪ S = V**.
+12. `nccs1-conformance-vectors.test.ts` continues to assert RFC-0003 Positive Vectors 4, 5, and 6
+    against both encoders, unchanged. Stop Condition 9 binds prospectively.
+
+## Authorized Application Scope
+
+Application of this instrument changes exactly four files and **no** `src/`, `test/`, or oracle
+file. Builder implementation is authorized only after application completes, and only as restated
+in `builder-task.md` § Builder Instructions.
+
+## Application Stop Conditions and Anchors
+
+Evaluated immediately before any edit. Any failure stops application entirely.
+
+**Baseline.**
+
+- `git rev-parse HEAD` SHALL equal `34b814ecc9e2b2fde6133918ddb67dd89a818d89`.
+- The working tree is expected to be **dirty**, exactly as reviewed. A clean tree is not required
+  and SHALL NOT be forced.
+- `git hash-object` of each target SHALL equal:
+
+| Target | Expected blob hash | Expected line count |
+| --- | --- | --- |
+| `knowledge/governance/RATIFICATION_LEDGER.md` | `5f91ca47431946192e064857566f69a05ad7b6cd` | 22945 |
+| `knowledge/specifications/rfc-0011-engineering-governance-model.md` | `0a0bd6048140af44a68b00766672b6a7a20b9635` | 3985 |
+| `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` | `b5f7b2d378664aab9ba0e7d5ab8922ae2b62934a` | 688 |
+| `builder-task.md` | `854be5747c9cc2fad11ddbfeb93bca0e789c9d92` | 1045 |
+
+- If any hash differs, the reviewed text has drifted. **Stop. Do not apply. Return for
+  re-anchoring.**
+
+**Anchor uniqueness.** Every anchor quoted in Artifacts 2, 3, and 4 SHALL match **exactly once** in
+its target file, in the matching mode the anchor table declares for it:
+
+- **Substring within one line** — the default. The quoted text SHALL occur exactly once in the file.
+- **Whole line** — declared explicitly. The line whose entire content equals the quoted text SHALL
+  occur exactly once; a substring match elsewhere is not a collision and is not a stop condition.
+- **Multi-line block** — declared explicitly. The consecutive-line sequence SHALL occur exactly
+  once; an end anchor that is not unique on its own is matched only as the terminator of that
+  sequence, never independently.
+
+Two anchors depend on this distinction and are marked in Artifact 4: site 4.2's end anchor
+(`remains open.`, unique only as the line following its start anchor) and site 4.8's end anchor
+(`reordered:`, unique only as a whole-line match). An anchor matching zero times, or more than once
+in its declared mode, is a stop condition. All anchors were re-counted against the four pinned
+blobs at the time of drafting and each matched exactly once in its declared mode.
+
+**Identifier collision.**
+
+- `NEXUS-RAT-2026-08-10-001` SHALL occur zero times in all four targets —
+  `RATIFICATION_LEDGER.md`, `rfc-0011-engineering-governance-model.md`, the Sprint 82 record, and
+  `builder-task.md` — before application. If it occurs at all, stop and re-allocate to the next
+  free identifier of the same date, and re-anchor every reference in this instrument before
+  applying. The identifier's embedded date SHALL equal the date on which the ratification is
+  actually issued; if application slips past 2026-08-10, stop and re-allocate to
+  `NEXUS-RAT-<issuance date>-001` under the same rule rather than applying a backdated identity.
+  No identifier proposed in an earlier, rejected revision of this instrument was ever appended to
+  the Ledger or issued, and none SHALL appear in any applied text.
+
+**Fail-closed partial application.**
+
+- Before the first edit, copy all four targets verbatim to a scratch location.
+- Apply in the order 1 → 2 → 3 → 4. Each site is written **exactly once**; no site is written and
+  then overwritten within the same application.
+- If any edit fails, any anchor is not found, or any anchor is found more than once, restore all
+  four targets from the scratch copies and stop. **Do not use `git checkout --` on any target: all
+  four carry uncommitted work that `git checkout` would destroy.**
+- After application, re-verify: the Ledger gained exactly one `# NEXUS-RAT-` heading; RFC-0011
+  contains exactly one occurrence of `**Version:** 1.9` and zero of `**Version:** 1.8`; the Sprint
+  record contains zero occurrences of `Eight-phase diagnostic model`; no file under `src/` or
+  `test/` has changed.
+- **Authority-chain closure check (B1).** After application, in the Sprint record: every line
+  containing `NEXUS-RAT-2026-07-31-001`, `NEXUS-RAT-2026-08-06-001`, or `NEXUS-RAT-2026-08-06-002`
+  outside § Reviewer Notes SHALL also contain `NEXUS-RAT-2026-08-10-001`, or SHALL be part of a
+  bullet or table row whose text names that amendment; `NEXUS-RAT-2026-08-10-001` SHALL occur at
+  least once in § Objective, at least once in § Governing Authority as a bullet of its own, and at
+  least once in § Traceability as a row of its own; and the literal `v1.8` SHALL occur **zero**
+  times anywhere in the Sprint record. That last check is exact: `v1.8` occurs exactly five times
+  in the pinned blob, at lines 58, 77, 113, 434, and 511, and sites 3.1, 3.2, 3.6, 3.16, and 3.18
+  replace all five. Any failure is a stop condition; restore from the scratch copies.
+- **Identity closure check.** Let `PRE` be the set of distinct strings matching
+  `NEXUS-RAT-\d{4}-\d{2}-\d{2}-\d{3}` anywhere in the four pinned target files before application,
+  considered as one corpus, and let `POST` be the corresponding corpus-wide set after application.
+  `POST` SHALL equal `PRE ∪ {NEXUS-RAT-2026-08-10-001}`. This is a corpus-wide set comparison, not
+  a per-target occurrence comparison. An identifier already in `PRE` MAY newly occur in an
+  individual target only through the exact insert or replacement text authorized by this
+  instrument; that occurrence does not constitute allocation or introduction of a new identifier.
+  Any identifier proposed for this instrument in an earlier rejected revision — specifically the
+  `NEXUS-RAT-` identifier bearing the date 2026-08-09 and sequence 001, proposed in an earlier
+  revision of this instrument and never issued — SHALL occur **zero** times after application. The
+  Ledger entry's `## Date` SHALL read `2026-08-10`, equal to the date embedded in
+  `NEXUS-RAT-2026-08-10-001` and to the date of issuance. RFC-0011's amendment history SHALL read
+  `v1.9 (2026-08-10)` and cite `NEXUS-RAT-2026-08-10-001`. `NEXUS-REV-2026-08-09-001` and every
+  prior ratification identifier SHALL be unchanged as **strings** and as **identities**: none is
+  re-allocated, re-dated, renamed, or retired, and the only permitted change to any prior
+  identifier is a change in its occurrence count arising solely from the exact insert or
+  replacement text authorized by this instrument. Any failure is a stop condition; restore from the
+  scratch copies.
+- **Self-containment closure check.** After application, the appended Ledger entry SHALL contain a
+  section headed `## Amendment Matrix` and a section headed `## The Three Vocabulary Sets`, and
+  every `§` reference in the appended entry SHALL resolve either to a section of that same entry or
+  to a named section of a named external document. In particular, the three `§ Amendment Matrix`
+  references inside the entry, the one `§ The Three Vocabulary Sets` reference, and the
+  `its § Amendment Matrix` cross-references written into the Sprint record and `builder-task.md`
+  SHALL all resolve to the appended entry. Any dangling reference is a stop condition; restore from
+  the scratch copies.
+
+**Prohibitions during application.**
+
+- No `src/`, `test/`, or oracle file is created, modified, or deleted.
+- No git commit, push, merge, branch, or PR action is performed. Those remain reserved to the human
+  operator per `knowledge/CLAUDE.md`.
+- No commitment value, authority root, envelope commitment, or record fingerprint is written into
+  the Ledger.
+- No prior Ledger entry's octets are touched.
+- No entry is made in `REVIEW_HISTORY.md`.
+
+## Builder Stop Conditions
+
+Conditions 1–10 are carried verbatim and unchanged from `NEXUS-RAT-2026-08-06-001`. This instrument
+adds exactly two:
+
+11. **Any change becomes necessary to the encoded octets of `LifecycleAuthorityRecord`,
+    `AuthorityRootBasis`, or `EnvelopeCommitmentBasis`.** Such a change requires a new snapshot
+    schema version identifier under RFC-0011 § Schema Version and Compatibility, which this
+    instrument does not authorize. Stop and return for scope amendment.
+12. **Any test-only internal-binding mechanism authorized by this instrument — D8a's digest
+    substitution, D8b's encoder substitution, or D8c's digest call trace — becomes reachable from
+    any production call path**, is exported from the capability's public entry point, or is
+    influenced by any governed input or caller-supplied value. Stop and return for scope amendment.
+
+## Changed-File List (exact)
+
+**File 1 — `knowledge/governance/RATIFICATION_LEDGER.md`.** One append at end of file. The file's
+last line is `Active`. Append a blank line, then `---`, then a blank line, then this entry in full.
+No other change.
+
+**File 2 — `knowledge/specifications/rfc-0011-engineering-governance-model.md`.** Eleven sites, per
+Artifact 2 of the accompanying proposal document, each anchored by a string occurring exactly once.
+
+**File 3 — `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`.**
+**Twenty-seven** sites, per Artifact 3, each with an exact start anchor and, where a block is
+replaced, an exact end anchor. Fourteen of the twenty-seven exist solely to install the
+post-amendment authority chain into the self-contained Sprint Specification: the Objective, the
+Status block, the binding authority chain and its conflict rule, the three amended instruments'
+Governing Authority bullets, the new bullet naming the amendment authority, the three provenance
+statements, the ownership-boundary row, the conformance-checkpoint reference, the Stop Conditions
+heading, and the three Traceability rows.
+
+**File 4 — `builder-task.md`.** Nine sites, per Artifact 4, each with an exact start anchor and,
+where a block is replaced, an exact end anchor. One write per site.
+
+## Related Sprint(s) / Related Review(s)
+
+Sprint 82 — Ratification Authority Snapshot Issuance Capability (Milestone 12, SGP-1).
+`NEXUS-RAT-2026-08-06-001` (scope, amended at named clauses), `NEXUS-RAT-2026-08-06-002`
+(activation, permanent authority, amended at named clauses), `NEXUS-RAT-2026-07-31-001` (contract,
+amended at named clauses). Owner Reviews of 2026-08-09 and 2026-08-10.
+
+## Current Status
+
+Active
