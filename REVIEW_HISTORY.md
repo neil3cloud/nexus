@@ -2,6 +2,590 @@
 
 ---
 
+## NEXUS-REV-2026-08-10-001 — Governance — `NEXUS-RAT-2026-08-10-001` Revision 11 Application and Commit Record
+
+- **Reviewed Sprint:** None. This entry records a governance instrument, not a Sprint implementation review. Sprint 82 remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing in this entry alters that disposition.
+- **Reviewed Change:** Application of ratification instrument `NEXUS-RAT-2026-08-10-001`, reconciled Revision 11, package SHA-256 `e2bc7b756b3bc1c91c5e77e44a2b5c317bef0343dd30b72fe2e5b25fe66b6e5e`, at authorized extent `1 / 11 / 27 / 9` in order `1 → 2 → 3 → 4`, to `knowledge/governance/RATIFICATION_LEDGER.md`, `knowledge/specifications/rfc-0011-engineering-governance-model.md`, `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`, and `builder-task.md`; subsequently committed as `1edb8c29a046d6be404b07882dba65cb2df1c40d`.
+- **RFC Coverage:** RFC-0011 Engineering Governance Model, amended Final (Amended) v1.8 → v1.9 by this instrument. No other RFC is touched.
+- **Review Date:** 2026-08-10
+- **Reviewer:** Reviewer AI (Claude Code), recording independently verified state
+- **Overall Disposition:** **RECORDED — APPLIED, APPROVED, AND COMMITTED.** No architectural violations detected.
+
+### Governance Chronology
+
+1. **Owner acceptance.** The repository owner accepted reconciled Revision 11 at the exact SHA-256 above and named Claude as governance applier for extent `1 / 11 / 27 / 9`, in order `1 → 2 → 3 → 4`, subject to all fail-closed conditions in Revision 11.
+2. **Application.** All four artifacts were written in the authorized order. All `1 / 11 / 27 / 9` anchors matched exactly once. Every retained closure check passed: Ledger append-only with ratification headings 144 → 145; corpus identity `|PRE| = 146` → `|POST| = 147` with `POST ∖ PRE = {NEXUS-RAT-2026-08-10-001}` and `PRE ∖ POST = {}`; the retired `NEXUS-RAT-` identifier bearing the date 2026-08-09 and sequence 001 occurring zero times; RFC-0011 at exactly one `1.9` and zero `1.8`; the universal Sprint authority-chain scan at 26 occurrences, 25 governed, 1 exempt, **0 unsatisfied**; § Reviewer Notes byte-identical to the verified pre-application copy.
+3. **Independent post-application review.** Codex returned disposition **APPROVE** with no Blocking, Major, or Minor findings and no named corrections, independently re-verifying all four output blobs, the append-only prefix, the identity set, the authority-chain scan, Reviewer Notes byte identity, unchanged HEAD, empty index, and a working-tree delta bounded to the four authorized targets.
+4. **Commit.** The four targets were committed as `1edb8c29a046d6be404b07882dba65cb2df1c40d`, whose tree contains exactly those four paths and no fifth.
+
+### Verified Artifact Result
+
+| Target | Approved blob | Committed blob | Lines | Result |
+| --- | --- | --- | ---: | --- |
+| `knowledge/governance/RATIFICATION_LEDGER.md` | `954f81f5e00373ac2c04ffd80501def3c751027d` | `954f81f5e00373ac2c04ffd80501def3c751027d` | 23,769 | MATCH |
+| `knowledge/specifications/rfc-0011-engineering-governance-model.md` | `271d2b291b90eda6f8ea24e3a29f5e49b718e866` | `271d2b291b90eda6f8ea24e3a29f5e49b718e866` | 4,079 | MATCH |
+| `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` | `a9faedbe0a0d6aa2f3a3019f30e09093086d3947` | `a9faedbe0a0d6aa2f3a3019f30e09093086d3947` | 737 | MATCH |
+| `builder-task.md` | `b1679043797fdf41906b0c720b4f8355440a9d98` | `b1679043797fdf41906b0c720b4f8355440a9d98` | 1,136 | MATCH |
+
+The working-tree copy of each of the four targets is byte-identical to the committed blob. `NEXUS-RAT-2026-08-10-001` is recorded `Active` in the appended Ledger entry, dated `2026-08-10`.
+
+### Findings
+
+None. No Critical, Major, or Minor finding arises from this instrument. Revisions 7, 8, 9, and 10 remain superseded, unapplied, not ratified, and prohibited from application.
+
+### Observations (non-blocking)
+
+1. The applied Ledger entry cites "per Artifact 2 / 3 / 4 of the accompanying proposal document" — a reference to the scratch proposal package rather than to a governed repository artifact. This wording was reviewed and approved through Revisions 6–11 and by both the pre- and post-application reviews, and is now permanent Ledger text; it is recorded here only so a future instrument may, if the owner wishes, drop the "per Artifact N" phrasing in favour of the site counts and pinned blob hashes already contained in the entry. No corrective action is required.
+2. RFC-0011's version line now reads v1.9. Entries in this history predating 2026-08-10 that cite "RFC-0011 Final (Amended) v1.8" remain accurate as of their own review dates and are not amended.
+
+### Scope Boundary
+
+This entry records completed governance acts only. It does **not** authorize, and no part of it effects, Sprint 82 activation, Builder work, Copilot dispatch, or any push or branch operation. Each remains a separate owner-controlled act.
+
+---
+
+## NEXUS-REV-2026-08-09-001 — Sprint 82 — No-Delta Re-Verification (Post-`BT-082-005`)
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Follow-up cycle triggered by a fresh `/nexus-review` invocation with no intervening Builder work reported.
+- **Reviewed Change:** None in the authorized twenty-four-file inventory. All four `src/kernel/governance/ratification-authority-snapshot-issuance.*` files and all twenty test/oracle files remain textually identical to the state certified by `NEXUS-REV-2026-08-07-003`. `builder-task.md`, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`, and the Sprint Implementation Record are unchanged since that cycle other than governance bookkeeping already present in the working tree.
+- **RFC Coverage:** Unchanged — RFC-0011 Final (Amended) v1.8 § Ratification Authority Snapshot Issuance; RFC-0003 § NCCS-1 and its Conformance Vectors.
+- **Review Date:** 2026-08-09
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** **PASS WITH FINDINGS (unchanged)** — no Critical finding open; Sprint 82 remains **Approved with Findings**.
+
+### Executive Summary
+
+This cycle independently re-verified Sprint 82's current state against the seven still-open follow-up tasks (`BT-082-006` through `BT-082-012`, `DOC-082-001`) recorded by `NEXUS-REV-2026-08-07-003`, to determine whether any had been executed since. None had:
+
+- `ratification-authority-snapshot-issuance-commitments.test.ts` still holds exactly the same two `it()` cases (prefix-shape assertion; root-invariance/commitment-variance across two `capturedAt` values). No duplicate-fingerprint fail-closed test, no supply-order-independence test, and no NCCS-1 rule 6 collection-order test are present — `NEXUS-REV-0082-MAJ-003` (`BT-082-006`) is unresolved.
+- `oracle-agreement.test.ts:47` still reads `expect(implementation, current.name).toEqual(oracle)` — `NEXUS-REV-0082-MIN-004` (`BT-082-011`) is unresolved. The corpus still carries exactly one `byte-order-mark-present` case (start-of-source only, `:70`) and no separate T3 trailing-whitespace or T1 byte-identical-carrier case — `NEXUS-REV-0082-MAJ-004` (`BT-082-010`) is unresolved.
+- `ratification-authority-snapshot-issuance.ts:923` still reaches `reject('internal-invariant-violation' as never, noPayload())` — `NEXUS-REV-0082-MIN-001` (`BT-082-007`) is unresolved. `assertKnownDiagnosticCode` in `ratification-authority-snapshot-issuance.contract.ts` is still defined but referenced nowhere else in `src/`, and still maps to `invalid-input` rather than `undeclared-diagnostic` — `NEXUS-REV-0082-MIN-002` (`BT-082-008`) is unresolved.
+- `ratification-authority-snapshot-issuance-declarations.test.ts` still holds exactly two `it()` cases; the negative test at `:81` still exercises the T13 unrecognized-field path rather than asserting directly against the public surface's absence of a declaration channel — `NEXUS-REV-0082-MIN-003` (`BT-082-009`) is unresolved.
+- `ratification-authority-snapshot-issuance-graphs.test.ts` still holds exactly the five `it()` cases certified by `NEXUS-REV-2026-08-07-003`; no sixth case discriminating rule 3.2's `closed` branch or rule 2's root ordering has been added — `NEXUS-REV-0082-MIN-005` (`BT-082-012`) is unresolved.
+- The Sprint Implementation Record's § Validation Summary still states `26/26` across `15/15` and `809/809` across `134/134`, and `IMPLEMENTATION_REPORT.md` is unchanged — `NEXUS-REV-0082-DOC-001` (`DOC-082-001`) is unresolved, and its target counts have moved again (see below).
+
+Repository validation was independently reproduced in full rather than assumed: `npx tsc --noEmit` clean; `npm run lint` clean; targeted Sprint 82 suite **32/32 across 15/15 files** (unchanged from the `NEXUS-REV-2026-08-07-003` baseline); full non-extension Vitest suite **815/815 across 134/134 files** (unchanged, zero regressions); `npm run build` clean; the live-Ledger conformance checkpoint test passes and continues to report the same `Rejected` · `identifier-grammar-violation` · `EntryStructure` · precedence `1` outcome on `NEXUS-RAT-2026-08-04-001`, correctly not written to the Ledger. `npm run test:extension-host:build` was not re-run this cycle; nothing in the reviewed diff (there is none) touches the extension host, and it passed clean as recently as `NEXUS-REV-2026-08-07-003`.
+
+### Findings
+
+No finding is added, resolved, or reclassified this cycle. All eight findings open under `NEXUS-REV-2026-08-07-003` remain open, unchanged in category, severity, and evidence: `NEXUS-REV-0082-MAJ-003`, `-MAJ-004`, `-MIN-001`, `-MIN-002`, `-MIN-003`, `-MIN-004`, `-MIN-005`, `-DOC-001`.
+
+`NEXUS-REV-0082-DOC-001`'s target counts are restated here for currency only (no new finding): the figures a future `DOC-082-001` execution must reproduce and record are **32/32 across 15/15** authorized Sprint 82 test files and **815/815 across 134/134** non-extension files — unchanged from `NEXUS-REV-2026-08-07-003`, since no test was added or removed this cycle.
+
+### Observations (non-blocking)
+
+None new this cycle. All observations recorded by `NEXUS-REV-2026-08-06-001`, `-08-07-002`, and `-08-07-003` stand unchanged.
+
+### Review Statistics
+
+- Files reviewed for delta: all 24 authorized paths — 0 changed, 24 unchanged (confirmed by direct content inspection of every file targeted by an open task, not solely by file-modification-time comparison).
+- Findings: 0 new; 0 resolved; 8 carried forward open unchanged (`MAJ-003`, `MAJ-004`, `MIN-001`–`MIN-005`, `DOC-001`).
+- Tests: targeted Sprint 82 suite 32/32 across 15/15 files (unchanged); full non-extension suite 815/815 across 134/134 files (unchanged, zero regressions). Both counts independently reproduced by the Reviewer, not copied from the prior report.
+- Builder Task reconciliation: no task's status changes. `BT-082-002`, `-003`, `-005` remain Completed. `BT-082-004` remains Retired. `BT-082-006`, `-007`, `-008`, `-009`, `-010`, `-011`, `-012`, `DOC-082-001` remain Open and executable, in the Reviewer's previously recorded order.
+
+### Deferred Concept Validation
+
+Unchanged. No deferred or prohibited concept was introduced or touched, because no file in the authorized inventory changed. `DEP1` remains open, undischarged, and unnarrowed. DEP2's scope-free-only discharge is not broadened. No commitment value or authority root was proposed for pinning. Stop Condition 8 continues to bind; the live corpus's `identifier-grammar-violation` was not touched.
+
+### Architectural Compliance Summary
+
+No architectural violation, beyond the eight findings already open, was detected. Boundary A holds unchanged: `src/kernel/common/create-kernel-services.ts` and `test/integration/kernel-boundary-certification.integration.test.ts` remain untouched, and no Sprint 54 module was modified. Oracle independence holds unchanged: `oracle-independence.test.ts` was reproduced passing.
+
+**Sprint 82 remains Approved with Findings.** Per Work Item State Reconciliation for PASS WITH FINDINGS: Sprint status unchanged; Work Order remains Completed; no Builder Task changes status, since none was executed. `IMPLEMENTATION_PLAN.md` requires no status change and none is made. Sprint 82 sits outside the Initial Capability Sequence and advances no other Sprint to Current.
+
+### Builder Task Recommendation
+
+Unchanged from `NEXUS-REV-2026-08-07-003`, restated for currency: (1) `BT-082-006` (`NEXUS-REV-0082-MAJ-003`); (2) `BT-082-010` (`NEXUS-REV-0082-MAJ-004`); (3) `BT-082-007`, `-008`, `-009`, `-011`, `-012` (`MIN-001`–`MIN-005`); (4) `DOC-082-001` last, once the evidence it describes exists — restate against the counts independently reproduced this cycle, **32/32 across 15/15** and **815/815 across 134/134**, reproducing them fresh at execution time rather than copying either this report's or the prior report's figures. All remediation remains within the existing 24-file authorized inventory; no new path and no further ratification is required.
+
+---
+
+## NEXUS-REV-2026-08-07-003 — Sprint 82 — `BT-082-005` Certified: `NEXUS-REV-0082-MAJ-002` Resolved
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Follow-up cycle triggered by a fresh `/nexus-review` invocation after Builder execution of `BT-082-005`, the first executable task in the recorded remediation order of `NEXUS-REV-2026-08-07-002`.
+- **Reviewed Change:** `test/kernel/governance/ratification-authority-snapshot-issuance-graphs.test.ts` (one `it()` → 195 lines, five `it()` cases) — the single file authorized by `BT-082-005`. Confirmed by file-modification-time comparison: exactly one path in the 24-file inventory carries a timestamp later than the `BT-082-003` cycle; all four `src/` implementation files retain their 2026-08-06 timestamps and were not touched; the oracle directory still holds exactly seven files; no path outside the inventory was created or modified.
+- **RFC Coverage:** RFC-0011 Final (Amended) v1.8 § Two Distinct Graphs (lines 881–899), § Cycle Selection (lines 989–1037), § Diagnostic Traversal Order (lines 1182–1223), § The Closed Public Vocabulary (within-phase precedence, lines 1265–1311).
+- **Review Date:** 2026-08-07
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** **PASS WITH FINDINGS** — no Critical finding remains open. Sprint 82 remains **Approved with Findings**.
+
+### Executive Summary
+
+`BT-082-005` addressed `NEXUS-REV-0082-MAJ-002`, which recorded that T11's cycle obligations carried zero assertions: the sole T11 file held one `it()` covering `absent-relation-target` only, leaving both governed graphs' cycle detection and the entire normative DFS at `ratification-authority-snapshot-issuance.ts:1176-1226` unexercised. The file now holds five cases: the pre-existing `absent-relation-target` case plus a declarant-authority cycle, a lifecycle-relation cycle, a `closed`-marking case, and a `self-referential-relation` case.
+
+**The Reviewer independently derived the expected path for each cycle fixture directly from RFC-0011 § Cycle Selection — not from the implementation — and all three match.** For the declarant-authority fixture (`:31-53`), entry `-510` declares `-511` and `-512`, each of which declares `-510` back, producing two distinct cycles; roots are entered in ascending octet order (`-510` first) and outgoing edges in declaration traversal order (`-511` first), so the search re-enters the `open` node `-510` from `-511`, and rule 3.1's stack-slice rule yields exactly `[-510, -511, -510]`. For the lifecycle-relation fixture (`:55-75`), two disjoint cycles exist (`-521`↔`-522` and `-523`↔`-524`); ascending root order selects `-521`, yielding `[-521, -522, -521]`. For the `closed`-marking fixture (`:77-99`), the segmented declaration on `-531` contributes edges to `-532` and `-533` in segment order, and the search yields `[-533, -534, -533]`. All three assertions are exact, not merely "some valid cycle": Vitest's `toMatchObject` requires equal array length and element-wise match on `pathIdentifiers`, so a differently-selected path of any shape would fail.
+
+Both graphs are genuinely exercised **independently**, as RFC-0011 line 888 requires ("Guarding the first proves nothing about the second"). Phase precedence was checked to confirm each fixture actually reaches the code it claims: the declarant-authority fixture would also trip `duplicate-declaration` (two declarations claim `-510`), but `DeclarantAuthority` is rank 3 and `DeclarationBinding` rank 4, so `cyclic-declaration-authority` correctly wins; the lifecycle fixtures' relation targets all exist as entries, so `absent-relation-target` — first in `LifecycleGraph`'s within-phase precedence — correctly does not preempt. The `self-referential-relation` case (`:101-117`) asserts the two-element `[declaring record, relation target]` path that line 1222 mandates, and correctly reports the record carrying the relation rather than the declaring authority.
+
+The fixtures also discriminate two of the three normative selection knobs: outgoing-edge order (the declarant fixture would report `[-510, -512, -510]` under any other edge ordering) and multi-cycle selection (both cycle fixtures contain two cycles, so an implementation reporting either one at random would fail roughly half the time). Two knobs remain non-discriminating, recorded below as one new Minor finding: **rule 3.2's `closed` branch is never taken by any of the five cases**, and **root ascending-octet order is never distinguished from entry order**, because every fixture's source-node set happens to appear in the source in ascending identifier order. The `closed`-marking fixture is present and passing as the acceptance criteria require, but node `-532` is closed and then never re-encountered, so the fixture would pass identically against an implementation with no `closed` marking at all.
+
+All repository validation was independently reproduced and passes: `npm run compile` clean, `npm run lint` clean, targeted Sprint 82 suite **32/32 across 15/15 files** (up from 28/28 — net +4, exactly the four added `it()` cases), full non-extension suite **815/815 across 134/134 files** (up from 811/811; zero regressions), `npm run build` clean, `npm run test:extension-host:build` clean. The Builder reported four timeout failures in git-boundary tests on its full-suite run; the Reviewer's full-suite run reproduced **zero** failures, confirming those were environmental flake unrelated to this change.
+
+### Findings
+
+`NEXUS-REV-0082-MAJ-002` is **resolved**. One new Minor finding is raised. No previously open finding's severity or disposition is altered.
+
+#### `NEXUS-REV-0082-MIN-005` — Cycle-selection fixtures do not discriminate the `closed` branch or root ordering (new)
+
+- **Category:** Implementation Defect (test coverage)
+- **Severity:** Minor
+- **Authority:** RFC-0011 Final (Amended) v1.8 § Cycle Selection, rule 2 (roots entered "in **ascending octet order** of their identifiers") and rule 3.2 ("if it is `closed`, the search SHALL return at once without re-entering it"), together with the section's closing paragraph declaring `closed` marking "normative, not an optimization."
+- **Summary:** Across all five cases in the T11 file, the DFS never re-encounters a `closed` node, so rule 3.2's branch is never taken; and every fixture's source nodes appear in the governed source in ascending identifier order, so rule 2 is never distinguished from a naive provisional-record-order root traversal.
+- **Evidence:** `ratification-authority-snapshot-issuance-graphs.test.ts:77-99` — the `closed`-marking fixture's edges are `-531→-532`, `-531→-533`, `-533→-534`, `-534→-533`. Under root `-531`, node `-532` is entered, exhausted, popped, and marked `closed`, but nothing ever re-enters it; the cycle is then found on the sibling edge to `-533`. Removing `closed` marking entirely from the implementation would not change this fixture's result. `:31-53`, `:55-75`, `:77-99` — source nodes are `{-510,-511,-512}`, `{-521,-522,-523,-524}`, `{-531,-533,-534}`, each appearing in the source in ascending order, so entry order and ascending octet order coincide in every case.
+- **Impact:** Latent, and narrower than the gap `MAJ-002` recorded — the primary T11 obligations are now genuinely met and the reported paths are exact. Two normative selection rules nevertheless remain unverified: an implementation that re-entered `closed` nodes (risking a false cycle report across a diamond) or that entered roots in source order rather than ascending octet order would pass this file unchanged.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Add a fixture in which a node closed under one root is re-encountered under a later root, or through a diamond in which two predecessors both reach a common acyclic subtree (which must remain `Issued`, not report a false cycle); and a fixture whose cycle-bearing entries appear in the governed source in **descending** identifier order, so that ascending-octet root selection produces a different reported path than source order would.
+
+### Observations (non-blocking)
+
+- The five cases assert `result`, `diagnosticCode`, and `diagnosticPayload` but not `phase` or `precedence`. This matches the file's pre-existing convention and is outside `BT-082-005`'s Required Changes; the phase/precedence contract is covered elsewhere in the Sprint's diagnostics test file.
+- The `closed`-marking fixture is the only case in the Sprint exercising a `SegmentedLifecycle` declaration as a source of lifecycle-graph edges, which is useful incidental coverage of segment-order edge contribution.
+
+### Review Statistics
+
+- Files reviewed for delta: all 24 authorized paths — 1 changed (`ratification-authority-snapshot-issuance-graphs.test.ts`), 23 unchanged (confirmed by file-modification-time comparison and directory listing). No `src/` file modified, consistent with `BT-082-005`'s single declared Implementation Target.
+- Findings: 1 new (Minor); 1 resolved (`MAJ-002`); 6 carried forward open unchanged (`MAJ-003`, `MAJ-004`, `MIN-001`, `MIN-002`, `MIN-003`, `MIN-004`); 1 carried forward unblocked and open (`DOC-001`).
+- Tests: targeted Sprint 82 suite 32/32 across 15/15 files (net +4 over the 28/28 baseline); full non-extension suite 815/815 across 134/134 files (net +4; zero regressions).
+- Normative-path verification: three cycle paths derived independently from RFC-0011 § Cycle Selection and compared against the assertions; all three match exactly.
+- Builder Task reconciliation: `BT-082-005` → Completed. `BT-082-002` and `BT-082-003` remain Completed. `BT-082-006`, `-007`, `-008`, `-009`, `-010`, `-011`, `DOC-082-001` remain Open, unchanged; `BT-082-011` is newly joined by the remediation for `MIN-005`.
+
+### Deferred Concept Validation
+
+Unchanged. No deferred or prohibited concept was introduced. The changed file constructs synthetic governed source in-memory only; it writes nothing, reads no governed artifact, and pins no authority root, envelope commitment, or record fingerprint. `DEP1` remains open, undischarged, and unnarrowed. DEP2's scope-free-only discharge is not broadened. Stop Condition 8 continues to bind.
+
+### Architectural Compliance Summary
+
+No architectural violation detected. Boundary A holds — the changed file touches no composition, host, adapter, event, or persistence surface, and no Sprint 54 module. Oracle independence is unaffected: this file is not an oracle module, and `oracle-independence.test.ts` passes unchanged.
+
+`NEXUS-REV-0082-MAJ-002` is **resolved**: both governed graphs are now exercised independently for cycle detection, each reported `RelationPathPayload` matches the path the RFC's DFS normatively selects, and `cyclic-declaration-authority`, `cyclic-lifecycle-relation`, and `self-referential-relation` are all reached. Gate 11 (test coverage) is further strengthened. Gate 13 (documentation accuracy) does not pass, pending `DOC-001`. Gate 15 (full completion) is not reached, pending the remaining Major and Minor findings.
+
+**Sprint 82 remains Approved with Findings.** Per Work Item State Reconciliation for PASS WITH FINDINGS: Sprint status unchanged at Approved with Findings; Work Order remains Completed; `BT-082-005` → Completed (acceptance criteria satisfied as written); open findings proceed as follow-up Builder/Documentation Tasks and do not block this approval. `IMPLEMENTATION_PLAN.md` requires no status change. Sprint 82 sits outside the Initial Capability Sequence and advances no other Sprint to Current.
+
+### Builder Task Recommendation
+
+Remaining remediation scope, in dependency order, via `nexus-sprint`: (1) `NEXUS-REV-0082-MAJ-003` (T12/T14 commitment fixtures, currently `BT-082-006`); (2) `NEXUS-REV-0082-MAJ-004` (agreement-corpus fixture completeness, currently `BT-082-010`); (3) `NEXUS-REV-0082-MIN-001`, `-MIN-002`, `-MIN-003`, `-MIN-004`, and the new `-MIN-005`; (4) `NEXUS-REV-0082-DOC-001` last, once the evidence it describes exists — its target counts have now moved again, to 32/32 across 15/15 and 815/815 across 134/134. `NEXUS-REV-0082-MIN-005` targets the same file `BT-082-005` just completed and should be generated as its own task rather than reopening `BT-082-005`. All remediation remains within the existing 24-file authorized inventory; no new path and no further ratification is required.
+
+---
+
+## NEXUS-REV-2026-08-07-002 — Sprint 82 — `BT-082-003` Certified: `NEXUS-REV-0082-CRIT-002` Resolved; Sprint Approved with Findings
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Follow-up cycle triggered by a fresh `/nexus-review` invocation after Builder execution of `BT-082-003`, the second recovery task opened under the Sprint Owner Resolution of 2026-08-06.
+- **Reviewed Change:** `test/kernel/governance/issuance-oracle/issuance.oracle.ts` (144 → 1389 lines) and `test/kernel/governance/issuance-oracle/oracle-agreement.test.ts` (31 → 295 lines) — the two files authorized by `BT-082-003`. Confirmed by file-modification-time comparison: every other file in the 24-file inventory retains its `BT-082-002`-cycle or earlier timestamp; the oracle directory still holds exactly seven files; no path outside the inventory was created or modified.
+- **RFC Coverage:** RFC-0011 Final (Amended) v1.8 § Two Structurally Independent Implementations (lines 1355–1357). Unchanged from `NEXUS-REV-2026-08-06-001`.
+- **Review Date:** 2026-08-07
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** **PASS WITH FINDINGS** — no Critical finding remains open. Sprint 82 is **Approved with Findings**.
+
+### Executive Summary
+
+`issuance.oracle.ts` was rebuilt from a shallow stub (one hardcoded entry, one hardcoded `GenericSourceRule`/`ResidualScope` record, no declaration parsing, no graph work, 5 of 46 vocabulary codes reachable) into a full second implementation of the RFC-0011 issuance contract: fence-aware entry extraction, section parsing, the generic source rule, full declaration-block parsing (whole-record and segmented forms), declarant-authority and lifecycle-relation graph validation with cycle detection, envelope/commitment validation, and the total `Issued`/`Rejected` result contract. `oracle-agreement.test.ts` was rebuilt from one `Issued` fixture into approximately fifty cases spanning the live Ratification Ledger, four `Issued`-path fixtures, and forty-six `Rejected`-path fixtures — one per code in the closed public vocabulary — with a mechanically enforced completeness assertion (`expect(reachedCodes).toEqual(new Set(oracleDiagnosticCodes))`, `oracle-agreement.test.ts:50`) that would fail if any code went unreached by the implementation side of the corpus.
+
+**Independence was examined closely and cleared.** The two implementations arrived at near-identical size (1387 vs. 1389 lines; 42 vs. 41 top-level functions) with twelve identically named functions, an initial signal strong enough to warrant a body-level comparison. On inspection the decompositions diverge: thirty function names appear only in `src/`, twenty-nine only in the oracle; the twelve shared names are almost entirely the six `payload`-constructor helpers, named directly after the RFC's own `payloadKind` discriminants, where overlap is close to unavoidable between any two conforming implementations. `parseDeclarationBlock` — the largest shared name — is structurally different in the two files: the implementation validates inline during a single parse pass, while the oracle parses permissively first and then runs roughly thirteen sequential, precedence-ordered validation sweeps, a shape consistent with working from the diagnostic-precedence table in the specification rather than from the implementation's control flow. `oracle-independence.test.ts` passes unchanged, confirming by static import-graph traversal that no oracle module reaches `src/`. The Reviewer finds no evidence the authoring rule (Sprint 82 Record § The Second Structurally Independent Implementation, mechanism 1) was violated.
+
+The corpus is not, however, fixture-complete against the Sprint's own text ("every fixture exercising T1–T20," lines 299–300): the agreement test constructs its own fixtures per diagnostic scenario rather than reusing the literal fixtures from the twelve T-labeled test files, and three specific obligations from those files are absent from the corpus — T2's BOM-at-middle and BOM-at-end cases (only BOM-at-start is present), T3's trailing-whitespace `Active ` non-resolution case, and T1's byte-identical-octets carrier case. The Reviewer independently constructed all three omitted cases and ran them directly against both implementations: **all three agree.** The gap is therefore a genuine but non-concealing shortfall against the corpus definition's literal text, not a masked disagreement — recorded below as a new Major finding (`NEXUS-REV-0082-MAJ-004`), not a reopening of `CRIT-002`.
+
+Independently reproduced: `toEqual` at `oracle-agreement.test.ts:47` is weaker than the "field for field" standard the corpus definition calls for — `toEqual` ignores `undefined`-valued properties, and the oracle's types carry several optionals (`scopeDescription`, `lifecycleDeclaringAuthority`). The Reviewer substituted `toStrictEqual` locally on the `Issued` and live-Ledger cases and confirmed both still pass; the gap is real but currently latent. Recorded as a new Minor finding (`NEXUS-REV-0082-MIN-004`).
+
+As a byproduct of the corpus's completeness assertion, `NEXUS-REV-0082-MAJ-001` (35 of 46 vocabulary codes unreachable by any test) is **resolved**: the agreement test's `reachedCodes` assertion now mechanically forces the implementation side to emit every one of the 46 codes across the corpus, independently confirmed by re-running the suite.
+
+All repository validation was independently reproduced and passes: `npm run compile`, `npm run lint`, targeted Sprint 82 suite **28/28 across 15/15 files** (up from the prior 26/26 across 15/15 — net +2, consistent with the corpus expanding inside the existing single `it()` in `nccs1-conformance-vectors.test.ts` remaining at 3 cases and `oracle-agreement.test.ts` remaining at 1 case while its internal loop body grew from 1 to ~50 iterations), full non-extension suite **811/811 across 134/134 files** (unchanged from the `BT-082-002` cycle — zero regressions), `npm run build`, `npm run test:extension-host:build`. The live-Ledger conformance checkpoint is now independently cross-validated against the oracle for the first time and reproduces exactly: `Rejected` · `identifier-grammar-violation` · `EntryStructure` · precedence `1` · payload `{"payloadKind":"EntryPayload","ratificationIdentifier":"NEXUS-RAT-2026-08-04-001"}`.
+
+### Findings
+
+`NEXUS-REV-0082-CRIT-002` is **resolved**. `NEXUS-REV-0082-MAJ-001` is **resolved** (collateral effect of the new corpus's completeness assertion). Two new findings are raised; one existing finding's block is lifted.
+
+#### `NEXUS-REV-0082-MAJ-004` — Agreement corpus is not fixture-complete against the T1–T20 corpus definition (new)
+
+- **Category:** Implementation Defect (test coverage)
+- **Severity:** Major
+- **Authority:** Sprint 82 Record § The Second Structurally Independent Implementation, § Agreement corpus (lines 299–300, "every fixture exercising T1–T20").
+- **Summary:** `oracle-agreement.test.ts` constructs its own per-scenario fixtures rather than reusing the literal fixtures defined in the twelve T-labeled test files. Three specific obligations from those files have no corpus counterpart: T2's BOM-at-middle and BOM-at-end (only BOM-at-start is present, line 70); T3's trailing-whitespace `Active ` non-resolution case (`source-domain.test.ts:64`); T1's byte-identical-octets carrier case.
+- **Evidence:** `oracle-agreement.test.ts:56-121` (the full case list); `ratification-authority-snapshot-issuance-source-domain.test.ts:56,64`. The Reviewer independently constructed all three omitted cases and ran them directly against both `issueRatificationAuthoritySnapshot` and `issueOracle`: all three agree field for field.
+- **Impact:** The gap is currently non-concealing — the Reviewer found no actual disagreement in the omitted cases — but the corpus's literal completeness claim is not yet true, and an as-yet-unconstructed fixture within these same categories could still disagree undetected.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Add the three specific omitted cases (or the full BOM start/middle/end triple, the trailing-whitespace-Active case, and a byte-identical-octets carrier case) to the agreement corpus.
+
+#### `NEXUS-REV-0082-MIN-004` — Agreement assertion uses `toEqual`, not `toStrictEqual` (new)
+
+- **Category:** Implementation Defect
+- **Severity:** Minor
+- **Authority:** Sprint 82 Record § Agreement ("Digest-only, envelope-only, or selected-field comparison is insufficient"); RFC-0011 line 1357 ("the complete public result, field for field").
+- **Summary:** `oracle-agreement.test.ts:47` uses `expect(implementation, current.name).toEqual(oracle)`. `toEqual` treats an object with an `undefined`-valued key as equal to one lacking that key entirely; several oracle types carry optional fields (`scopeDescription`, `lifecycleDeclaringAuthority`) where this distinction could silently pass.
+- **Evidence:** `oracle-agreement.test.ts:47`; `issuance.oracle.ts` interfaces `Segment`/`LifecycleRecord` (optional fields). The Reviewer substituted `toStrictEqual` locally on the `Issued` and live-Ledger cases; both still pass.
+- **Impact:** Currently latent — no case in the corpus exercises the distinction adversely — but weaker than the field-for-field standard the Sprint declares, and the risk grows as the corpus is extended (see `NEXUS-REV-0082-MAJ-004`).
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Change `toEqual` to `toStrictEqual` at line 47.
+
+#### `NEXUS-REV-0082-DOC-001` — now unblocked; gap confirmed current
+
+- **Category:** Documentation Drift (unchanged from `NEXUS-REV-2026-08-06-001`)
+- **Severity:** Major
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 13.
+- **Summary:** This finding was recorded as "blocked behind the two Critical findings" (`NEXUS-REV-2026-08-06-001`). Both are now resolved, so it is unblocked and independently reconfirmed current: `IMPLEMENTATION_REPORT.md:76-77` and the Sprint record's § Validation Summary (`:428-429`) still state "26/26 tests across 15/15... files" and "809/809... across 134/134 files," neither of which reflects either recovery task; the actual current counts are 28/28 across 15/15 and 811/811 across 134/134. Neither document mentions `BT-082-002` or `BT-082-003`.
+- **Recommended Disposition:** Documentation Task (now unblocked and actionable).
+- **Builder Action:** Restate `IMPLEMENTATION_REPORT.md`'s and the Sprint record's Validation Summaries with the current counts and both recovery tasks' evidence.
+
+### Observations (non-blocking)
+
+- `oracle-agreement.test.ts:51-52` assert that the literal case-name array built two lines above contains entries the same author hardcoded moments earlier (`cases.some((current) => current.name === 'live Ratification Ledger')`, etc.). These cannot fail under any code path and verify nothing about behavior.
+- `source-parser.oracle.ts`'s exports (`oracleSourceForSingleActiveEntry`, `oracleDeclarationSource`) are no longer imported anywhere — `oracle-agreement.test.ts` now builds its own fixtures inline. The file must remain per the authorized inventory; its current exports are dead code.
+- The entire ~50-case corpus runs inside one `it()`. `expect(x, name)` labels failures for diagnosis, but a first failure aborts every remaining case in the run.
+
+### Review Statistics
+
+- Files reviewed for delta: all 24 authorized paths — 2 changed (`issuance.oracle.ts`, `oracle-agreement.test.ts`), 22 unchanged (confirmed by file-modification-time comparison and directory listing).
+- Findings: 2 new (1 Major, 1 Minor); 2 resolved (`CRIT-002`, `MAJ-001`); 1 unblocked and reconfirmed open (`DOC-001`); 5 carried forward open unchanged (`MAJ-002`, `MAJ-003`, `MIN-001`, `MIN-002`, `MIN-003`).
+- Carried forward, unchanged, out of `BT-082-003`'s authorized scope: `NEXUS-REV-0082-MAJ-002` (T11 cycle requirements), `NEXUS-REV-0082-MAJ-003` (T12/T14 commitment obligations), `NEXUS-REV-0082-MIN-001` (`internal-invariant-violation` throws), `NEXUS-REV-0082-MIN-002` (`undeclared-diagnostic` dead code), `NEXUS-REV-0082-MIN-003` (T6 test-accuracy defect). Each targets a file `BT-082-003` was not authorized to touch (`ratification-authority-snapshot-issuance-graphs.test.ts`, `-commitments.test.ts`, `-declarations.test.ts`, and `src/kernel/governance/ratification-authority-snapshot-issuance.ts`/`.contract.ts`).
+- Tests: targeted Sprint 82 suite 28/28 across 15/15 files (net +2 over the 26/26 baseline); full non-extension suite 811/811 across 134/134 files (unchanged, zero regressions).
+- Independence re-examination: `oracle-independence.test.ts` passes unchanged; function-decomposition comparison performed; no violation found.
+- Vocabulary coverage: 46 of 46 codes now mechanically forced reachable by the agreement corpus (up from 11 of 46).
+- Builder Task reconciliation: `BT-082-003` → Completed. `BT-082-002` remains Completed (unchanged). `BT-082-004`–`BT-082-009`, `DOC-082-001` → superseded by this cycle's finding set; regenerate via `nexus-sprint` against `MAJ-002`, `MAJ-003`, `MAJ-004`, `MIN-001`–`MIN-004`, `DOC-001`, noting `MAJ-001`'s corresponding item is now resolved and should be retired rather than regenerated.
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-08-06-001`. No deferred or prohibited concept was introduced. Confirmed absent from the two changed files: production Snapshot issuance; any authority-root, envelope-commitment, or record-fingerprint pin (`RATIFICATION_LEDGER.md` is read-only in both implementations, never written); host, adapter, Domain Event, or persistence surface. `DEP1` remains open, undischarged, and unnarrowed — the live-Ledger case in the new corpus is a conformance checkpoint, independently cross-validated for the first time, not a production issuance. DEP2's scope-free-only discharge is not broadened.
+
+### Architectural Compliance Summary
+
+No architectural violation of an RFC-owned concept was detected in the changed files. Boundary A holds — neither file touches `src/kernel/common/create-kernel-services.ts`, `test/integration/kernel-boundary-certification.integration.test.ts`, or any Sprint 54 module. The authoring rule (independence mechanism 1) was specifically scrutinized given the size and function-name overlap between the two implementations and is confirmed intact on body-level and decomposition-level comparison, not merely on the mechanical import-graph check.
+
+`NEXUS-REV-0082-CRIT-002`, the sole remaining Critical finding, is **resolved**: the agreement test now certifies against the live Ledger, four `Issued` cases, and all 46 vocabulary codes, with the live-Ledger `Rejected` checkpoint cross-validated against the oracle for the first time since the Sprint began. **No Critical finding remains open.** Gate 11 (test coverage) is substantially strengthened by the reachability guarantee; Gate 13 (documentation accuracy) does not yet pass, pending `DOC-001`'s resolution; Gate 15 (full completion) is not yet reached, pending the four remaining Major/Minor findings.
+
+**Sprint 82 is Approved with Findings.** Per Work Item State Reconciliation for PASS WITH FINDINGS: Sprint status → Approved with Findings; Work Order → Completed; `BT-082-002` and `BT-082-003` → Completed (already/newly, acceptance criteria satisfied); open findings proceed as follow-up Builder/Documentation Tasks and do not block this approval. `IMPLEMENTATION_PLAN.md`'s Sprint 82 status is updated to reflect Approved with Findings. Sprint 82 sits outside the Initial Capability Sequence and advances no other Sprint to Current.
+
+### Builder Task Recommendation
+
+Remediation scope, in dependency order, via `nexus-sprint`: (1) `NEXUS-REV-0082-MAJ-002` (T11 cycle fixtures); (2) `NEXUS-REV-0082-MAJ-003` (T12/T14 commitment fixtures); (3) `NEXUS-REV-0082-MAJ-004` (agreement-corpus fixture completeness); (4) `NEXUS-REV-0082-MIN-001`, `-MIN-002`, `-MIN-003`, `-MIN-004`; (5) `NEXUS-REV-0082-DOC-001` last, once the evidence it describes exists. `NEXUS-REV-0082-MAJ-001`'s corresponding recovery item should be retired, not regenerated — it is resolved. All remediation falls within the existing 24-file authorized inventory; no new path and no further ratification is required. Stop Condition 8 continues to bind.
+
+---
+
+## NEXUS-REV-2026-08-07-001 — Sprint 82 — `BT-082-002` Certified Complete
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Follow-up cycle triggered by a fresh `/nexus-review` invocation after Builder execution of `BT-082-002`, the sole task opened by the Sprint Owner Resolution of 2026-08-06.
+- **Reviewed Change:** `test/kernel/governance/nccs1-conformance-vectors.test.ts` only — the sole file authorized by `BT-082-002`. No other file in the 24-file inventory, and no oracle module, changed.
+- **RFC Coverage:** RFC-0011 Final (Amended) v1.8 § Two Structurally Independent Implementations (lines 1355–1357); RFC-0003 § Canonical Serialization Protocol (NCCS-1) § Conformance Vectors (normative), lines 295–297. Unchanged from `NEXUS-REV-2026-08-06-001`.
+- **Review Date:** 2026-08-07
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged) — `BT-082-002`'s underlying finding is resolved; eight findings remain open and the Sprint does not pass as a whole.
+
+### Executive Summary
+
+`nccs1-conformance-vectors.test.ts` was rewritten in full, replacing the self-invented two-field record and
+manually derived hex literal with RFC-0003's actual normative Positive Vectors 4 (Unicode NFC equivalence), 5
+(line-ending equivalence), and 6 (order-insensitive collection ordering), each asserted against **both** the
+implementation encoders (`encodeNccsString`, `encodeNccsOrderInsensitiveStrings`) and the independent oracle
+encoders (`oracleString`, `oracleOrderInsensitiveStrings`) — 6 logical encoder/vector checks, 12 input-form
+assertions, organized as 3 `it()` cases (replacing the prior single case). The file's prior implementation-vs-oracle
+record cross-check was removed; the file now contains **no** agreement assertion of any kind, satisfying the
+requirement that agreement not be claimed before both encoders' vector checks pass.
+
+The Reviewer independently hand-reconstructed all three RFC-0003 vectors against the NCCS-1 encoding rules and
+confirms the hex values in the test file are correct: Vector 4 → `353a436166c3a9` (7 bytes, both precomposed
+`U+00E9` and decomposed `U+0065 U+0301` forms); Vector 5 → `31313a6c696e65310a6c696e6532` (14 bytes, both CRLF and
+LF forms); Vector 6 → `6c31393a636c6f636b2d736b65772d646574656374656434363a7265736f6c7574696f6e2d7761726e696e673a206f7074696f6e616c20736f7572636520756e7265736f6c76656465` (73 bytes, both input orderings). The targeted suite was
+independently re-executed and reproduces 3/3 test cases passing (12/12 assertions), confirming the values are not
+merely correct on paper but reproduced by the running encoders. Negative Vector N1 is correctly not exercised —
+`encodeNccsString` and `oracleString` accept a JavaScript `string`, and invalid UTF-8 octets cannot reach a
+string-typed surface; decoding has already occurred upstream of this Sprint's encoders.
+
+File-modification-time comparison confirms Stop Condition 10 compliance: `nccs1-conformance-vectors.test.ts` alone
+carries a timestamp newer than every other file in the 24-file inventory, including `oracle-agreement.test.ts` and
+`nccs1-encoder.oracle.ts`, both confirmed byte-for-byte structurally independent of `src/` (the oracle module
+imports only `node:crypto`). `oracle-agreement.test.ts` still runs exactly one `Issued` fixture against the
+declared agreement corpus — that is `NEXUS-REV-0082-CRIT-002`'s unresolved scope (`BT-082-003`), untouched by this
+task and correctly so.
+
+All repository validation was independently reproduced and passes: `npm run compile`, `npm run lint`,
+`npx vitest run test/kernel/governance/nccs1-conformance-vectors.test.ts` (3/3), `npx vitest run` (811/811 across
+134/134 non-extension files — up from the prior baseline of 809/809, a net +2 consistent with one `it()` case being
+replaced by three), `npm run build`, `npm run test:extension-host:build`. Zero regressions elsewhere in the suite.
+
+`NEXUS-REV-0082-CRIT-001` is **resolved**. Per Work Item State Reconciliation for FAIL, `BT-082-002` — successfully
+implemented and verified against its acceptance criteria — is marked **Completed**; `BT-082-003` is thereby
+unblocked. The eight remaining findings (`NEXUS-REV-0082-CRIT-002`, `-MAJ-001`, `-MAJ-002`, `-MAJ-003`, `-MIN-001`,
+`-MIN-002`, `-MIN-003`, `-DOC-001`) are untouched by this task's authorized scope and remain open exactly as
+recorded in `NEXUS-REV-2026-08-06-001`. **Sprint 82's overall disposition therefore remains FAIL / Rejected.**
+
+### Findings
+
+None new. `NEXUS-REV-0082-CRIT-001` is resolved (see above). The remaining eight findings of
+`NEXUS-REV-2026-08-06-001` — `NEXUS-REV-0082-CRIT-002`, `-MAJ-001`, `-MAJ-002`, `-MAJ-003`, `-MIN-001`, `-MIN-002`,
+`-MIN-003`, `-DOC-001` — are carried forward unchanged; see that entry for full text. No finding's Category,
+Severity, Authority, or Recommended Disposition is altered by this cycle.
+
+### Review Statistics
+
+- Files reviewed for delta: all 24 authorized paths — 1 changed (`nccs1-conformance-vectors.test.ts`), 23 unchanged
+  (confirmed by file-modification-time comparison).
+- Findings: 0 new; 1 resolved (`CRIT-001`); 8 carried forward open (1 Critical, 3 Major, 3 Minor, 1 Documentation).
+- Tests: targeted vector file 3/3 (12/12 assertions); full non-extension suite 811/811 across 134/134 files (net +2
+  over the 809/809 baseline, zero regressions).
+- Builder Task reconciliation: `BT-082-002` → Completed. `BT-082-003` → unblocked (still requires its own
+  remediation before it may be marked Completed). `BT-082-004`–`BT-082-009`, `DOC-082-001` → unchanged, still
+  gated by the mandatory order.
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-08-06-001`. No deferred or prohibited concept was introduced by this task. DEP1
+remains open, undischarged, and unnarrowed. DEP2's scope-free-only discharge is not broadened.
+
+### Architectural Compliance Summary
+
+`NEXUS-REV-0082-CRIT-001`'s RFC-0011 line 1355–1357 violation (prior-vector rule) is resolved. The one remaining
+architectural violation, `NEXUS-REV-0082-CRIT-002` (RFC-0011 line 1357 / Stop Condition 9, agreement-corpus scope),
+is unresolved and unaffected by this task. Sprint 82 remains **Rejected**. `IMPLEMENTATION_PLAN.md`'s Sprint-status
+marking remains unchanged by this Reviewer cycle, per the FAIL disposition rule (Plan is left unchanged; no sprint
+advances to Current). Remediation continues through the `nexus-sprint` workflow: `BT-082-003` is now the next
+executable task in the existing mandatory order.
+
+---
+
+## NEXUS-REV-2026-08-06-003 — Sprint 82 — No-Delta Re-Verification (Post-Owner-Resolution)
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Follow-up cycle triggered by a fresh `/nexus-review` invocation after the Sprint Owner Resolution of 2026-08-06 opened `BT-082-002`.
+- **Reviewed Change:** None in the authorized twenty-four-file inventory. `builder-task.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_MANIFEST.md` were updated by the Sprint Owner Resolution (planning/workflow state only, not source or test content); no Builder implementation occurred against `BT-082-002` or any other task.
+- **RFC Coverage:** Unchanged from `NEXUS-REV-2026-08-06-001`.
+- **Review Date:** 2026-08-06
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged)
+
+### Executive Summary
+
+This cycle independently confirms there is still no delta to the reviewed implementation. No file under
+`src/kernel/governance/ratification-authority-snapshot-issuance*.ts` or `test/kernel/governance/` is newer than
+`builder-task.md`'s last edit. `nccs1-conformance-vectors.test.ts` remains 22 lines, still cross-checking the two
+encoders only against the same self-constructed two-field record and manually derived hex literal identified in
+`NEXUS-REV-0082-CRIT-001` — no RFC-0003 normative vector has been substituted. `oracle-agreement.test.ts` remains
+unchanged at 31 lines. The targeted suite reproduces the identical 26/26 pass count across the identical 15 files.
+
+The Sprint Owner Resolution of 2026-08-06 changed **workflow eligibility only** — it opened `BT-082-002` as the
+sole currently executable recovery task and reconciled `IMPLEMENTATION_PLAN.md`/`IMPLEMENTATION_MANIFEST.md`'s
+Sprint 82 prose from "Implemented — Pending Reviewer Validation" to "Rejected / remediation authorized." That
+resolution did not itself alter, and could not have altered, the code the Reviewer evaluates. `BT-082-002` being
+executable is not the same as `BT-082-002` being complete; no evidence exists that it has been started.
+
+None of `NEXUS-REV-0082-CRIT-001`, `-CRIT-002`, `-MAJ-001`, `-MAJ-002`, `-MAJ-003`, `-MIN-001`, `-MIN-002`,
+`-MIN-003`, or `-DOC-001` is resolved. Per Work Item State Reconciliation for FAIL, unimplemented Builder Tasks
+remain Pending and are not reopened as new findings: `BT-082-002` remains Pending (open, not yet actioned);
+`BT-082-003` remains Blocked behind it; `BT-082-004` through `BT-082-009` remain Pending/not-executable per the
+mandatory order; `DOC-082-001` remains Blocked behind `BT-082-002`–`BT-082-009`. `BT-082-001` remains Failed and
+superseded. No new finding is raised.
+
+### Findings
+
+None new. All nine findings of `NEXUS-REV-2026-08-06-001` remain open and are carried forward unchanged; see that
+entry for full text. No finding's Category, Severity, Authority, or Recommended Disposition is altered by this
+cycle.
+
+### Review Statistics
+
+- Files reviewed for delta: all 24 authorized paths — 0 changed since `NEXUS-REV-2026-08-06-002`.
+- Findings: 0 new; 9 carried forward (2 Critical, 4 Major, 3 Minor).
+- Tests: 26/26 targeted across 15/15 files, identical to both prior cycles (unchanged, re-verified).
+- Planning-artifact changes observed and confirmed in scope: `builder-task.md`, `IMPLEMENTATION_PLAN.md`,
+  `IMPLEMENTATION_MANIFEST.md` (Sprint Owner Resolution, workflow/status text only — no architectural, ownership,
+  lifecycle, invariant, deferral, or RFC-meaning change; no new Ledger entry).
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-08-06-001`; this cycle touched no source, test, or oracle file.
+
+### Architectural Compliance Summary
+
+No architectural violation beyond the two already recorded (`NEXUS-REV-0082-CRIT-001`, `-CRIT-002`). Sprint 82
+remains **Rejected**. `IMPLEMENTATION_PLAN.md`'s Sprint-status marking remains unchanged by this Reviewer cycle
+(the Sprint Owner's own current-state reconciliation is a distinct, already-completed act, not a Repository State
+Update performed here). Remediation continues to proceed through the `nexus-sprint` workflow's existing
+`builder-task.md`, in the dependency order already recorded: (1) `BT-082-002`; (2) `BT-082-003`; (3) `BT-082-004`–
+`-006`; (4) `BT-082-007`–`-009`; (5) `DOC-082-001` last.
+
+---
+
+## NEXUS-REV-2026-08-06-002 — Sprint 82 — No-Delta Re-Verification
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Follow-up cycle triggered by a fresh `/nexus-review` invocation with no intervening Builder work.
+- **Reviewed Change:** None. No file under the authorized twenty-four-file inventory, `builder-task.md`, or any governance artifact changed after `NEXUS-REV-2026-08-06-001` was recorded.
+- **RFC Coverage:** Unchanged from `NEXUS-REV-2026-08-06-001`.
+- **Review Date:** 2026-08-06
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Overall Disposition:** FAIL (unchanged)
+
+### Executive Summary
+
+This cycle independently confirms there is no delta to review. `find src/kernel/governance test/kernel/governance -newer REVIEW_HISTORY.md` returns no result — every Sprint 82 source and test file predates `NEXUS-REV-2026-08-06-001`'s own write to this log. `git status` shows the identical untracked/modified set (the same 24 delivered files plus the four Builder-owned governance artifacts). The targeted suite reproduces the identical 26/26 pass count across the identical 15 files. `nccs1-conformance-vectors.test.ts` and `oracle-agreement.test.ts` are byte-identical to the versions already found deficient.
+
+None of `NEXUS-REV-0082-CRIT-001`, `-CRIT-002`, `-MAJ-001`, `-MAJ-002`, `-MAJ-003`, `-MIN-001`, `-MIN-002`, `-MIN-003`, or `-DOC-001` is resolved. Per Work Item State Reconciliation for FAIL, unimplemented Builder Tasks remain Pending and are not reopened as new findings; `BT-082-002` and `BT-082-003` remain Blocked; `BT-082-004` through `BT-082-009` remain Pending/Open; `DOC-082-001` remains Blocked behind the two Critical findings. `BT-082-001` remains Failed and superseded. No new finding is raised.
+
+### Findings
+
+None new. All nine findings of `NEXUS-REV-2026-08-06-001` remain open and are carried forward unchanged; see that entry for full text.
+
+### Review Statistics
+
+- Files reviewed for delta: all 24 authorized paths plus `builder-task.md` — 0 changed.
+- Findings: 0 new; 9 carried forward (2 Critical, 4 Major, 3 Minor).
+- Tests: 26/26 targeted across 15/15 files, identical to `NEXUS-REV-2026-08-06-001` (unchanged, re-verified).
+
+### Deferred Concept Validation
+
+Unchanged from `NEXUS-REV-2026-08-06-001`; this cycle touched no source, test, or oracle file.
+
+### Architectural Compliance Summary
+
+No architectural violation of an RFC-owned concept beyond the two already recorded (`NEXUS-REV-0082-CRIT-001`, `-CRIT-002`). Sprint 82 remains **Rejected**. `IMPLEMENTATION_PLAN.md` remains unchanged, unchanged in this cycle. Remediation continues to proceed through the `nexus-sprint` workflow's existing `builder-task.md`, in the dependency order already recorded: (1) `BT-082-002`; (2) `BT-082-003`; (3) `BT-082-004`–`-006`; (4) `BT-082-007`–`-009`; (5) `DOC-082-001` last.
+
+---
+
+## NEXUS-REV-2026-08-06-001 — Sprint 82 — Ratification Authority Snapshot Issuance Capability (SGP-1)
+
+- **Reviewed Sprint:** Sprint 82 — Milestone 12 Independent Supporting-Governance Prerequisite Track (SGP-1) — Ratification Authority Snapshot Issuance Capability. Activated by `NEXUS-RAT-2026-08-06-002`; scope defined by `NEXUS-RAT-2026-08-06-001`.
+- **Reviewed Vertical Slice:** The pure Boundary A `RatificationAuthoritySnapshotIssuance` Kernel library capability — 4 implementation files, 13 test files, 7 conformance-oracle files (24 of 24 authorized paths delivered, none outside the inventory).
+- **RFC Coverage:** Primary — RFC-0011 Final (Amended) v1.8 § Ratification Authority Snapshot Issuance. Referenced, read-only — RFC-0003 § Canonical Serialization Protocol (NCCS-1) rules 1–12 and its normative Conformance Vectors.
+- **Review Date:** 2026-08-06
+- **Reviewer:** Reviewer AI (Claude Code)
+- **Branch / Commit:** `copilot/push-committed-changes-20260710` @ `34b814e` (delivery uncommitted in working tree)
+- **Overall Disposition:** FAIL
+
+### Executive Summary
+
+The delivered **implementation code is largely conformant** and, in several respects, of high quality. Independently verified as conforming: governed source preparation including BOM-at-any-offset and `fatal:true` UTF-8 decode (`ratification-authority-snapshot-issuance.ts:181-216`); the eight-phase model, whose phase order in `ratification-authority-snapshot-issuance.types.ts:7-16` matches RFC-0011 exactly and which executes sequentially, returning at the first failing phase rather than collect-then-pick (`:96-159`); the normative DFS cycle-selection algorithm with open/closed marking and stack-based path reconstruction (`:1176-1226`); the three commitment layers, where `authorityRootBasis` (`:926-933`) provably excludes `capturedAt` and `producingAttribution` while `envelopeCommitmentBasis` (`:935-944`) includes both; the absence of any clock read; the `Issued`/`Rejected` shapes against the RFC field lists; Boundary A import isolation; and the Sprint 54 naming boundary, with `RatificationAuthorityRecord` untouched and structurally distinct from the v3 record union.
+
+All repository validation was independently reproduced and passes: `npm run compile`, `npm run lint`, `npm run build`, `npm run test:extension-host:build`, 26/26 targeted tests across 15/15 files, 809/809 full non-extension suite across 134/134 files. The live-Ledger conformance checkpoint result was independently re-executed by the Reviewer and reproduces the Builder's reported value exactly: `Rejected` · `identifier-grammar-violation` · phase `EntryStructure` · precedence `1` · payload `{"payloadKind":"EntryPayload","ratificationIdentifier":"NEXUS-RAT-2026-08-04-001"}`. That `Rejected` outcome is a legitimate, informative Sprint outcome under Acceptance Evidence item 2 and Stop Condition 8, and is correctly not written into the Ledger.
+
+The Sprint nevertheless **fails** on a ground independent of code quality: **the certification evidence RFC-0011 makes normative for this contract does not exist, while the Sprint Implementation Record and `IMPLEMENTATION_REPORT.md` affirmatively state that it does.** RFC-0011 line 1355–1357 requires two structurally independent implementations agreeing on the complete public result field for field, each cross-checked against RFC-0003's normative Conformance Vectors **before** any agreement is claimed. Neither half of that obligation is met. `nccs1-conformance-vectors.test.ts` uses no RFC-0003 vector at all — it checks a self-invented two-field record against a manually derived hex string, while RFC-0003 § Conformance Vectors (normative) publishes six positive vectors and states a conforming implementation "SHALL reproduce every value below exactly." Vectors 4, 5, and 6 test precisely the primitives this Sprint implements (NFC equivalence, line-ending equivalence, order-insensitive collection ordering) and are simply unused. Independently, `oracle-agreement.test.ts` runs exactly one `Issued` fixture, never a `Rejected` one, against a Sprint-declared agreement corpus of "the live Ratification Ledger at the Sprint's exact revision; every fixture exercising T1–T20; and every code in the closed public vocabulary." This directly triggers Stop Condition 9, which the Sprint record itself states "destroys the independence evidence RFC-0011 line 1357 requires."
+
+Test coverage is materially thinner than the Sprint claims across the board. Of the 46 codes in the closed public vocabulary, **11 are asserted by any test**; 35 are unreachable by the suite, including every cycle diagnostic. T18 requires every code reachable by at least one test; the T18 test instead asserts the vocabulary array has length 46 and that one emitted code is a member of it — it does not exercise the vocabulary. T11's explicit requirements — "a multi-cycle source returns the exact normatively selected path" and "`closed`-marking hides no cycle" — are asserted by zero tests, despite the underlying DFS appearing correct. T12's "duplicate fingerprint fails closed" and T14's ordering terms and "supply-order independence of the root" are likewise unasserted. Two genuine code defects also exist in the contract-violation partition (Sprint scope item 14), including a path that would throw rather than fail closed.
+
+The disposition turns on evidence and accuracy, not on architecture. No RFC-owned concept is redefined, no ownership boundary is crossed, no deferred concept is introduced, and DEP1 is correctly preserved undischarged.
+
+### Findings
+
+#### `NEXUS-REV-0082-CRIT-001` — RFC-0003 Conformance Vectors are never used; Stop Condition 9 triggered
+
+- **Category:** Architectural Violation
+- **Severity:** Critical
+- **Authority:** RFC-0011 § Two Structurally Independent Implementations (line 1355–1357); RFC-0003 § Conformance Vectors (normative), line 295–297; Sprint 82 Record § The Second Structurally Independent Implementation (prior-vector rule), § Acceptance Criteria T21, § Stop Conditions 9.
+- **Summary:** The prior-vector rule is unsatisfied. `test/kernel/governance/nccs1-conformance-vectors.test.ts:6-22` cross-checks the two encoders only against a self-constructed two-field record and a manually derived hex literal. It uses none of RFC-0003's six published positive vectors or its negative vector.
+- **Evidence:** `nccs1-conformance-vectors.test.ts:8-20` constructs `[['fieldOne','value'],['fieldTwo','Active']]` and asserts hex `7269326538...`. RFC-0003 lines 295–297 declare the vectors normative and require exact reproduction; Vector 4 (`rfc-0003:365-367`, NFC equivalence, `353a436166c3a9`), Vector 5 (`:369-371`, line-ending equivalence, `31313a6c696e65310a6c696e6532`), and Vector 6 (`:373-375`, order-insensitive `diagnostics` ordering) map directly onto `encodeNccsString` and `encodeNccsOrderInsensitiveStrings` (`ratification-authority-snapshot-issuance.contract.ts:131-163`).
+- **Impact:** RFC-0011 conditions the agreement claim on both encoders passing the RFC-0003 vector checks first. Because those checks never ran, the agreement reported between implementation and oracle rests on no external anchor — both could share an identical misreading of NCCS-1 and still agree. Stop Condition 9 is met on its face; the Sprint record states this "destroys the independence evidence RFC-0011 line 1357 requires."
+- **Recommended Disposition:** Blocked Builder Task.
+- **Builder Action:** Replace the invented vector with RFC-0003's actual normative vectors, at minimum Positive Vectors 4, 5, and 6 (the primitives within this Sprint's encoders), asserted independently for both the implementation encoder and the oracle encoder, and ordered so both pass before any agreement assertion executes.
+
+#### `NEXUS-REV-0082-CRIT-002` — Oracle agreement covers one fixture, not the declared agreement corpus
+
+- **Category:** Architectural Violation
+- **Severity:** Critical
+- **Authority:** RFC-0011 line 1355–1357 ("the complete public result, field for field"); Sprint 82 Record § Agreement corpus, § Acceptance Criteria T21, § Completion Requirements item 1.
+- **Summary:** `test/kernel/governance/issuance-oracle/oracle-agreement.test.ts` contains exactly one test case over a single trivially-`Active` entry, against a declared corpus of the live Ledger plus every T1–T20 fixture plus every vocabulary code.
+- **Evidence:** `oracle-agreement.test.ts:17-29` — one `it()`, one `oracleSourceForSingleActiveEntry()` fixture, one `toEqual`. No `Rejected` result is ever compared. The Sprint record's corpus definition is at `sprint-0082-...md:288-289`.
+- **Impact:** The comparison depth is correct where it runs (`toEqual` on the whole result satisfies the "no digest-only comparison" prohibition), but the breadth is a fraction of what is claimed. Most consequentially, the Sprint's headline evidence — the live-Ledger checkpoint returning `identifier-grammar-violation` — was **never cross-validated against the oracle**, since no `Rejected` path and no live-corpus input is in the agreement test. The one certification RFC-0011 demands for this contract is therefore not in evidence for the result the Sprint actually reports.
+- **Recommended Disposition:** Blocked Builder Task.
+- **Builder Action:** Extend agreement to the declared corpus: the live Ledger at the Sprint revision (which must reproduce the `Rejected` result field for field, including `diagnosticPayload` and its canonical rendering), every T1–T20 fixture, and every emitted vocabulary code.
+
+#### `NEXUS-REV-0082-MAJ-001` — T18 is not satisfied; 35 of 46 vocabulary codes are unreachable by any test
+
+- **Category:** Implementation Defect (test coverage)
+- **Severity:** Major
+- **Authority:** Sprint 82 Record § Acceptance Criteria T18 ("Every code in the closed public vocabulary reachable by at least one test"); `IMPLEMENTATION_GATE.md` Gate 11.
+- **Summary:** Only 11 Sprint 82 diagnostic codes are asserted anywhere: `invalid-input`, `byte-order-mark-present`, `unterminated-fenced-region`, `missing-section`, `missing-subject`, `generic-rule-conflict`, `status-binding-mismatch`, `absent-relation-target`, `unresolved-lifecycle`, `malformed-capture-instant`, `malformed-attribution`. The T18 test asserts vocabulary *cardinality*, not reachability.
+- **Evidence:** `ratification-authority-snapshot-issuance-diagnostics.test.ts:31-41` asserts `toHaveLength(46)` and that a single emitted code is a member of the array. Unasserted codes include all of `no-entries`, `duplicate-section`, `missing-identifier`, `identifier-grammar-violation`, `identifier-heading-mismatch`, `malformed-date`, `malformed-status`, `duplicate-entry-identifier`, the twelve remaining `DeclarationGrammar` scope/segment codes, `declarant-not-effective`, `self-referential-declaration`, `cyclic-declaration-authority`, `absent-declaration-subject`, `duplicate-declaration`, `self-referential-relation`, and `cyclic-lifecycle-relation`.
+- **Impact:** `identifier-grammar-violation` — the code the live checkpoint actually returns and which the Sprint reports as its principal finding — has no unit test of its own. Five of the eight § Governed declarations codes named in scope item 7 are unverified.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Add fixtures reaching every code in the closed vocabulary, and rewrite the T18 test to assert reachability rather than array length.
+
+#### `NEXUS-REV-0082-MAJ-002` — T11 cycle requirements untested in both graphs
+
+- **Category:** Implementation Defect (test coverage)
+- **Severity:** Major
+- **Authority:** Sprint 82 Record § Acceptance Criteria T11; RFC-0011 § Two Distinct Graphs.
+- **Summary:** The sole T11 test file contains one test, covering `absent-relation-target` only. No test constructs a cycle in either graph.
+- **Evidence:** `ratification-authority-snapshot-issuance-graphs.test.ts:10-28` — one `it()`, asserting a two-element `RelationPathPayload`. The DFS at `ratification-authority-snapshot-issuance.ts:1176-1226` implements open/closed marking and normative path selection, but no test exercises it.
+- **Impact:** T11's two explicit obligations — "a multi-cycle source returns the exact normatively selected path" and "`closed`-marking hides no cycle" — carry zero verification. Cycle selection is the most intricate deterministic behavior in the slice and the most likely to drift silently.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Add multi-cycle fixtures for the declarant-authority and lifecycle-relation graphs, asserting the exact normatively selected path, plus a `closed`-marking regression fixture.
+
+#### `NEXUS-REV-0082-MAJ-003` — T12 and T14 obligations partially unasserted
+
+- **Category:** Implementation Defect (test coverage)
+- **Severity:** Major
+- **Authority:** Sprint 82 Record § Acceptance Criteria T12, T14; RFC-0011 § Deterministic Ordering, § Authority Root and Envelope Commitment.
+- **Summary:** `ratification-authority-snapshot-issuance-commitments.test.ts` carries the mapping for both T12 and T14 but contains two tests, both T12. T12's "duplicate fingerprint fails closed" is unasserted, and T14 is unasserted entirely.
+- **Evidence:** `commitments.test.ts:18-37` — prefix shapes, and root-invariance/commitment-variance under two `capturedAt` values (this one is a genuine algorithmic check, not test theater). Nothing exercises NCCS-1 rule 6 collection order or supply-order independence of the root.
+- **Impact:** T14's "supply-order independence of the root" is inferable from the sort-before-encode logic at `contract.ts:146-163` but never demonstrated; determinism under reordering is the property the authority root exists to guarantee.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Add a supply-order-independence test producing equal roots from differently ordered equivalent sources, and a duplicate-fingerprint fail-closed test.
+
+#### `NEXUS-REV-0082-MIN-001` — `internal-invariant-violation` path throws rather than failing closed
+
+- **Category:** Implementation Defect
+- **Severity:** Minor
+- **Authority:** RFC-0011 § Contract Violations (lines 1316–1325); Sprint 82 Record scope item 14 ("the closed public vocabulary and the contract-violation partition"), § Deterministic Failure Behavior ("Issuance is total").
+- **Summary:** `ratification-authority-snapshot-issuance.ts:923` calls `reject('internal-invariant-violation' as never, noPayload())`, but that code has no entry in `ratificationAuthoritySnapshotDiagnosticMetadata` and no corresponding phase exists.
+- **Evidence:** `contract.ts:94-99` performs `ratificationAuthoritySnapshotDiagnosticMetadata[code]` then reads `metadata.phase`; for this code the lookup is `undefined`, raising a `TypeError` that escapes the boundary. The `as never` cast is what allows it past the type system.
+- **Impact:** Practically unreachable — it requires duplicate record fingerprints, and record identifiers are already unique by the time it runs, so a SHA-256 collision would be needed. But as written the path produces the one outcome the contract forbids: an exception escaping instead of a total result. The code is broken, not merely dead.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Represent the three contract-violation codes explicitly and return a well-formed fail-closed result, or remove the unreachable branch with a justification recorded.
+
+#### `NEXUS-REV-0082-MIN-002` — `undeclared-diagnostic` substitution rule has no working implementation
+
+- **Category:** Implementation Defect
+- **Severity:** Minor
+- **Authority:** RFC-0011 line 1322 ("A code emitted outside the declared vocabulary SHALL be replaced by `undeclared-diagnostic` rather than passed through").
+- **Summary:** `assertKnownDiagnosticCode` (`contract.ts:242-250`) is never called anywhere, and would in any case map an unknown code to `invalid-input` rather than `undeclared-diagnostic`.
+- **Evidence:** Repository-wide grep returns exactly one occurrence — its own definition. `undeclared-diagnostic` appears nowhere in `src/`.
+- **Impact:** The RFC's substitution rule is unimplemented, and the one function that gestures at it is both unwired and semantically wrong. Low practical risk given the closed union, but it is dead code carrying an incorrect mapping.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Either wire the substitution correctly to `undeclared-diagnostic` or remove the function.
+
+#### `NEXUS-REV-0082-MIN-003` — T6 negative test does not test what it claims
+
+- **Category:** Implementation Defect (test coverage)
+- **Severity:** Minor
+- **Authority:** Sprint 82 Record § Acceptance Criteria T6 ("negative test that no API surface accepts a caller-supplied declaration object").
+- **Summary:** The T6 negative test adds an unrecognized top-level key and observes `malformed-attribution`, which exercises the T13 unrecognized-declared-field rule, not the absence of a declaration channel.
+- **Evidence:** `ratification-authority-snapshot-issuance-declarations.test.ts:81-93`.
+- **Impact:** The underlying property does hold — the sole export takes `input: unknown` and no declaration-shaped parameter exists (`ratification-authority-snapshot-issuance.ts:93`; `contract.ts` exports only encoders and metadata) — so this is a test-accuracy defect, not a contract breach.
+- **Recommended Disposition:** Builder Task.
+- **Builder Action:** Assert the property directly against the public surface.
+
+#### `NEXUS-REV-0082-DOC-001` — Sprint record and Implementation Report overstate delivered evidence
+
+- **Category:** Documentation Drift
+- **Severity:** Major
+- **Authority:** `IMPLEMENTATION_GATE.md` Gate 13; `IMPLEMENTATION_CONSTITUTION.md` § Sprint Specifications.
+- **Summary:** Both documents assert acceptance evidence that the suite does not provide, and record "No architectural deviations."
+- **Evidence:** `sprint-0082-...md:417` and `IMPLEMENTATION_REPORT.md:76` report "26/26 tests across 15/15 authorized Sprint 82 test files, including the conformance oracle independence and complete-result agreement tests"; `sprint-0082-...md:378-380` asserts Completion Requirement 1 is met "across the agreement corpus... both encoders cross-checked against RFC-0003's Conformance Vectors **before** agreement is reported." Neither holds, per `NEXUS-REV-0082-CRIT-001` and `-CRIT-002`. `sprint-0082-...md:422` claims Gate 11 evidenced by the full suite, while 35 of 46 vocabulary codes and all cycle behavior are unexercised.
+- **Impact:** The counts stated are literally true but are presented as satisfying obligations they do not satisfy. A future reader inherits a false record of certification for a contract whose entire point is verifiable determinism.
+- **Recommended Disposition:** Documentation Task (blocked behind the two Critical findings).
+- **Builder Action:** After remediation, restate acceptance evidence to match what the suite actually verifies.
+
+### Review Statistics
+
+- Files reviewed: 24 delivered (4 implementation, 13 test, 7 oracle) + 4 Builder-modified governance artifacts.
+- Findings: 9 — Critical 2, Major 4, Minor 3.
+- Vocabulary coverage: 11 of 46 codes asserted (23.9%).
+- Acceptance criteria not satisfied: T6 (partial), T11, T12 (partial), T14, T18, T21.
+- Validation independently reproduced: compile, lint, build, extension-host build, 26/26 targeted, 809/809 full non-extension suite — all pass.
+- Live checkpoint independently re-executed and reproduced exactly.
+- Authorized file inventory: 24 of 24 delivered; 0 files outside the inventory created or modified.
+
+### Deferred Concept Validation
+
+No deferred or prohibited concept was introduced. Confirmed absent: production Snapshot issuance; any authority-root, envelope-commitment, or record-fingerprint pin (no commitment value appears in `RATIFICATION_LEDGER.md`); consumer-side schema-version readability and v1/v2 refusal; the V1–V9 Consumption Correspondence; Repository Policy Selection and Pre-Use Verification; Repository Policy Corpus Source assembly; scope-bearing Ratification references; host, adapter, Domain Event, and durable-persistence surfaces; `createKernelServices()` composition. `src/kernel/common/create-kernel-services.ts` and `test/integration/kernel-boundary-certification.integration.test.ts` are unmodified. No Sprint 54 module was changed, and issuance never returns `Valid`/`Invalid`/`Unresolvable`. **DEP1 remains open, undischarged, and unnarrowed**, and is correctly described as such throughout. DEP2's scope-free-only discharge is not broadened.
+
+### Architectural Compliance Summary
+
+No architectural violation of an RFC-owned *concept* was detected. Aggregate ownership, terminology (Gate 3), capability boundaries (Gate 8), determinism (Gate 10), and the Sprint 54 ownership boundary are all preserved; the v3 record union and Sprint 54's `RatificationAuthorityRecord` remain two distinct structures, neither merged, aliased, renamed, nor re-typed. Boundary A holds in full.
+
+The two Critical findings are violations of RFC-0011's **certification** requirements rather than of its domain model: the RFC does not merely recommend two independently vector-checked implementations, it makes that the conformance condition for this contract, and the Sprint's own Stop Condition 9 treats its absence as disqualifying. Gate 11 and Gate 13 do not pass. Gate 15 cannot be reached.
+
+Sprint 82 is **Rejected**. `IMPLEMENTATION_PLAN.md` is left unchanged, no sprint is advanced to Current, and remediation SHALL proceed through the `nexus-sprint` workflow. The delivered code is a sound foundation and the remediation is additive — chiefly real conformance vectors, a broadened agreement corpus, and the missing fixtures — with only two small code corrections required.
+
+### Builder Task Recommendation
+
+Remediation scope, in dependency order: (1) `NEXUS-REV-0082-CRIT-001`; (2) `NEXUS-REV-0082-CRIT-002`; (3) `NEXUS-REV-0082-MAJ-001`, `-MAJ-002`, `-MAJ-003`; (4) `NEXUS-REV-0082-MIN-001`, `-MIN-002`, `-MIN-003`; (5) `NEXUS-REV-0082-DOC-001` last, once the evidence it describes exists. All remediation falls within the existing 24-file authorized inventory; no new path and no further ratification is required. Stop Condition 8 continues to bind — the live corpus's `identifier-grammar-violation` SHALL NOT be "fixed" by any Builder edit to a governed Ledger entry.
+
+---
+
 ## NEXUS-REV-2026-07-22-005 — Sprint 81 — `DOC-081-002` Resolution Verification
 
 - **Reviewed Sprint:** Sprint 81 — Milestone 12 Initial Capability Sequence Step 3 (Narrowed, Final) — Corpus Review Structural Foundation. Follow-up cycle verifying `builder-task.md`'s one Open item, `DOC-081-002`, generated from `NEXUS-REV-2026-07-22-004`'s one finding (`NEXUS-REV-0081-DOC-001`).
