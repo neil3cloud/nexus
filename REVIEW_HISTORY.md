@@ -2,6 +2,62 @@
 
 ---
 
+## NEXUS-REV-2026-08-11-001 — Governance — `NEXUS-RAT-2026-08-10-002` Application and Commit Record
+
+- **Reviewed Sprint:** None. This entry records a governance instrument, not a Sprint implementation review. Sprint 82 remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing in this entry alters that disposition.
+- **Reviewed Change:** Application of ratification instrument `NEXUS-RAT-2026-08-10-002` (Sprint 82 Builder task-boundary repair), accepted package SHA-256 `2663b40934201e8fa8f4d91bd8e5567686386f799352a5f57ab73f5db7a36610`, at authorized extent of one Ledger append plus six `builder-task.md` application sites `S1` through `S6`, to `knowledge/governance/RATIFICATION_LEDGER.md` and `builder-task.md`; subsequently committed as `c5e5b41500ac38322fd3c9147db963593f662cbe`.
+- **RFC Coverage:** None amended. This instrument changes delivery sequencing and evidence allocation only. RFC-0011 remains Final (Amended) v1.9 as established by `NEXUS-RAT-2026-08-10-001`; no RFC, Kernel Canon document, Sprint record, implementation plan, manifest, report, or gate was touched.
+- **Review Date:** 2026-08-11
+- **Reviewer:** Reviewer AI (Claude Code), recording independently verified state
+- **Overall Disposition:** **RECORDED — APPLIED, APPROVED, AND COMMITTED.** No architectural violations detected.
+
+### Governance Chronology
+
+1. **Reconciliation.** The predecessor package SHA-256 `cd9f840c89f8ef42bf8692a6e6c025bd60d760b2598fde2d5d387170debdc7a4` was returned **APPROVE WITH NAMED CORRECTIONS** on named correction `NC1`: the proposed permanent entry stated the expected Ledger line count as the pinned 23,769 plus the entry line count plus 2, which contradicts its own constructive append rule. The pinned Ledger ends in LF and the mandated separator `LF + --- + LF + LF` contributes three LF bytes, so the correct arithmetic is `23,769 + 3 + 517 = 24,289`. Exactly one character was corrected, `plus 2.` to `plus 3.`; Artifact 2 remained byte-identical.
+2. **Owner acceptance.** The repository owner accepted the corrected package at SHA-256 `2663b409…` and named Claude as governance applier, binding Artifact 1 at SHA-256 `174f2519f10f043400de75af129cf8e591100cd33d32032214cfa8fe23debd5a` (517 lines, 28,418 bytes) and Artifact 2 at SHA-256 `08673cfa3c6da0c2ff66cf2f6548c150f58e6670eed36c9ce179fa9226830f55` (156 lines, 7,289 bytes), with Artifact 2 required to remain byte-identical to Artifact 1's complete § Application Sites section.
+3. **Application.** All preconditions passed with zero failures at pinned HEAD `f0dd99ac394a486790658f545794f74d0b3ae980`. The Ledger append was written first, then sites `S1` through `S6` in order, one write per site, with each `FIND` block's uniqueness re-verified immediately before its own write. Both targets were copied byte-for-byte to verified scratch backups beforehand; `git checkout --` was excluded as a restoration mechanism.
+4. **Independent post-application review.** Codex returned disposition **APPROVE** with no Blocking, Major, or Minor findings and **no named corrections**, independently re-verifying both output blobs, the exact `0A-2D-2D-2D-0A-0A` separator, zero CR bytes in both targets, and all 27 non-target files still at their recorded hashes. Binding direction: the applied state may stand and the targets must **not** be restored.
+5. **Commit.** The two targets were committed as `c5e5b41500ac38322fd3c9147db963593f662cbe`, parent `f0dd99ac394a486790658f545794f74d0b3ae980`, whose diff against its parent contains exactly those two paths and no third, at the approved blobs.
+
+### Verified Artifact Result
+
+| Target | Pinned pre-application blob | Approved blob | Committed blob | Lines | Result |
+| --- | --- | --- | --- | ---: | --- |
+| `knowledge/governance/RATIFICATION_LEDGER.md` | `954f81f5e00373ac2c04ffd80501def3c751027d` | `9feca6d533aa0387d5317d4ee7a8aee12c1371e3` | `9feca6d533aa0387d5317d4ee7a8aee12c1371e3` | 24,289 | MATCH |
+| `builder-task.md` | `b1679043797fdf41906b0c720b4f8355440a9d98` | `1c59f0bb4e6126ed32ef09782bb2119111d6c3ab` | `1c59f0bb4e6126ed32ef09782bb2119111d6c3ab` | 1,176 | MATCH |
+
+Content SHA-256 cross-checks, independently reproduced: Ledger `7f09b216e2ce221215360f2b04f1913156a0a981d4f12bdd627a6dad3ddeca69` at 2,086,472 bytes; `builder-task.md` `dca7ef42e01833c3ab89ffac0ea77f8908b2618424ca5d5bc20b90b152dcb7f9` at 83,615 bytes. The working-tree copy of each target is byte-identical to the committed blob. `NEXUS-RAT-2026-08-10-002` is recorded `Active` in the appended Ledger entry, dated `2026-08-10`; top-level ratification headings advanced 145 → 146.
+
+### Verified Closure Conditions
+
+- **Append-only.** The pinned 23,769-line Ledger octets are an exact byte prefix of the result, and whole-file constructive equality `pinned + LF + --- + LF + LF + Artifact 1` holds. No prior entry's octets, `## Current Status`, or declaration block was altered.
+- **Line-count arithmetic.** `23,769 + 3 + 517 = 24,289`, matching the corrected `NC1` formula now carried in the permanent entry.
+- **Site closure.** Six of six `FIND` blocks matched exactly once before application and zero times after; each `REPLACE` was absent before and occurs exactly once after.
+- **Zero-stale.** The superseded literal ``(1) `BT-082-006`; (2) `BT-082-010`;`` occurs zero times.
+- **One-enumeration.** Exactly one operative task-order enumeration survives, in `builder-task.md` § Builder Instructions, items 1 through 10, with `BT-082-007` first and marked "Nothing else may precede it."
+- **Reference closure.** Every internal `§` reference in the appended entry resolves to a heading of that entry, and no external proposal document is cited as application authority.
+- **Non-target closure.** The complete non-target working-tree path set and its per-path hashes were recorded before and after application and are identical; the delta was bounded to the two authorized targets throughout.
+
+### Recorded Sequencing Effect
+
+The instrument establishes the binding Sprint 82 follow-up order `BT-082-007` → `BT-082-008` → `BT-082-006` → `BT-082-010` → `BT-082-009` / `BT-082-011` / `BT-082-012` → `DOC-082-001`, with nothing permitted to precede or be bundled with `BT-082-007`. This is a sequencing constraint recorded here for reference; it is **not** an activation, and it does not itself dispatch any Builder task.
+
+### Findings
+
+None. No Critical, Major, or Minor finding arises from this instrument.
+
+### Observations (non-blocking)
+
+1. **Verifier defect, not a governed-condition failure.** The applier's first internal reference-closure checker reported a red result. That result did not establish a failure of the governed condition; it established that the checker implemented the wrong predicate — it ignored the "internal" qualifier, treating externally qualified references such as `RFC-0011 v1.9 § Diagnostic Phases`, `` `builder-task.md` § Builder Instructions ``, `` `package.json` § scripts ``, and `NEXUS-REV-2026-08-07-003 § Builder Task Recommendation` as internal, and over-captured trailing prose into section names. Independent classification of the entry yields 12 externally qualified references, 9 internal references that all resolve, and 1 literal `§` token in the condition's own wording. Both limbs pass. The applier declared the anomaly and offered restoration rather than proceeding silently, and the governing principle is recorded here: **a verifier implementation error must be reported as an invalid verifier result, never labelled as a governed-condition failure and then resolved by after-the-fact semantic adjudication.** The faulty checker has been retired and replaced with an implementation carrying three outcomes — pass, fail, and indeterminate — with its adjudications encoded as reviewable data rather than embedded in a pattern. That tooling is scratch-only and is not a repository artifact.
+2. **Line-ending durability gap outside `knowledge/`.** `.gitattributes` pins `knowledge/**/*.md text eol=lf` under `NEXUS-RAT-2026-08-02-001`, but root-level `builder-task.md` — and this file, `REVIEW_HISTORY.md` — are outside that pin and report `text: unspecified, eol: unspecified`. Both are LF on disk at their attested blobs today, so no digest recorded in this entry is affected. The residual risk is that a CRLF checkout would silently diverge a working copy from the blob a Ledger entry attests to while `git status` still reads clean — the precise failure mode `NEXUS-RAT-2026-08-02-001` closed for `knowledge/`. This is recorded for a separate owner-directed governance review; it is not corrected here, and it must not be closed by an informal `.gitattributes` edit.
+3. **Counting-basis imprecision in the permanent entry.** The appended entry's evidence paragraph for the one-enumeration condition describes its candidate-line scan as lines naming "three or more `BT-082-` identifiers" while the condition's normative definition says "three or more **distinct**" identifiers. One line differs between the two bases: it carries four identifier occurrences but only two distinct `BT-082-` identifiers. Both bases classify that line as a non-enumeration, so the condition's outcome is unaffected on either reading. This is permanent explanatory imprecision in the Ledger text, not a failed invariant, and requires no corrective instrument.
+
+### Scope Boundary
+
+This entry records completed governance acts only. It does **not** authorize, and no part of it effects, Sprint 82 activation, Builder work on `BT-082-007` or any other task, Copilot dispatch, or any push, branch, or merge operation. Each remains a separate owner-controlled act. Commit `c5e5b415…` is unpushed as of this entry's review date.
+
+---
+
 ## NEXUS-REV-2026-08-10-001 — Governance — `NEXUS-RAT-2026-08-10-001` Revision 11 Application and Commit Record
 
 - **Reviewed Sprint:** None. This entry records a governance instrument, not a Sprint implementation review. Sprint 82 remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing in this entry alters that disposition.
