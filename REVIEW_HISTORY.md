@@ -2,6 +2,55 @@
 
 ---
 
+## NEXUS-REV-2026-08-11-003 — Sprint 82 — `BT-082-007` Approved at PR #8 Head `921db2cd…` (RFC-0011 v1.10 Correction)
+
+- **Reviewed Sprint:** Sprint 82 — Ratification Authority Snapshot Issuance Capability. This entry records an implementation review of Builder task `BT-082-007` (Commitment phase and contract-violation checks) at a specific approved head. Sprint 82's own disposition remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing here alters it.
+- **Reviewed Change:** PR #8 (`copilot/bt-082-007-implement-commitment-phase` → `copilot/push-committed-changes-20260710`) through head `921db2cdec6b92c1ae51069624f8c504058035ed`, "feat(BT-082-007): RFC-0011 v1.10 code-aware empty field admission", single parent `658dd5d973c031fb31fab2774c6241f807ca9a9a`; and the cumulative `BT-082-007` delta relative to `ee73806e928cd8ef4de9995228ea3c3cf2dcf565`.
+- **RFC Coverage:** RFC-0011 **Final (Amended) v1.10** § Contract Violations rule 5, as amended by `NEXUS-RAT-2026-08-11-001` Revision 3 and committed as `2366925e7f9cfcc855a2607ece66c5e123d3eef1`. No RFC, Kernel Canon document, Ledger entry, Sprint record, implementation plan, manifest, report, or gate was modified by the reviewed commit.
+- **Review Date:** 2026-08-11
+- **Reviewer:** Reviewer AI (Claude Code), implementation review; Codex, Final Owner Review
+- **Overall Disposition:** **APPROVED AT THIS HEAD.** Codex returned **APPROVE** with **no Blocking, Major, or Minor findings** and no named corrections. No architectural violations detected. `BT-082-007` is **not** declared complete by this entry.
+
+### Reviewed Boundary
+
+The incremental delta `658dd5d9…` → `921db2cd…` contains **exactly two modified paths**, with no addition, deletion, or rename:
+
+| Path | Δ |
+| --- | ---: |
+| `src/kernel/governance/ratification-authority-snapshot-issuance.contract.ts` | `+6/-2` |
+| `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts` | `+234/-0` |
+
+The cumulative delta against the base remains exactly the **seven authorized `BT-082-007` paths**, unchanged in membership: the four `src/kernel/governance/ratification-authority-snapshot-issuance{.contract,.errors,,.types}.ts` modules, `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`, `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts`, and the result-contract test. The oracle file and the diagnostics test are untouched by the correction commit. Both changed files carry zero CR bytes and end in LF.
+
+### Verified Conformance to RFC-0011 v1.10
+
+- **Code-aware admission.** `validateDiagnosticPayload` now receives the diagnostic `code` and admits an empty data-String value only where `(code === 'malformed-scope-key' && field === 'scopeKey')` or `(code === 'malformed-attribution' && field === 'declaredField')`. Both exemptions are live rather than dead code: `malformed-scope-key` declares `DeclarationScopePayload`, which carries `scopeKey`, and `malformed-attribution` declares `DeclaredInputPayload`, which carries `declaredField`.
+- **63 / 2 / 61 matrix, re-derived from the implementation's own metadata rather than from the commit message.** 47 codes across 7 payload variants yield **63** (code, data-String-field) pairs — `EntryPayload` 17, `EntrySectionPayload` 4, `DeclarationPayload` 22, `DeclarationScopePayload` 18, `DeclaredInputPayload` 2 — of which exactly **2** are admitted empty and **61** are refused. The distribution reproduces the ratified figures exactly.
+- **Discriminator preserved, 47 of 47.** The `payloadKind !== expectedKind` limb is textually unchanged and continues to refuse an empty `payloadKind` for all 47 codes and a `payloadKind` naming any other declared variant for all 47 codes. `payloadKind` remains excluded from the data-String domain.
+- **`pathIdentifiers` behavior preserved.** The list limb is textually unchanged: `pathIdentifiers` is skipped by the data-String loop and separately required to be a non-empty list of non-empty strings for the 4 codes that carry it. It gains no exception.
+- **Unchanged limbs.** Field-set closure (missing field, unexpected field) is untouched; non-string values are still refused irrespective of the exemption; every violation still raises `RatificationAuthoritySnapshotIssuanceContractError` carrying `malformed-diagnostic-payload`. No diagnostic identity, phase, precedence value, encoding, or schema was edited — the metadata table is byte-unchanged.
+
+### Verified Tests
+
+The 61 refusals are **enumerated, not sampled**. The test's literal code lists were cross-referenced against the source metadata: expected 61 refused pairs, exercised 61, **exact set match — no missing pair and no unknown pair**. Composition: `EntryPayload` 17; `EntrySectionPayload` 4; `DeclarationPayload` 22; `DeclarationScopePayload` 17 refused alongside 1 admitted; `DeclaredInputPayload` 1 refused alongside 1 admitted. The suite separately proves both admissions, the same-field-name controls under non-exempt codes (`duplicate-scope-key` with `scopeKey`, `malformed-capture-instant` with `declaredField`), the non-exempt fields of an exempt code (`malformed-scope-key` with `declaringAuthority` and with `declarationSubject`), and empty and wrong discriminators across all 47 codes.
+
+The governed validation suite was executed independently at the reviewed head in a disposable detached worktree, in a single run with no retries and no indeterminate result: `tsc --noEmit` exit 0; `eslint "src/**/*.ts" "test/**/*.ts"` exit 0; `vitest run --exclude "test/extension-host/**"` → **134 test files, 828 tests, 828 passed, 0 failed**; `node esbuild.js` exit 0. GitHub Actions reports **no configured check** for this pull request, so continuous integration is not evidence here and the result above is local execution.
+
+### Findings
+
+None. No Critical, Major, or Minor finding arises at this head.
+
+### Observations (non-blocking)
+
+1. **The refusal matrix is enumerated as literals, not derived.** The test hard-codes the code lists rather than deriving them from `ratificationAuthoritySnapshotDiagnosticMetadata` and the payload field sets. The present set is exact and was proved equal to the derived set, so this is non-blocking for the closed 47-code vocabulary governed here; but any future vocabulary expansion must update the test explicitly or a new code would silently escape the refusal sweep.
+2. **The PR branch does not yet carry the governance commits.** `2366925e…` is not an ancestor of `921db2cd…`, so the branch's checked-out `knowledge/specifications/rfc-0011-engineering-governance-model.md` is still **v1.9**. This does not invalidate the correction, because the accepted self-contained continuation instruction — not the branch's RFC copy — governed commit `921db2cd…`. Before any merge, an **owner-controlled branch update SHALL merge the latest base into the PR branch without rebasing**, after which it must be verified that `921db2cd…` remains reachable unchanged, that the latest base is an ancestor of the new PR head, that the base-aware delta remains exactly the same seven implementation paths, that the source and test blobs from `921db2cd…` remain byte-identical, and that no conflict resolution or additional path change occurred. Rebasing is prohibited: it would destroy the approved commit identity recorded by this entry.
+
+### Scope Boundary
+
+PR #8 is **OPEN, mergeable, and unmerged**; `mergedAt` is null. Commit `921db2cd…` is the **approved `BT-082-007` implementation head** and SHALL NOT be amended, rewritten, or replaced. This entry records an approved review only. It does **not** authorize, and no part of it effects, the merge of PR #8, the declaration of `BT-082-007` as complete, the dispatch of `BT-082-008` or any later task, Copilot dispatch, the branch update described in Observation 2, or any push, branch, or merge operation. Each remains a separate owner-controlled act. Sprint 82 activation is not effected. The local working tree carries only the three pre-existing `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` modifications, untouched by this act.
+
+---
+
 ## NEXUS-REV-2026-08-11-002 — Governance — `NEXUS-RAT-2026-08-11-001` Revision 3 Application and Commit Record
 
 - **Reviewed Sprint:** None. This entry records a governance instrument, not a Sprint implementation review. Sprint 82 remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing in this entry alters that disposition.
