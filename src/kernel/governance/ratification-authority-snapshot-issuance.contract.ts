@@ -105,7 +105,7 @@ export function createRatificationAuthoritySnapshotRejectedResult(
   }
 
   const metadata = ratificationAuthoritySnapshotDiagnosticMetadata[code];
-  validateDiagnosticPayload(metadata.payloadKind, diagnosticPayload);
+  validateDiagnosticPayload(code, metadata.payloadKind, diagnosticPayload);
 
   return Object.freeze({
     result: 'Rejected',
@@ -287,6 +287,7 @@ const payloadFieldSets: Readonly<Record<RatificationAuthoritySnapshotDiagnosticP
 });
 
 function validateDiagnosticPayload(
+  code: RatificationAuthoritySnapshotDiagnosticCode,
   expectedKind: RatificationAuthoritySnapshotDiagnosticPayload['payloadKind'],
   payload: RatificationAuthoritySnapshotDiagnosticPayload,
 ): void {
@@ -322,7 +323,10 @@ function validateDiagnosticPayload(
     if (field === 'payloadKind') continue;
     if (field === 'pathIdentifiers') continue;
     const value = (payload as unknown as Record<string, unknown>)[field];
-    if (typeof value !== 'string' || value.length === 0) {
+    const isEmptyPermitted =
+      (code === 'malformed-scope-key' && field === 'scopeKey') ||
+      (code === 'malformed-attribution' && field === 'declaredField');
+    if (typeof value !== 'string' || (value.length === 0 && !isEmptyPermitted)) {
       contractViolation(`field '${field}' must be a non-empty string`);
     }
   }

@@ -202,6 +202,240 @@ describe('RatificationAuthoritySnapshotIssuance total result contract', () => {
   });
 });
 
+describe('RFC-0011 v1.10 — code-aware empty data-String field admission', () => {
+  const throwsMalformedPayload = (fn: () => unknown): void => {
+    let thrown: unknown;
+
+    try {
+      fn();
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(RatificationAuthoritySnapshotIssuanceContractError);
+
+    if (thrown instanceof RatificationAuthoritySnapshotIssuanceContractError) {
+      expect(thrown.contractViolationCode).toBe('malformed-diagnostic-payload');
+    }
+  };
+
+  it('admits empty scopeKey for malformed-scope-key', () => {
+    const result = createRatificationAuthoritySnapshotRejectedResult('malformed-scope-key', {
+      payloadKind: 'DeclarationScopePayload',
+      declaringAuthority: 'auth',
+      declarationSubject: 'subj',
+      scopeKey: '',
+    });
+
+    expect(result.result).toBe('Rejected');
+  });
+
+  it('admits empty declaredField for malformed-attribution', () => {
+    const result = createRatificationAuthoritySnapshotRejectedResult('malformed-attribution', {
+      payloadKind: 'DeclaredInputPayload',
+      declaredField: '',
+    });
+
+    expect(result.result).toBe('Rejected');
+  });
+
+  it('refuses empty data-String fields for all 61 non-exempt (code, field) pairs', () => {
+    // EntryPayload: ratificationIdentifier — 17 codes
+    const entryPayloadCodes = [
+      'missing-identifier', 'identifier-grammar-violation', 'identifier-heading-mismatch',
+      'malformed-date', 'malformed-status', 'missing-subject', 'duplicate-entry-identifier',
+      'missing-declaration-block', 'unterminated-declaration-block', 'nested-declaration-block',
+      'extraneous-declaration-content', 'empty-declaration-block', 'declaration-grammar-violation',
+      'declaration-subject-grammar-violation', 'declarant-not-effective', 'unresolved-lifecycle',
+      'duplicate-record-fingerprint',
+    ] as const;
+
+    for (const code of entryPayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'EntryPayload',
+          ratificationIdentifier: '',
+        }),
+      );
+    }
+
+    // EntrySectionPayload: ratificationIdentifier — 2 codes
+    const entrySectionPayloadCodes = ['missing-section', 'duplicate-section'] as const;
+
+    for (const code of entrySectionPayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'EntrySectionPayload',
+          ratificationIdentifier: '',
+          sectionHeading: '## S',
+        }),
+      );
+    }
+
+    // EntrySectionPayload: sectionHeading — 2 codes
+    for (const code of entrySectionPayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'EntrySectionPayload',
+          ratificationIdentifier: 'NEXUS-RAT-2026-01-01-001',
+          sectionHeading: '',
+        }),
+      );
+    }
+
+    // DeclarationPayload: declaringAuthority — 11 codes
+    const declarationPayloadCodes = [
+      'unsupported-lifecycle-form', 'relation-target-grammar-violation', 'unsupported-lifecycle-status',
+      'unsupported-relation-kind', 'degenerate-segmentation', 'duplicate-declaration-subject',
+      'self-referential-declaration', 'absent-declaration-subject', 'generic-rule-conflict',
+      'status-binding-mismatch', 'duplicate-declaration',
+    ] as const;
+
+    for (const code of declarationPayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'DeclarationPayload',
+          declaringAuthority: '',
+          declarationSubject: 'subj',
+        }),
+      );
+    }
+
+    // DeclarationPayload: declarationSubject — 11 codes
+    for (const code of declarationPayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'DeclarationPayload',
+          declaringAuthority: 'auth',
+          declarationSubject: '',
+        }),
+      );
+    }
+
+    // DeclarationScopePayload: declaringAuthority — 6 codes
+    const declarationScopePayloadCodes = [
+      'malformed-scope-key', 'missing-scope-description', 'residual-scope-description',
+      'duplicate-scope-key', 'incomplete-segmentation', 'status-relation-mismatch',
+    ] as const;
+
+    for (const code of declarationScopePayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'DeclarationScopePayload',
+          declaringAuthority: '',
+          declarationSubject: 'subj',
+          scopeKey: 'key',
+        }),
+      );
+    }
+
+    // DeclarationScopePayload: declarationSubject — 6 codes
+    for (const code of declarationScopePayloadCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'DeclarationScopePayload',
+          declaringAuthority: 'auth',
+          declarationSubject: '',
+          scopeKey: 'key',
+        }),
+      );
+    }
+
+    // DeclarationScopePayload: scopeKey — 5 non-exempt codes (malformed-scope-key is exempt)
+    const nonExemptScopeKeyCodes = [
+      'missing-scope-description', 'residual-scope-description', 'duplicate-scope-key',
+      'incomplete-segmentation', 'status-relation-mismatch',
+    ] as const;
+
+    for (const code of nonExemptScopeKeyCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: 'DeclarationScopePayload',
+          declaringAuthority: 'auth',
+          declarationSubject: 'subj',
+          scopeKey: '',
+        }),
+      );
+    }
+
+    // DeclaredInputPayload: declaredField — 1 non-exempt code (malformed-attribution is exempt)
+    throwsMalformedPayload(() =>
+      createRatificationAuthoritySnapshotRejectedResult('malformed-capture-instant', {
+        payloadKind: 'DeclaredInputPayload',
+        declaredField: '',
+      }),
+    );
+  });
+
+  it('refuses empty scopeKey for duplicate-scope-key (same field, non-exempt code)', () => {
+    throwsMalformedPayload(() =>
+      createRatificationAuthoritySnapshotRejectedResult('duplicate-scope-key', {
+        payloadKind: 'DeclarationScopePayload',
+        declaringAuthority: 'auth',
+        declarationSubject: 'subj',
+        scopeKey: '',
+      }),
+    );
+  });
+
+  it('refuses empty declaredField for malformed-capture-instant (same field, non-exempt code)', () => {
+    throwsMalformedPayload(() =>
+      createRatificationAuthoritySnapshotRejectedResult('malformed-capture-instant', {
+        payloadKind: 'DeclaredInputPayload',
+        declaredField: '',
+      }),
+    );
+  });
+
+  it('refuses empty declaringAuthority for malformed-scope-key (non-exempt field of exempt code)', () => {
+    throwsMalformedPayload(() =>
+      createRatificationAuthoritySnapshotRejectedResult('malformed-scope-key', {
+        payloadKind: 'DeclarationScopePayload',
+        declaringAuthority: '',
+        declarationSubject: 'subj',
+        scopeKey: '',
+      }),
+    );
+  });
+
+  it('refuses empty declarationSubject for malformed-scope-key (non-exempt field of exempt code)', () => {
+    throwsMalformedPayload(() =>
+      createRatificationAuthoritySnapshotRejectedResult('malformed-scope-key', {
+        payloadKind: 'DeclarationScopePayload',
+        declaringAuthority: 'auth',
+        declarationSubject: '',
+        scopeKey: '',
+      }),
+    );
+  });
+
+  it('refuses wrong payloadKind for all 47 codes', () => {
+    for (const code of ratificationAuthoritySnapshotDiagnosticCodes) {
+      const expectedKind = ratificationAuthoritySnapshotDiagnosticMetadata[code].payloadKind;
+
+      // Supply any kind that is different from the expected one
+      const wrongKind: RatificationAuthoritySnapshotDiagnosticPayload =
+        expectedKind === 'NoPayload'
+          ? { payloadKind: 'EntryPayload', ratificationIdentifier: 'NEXUS-RAT-2026-01-01-001' }
+          : { payloadKind: 'NoPayload' };
+
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, wrongKind),
+      );
+    }
+  });
+
+  it('refuses empty payloadKind for all 47 codes', () => {
+    for (const code of ratificationAuthoritySnapshotDiagnosticCodes) {
+      throwsMalformedPayload(() =>
+        createRatificationAuthoritySnapshotRejectedResult(code, {
+          payloadKind: '' as never,
+        }),
+      );
+    }
+  });
+});
+
 function buildValidPayload(
   payloadKind: RatificationAuthoritySnapshotDiagnosticPayload['payloadKind'],
 ): RatificationAuthoritySnapshotDiagnosticPayload {
