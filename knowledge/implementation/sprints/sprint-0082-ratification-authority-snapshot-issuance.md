@@ -39,18 +39,24 @@ block this approval.
 2. **`NEXUS-RAT-2026-08-06-002`, as amended by `NEXUS-RAT-2026-08-10-001`, recorded in
    `knowledge/governance/RATIFICATION_LEDGER.md`, is the permanent authorization authority for this Sprint.**
    The amendment reaches only the semantic extent named in its § Amendment Matrix and does not displace,
-   supersede, or share that permanent authority. The Ratification Ledger is the authoritative repository and
+   supersede, or share that permanent authority. `NEXUS-RAT-2026-08-11-001` likewise does not displace,
+   supersede, or share it: that instrument is an amendment authority within its own named extent only and
+   authorizes no Sprint. The Ratification Ledger is the authoritative repository and
    single source of truth for ratifications.
 3. **This document is the self-contained operative Sprint Specification**, subordinate to the Constitution, to
-   `NEXUS-RAT-2026-08-06-002`, and to `NEXUS-RAT-2026-08-10-001` as its amendment authority. It is the document
+   `NEXUS-RAT-2026-08-06-002`, and to `NEXUS-RAT-2026-08-10-001` and `NEXUS-RAT-2026-08-11-001` as its
+   amendment authorities, each within its own named extent. It is the document
    the Builder works from, and it depends on no scratchpad, no session artifact, and no ungoverned section
    reference.
 4. `builder-task.md` is a transient implementation artifact carrying no independent authority.
 
-**Conflict rule.** If this record diverges from `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001`,
-**those Ledger entries prevail** and this record is corrected. Where the two Ledger entries themselves diverge,
-`NEXUS-RAT-2026-08-10-001` prevails within its named amended extent and `NEXUS-RAT-2026-08-06-002` prevails
-everywhere else. This record neither enlarges, narrows, nor reinterprets the Authorized Builder Scope.
+**Conflict rule.** If this record diverges from `NEXUS-RAT-2026-08-06-002` as amended by
+`NEXUS-RAT-2026-08-10-001`, or from `NEXUS-RAT-2026-08-11-001` within its named amended extent,
+**the applicable Ledger entry or entries prevail** and this record is corrected. Where those Ledger entries
+themselves diverge, `NEXUS-RAT-2026-08-11-001` prevails within its named amended extent,
+`NEXUS-RAT-2026-08-10-001` prevails within its named amended extent outside that, and
+`NEXUS-RAT-2026-08-06-002` prevails everywhere else. This record neither enlarges, narrows, nor
+reinterprets the Authorized Builder Scope.
 
 SGP-1 sits **outside** the binding six-step Initial Capability Sequence. This Sprint is not a step, is not in the
 Step 1 → 6 dependency order, resolves no Step 3A stop condition, does not reopen completed Milestone 9, and
@@ -62,8 +68,9 @@ Sprint 82 — Ratification Authority Snapshot Issuance Capability (Milestone 12,
 
 # Objective
 
-Implement the RFC-0011 Final (Amended) v1.9 § Ratification Authority Snapshot Issuance contract, as amended by
-`NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, and `NEXUS-RAT-2026-08-10-001`, as one pure, standalone,
+Implement the RFC-0011 Final (Amended) v1.10 § Ratification Authority Snapshot Issuance contract, as amended by
+`NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, `NEXUS-RAT-2026-08-10-001`, and
+`NEXUS-RAT-2026-08-11-001`, as one pure, standalone,
 directly invoked Kernel
 library capability (Boundary A):
 
@@ -82,7 +89,7 @@ the generic rule over its exclusive domain.
 
 # Governing Authority
 
-- **RFC-0011 — Engineering Governance Model, Final (Amended) v1.9**,
+- **RFC-0011 — Engineering Governance Model, Final (Amended) v1.10**,
   `knowledge/specifications/rfc-0011-engineering-governance-model.md`. Governing sections, all within
   `# Ratification Authority Snapshot Issuance`: Purpose and Ownership Boundary; Canonical Serialization; The
   Source Input Domain; Governed Source Text Preparation; Fenced Regions; Governed Entry Extraction Grammar;
@@ -96,13 +103,16 @@ the generic rule over its exclusive domain.
 - **RFC-0003 — Shared Reality Projection Model § Canonical Serialization Protocol (NCCS-1)**,
   `knowledge/specifications/rfc-0003-shared-reality-projection-model.md`, rules 1–12 and the normative
   **Conformance Vectors** (line 295). Consumed exactly; not amended, not extended, not reinterpreted.
-- **`NEXUS-RAT-2026-07-31-001`, as amended by `NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, and
-  `NEXUS-RAT-2026-08-10-001`** — establishes the Issuance Contract and owns issuance, its derivation, and its
+- **`NEXUS-RAT-2026-07-31-001`, as amended by `NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`,
+  `NEXUS-RAT-2026-08-10-001`, and `NEXUS-RAT-2026-08-11-001`** — establishes the Issuance Contract and owns
+  issuance, its derivation, and its
   commitments; establishes the conformance checkpoint as the ratified non-production evidence form. Its
   `Sprint proposal` limb was lifted by `NEXUS-RAT-2026-08-06-001`; its `implementation` and `Sprint activation`
   limbs are lifted for this exact scope by `NEXUS-RAT-2026-08-06-002` and for nothing else. Its phase model,
   closed public vocabulary, diagnostic precedence, duplicate-fingerprint outcome, and contract-violation
-  representation are amended by `NEXUS-RAT-2026-08-10-001` at those clauses only; every other clause stands
+  representation are amended by `NEXUS-RAT-2026-08-10-001` at those clauses only, and its diagnostic payload
+  contract is amended by `NEXUS-RAT-2026-08-11-001` solely by the pair-scoped empty-token exception over
+  data-String fields; every other clause stands
   unchanged. As so amended it remains the contract authority.
 - **`NEXUS-RAT-2026-08-04-001`** — `ratificationSubject` on both record arms; schema version
   `nexus-ratification-authority-snapshot/3`; the complete `Issued` result schema.
@@ -122,8 +132,21 @@ the generic rule over its exclusive domain.
   § Amendment Matrix, and for nothing else: the governed `Commitment` phase at rank 7, the public
   `duplicate-record-fingerprint` diagnostic, the forty-seven-code closed public vocabulary, the two changed
   `Envelope` precedence values, and the non-public representation of the three contract-violation codes. It
-  amends RFC-0011 to v1.9. It authorizes no activation, no new Sprint, no new file, and no scope beyond the
+  amended RFC-0011 to v1.9 at its issuance date, which is a historical statement of that instrument's extent
+  and not a current governing-version assertion; the current governing version is v1.10 as amended by
+  `NEXUS-RAT-2026-08-11-001`. It authorizes no activation, no new Sprint, no new file, and no scope beyond the
   amended extent.
+- **`NEXUS-RAT-2026-08-11-001`** — the binding amendment authority for exactly the semantics named in its
+  § Amendment Matrix, and for nothing else: the pair-scoped empty-token exception over data-String diagnostic
+  payload fields, comprising `malformed-scope-key` with `scopeKey` and `malformed-attribution` with
+  `declaredField`; the code-aware form of § Contract Violations rule 5; and one additive cross-reference
+  sentence at rule 3, which is otherwise preserved verbatim. It amends RFC-0011 to **v1.10**, which is the
+  current governing version. It changes no diagnostic identity, no phase, no precedence, no payload variant, no
+  result shape, no traversal order, no canonical encoding, and no schema version; the `payloadKind`
+  variant-match obligation is unchanged. It authorizes a bounded two-file implementation delta inside the
+  existing seven-file `BT-082-007` boundary, enlarges no inventory, authorizes no activation, creates no file,
+  dispatches no Builder task, and pulls no oracle work forward from `BT-082-010`. It does not displace,
+  supersede, or share the permanent authorization authority of `NEXUS-RAT-2026-08-06-002`.
 - **`NEXUS-RAT-2026-07-15-017`**, **`NEXUS-RAT-2026-07-16-001`** — untouched.
 - **Kernel Canon 9** (determinism), **Canon 10** (explainability), **Canon 12** (human authority).
 - **`IMPLEMENTATION_CONSTITUTION.md`** §§ Vertical Slice Policy, Approved Vertical Slice Immutability (397), RFC
@@ -134,7 +157,7 @@ the generic rule over its exclusive domain.
 
 ## Primary
 
-RFC-0011 — Engineering Governance Model, Final (Amended) v1.9, `# Ratification Authority Snapshot Issuance`.
+RFC-0011 — Engineering Governance Model, Final (Amended) v1.10, `# Ratification Authority Snapshot Issuance`.
 
 ## Referenced, read-only
 
@@ -198,7 +221,10 @@ enlarge the integration surface without supplying any capability this pure funct
     encoding of the fingerprint collection, and authority-root derivation, all completing before
     any `Envelope` examination begins. The closed public vocabulary is forty-seven codes. The three
     contract-violation codes are represented on the named non-public error channel of RFC-0011
-    v1.9 § Contract Violations and are never returned.
+    v1.10 § Contract Violations and are never returned. Rule 5's non-empty obligation over
+    data-String payload fields is code-aware per `NEXUS-RAT-2026-08-11-001`, admitting an empty
+    value on exactly the two declared empty-token pairs and on no other of the sixty-three pairs;
+    the `payloadKind` variant-match obligation is unchanged and reaches no exception.
 15. **Fixed protocol constants** — `nexus-repository-ratification-ledger`, `NCCS-1`,
     `nexus-ratification-authority-snapshot/3`, the three prefixes, `residual`, `Active`,
     `nexus-lifecycle-authority-declarations/1`. Not parameterized, not environment-derived, not caller-supplied.
@@ -310,6 +336,17 @@ Issuance failures are **not** Governance Decisions and SHALL NOT be mapped onto 
 and no stored value to reconcile. Correcting a rejection is a **governed-source correction under separate
 authority** — never a repair, normalization, back-fill, or re-declaration performed by issuance or by the Builder.
 A `Rejected` result on the live corpus is a legitimate, informative Sprint outcome, not a Sprint failure.
+
+**Empty-token reporting.** Three governed inputs report a defect whose subject is itself the empty
+token: a declaration segment line declaring a present but empty scope key, an unrecognized input
+property key that is the empty String, and an unrecognized `producingAttribution` property key that
+is the empty String. Each returns a governed `Rejected` result — `malformed-scope-key` in
+`DeclarationGrammar` for the first, `malformed-attribution` in `Envelope` for the other two — and
+none reaches the contract-violation channel. Under `NEXUS-RAT-2026-08-11-001` the runtime payload
+validation of RFC-0011 v1.10 § Contract Violations rule 5 is code-aware over data-String fields and
+permits an empty value on exactly two code-and-field pairs, `malformed-scope-key` with `scopeKey`
+and `malformed-attribution` with `declaredField`; each of the other sixty-one pairs refuses an empty
+value as `malformed-diagnostic-payload`, and the `payloadKind` variant-match obligation is unchanged.
 
 # The Second Structurally Independent Implementation
 
@@ -436,11 +473,14 @@ authorized and requires a further ratification.**
 Ledger entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest` is edited at any stage.
 
 The entry `knowledge/specifications/rfc-0011-engineering-governance-model.md` in this list binds
-**the Builder**. RFC-0011 is amended to v1.9 by `NEXUS-RAT-2026-08-10-001`, applied by an
+**the Builder**. RFC-0011 is amended to v1.10 — to v1.9 by `NEXUS-RAT-2026-08-10-001` and then to
+v1.10 by `NEXUS-RAT-2026-08-11-001` — each amendment applied by an
 authorized governance applier before Builder resumption and never by the Builder. The Builder
-SHALL NOT edit it under any task. Likewise, no prior Ledger entry's octets are edited by that
+SHALL NOT edit it under any task. Likewise, no prior Ledger entry's octets are edited by either
 amendment: `NEXUS-RAT-2026-07-31-001` and `NEXUS-RAT-2026-08-06-001` are amended by `NEXUS-RAT-2026-08-10-001`
-by named semantic extent only, as is `NEXUS-RAT-2026-08-06-002` by `NEXUS-RAT-2026-08-10-001`. Their octets stand.
+by named semantic extent only, as is `NEXUS-RAT-2026-08-06-002` by `NEXUS-RAT-2026-08-10-001`, and
+`NEXUS-RAT-2026-07-31-001` is further amended by `NEXUS-RAT-2026-08-11-001` by named semantic extent
+only. Their octets stand.
 
 # Completion Requirements — Acceptance Evidence
 
@@ -479,7 +519,7 @@ by named semantic extent only, as is `NEXUS-RAT-2026-08-06-002` by `NEXUS-RAT-20
 
 # Dependencies
 
-RFC-0011 Final (Amended) v1.9 as amended through `NEXUS-RAT-2026-08-10-001`; RFC-0003's NCCS-1 and its normative
+RFC-0011 Final (Amended) v1.10 as amended through `NEXUS-RAT-2026-08-11-001`; RFC-0003's NCCS-1 and its normative
 Conformance Vectors; the approved Sprint 54 vertical slice, consumed by ownership boundary only and not modified.
 **Depends on no step of the Milestone 12 Initial Capability Sequence.**
 
@@ -556,8 +596,9 @@ Sprint Status: **Implemented — Pending Reviewer Validation**.
 | Stage 2 activation ratification (permanent authorization authority) | `NEXUS-RAT-2026-08-06-002`, as amended by `NEXUS-RAT-2026-08-10-001` |
 | Contract authority | `NEXUS-RAT-2026-07-31-001`, amended by `NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, and `NEXUS-RAT-2026-08-10-001` |
 | DEP1 source (preserved, undischarged) | `NEXUS-RAT-2026-08-02-001` |
-| Primary RFC | RFC-0011 Final (Amended) v1.9 |
+| Primary RFC | RFC-0011 Final (Amended) v1.10 |
 | Amendment authority (phase model, vocabulary, contract-violation channel, T12/T14/T16/T17/T18) | `NEXUS-RAT-2026-08-10-001` |
+| Amendment authority (pair-scoped empty-token exception over data-String diagnostic payload fields; code-aware rule 5) | `NEXUS-RAT-2026-08-11-001` |
 | Referenced RFC | RFC-0003 § NCCS-1, Conformance Vectors |
 | Builder Task | `BT-082-001` |
 | Milestone / track | Milestone 12, independent Supporting-Governance Prerequisite Track, SGP-1 |
