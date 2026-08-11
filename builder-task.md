@@ -430,12 +430,25 @@ carries objective test 4. Both are inside the twenty-four-file authorized invent
 allocation per `NEXUS-RAT-2026-08-10-002` § Governance Decision E4. This task SHALL NOT alter,
 weaken, or re-scope the objective test 5 or objective test 7 assertions delivered by `BT-082-007`.
 
-**Required work:** add the vocabulary-membership check to the validated constructor created by
-`BT-082-007`, raising `RatificationAuthoritySnapshotIssuanceContractError` carrying
-`undeclared-diagnostic`; delete `assertKnownDiagnosticCode` entirely.
+**Required work (restated at pre-dispatch under `NEXUS-REV-2026-08-11-005`):** the
+vocabulary-membership check is **already present** in the validated constructor as authorized
+`BT-082-007` delivery under `NEXUS-RAT-2026-08-10-002` § E5 limb 4, together with the
+`BT-082-007`-attributed "rule-4 guard" test block. Neither SHALL be reimplemented, renamed,
+re-attributed, weakened, or removed. Two items remain: (1) delete `assertKnownDiagnosticCode`
+entirely from `…issuance.contract.ts` — it is unwired and maps an unknown code to `invalid-input`,
+which RFC-0011 v1.10 rule 4 forbids; (2) add one additive, explicitly named objective-test-4 block
+to `…-result-contract.test.ts` over a **distinct arbitrary undeclared code** that is neither a
+member of the declared 47-code public vocabulary nor a contract-violation code, asserting that
+construction raises `RatificationAuthoritySnapshotIssuanceContractError` carrying
+`undeclared-diagnostic` and that no result is produced. This second item exists to create
+explicit, separately attributable `NEXUS-RAT-2026-08-10-002` § E4 evidence for `BT-082-008`; it is
+not a correction of the `BT-082-007` block.
 
-**Acceptance:** objective test 4 passes, evidenced in `…-result-contract.test.ts`; repository
-validation is clean, with no failing test of any kind.
+**Acceptance:** objective test 4 passes under its own name, evidenced in
+`…-result-contract.test.ts`; `assertKnownDiagnosticCode` has zero occurrences anywhere in `src/`;
+the existing "rule-4 guard" block and objective tests 5 and 7 are textually unchanged; repository
+validation is clean per `NEXUS-RAT-2026-08-10-002` § E7, with the first execution disclosed
+exactly and any retry labelled as a retry.
 
 ## BT-082-009 — Make the T6 negative test assert the property it claims
 

@@ -2,6 +2,61 @@
 
 ---
 
+## NEXUS-REV-2026-08-11-005 — Sprint 82 — Pre-Dispatch Evidence Attribution for `BT-082-008`
+
+- **Reviewed Sprint:** Sprint 82 — Ratification Authority Snapshot Issuance Capability. This entry records a pre-dispatch evidence-attribution finding for Builder task `BT-082-008`. It certifies no task, dispatches no task, and alters no prior entry.
+- **Reviewed Change:** no repository mutation is under review. The reviewed subject is the already-committed `BT-082-007` evidence delivered through PR #8 and its attribution — specifically the rule-4 vocabulary-membership guard at `…issuance.contract.ts` lines 96–118 (guard body blamed to `02c4e958`) and the "rule-4 guard" test block at `…-result-contract.test.ts` lines 175–202 (blamed in full to `658dd5d973c031fb31fab2774c6241f807ca9a9a`) — as they stand at HEAD `343ecca16867468f8d698848af33ee64eb9d4587`, with exactly three unstaged `IMPLEMENTATION_*.md` modifications at `7beb7f77…`, `ae7d1a73…`, and `f9ecfd9f…`.
+- **RFC Coverage:** RFC-0011 **Final (Amended) v1.10** § Contract Violations rule 4.
+- **Authority:** `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001` (D5) and `NEXUS-RAT-2026-08-10-002` (E4, E5, E7). No new Ratification and no new Ledger entry is created by this entry.
+- **Review Date:** 2026-08-11
+- **Reviewer:** Reviewer AI (Claude Code), pre-dispatch evidence-attribution review; Codex, independent concurrence; repository owner, final authority
+- **Overall Disposition:** **RECORDED — PRE-DISPATCH ATTRIBUTION CORRECTION; NO TASK CERTIFIED OR DISPATCHED.** No architectural violations detected. No Critical or Major findings. One Minor record-keeping finding and one Observation are recorded below.
+
+### Finding — Evidence Attribution
+
+- **The rule-4 vocabulary-membership guard in `…issuance.contract.ts` is authorized `BT-082-007` delivery, not early `BT-082-008` delivery.** `NEXUS-RAT-2026-08-10-002` § E5 limb 4 obliges `BT-082-007`'s objective test 7 to assert that no contract-violation code can be returned as an `Issued` or a `Rejected` result and that the channel raises `RatificationAuthoritySnapshotIssuanceContractError` instead. Absent the guard, that call path throws a bare `TypeError` on `metadata.payloadKind` and the required assertion would be false. The guard is an enabling requirement of `BT-082-007`'s own obligation.
+- **The three-code test block in `…-result-contract.test.ts` is likewise `BT-082-007` evidence.** It was authored to discharge a named Reviewer correction directed at `BT-082-007`, it is titled "rule-4 guard", and it is the evidence on which `NEXUS-REV-2026-08-11-004` relied in certifying objective test 7. It proves that no result is returned, because it proves the call throws: in synchronous TypeScript a call that throws cannot also return a value.
+- **Behavioral overlap is not ownership transfer.** The incidental coverage of RFC-0011 v1.10 rule 4 behavior by an E5-purposed test does not claim, transfer, or discharge `NEXUS-RAT-2026-08-10-002` § E4 ownership of objective test 4. That ownership remains wholly with `BT-082-008`, unweakened and unreduced.
+- **`NEXUS-RAT-2026-08-10-002` § E4 was not violated.** Its no-early-assertion bar enumerates objective tests 1, 2, 2b, and 6 only, and does not reach objective test 4. E4 allocates obligations and evidence, expressly not physical files.
+
+### Minor Finding `NEXUS-REV-0082-MIN-006` — Record-Keeping Characterization
+
+`NEXUS-REV-2026-08-11-004` states that objective test 4 was not "claimed, cited, or asserted at this boundary." The accurate characterization, recorded here prospectively and **not** by amendment, is that objective test 4 **has not yet been separately claimed and recorded as `BT-082-008`'s owned evidence**. It is not substantively unevidenced: an E5-purposed assertion whose behavioral coverage overlaps objective test 4's subject matter is present in the tree, and `NEXUS-REV-2026-08-11-004` itself relied on it in certifying objective test 7.
+
+`NEXUS-REV-2026-08-11-004` remains byte-identical. Its certification of `BT-082-007` as **COMPLETED** stands unchanged and is not reopened.
+
+### Observation `NEXUS-REV-0082-OBS-002` — Named-Correction Provenance
+
+**Non-blocking. No Builder task is generated.**
+
+The named-correction labels `NC1`, `NC2`, and `NC3`, used during the `BT-082-007` correction pass, appear in no governed document: zero occurrences across all repository Markdown, and no occurrence of `NC3`, `rule-4`, or `rule 4` in `REVIEW_HISTORY.md` prior to this entry. Their sole surviving record is the message of commit `658dd5d973c031fb31fab2774c6241f807ca9a9a`, "fix(BT-082-007): apply NC1/NC2/NC3 correction pass". All three meanings are recorded here in full, closing the gap completely:
+
+- **NC1** — fix `buildValidPayload` to use the `RatificationAuthoritySnapshotDiagnosticPayload` parameter type and return type, replacing a runtime throw with an exhaustive switch.
+- **NC2** — iterate records directly in the duplicate-fingerprint loop so the record is in hand at the rejection site; no index lookup and no `??` fallback needed.
+- **NC3** — add the rule-4 `undeclared-diagnostic` guard test asserting that all three contract-violation codes raise `RatificationAuthoritySnapshotIssuanceContractError` with `contractViolationCode=undeclared-diagnostic`, `diagnosticPhase=ContractViolation`, and `diagnosticPrecedence=9`. This is the block at `…-result-contract.test.ts` lines 175–202.
+
+Future named corrections SHALL be recorded in a governed document at the time they are issued, not solely in a commit message.
+
+### Remaining `BT-082-008` Obligation
+
+`BT-082-008` retains objective test 4 in full. Its remaining evidence obligation is one additive, explicitly named objective-test-4 block over a **distinct arbitrary undeclared code** that is neither a member of the declared 47-code public vocabulary nor one of the three contract-violation codes, asserting that construction raises the contract error carrying `undeclared-diagnostic` and that no result is produced. This is non-overlapping evidence, separately attributable to `BT-082-008` under `NEXUS-RAT-2026-08-10-002` § E4.
+
+The existing "rule-4 guard" block SHALL NOT be renamed, retitled, re-attributed, weakened, or removed by `BT-082-008`. The objective test 5 and objective test 7 assertions certified by `NEXUS-REV-2026-08-11-004` SHALL likewise remain unchanged, and the sequential reuse of `…-result-contract.test.ts` remains additive only.
+
+`BT-082-008`'s other remaining item is the deletion of `assertKnownDiagnosticCode` from `…issuance.contract.ts`. That function is blamed in full to the pre-`BT-082-007` baseline `ee73806e`, is unwired, and maps an unknown code to `invalid-input`, which RFC-0011 v1.10 § Contract Violations rule 4 forbids. A completed repository-wide sweep establishes that no wildcard re-export exists anywhere in `src/` or `test/`, that all five consumers of the contract module use explicit named-import lists and none names the symbol, and that the repository-wide `.ts` search returns exactly one occurrence — its definition.
+
+### Validation
+
+No validation is claimed by this entry, because no repository mutation is under review. `NEXUS-RAT-2026-08-10-002` § E7 requires clean validation after `BT-082-008`, defined as `npm run validate` — `tsc --noEmit`, `eslint`, `vitest run --exclude "test/extension-host/**"`, and `node esbuild.js` — completing with no failure of any kind. That obligation attaches to `BT-082-008`'s eventual delivery, disclosed under the treatment established by `NEXUS-REV-2026-08-11-004`: the first execution is disclosed exactly, a retry is labelled as a retry and never presented as a first-execution result, the clean run relied upon is identified, and a recurrence of `NEXUS-REV-0082-OBS-001` is reported as a recurrence and never silently absorbed.
+
+### Certification
+
+This entry certifies no task. `BT-082-007` remains **COMPLETED** under `NEXUS-REV-2026-08-11-004`. `BT-082-008` remains **OPEN** and remains the sole task claiming present executability. This entry does **not** dispatch `BT-082-008`.
+
+The mandatory task order recorded once only in `builder-task.md` § Builder Instructions is preserved and unchanged. Sprint 82 remains **Approved with Findings**; `IMPLEMENTATION_PLAN.md` remains unchanged and no sprint advances to Current.
+
+---
+
 ## NEXUS-REV-2026-08-11-004 — Sprint 82 — `BT-082-007` CERTIFIED COMPLETED at Merge Commit `59decb2a…`
 
 - **Reviewed Sprint:** Sprint 82 — Ratification Authority Snapshot Issuance Capability. This entry certifies Builder task `BT-082-007` — the governed `Commitment` phase, the contract-violation channel, and runtime payload validation — as **COMPLETED** following the merge of PR #8 into the Sprint base branch.
