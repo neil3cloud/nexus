@@ -2,6 +2,63 @@
 
 ---
 
+## NEXUS-REV-2026-08-11-002 — Governance — `NEXUS-RAT-2026-08-11-001` Revision 3 Application and Commit Record
+
+- **Reviewed Sprint:** None. This entry records a governance instrument, not a Sprint implementation review. Sprint 82 remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing in this entry alters that disposition.
+- **Reviewed Change:** Application of ratification instrument `NEXUS-RAT-2026-08-11-001` Revision 3 (resolution of the RFC-0011 § Contract Violations rule 3 / rule 5 conflict for governed diagnostics whose reported subject is itself the empty token), accepted package SHA-256 `127854f6d0fe0974cbb62ea803a06fa4a6e86b61bbb184514eb7e4b898855559` at 1,003 LF-terminated lines and 59,953 bytes, at authorized extent of one Ledger append plus twenty-eight anchored application sites `S1` through `S28`, to `knowledge/specifications/rfc-0011-engineering-governance-model.md`, `builder-task.md`, `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`, and `knowledge/governance/RATIFICATION_LEDGER.md`; subsequently committed as `2366925e7f9cfcc855a2607ece66c5e123d3eef1`.
+- **RFC Coverage:** RFC-0011 amended from Final (Amended) v1.9 to **Final (Amended) v1.10** by this instrument, at the named semantic extent of § Contract Violations rule 5 and one additive cross-reference sentence in rule 3. RFC-0003 is not amended. No other RFC, Kernel Canon document, implementation plan, manifest, report, or gate was touched.
+- **Review Date:** 2026-08-11
+- **Reviewer:** Reviewer AI (Claude Code), recording independently verified state
+- **Overall Disposition:** **RECORDED — APPLIED, APPROVED, AND COMMITTED.** No architectural violations detected.
+
+### Governance Chronology
+
+1. **Revision 1 superseded.** The initial package (502 LF lines, 33,468 bytes) was superseded before acceptance.
+2. **Revision 2 rejected on `B1` / `NC1`.** Site `S11` coordinated `NEXUS-RAT-2026-08-11-001` into the amendment lineage of `NEXUS-RAT-2026-08-06-002`, which would have placed a semantic-extent amendment inside the permanent Sprint 82 authorization lineage. Revision 3 replaced that coordination so `NEXUS-RAT-2026-08-11-001` is named as a separate amendment authority within its own extent only.
+3. **Revision 3 approved and accepted.** The owner's Final Owner Review of Revision 3 returned **APPROVE** with no Blocking, Major, or Minor finding, declaring the four exact post-application output identities as binding acceptance conditions. The owner then accepted the package at exact SHA-256 `127854f6…855559` and named Claude as governance applier under a scoped override of the Reviewer file-mutation limit, bounded to those four targets and that exact extent.
+4. **Fail-closed halt on the first application attempt.** The applier computed all four outputs in memory and refused to write: RFC-0011 hashed `4062034ad238e02dea6e13381178b0fc6595e9135af81511b5937a8d83b5c319` against the required `8d24e028…`, first byte difference at 387,094. **Zero bytes were written to any target.** The owner diagnosed the cause as an applier mechanics defect at site `S5` and returned **APPROVE WITH NAMED CORRECTIONS**, holding the Revision 3 acceptance valid and expressly forbidding substitution of the unauthorized digest into the acceptance conditions.
+5. **Applier corrected and re-run.** Named corrections 1 and 2 were applied: the substring-append implementation was retired, and for an APPEND site the applier now resolves the physical line containing the unique `FIND` literal through its terminating LF and inserts after that complete line. The re-run matched all four approved identities in memory and only then wrote, in the declared order RFC-0011, `builder-task.md`, Sprint record, Ledger append last, with on-disk re-verification after the write.
+6. **Independent post-application review.** Codex returned disposition **APPROVE** with no Blocking, Major, or Minor findings and **no named corrections**, independently re-verifying the four applied identities, the exact `LF + --- + LF + LF` Ledger separator, zero CR bytes in every target, and the absence of any added, deleted, or renamed path. Binding direction: the applied state may stand and the targets must **not** be restored.
+7. **Commit.** The four targets were committed as `2366925e7f9cfcc855a2607ece66c5e123d3eef1`, parent `ee73806e928cd8ef4de9995228ea3c3cf2dcf565`, single parent, whose diff against that parent contains exactly those four paths and no fifth, at the approved blobs.
+
+### Verified Artifact Result
+
+| Target | Pinned pre-application blob | Committed blob | Lines | Bytes | Result |
+| --- | --- | --- | ---: | ---: | --- |
+| `knowledge/specifications/rfc-0011-engineering-governance-model.md` | `271d2b291b90eda6f8ea24e3a29f5e49b718e866` | `b06e1aea36091d05be2e1a60bab291d39268ace2` | 4,126 | 394,772 | MATCH |
+| `builder-task.md` | `1c59f0bb4e6126ed32ef09782bb2119111d6c3ab` | `d46170026aed39200c3f379500fff12d8e0b12af` | 1,191 | 84,973 | MATCH |
+| `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md` | `a9faedbe0a0d6aa2f3a3019f30e09093086d3947` | `6b6203026470522d63635a081285ec912f549df9` | 778 | 70,819 | MATCH |
+| `knowledge/governance/RATIFICATION_LEDGER.md` | `9feca6d533aa0387d5317d4ee7a8aee12c1371e3` | `ab7572384be61a1c5dc14b0d9fc4da579668befa` | 25,295 | 2,146,431 | MATCH |
+
+Content SHA-256 cross-checks, independently reproduced against both the committed blob and the working-tree copy of each target, which are byte-identical: RFC-0011 `8d24e028f386e314d8ee9fb94cb0677278db3e971b6667e0c9c0feb727e8b9b5`; `builder-task.md` `32c0da3384793106c6f81a73557c4e75f5cc207c4548bc1712816c306c2d1f49`; Sprint record `c083e21a9d29629019038d639f5da065ff1ae8a05ae2ec198c7a33cee340e5fc`; Ledger `a59b037ae677dd1a32e96a3b79fd4ee918e741b1830f4786e167d04725241146`. Every target contains zero CR bytes and ends in LF. `NEXUS-RAT-2026-08-11-001` is recorded `Active` in the appended Ledger entry, dated `2026-08-11`; top-level ratification headings advanced 146 → 147.
+
+### Verified Closure Conditions
+
+- **Anchor closure.** Twenty-eight of twenty-eight `FIND` blocks matched exactly once in their pinned target before application. The identifier `NEXUS-RAT-2026-08-11-001` occurred zero times in all four pinned inputs, rechecked at HEAD `ee73806e…` immediately before application.
+- **Append-only.** The pinned 2,086,472 Ledger octets are an exact byte prefix of the result and of the committed blob, and hash to `7f09b216e2ce221215360f2b04f1913156a0a981d4f12bdd627a6dad3ddeca69` in both. No prior entry's octets, `## Current Status`, or declaration block was altered.
+- **Line-count arithmetic.** `24,289 + 3 + 1,003 = 25,295`.
+- **Operative version.** RFC-0011 carries exactly one current `**Version:** 1.10` line and no current v1.9 version line. Seven surviving v1.9 references remain, each independently classified as historical or as the residual-citation rule itself: `builder-task.md` lines 349, 419, 520, 669, and 804; Sprint record lines 135 and 476.
+- **Authority lineage.** All eight clauses whose subject is `NEXUS-RAT-2026-08-06-002` name `NEXUS-RAT-2026-08-10-001` alone as its amendment. The rejected Revision 2 coordination string occurs zero times. The permanent-authorization sentence and the Builder mandatory task-order block are byte-identical to their pre-application form. `NEXUS-RAT-2026-08-11-001` is nowhere described as Sprint authorization authority.
+- **Rule-5 domain closure.** Re-derived from the applied RFC-0011 text alone: 47 codes across 7 payload variants; **63** (code, data-String-field) pairs — `DeclarationPayload` 22, `DeclarationScopePayload` 18, `DeclaredInputPayload` 2, `EntryPayload` 17, `EntrySectionPayload` 4; exactly **2** admitted empty (`malformed-scope-key` with `scopeKey`, `malformed-attribution` with `declaredField`) and **61** refused; 9 of 9 targeted controls REFUSED, including the same field names under non-exempt codes; 4 codes carry the list-typed `pathIdentifiers`, which gains no exception.
+- **Discriminator closure.** `payloadKind` is excluded from the data-String domain: across all 47 codes, an empty `payloadKind` is refused 47 of 47 and a `payloadKind` naming any other declared variant is refused 47 of 47. The variant-match limb is unchanged.
+- **Non-target closure.** The commit's diff against its parent contains exactly the four authorized paths, with no addition, deletion, or rename. The index is empty. The working tree carries only the three pre-existing `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_PLAN.md`, and `IMPLEMENTATION_REPORT.md` modifications, untouched by this act and still uncommitted, and no untracked path was introduced.
+
+### Findings
+
+None. No Critical, Major, or Minor finding arises from this instrument.
+
+### Observations (non-blocking)
+
+1. **APPEND anchoring is line-scoped, not substring-scoped.** The halted application failed because the applier inserted immediately after the matched `FIND` substring, while site `S5`'s `FIND` is deliberately only the opening literal of a longer physical line; 2,373 characters of that line's tail were carried onto the end of the newly inserted amendment-history row. The governing principle is recorded here: **where an instrument directs an append after a complete line, an applier SHALL resolve the physical line containing the unique `FIND` literal through its terminating LF and insert after that boundary, never after the matched substring.** The defect was contained entirely by the fail-closed design — the output identity was computed in memory and compared before any write, so zero bytes reached disk, and the correct response was to repair the applier, never to substitute the produced digest into the acceptance conditions.
+2. **Evidence-tooling disclosure.** The rule-5 domain simulation reported by this entry was re-anchored after application: site `S1` inserted 33 lines above the closed public vocabulary block, invalidating the tool's previous hard-coded line offsets. It now locates the payload-variant table and the vocabulary block by content and restricts itself to the first § Structured Diagnostic Payloads section, so the second, differently governed copy under § Repository Policy Corpus Source is never read. The reported figures derive from the post-application RFC-0011 text alone; no `src/` module is consulted. That tooling is scratch-only and is not a repository artifact.
+3. **Standing items expressly outside this extent.** The owner's acceptance directed that the `NEXUS-RAT-2026-08-10-002` citation not be added and that neither standing observation be addressed in this application. Both remain open and unaltered: the `.gitattributes` line-ending pin gap covering root-level `builder-task.md` and this file, `REVIEW_HISTORY.md`, first recorded under `NEXUS-REV-2026-08-11-001`; and the `IMPLEMENTATION_MANIFEST.md` versus `IMPLEMENTATION_PLAN.md` contradiction regarding Sprint 82's disposition. Neither may be closed by an informal edit.
+
+### Scope Boundary
+
+This entry records completed governance acts only. It does **not** authorize, and no part of it effects, Sprint 82 activation, Builder work on `BT-082-007` or any other task, completion of `BT-082-007`, dispatch of `BT-082-008` or any later task, Copilot dispatch, modification of PR #8, or any push, branch, or merge operation. Each remains a separate owner-controlled act. PR #8 remains at head `658dd5d973c031fb31fab2774c6241f807ca9a9a`, unmodified. Commit `2366925e…` is unpushed as of this entry's review date; the branch stands one commit ahead of its remote-tracking ref.
+
+---
+
 ## NEXUS-REV-2026-08-11-001 — Governance — `NEXUS-RAT-2026-08-10-002` Application and Commit Record
 
 - **Reviewed Sprint:** None. This entry records a governance instrument, not a Sprint implementation review. Sprint 82 remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing in this entry alters that disposition.
