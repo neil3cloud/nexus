@@ -275,7 +275,7 @@ incorrect and is corrected by `NEXUS-RAT-2026-08-10-001` D7.
 
 **Authority:** `NEXUS-RAT-2026-08-10-001` D7, D8a, D8b, D8c, and objective tests 1, 2, 2b, 6, 8; Sprint
 82 Sprint Implementation Record T12, T14, T17 as amended. Governing RFC: RFC-0011 Final (Amended)
-v1.9 § Authority Root and Envelope Commitment, § Deterministic Ordering, § The Total Result
+v1.10 § Authority Root and Envelope Commitment, § Deterministic Ordering, § The Total Result
 Contract.
 
 **Target (exact, one file):**
@@ -352,7 +352,7 @@ obligations from those files have no corpus counterpart. Both are addressed here
 
 **Authority:** `NEXUS-RAT-2026-08-10-001` D8b, D8c, D9, D10, and objective tests 9, 9b, 9c, 10, 11; Sprint 82
 Sprint Implementation Record § The Second Structurally Independent Implementation, § Agreement
-corpus. Governing RFC: RFC-0011 Final (Amended) v1.9 § Two Structurally Independent
+corpus. Governing RFC: RFC-0011 Final (Amended) v1.10 § Two Structurally Independent
 Implementations.
 
 **Targets (exact):** `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`;
@@ -399,7 +399,8 @@ Implementations.
    byte array, its encoders, or any implementation module. Moving the oracle's authority-root
    derivation after its declared-fact examination SHALL make this test fail.
 
-**Binding authoring rule:** the oracle is written from RFC-0011 v1.9 text alone. It SHALL NOT be
+**Binding authoring rule:** the oracle is written from RFC-0011 v1.10 text alone, as amended through
+`NEXUS-RAT-2026-08-11-001`. It SHALL NOT be
 derived from, refactored out of, or diffed against the implementation, and SHALL NOT import
 `…issuance.errors.ts`, `…issuance.contract.ts`, `…issuance.types.ts`, or `…issuance.ts`.
 Field-for-field agreement is asserted over governed corpus inputs only; it is **not** asserted over
@@ -419,9 +420,12 @@ alternatives, is withdrawn.
 condition is governed, and the residual contract violations are raised on a named non-public
 channel.
 
-**Authority:** `NEXUS-RAT-2026-08-10-001` D2, D3, D4, D5, and objective tests 1, 2, 2b, 3, 5, 6, 7.
-Governing RFC: RFC-0011 Final (Amended) v1.9 § The Total Result Contract → Diagnostic Phases,
-Within-Phase Precedence, Target Selection Order, The Closed Public Vocabulary, Contract Violations.
+**Authority:** `NEXUS-RAT-2026-08-10-001` D2, D3, D4, D5, and objective tests 1, 2, 2b, 3, 5, 6, 7;
+and `NEXUS-RAT-2026-08-11-001` G1, G1a, G2, G4, and G5, which correct the runtime payload validation
+of this task and pin its corrective baseline to PR head
+`658dd5d973c031fb31fab2774c6241f807ca9a9a`. Governing RFC: RFC-0011 Final (Amended) **v1.10** § The
+Total Result Contract → Diagnostic Phases, Within-Phase Precedence, Target Selection Order, The
+Closed Public Vocabulary, Structured Diagnostic Payloads, Contract Violations.
 
 **Targets (exact, seven files):** production — `…issuance.types.ts`, `…issuance.errors.ts`,
 `…issuance.contract.ts`, `…issuance.ts`; evidence, added by `NEXUS-RAT-2026-08-10-002` § Governance
@@ -449,7 +453,7 @@ twenty-four-file authorized inventory; it is **not** enlarged and no new file ma
   absent from those partitions and cannot be returned as an `Issued` or `Rejected` result; and
   assert that an `Issued` result carries no diagnostic fields. Sampling does not satisfy this test.
 - `vocabulary.oracle.ts`: **metadata only** — change `malformed-capture-instant` and
-  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.9
+  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.10
   § Diagnostic Phases and from no implementation source. Add nothing else. The `Commitment` phase,
   `duplicate-record-fingerprint`, the collision and encoder-disagreement mechanisms, and the
   stage-order trace remain `BT-082-010`. The oracle SHALL NOT import any `src/` module, and
@@ -467,8 +471,16 @@ twenty-four-file authorized inventory; it is **not** enlarged and no new file ma
   `'duplicate-record-fingerprint': { phase: 'Commitment', precedence: 7, payloadKind: 'EntryPayload' }`;
   change `malformed-capture-instant` and `malformed-attribution` precedence from 7 to 8; add to
   `createRatificationAuthoritySnapshotRejectedResult` the runtime payload validation of RFC-0011
-  v1.9 § Contract Violations rule 5 — variant match, exact field set, field type, non-empty Strings,
-  non-empty `pathIdentifiers` — raising the contract error carrying `malformed-diagnostic-payload`;
+  v1.10 § Contract Violations rule 5 — variant match, exact field set, field type, code-aware
+  non-empty data-String fields, non-empty `pathIdentifiers` — raising the contract error carrying
+  `malformed-diagnostic-payload`. The non-empty check over data-String fields is **code-aware** per
+  `NEXUS-RAT-2026-08-11-001` § Governance Decision G1 and G2: it is driven by a declared table of
+  exactly two permitted empty-token pairs — `malformed-scope-key` with `scopeKey`, and
+  `malformed-attribution` with `declaredField` — and refuses an empty value on every one of the
+  other sixty-one code-and-data-String-field pairs. The `payloadKind` variant-match limb is
+  unchanged and reaches no exception, per G1a. The evidence required by
+  `NEXUS-RAT-2026-08-11-001` § Governance Decision G5 is added to
+  `…-result-contract.test.ts` and to no other file;
   relocate `sha256Hex` here from `…issuance.ts` as a named export.
 - `…issuance.ts`: import `sha256Hex` from `…contract.ts`; add the module-private
   `AuthorityCommitmentStage` interface and `deriveAuthorityCommitment(preparedText, records)`
@@ -510,7 +522,7 @@ states the exact behavior: verify vocabulary membership at the single constructi
 the contract error; never substitute a governed code for an undeclared one.
 
 **Authority:** `NEXUS-RAT-2026-08-10-001` D5 and objective test 4. Governing RFC: RFC-0011 Final
-(Amended) v1.9 § Contract Violations rule 4.
+(Amended) v1.10 § Contract Violations rule 4, which `NEXUS-RAT-2026-08-11-001` preserves verbatim.
 
 **Targets (exact, two files):** `…issuance.contract.ts`; and
 `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts`, which
@@ -788,11 +800,14 @@ by `NEXUS-REV-2026-08-09-001`. That prior order required duplicate-fingerprint a
 before the result-contract implementation the evidence depends on, and was therefore not
 executable. The order below is binding and SHALL NOT be reordered.
 
-The governing specification for all open Sprint 82 work is **RFC-0011 Final (Amended) v1.9**. Where
-any task record in this document cites RFC-0011 v1.8, that citation is historical; for open work the
-governing text is v1.9 as amended by `NEXUS-RAT-2026-08-10-001`. The authorization authority is
-`NEXUS-RAT-2026-08-06-002` as amended by that instrument. This document carries no independent
-authority.
+The governing specification for all open Sprint 82 work is **RFC-0011 Final (Amended) v1.10**. Where
+any task record in this document cites RFC-0011 v1.8 or v1.9, that citation is **historical** and
+records the governing text at the time that task record was written; for all open work the governing
+text is **v1.10 as amended by `NEXUS-RAT-2026-08-10-001` and `NEXUS-RAT-2026-08-11-001`**, and no
+task-level citation of an earlier version narrows, qualifies, or displaces it. The authorization
+authority is `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001`; that permanent
+authority is unchanged by `NEXUS-RAT-2026-08-11-001`, which is an amendment authority within its
+named extent only. This document carries no independent authority.
 
 1. `BT-082-002` — **COMPLETED** (`NEXUS-REV-2026-08-07-001`, 2026-08-07)
 2. `BT-082-003` — **COMPLETED** (`NEXUS-REV-2026-08-07-002`, 2026-08-07)

@@ -24287,3 +24287,1009 @@ Owner review of this instrument's first revision, 2026-08-10. `NEXUS-REV-2026-08
 ## Current Status
 
 Active
+
+---
+
+# NEXUS-RAT-2026-08-11-001
+
+## Ratification Identifier
+
+NEXUS-RAT-2026-08-11-001
+
+*Availability rechecked at HEAD `ee73806e928cd8ef4de9995228ea3c3cf2dcf565`: zero occurrences of this
+identifier anywhere in the governed corpus. It SHALL be rechecked immediately before application.*
+
+## Date
+
+2026-08-11
+
+## Subject
+
+Resolution of the conflict between RFC-0011 Final (Amended) v1.9 § Contract Violations rule 3 and
+rule 5 for governed diagnostics whose reported subject is itself the empty token. Rule 3 requires
+every governed input to return exactly `Issued` or `Rejected` and never to reach the contract-error
+channel. Rule 5 requires the single validated construction site to refuse every payload carrying an
+empty String field. Three governed inputs exist for which both cannot hold: an empty declared scope
+key, an unrecognized input property key that is the empty String, and an unrecognized producing
+attribution property key that is the empty String. Each is reported by a governed diagnostic whose
+payload variant is fixed by the declared code metadata and whose reported subject is precisely the
+empty token, so the diagnostic cannot omit the field and cannot substitute another. This instrument
+makes rule 5 code-aware and declares exactly two pair-scoped empty-token exceptions over the
+data-String fields following `payloadKind`. Rule 3 is preserved. The `payloadKind` discriminator is
+unchanged and is governed separately. No diagnostic code, phase, precedence, payload variant,
+traversal order, result shape, canonical encoding, or schema version changes. This instrument
+advances RFC-0011 to v1.10 and, in the same act, corrects every operative governing-version
+statement in the Sprint 82 record and in `builder-task.md` so that exactly one current governing RFC
+version is asserted after application.
+
+## Originating Review Finding(s)
+
+Claude Reviewer finding **B2** of the second-cycle independent re-review of `BT-082-007` at PR #8
+head `658dd5d973c031fb31fab2774c6241f807ca9a9a`, 2026-08-11, and the owner's Final Owner Review of
+the same date, which confirmed B2 and selected the narrow governed-source amendment over the two
+alternative resolutions. Revision 2 of this instrument additionally closes the owner's second Final
+Owner Review of 2026-08-11, disposition APPROVE WITH NAMED CORRECTIONS, findings B1, M1, and M2 and
+named corrections NC1 through NC5.
+
+The finding was established empirically at two heads with an unchanged control. Against baseline
+`ee73806e928cd8ef4de9995228ea3c3cf2dcf565` and against head `658dd5d9`, the same three governed
+inputs were presented to `issueRatificationAuthoritySnapshot`:
+
+| Governed input | Baseline `ee73806e` | Head `658dd5d9` |
+| --- | --- | --- |
+| well-formed Active ledger (control) | `Issued` | `Issued` |
+| declaration segment line exactly `  segment ` — present, empty scope key | `Rejected` · `malformed-scope-key` · `DeclarationGrammar` | raised `RatificationAuthoritySnapshotIssuanceContractError`: field `scopeKey` must be a non-empty string |
+| input object carrying an extra property key `""` | `Rejected` · `malformed-attribution` | raised `RatificationAuthoritySnapshotIssuanceContractError`: field `declaredField` must be a non-empty string |
+| `producingAttribution` carrying an extra property key `""` | `Rejected` · `malformed-attribution` | raised `RatificationAuthoritySnapshotIssuanceContractError`: field `declaredField` must be a non-empty string |
+
+The Builder implemented rule 5 exactly as v1.9 states it. The defect is an incompleteness in the
+governed text that `BT-082-007` is the first task to expose, and it is corrected here rather than
+charged to the Builder. Sprint 82 Stop Condition 8 applies: a correction to the live governed corpus
+is a separate governance act and never a Builder repair.
+
+## RFC Coverage
+
+**Amended:** RFC-0011 — Engineering Governance Model, Final (Amended), advancing **v1.9 → v1.10**,
+at exactly two normative sites within `# Ratification Authority Snapshot Issuance` —
+§ The Total Result Contract → Structured Diagnostic Payloads, and § The Total Result Contract →
+Contract Violations rule 5 — together with one additive cross-reference sentence at rule 3, the
+version line, and the Amendment History. The provenance paragraph at the head of the specification
+is **not** edited, consistently with `NEXUS-RAT-2026-08-10-001`, which likewise recorded its
+amendment in the Amendment History alone.
+
+**Not amended:** RFC-0001, RFC-0002, RFC-0003, RFC-0006, RFC-0007, RFC-0010, RFC-0013, and every
+Kernel Canon document. NCCS-1 is consumed exactly as RFC-0003 v1.1 defines it; no canonical encoding
+is touched. The second § Contract Violations section of RFC-0011, at § Repository Policy Corpus
+Source → The Total Result Contract, is **not** amended: it carries the three-code declaration alone
+and does not carry rules 1 through 6, which exist only under Ratification Authority Snapshot
+Issuance.
+
+**Instruments amended by named semantic extent, with no prior Ledger entry's octets, `## Current
+Status`, declaration block, or `sourceStatusDigest` edited:** `NEXUS-RAT-2026-07-31-001`, whose
+diagnostic payload contract gains the pair-scoped exception and nothing else; and
+`NEXUS-RAT-2026-08-10-001`, whose rule 5 as ratified becomes code-aware, its rules 1, 2, 3, 4, and 6
+standing verbatim.
+
+**Instruments not amended:** `NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`,
+`NEXUS-RAT-2026-08-02-001`, `NEXUS-RAT-2026-08-03-001`, `NEXUS-RAT-2026-08-02-002`,
+`NEXUS-RAT-2026-07-18-007`, `NEXUS-RAT-2026-07-16-001`, `NEXUS-RAT-2026-07-15-017`,
+`NEXUS-RAT-2026-08-06-001`, `NEXUS-RAT-2026-08-06-002`, `NEXUS-RAT-2026-08-10-002`.
+
+**Permanent Sprint authorization authority is unchanged.** `NEXUS-RAT-2026-08-06-002`, as amended by
+`NEXUS-RAT-2026-08-10-001`, remains the permanent authorization authority for Sprint 82. This
+instrument is an amendment authority within its named extent only. It does not displace, supersede,
+or share that permanent authority; it authorizes no Sprint, activates nothing, and creates no file.
+
+## Governance Decision
+
+### G1 — The empty-token exception is pair-scoped and exhaustive
+
+The domain of this decision is the complete set of **(code, data-String-field) pairs**, where a
+data-String field is a declared field of the code's declared payload variant other than
+`payloadKind` and other than the list-typed `pathIdentifiers`. There are exactly sixty-three such
+pairs. `payloadKind` is String-typed but is **not** in this domain: it is the variant discriminator,
+governed separately and unchangedly by rule 5's variant-match limb.
+
+Exactly two of the sixty-three pairs report a governed defect whose subject is itself the empty
+token, and on those two pairs alone the field is permitted to be empty:
+
+| Diagnostic code | Payload variant | Data-String field | Permitted empty exactly when |
+| --- | --- | --- | --- |
+| `malformed-scope-key` | `DeclarationScopePayload` | `scopeKey` | the declared scope key token is empty |
+| `malformed-attribution` | `DeclaredInputPayload` | `declaredField` | the unrecognized declared property key is empty |
+
+The exception attaches to the pair, never to the payload variant. `scopeKey` remains
+unconditionally non-empty under `missing-scope-description`, `residual-scope-description`,
+`duplicate-scope-key`, `incomplete-segmentation`, and `status-relation-mismatch`; `declaredField`
+remains unconditionally non-empty under `malformed-capture-instant`; and `declaringAuthority` and
+`declarationSubject`, the other fields of `DeclarationScopePayload`, remain unconditionally
+non-empty under `malformed-scope-key` itself. No third pair is declared, and none may be added
+without a further ratification.
+
+### G1a — The discriminator obligation is separate and unchanged
+
+For every one of the forty-seven public codes, `payloadKind` SHALL remain present, String-typed, and
+exactly equal to the payload variant declared for that code. An empty `payloadKind` and a
+`payloadKind` naming any other variant are each refused by rule 5's variant-match limb, which this
+instrument does not amend. No exception of G1 reaches the discriminator, and no empty discriminator
+is admitted for any code.
+
+### G2 — Rule 5 becomes code-aware; rule 3 is preserved
+
+Rule 5's payload verification SHALL be performed over the supplied code and the supplied payload
+**together**. A verification performed over the payload variant alone cannot express G1 and does not
+conform. Rule 3 is preserved with no narrowing, no exception, and no exemption: totality over
+governed inputs is restored by making rule 5 admit the two governed payloads it wrongly refused,
+never by routing a governed condition to the contract-violation channel. One additive
+cross-reference sentence is placed at the end of rule 3 so that a reader of rule 3 alone reaches G1;
+it grants nothing.
+
+### G3 — `pathIdentifiers` gains no exception
+
+Neither limb of the `pathIdentifiers` condition is touched. It remains a non-empty ordered list of
+non-empty Strings under all four codes that carry it — `cyclic-declaration-authority`,
+`absent-relation-target`, `self-referential-relation`, and `cyclic-lifecycle-relation`. The
+"empty path" refusal recorded under Structured Diagnostic Payloads stands verbatim.
+
+### G4 — Authorized implementation delta, pinned to an exact incremental baseline
+
+The corrective baseline is PR #8 head `658dd5d973c031fb31fab2774c6241f807ca9a9a`. It SHALL remain
+the PR head until the correction begins. If the head moves for any reason before the correction
+begins, the correction SHALL NOT proceed and the baseline SHALL be formally reallocated by a further
+governance act naming the new head.
+
+**Incremental boundary, measured from `658dd5d9`.** The incremental diff introduced by this
+correction SHALL touch exactly two paths and no others:
+
+- `src/kernel/governance/ratification-authority-snapshot-issuance.contract.ts` — make the rule 5
+  non-empty check code-aware over the data-String domain of G1, admitting exactly the two pairs and
+  refusing every other empty data-String value. The check SHALL be driven by a declared pair table,
+  not by a special case written inline at a call site, and SHALL NOT be discharged by a cast, a
+  suppression, or a widened type. The variant-match limb of G1a SHALL be left unchanged.
+- `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts` — the
+  governed regression evidence required by G5.
+
+No path may be added, deleted, or renamed relative to `658dd5d9`.
+
+**Cumulative boundary, measured from `ee73806e`.** The complete PR #8 delta after the correction
+SHALL remain exactly the original seven `BT-082-007` targets — `…issuance.types.ts`,
+`…issuance.errors.ts`, `…issuance.contract.ts`, `…issuance.ts`, `…-diagnostics.test.ts`,
+`…-result-contract.test.ts`, and `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts` — all
+of which are already inside the twenty-four-file authorized inventory. The inventory is not
+enlarged, no eighth target is authorized, and no new file may be created. The oracle's payload
+validation work remains `BT-082-010`; `vocabulary.oracle.ts` receives no further change under this
+instrument.
+
+### G5 — Required objective evidence
+
+1. Three direct tests, one per governed input of § Originating Review Finding(s), each driving
+   `issueRatificationAuthoritySnapshot` end to end and asserting that it **returns** a `Rejected`
+   result carrying the diagnostic the baseline carried — `malformed-scope-key` in
+   `DeclarationGrammar` for the empty scope key, and `malformed-attribution` in `Envelope` for each
+   of the two empty property keys — and that no exception is raised.
+2. A negative test proving that no additional empty data-String value is admitted: for every one of
+   the sixty-three (code, data-String-field) pairs other than the two of G1, an otherwise valid
+   payload carrying an empty value at that field raises
+   `RatificationAuthoritySnapshotIssuanceContractError` carrying `malformed-diagnostic-payload`.
+   Sampling does not satisfy this test.
+3. A discriminator test discharging G1a: for every one of the forty-seven public codes, a payload
+   whose `payloadKind` is the empty String, and a payload whose `payloadKind` names a different
+   declared variant, each raise the contract error carrying `malformed-diagnostic-payload`.
+4. A test proving the exception does not spread within an exempt pair's own variant: under
+   `malformed-scope-key`, an empty `declaringAuthority` and an empty `declarationSubject` each
+   remain a contract violation.
+5. Objective tests 3, 5, and 7 and the rule-4 `undeclared-diagnostic` guard test remain intact and
+   are neither weakened nor re-scoped. Objective test 5's empty-String case is
+   `missing-identifier` with an empty `EntryPayload.ratificationIdentifier`, which is not an exempt
+   pair and continues to raise `malformed-diagnostic-payload` unchanged.
+
+### G6 — Compatibility statement
+
+No Snapshot schema version, canonical record encoding, record fingerprint, authority root, or
+envelope commitment changes. `LifecycleAuthorityRecord`, `AuthorityRootBasis`, and
+`EnvelopeCommitmentBasis` are unchanged field for field; the schema version remains
+`nexus-ratification-authority-snapshot/3`. This instrument changes only the validation of two exact
+diagnostic payload data-String fields under two exact diagnostic codes, for the reporting of an
+empty token. Every input that issues under v1.9 issues under v1.10 with a bit-identical result; the
+three inputs named above cease to raise and return the governed `Rejected` result they returned
+before v1.9's rule 5 was implemented.
+
+### G7 — Version totality across the operative corpus
+
+After application, no operative statement in the Sprint 82 Sprint Implementation Record or in
+`builder-task.md` SHALL assert that RFC-0011 v1.9 is the current governing version. Every such
+statement SHALL name **RFC-0011 Final (Amended) v1.10 as amended through
+`NEXUS-RAT-2026-08-11-001`**. A statement that explicitly describes what a prior instrument did at
+its own issuance date remains historical and is preserved, but SHALL be marked historical wherever
+it could be read as a current governing-version assertion. Sites S6 through S28 below discharge this
+decision — every `Governing RFC` and `Authority` line of every open Builder task is corrected
+explicitly — and § Builder Instructions carries the residual rule that makes every remaining
+task-level v1.8 or v1.9 citation historical by construction. The complete set of residual
+occurrences is enumerated under § Application Sites so that none is left to inference.
+
+## Application Sites
+
+One append to the Ledger, then twenty-eight anchored sites across three further governed targets,
+applied in the order given, one write per site, each `FIND` block re-verified as occurring exactly
+once in its own file immediately before its own write. Sites S1–S5 amend RFC-0011; sites S6–S9 and
+S25–S28 amend `builder-task.md`; sites S10–S24 amend the Sprint 82 record.
+
+### S1 — `knowledge/specifications/rfc-0011-engineering-governance-model.md` § Structured Diagnostic Payloads
+
+FIND (exactly once):
+
+```text
+Every field is a non-empty String except `pathIdentifiers`, which is a non-empty ordered
+list of non-empty Strings. The canonical rendering rule above operates on the fields
+following `payloadKind`; `payloadKind` itself is never rendered into `detail`.
+```
+
+REPLACE with:
+
+```text
+Every field is a non-empty String except `pathIdentifiers`, which is a non-empty ordered
+list of non-empty Strings, and except the two empty-token-reporting pairs declared
+immediately below. The canonical rendering rule above operates on the fields following
+`payloadKind`; `payloadKind` itself is never rendered into `detail`.
+
+The fields following `payloadKind` that are String-typed, other than `pathIdentifiers`, are
+this section's **data-String fields**. Across the closed public vocabulary they form exactly
+sixty-three code-and-data-String-field pairs. `payloadKind` is String-typed but is not a
+data-String field: it is the variant discriminator and is governed solely by the
+variant-match obligation, which requires it to be present, String-typed, and exactly equal
+to the variant declared for the supplied code, for every one of the forty-seven codes
+without exception.
+
+Exactly two code-and-data-String-field pairs report a governed defect whose reported subject
+is itself the empty token. On those two pairs alone the field SHALL be permitted to be empty:
+
+| Diagnostic code | Payload variant | Data-String field | Permitted empty exactly when |
+| --- | --- | --- | --- |
+| `malformed-scope-key` | `DeclarationScopePayload` | `scopeKey` | the declared scope key token is empty |
+| `malformed-attribution` | `DeclaredInputPayload` | `declaredField` | the unrecognized declared property key is empty |
+
+The exception is **pair-scoped and exhaustive**. It attaches to the exact pair of a
+diagnostic code and a data-String field, and never to a payload variant. `scopeKey`
+therefore remains unconditionally non-empty under `missing-scope-description`,
+`residual-scope-description`, `duplicate-scope-key`, `incomplete-segmentation`, and
+`status-relation-mismatch`; `declaredField` remains unconditionally non-empty under
+`malformed-capture-instant`; and `declaringAuthority` and `declarationSubject` remain
+unconditionally non-empty under `malformed-scope-key` itself. Sixty-one of the sixty-three
+pairs remain unconditionally non-empty. Neither the discriminator nor `pathIdentifiers`
+gains any exception in any limb. No third pair is declared, and a further pair SHALL NOT be
+admitted without its own ratification.
+
+A permitted empty field is a governed value and not an absent one: the field SHALL still be
+present, SHALL still carry the String type, and SHALL still be rendered in its declared
+position by the canonical rendering rule, which already renders the empty String for
+`NoPayload` and therefore requires no change.
+```
+
+### S2 — same file, § Contract Violations rule 3
+
+FIND (exactly once):
+
+```text
+   internal invariant that depends on it — and SHALL NOT be established by any assumption about the
+   injectivity or collision resistance of a digest function.
+```
+
+REPLACE with:
+
+```text
+   internal invariant that depends on it — and SHALL NOT be established by any assumption about the
+   injectivity or collision resistance of a digest function. Where a governed condition's own
+   reported subject is an empty token, totality is preserved by the pair-scoped empty-token
+   exception declared under Structured Diagnostic Payloads above, and never by routing that
+   condition to this channel.
+```
+
+### S3 — same file, § Contract Violations rule 5
+
+FIND (exactly once):
+
+```text
+5. **`malformed-diagnostic-payload`.** The same construction site SHALL verify, at run time, that
+   the supplied payload's `payloadKind` is exactly the variant declared for the supplied code; that
+   the payload carries exactly the fields declared for that variant, with none missing and none
+   extra; that every String field is non-empty; and that `pathIdentifiers`, where present, is a
+   non-empty ordered list of non-empty Strings. It SHALL raise the error carrying
+   `malformed-diagnostic-payload` on any failure. A type system that cannot express non-emptiness
+   SHALL NOT be relied on to discharge this rule.
+```
+
+REPLACE with:
+
+```text
+5. **`malformed-diagnostic-payload`.** The same construction site SHALL verify, at run time, that
+   the supplied payload's `payloadKind` is exactly the variant declared for the supplied code; that
+   the payload carries exactly the fields declared for that variant, with none missing and none
+   extra; that every data-String field is non-empty, except on the two empty-token-reporting pairs
+   declared under Structured Diagnostic Payloads above, where the field SHALL be permitted to be
+   empty; and that `pathIdentifiers`, where present, is a non-empty ordered list of non-empty
+   Strings. The `payloadKind` discriminator is **not** a data-String field and reaches no exception:
+   the variant-match obligation stated first in this rule is unchanged, so an empty `payloadKind`
+   and a `payloadKind` naming any other declared variant are each a failure for every code. The
+   data-String verification is **code-aware**: it SHALL be performed over the supplied code and the
+   supplied payload together, and SHALL NOT be performed over the payload variant alone, because the
+   same field name is unconditionally non-empty under every non-exempt code. The permitted pairs
+   SHALL be expressed as a declared table over which the check is driven, and SHALL NOT be expressed
+   as a special case written at any call site. It SHALL raise the error carrying
+   `malformed-diagnostic-payload` on any failure. A type system that cannot express non-emptiness
+   SHALL NOT be relied on to discharge this rule, and a type system that cannot express a
+   pair-scoped permission SHALL NOT be relied on to discharge the exception.
+```
+
+### S4 — same file, version line
+
+FIND (exactly once):
+
+```text
+**Version:** 1.9
+```
+
+REPLACE with:
+
+```text
+**Version:** 1.10
+```
+
+### S5 — same file, Amendment History
+
+FIND (exactly once) — the final line of the file, which is the v1.9 history bullet. Locate it by
+its opening literal:
+
+```text
+- v1.9 (2026-08-10) — Amended by `NEXUS-RAT-2026-08-10-001`
+```
+
+APPEND after that complete line, as a new final line of the file:
+
+```text
+- v1.10 (2026-08-11) — Amended by `NEXUS-RAT-2026-08-11-001` to resolve the conflict between § Contract Violations rule 3 and rule 5 for governed diagnostics whose reported subject is itself the empty token. Rule 5 as ratified at v1.9 required the single validated construction site to refuse every payload carrying an empty String field, while rule 3 required every governed input to return exactly `Issued` or `Rejected` and never to reach the contract-violation channel. Three governed inputs satisfy neither: a declaration segment line declaring a present but empty scope key, reported by `malformed-scope-key` through `DeclarationScopePayload.scopeKey`; an unrecognized input property key that is the empty String; and an unrecognized `producingAttribution` property key that is the empty String, each reported by `malformed-attribution` through `DeclaredInputPayload.declaredField`. The payload variant for each is fixed by the declared code metadata, so the diagnostic can neither omit the field nor substitute another, and each condition was returned as a governed `Rejected` result before rule 5 was implemented. Introduces the term **data-String field** — a declared field following `payloadKind` that is String-typed and is not `pathIdentifiers` — of which there are exactly sixty-three code-and-field pairs across the closed vocabulary, and declares exactly two pair-scoped empty-token exceptions over that domain: `malformed-scope-key` with `scopeKey`, and `malformed-attribution` with `declaredField`, permitted empty exactly when the token they report is empty. The exception attaches to the pair of a code and a data-String field and never to a payload variant, so `scopeKey` remains unconditionally non-empty under `missing-scope-description`, `residual-scope-description`, `duplicate-scope-key`, `incomplete-segmentation`, and `status-relation-mismatch`, `declaredField` remains unconditionally non-empty under `malformed-capture-instant`, and `declaringAuthority` and `declarationSubject` remain unconditionally non-empty under `malformed-scope-key` itself; sixty-one of the sixty-three pairs are unaffected. **The `payloadKind` discriminator is expressly excluded from the exception and from the data-String domain**: the variant-match obligation is unchanged, so an empty `payloadKind` and a `payloadKind` naming any other declared variant remain a failure for every one of the forty-seven codes. Makes the data-String verification code-aware, requiring it to be performed over the supplied code and payload together and expressed as a declared pair table rather than a call-site special case. A permitted empty field remains present, remains typed String, and remains rendered in its declared position; the canonical rendering rule already renders the empty String for `NoPayload` and is unchanged. **Rule 3 is preserved and is not narrowed, excepted, or exempted**: totality is restored by admitting two governed payloads that rule 5 wrongly refused, never by routing a governed condition to the contract-violation channel, and rule 3 gains only one additive cross-reference sentence that grants nothing. `pathIdentifiers` gains no exception in either limb, and the empty-path refusal stands verbatim. Rules 1, 2, 4, and 6 stand verbatim. **Alters no diagnostic identity and no encoding**: the closed public vocabulary remains exactly forty-seven codes, the nine governed phases and the `ContractViolation` partition at rank 9 are unchanged, every phase rank and within-phase precedence is unchanged, the seven payload variants and their exact ordered field lists are unchanged, the `Issued` and `Rejected` result shapes are unchanged, every traversal and target-selection order is unchanged, `LifecycleAuthorityRecord`, `AuthorityRootBasis`, and `EnvelopeCommitmentBasis` are unchanged field for field, and the snapshot schema version remains `nexus-ratification-authority-snapshot/3`, so every fingerprint, authority root, and envelope commitment is bit-identical for every input that issues under both versions. **RFC-0003 is not amended**; NCCS-1 is consumed exactly as RFC-0003 v1.1 defines it. The § Contract Violations section of Repository Policy Corpus Source is not amended; it carries the three-code declaration alone and does not carry rules 1 through 6. Amends `NEXUS-RAT-2026-07-31-001` and `NEXUS-RAT-2026-08-10-001` by named semantic extent, without editing any prior Ledger entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest`. Correspondingly corrects every operative governing-version statement in the Sprint 82 Sprint Implementation Record and in `builder-task.md` to v1.10, leaving prior-instrument descriptions historical and expressly marked. `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001` remains the permanent authorization authority for Sprint 82 and is neither displaced nor shared. Authorizes a bounded two-file implementation delta measured incrementally from PR #8 head `658dd5d973c031fb31fab2774c6241f807ca9a9a`, whose cumulative effect remains inside the existing seven-file `BT-082-007` boundary measured from `ee73806e928cd8ef4de9995228ea3c3cf2dcf565`, and enlarges no inventory; no Sprint is activated, no Builder task is dispatched, and no oracle work is pulled forward from `BT-082-010`.
+```
+
+### S6 — `builder-task.md` § `BT-082-007`, the `…contract.ts` required-change bullet
+
+FIND (exactly once):
+
+```text
+  v1.9 § Contract Violations rule 5 — variant match, exact field set, field type, non-empty Strings,
+  non-empty `pathIdentifiers` — raising the contract error carrying `malformed-diagnostic-payload`;
+```
+
+REPLACE with:
+
+```text
+  v1.10 § Contract Violations rule 5 — variant match, exact field set, field type, code-aware
+  non-empty data-String fields, non-empty `pathIdentifiers` — raising the contract error carrying
+  `malformed-diagnostic-payload`. The non-empty check over data-String fields is **code-aware** per
+  `NEXUS-RAT-2026-08-11-001` § Governance Decision G1 and G2: it is driven by a declared table of
+  exactly two permitted empty-token pairs — `malformed-scope-key` with `scopeKey`, and
+  `malformed-attribution` with `declaredField` — and refuses an empty value on every one of the
+  other sixty-one code-and-data-String-field pairs. The `payloadKind` variant-match limb is
+  unchanged and reaches no exception, per G1a. The evidence required by
+  `NEXUS-RAT-2026-08-11-001` § Governance Decision G5 is added to
+  `…-result-contract.test.ts` and to no other file;
+```
+
+### S7 — `builder-task.md` § `BT-082-007`, Authority and Governing RFC
+
+FIND (exactly once):
+
+```text
+**Authority:** `NEXUS-RAT-2026-08-10-001` D2, D3, D4, D5, and objective tests 1, 2, 2b, 3, 5, 6, 7.
+Governing RFC: RFC-0011 Final (Amended) v1.9 § The Total Result Contract → Diagnostic Phases,
+Within-Phase Precedence, Target Selection Order, The Closed Public Vocabulary, Contract Violations.
+```
+
+REPLACE with:
+
+```text
+**Authority:** `NEXUS-RAT-2026-08-10-001` D2, D3, D4, D5, and objective tests 1, 2, 2b, 3, 5, 6, 7;
+and `NEXUS-RAT-2026-08-11-001` G1, G1a, G2, G4, and G5, which correct the runtime payload validation
+of this task and pin its corrective baseline to PR head
+`658dd5d973c031fb31fab2774c6241f807ca9a9a`. Governing RFC: RFC-0011 Final (Amended) **v1.10** § The
+Total Result Contract → Diagnostic Phases, Within-Phase Precedence, Target Selection Order, The
+Closed Public Vocabulary, Structured Diagnostic Payloads, Contract Violations.
+```
+
+### S8 — `builder-task.md` § `BT-082-010`, the binding oracle authoring rule
+
+FIND (exactly once):
+
+```text
+**Binding authoring rule:** the oracle is written from RFC-0011 v1.9 text alone. It SHALL NOT be
+derived from, refactored out of, or diffed against the implementation, and SHALL NOT import
+`…issuance.errors.ts`, `…issuance.contract.ts`, `…issuance.types.ts`, or `…issuance.ts`.
+```
+
+REPLACE with:
+
+```text
+**Binding authoring rule:** the oracle is written from RFC-0011 v1.10 text alone, as amended through
+`NEXUS-RAT-2026-08-11-001`. It SHALL NOT be
+derived from, refactored out of, or diffed against the implementation, and SHALL NOT import
+`…issuance.errors.ts`, `…issuance.contract.ts`, `…issuance.types.ts`, or `…issuance.ts`.
+```
+
+### S9 — `builder-task.md` § Builder Instructions, the governing-specification statement
+
+FIND (exactly once):
+
+```text
+The governing specification for all open Sprint 82 work is **RFC-0011 Final (Amended) v1.9**. Where
+any task record in this document cites RFC-0011 v1.8, that citation is historical; for open work the
+governing text is v1.9 as amended by `NEXUS-RAT-2026-08-10-001`. The authorization authority is
+`NEXUS-RAT-2026-08-06-002` as amended by that instrument. This document carries no independent
+authority.
+```
+
+REPLACE with:
+
+```text
+The governing specification for all open Sprint 82 work is **RFC-0011 Final (Amended) v1.10**. Where
+any task record in this document cites RFC-0011 v1.8 or v1.9, that citation is **historical** and
+records the governing text at the time that task record was written; for all open work the governing
+text is **v1.10 as amended by `NEXUS-RAT-2026-08-10-001` and `NEXUS-RAT-2026-08-11-001`**, and no
+task-level citation of an earlier version narrows, qualifies, or displaces it. The authorization
+authority is `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001`; that permanent
+authority is unchanged by `NEXUS-RAT-2026-08-11-001`, which is an amendment authority within its
+named extent only. This document carries no independent authority.
+```
+
+### S10 — Sprint record § Authority chain (binding), limbs 2 and 3
+
+FIND (exactly once):
+
+```text
+2. **`NEXUS-RAT-2026-08-06-002`, as amended by `NEXUS-RAT-2026-08-10-001`, recorded in
+   `knowledge/governance/RATIFICATION_LEDGER.md`, is the permanent authorization authority for this Sprint.**
+   The amendment reaches only the semantic extent named in its § Amendment Matrix and does not displace,
+   supersede, or share that permanent authority. The Ratification Ledger is the authoritative repository and
+   single source of truth for ratifications.
+3. **This document is the self-contained operative Sprint Specification**, subordinate to the Constitution, to
+   `NEXUS-RAT-2026-08-06-002`, and to `NEXUS-RAT-2026-08-10-001` as its amendment authority. It is the document
+   the Builder works from, and it depends on no scratchpad, no session artifact, and no ungoverned section
+   reference.
+```
+
+REPLACE with:
+
+```text
+2. **`NEXUS-RAT-2026-08-06-002`, as amended by `NEXUS-RAT-2026-08-10-001`, recorded in
+   `knowledge/governance/RATIFICATION_LEDGER.md`, is the permanent authorization authority for this Sprint.**
+   The amendment reaches only the semantic extent named in its § Amendment Matrix and does not displace,
+   supersede, or share that permanent authority. `NEXUS-RAT-2026-08-11-001` likewise does not displace,
+   supersede, or share it: that instrument is an amendment authority within its own named extent only and
+   authorizes no Sprint. The Ratification Ledger is the authoritative repository and
+   single source of truth for ratifications.
+3. **This document is the self-contained operative Sprint Specification**, subordinate to the Constitution, to
+   `NEXUS-RAT-2026-08-06-002`, and to `NEXUS-RAT-2026-08-10-001` and `NEXUS-RAT-2026-08-11-001` as its
+   amendment authorities, each within its own named extent. It is the document
+   the Builder works from, and it depends on no scratchpad, no session artifact, and no ungoverned section
+   reference.
+```
+
+### S11 — Sprint record § Authority chain, the conflict rule
+
+FIND (exactly once):
+
+```text
+**Conflict rule.** If this record diverges from `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001`,
+**those Ledger entries prevail** and this record is corrected. Where the two Ledger entries themselves diverge,
+`NEXUS-RAT-2026-08-10-001` prevails within its named amended extent and `NEXUS-RAT-2026-08-06-002` prevails
+everywhere else. This record neither enlarges, narrows, nor reinterprets the Authorized Builder Scope.
+```
+
+REPLACE with:
+
+```text
+**Conflict rule.** If this record diverges from `NEXUS-RAT-2026-08-06-002` as amended by
+`NEXUS-RAT-2026-08-10-001`, or from `NEXUS-RAT-2026-08-11-001` within its named amended extent,
+**the applicable Ledger entry or entries prevail** and this record is corrected. Where those Ledger entries
+themselves diverge, `NEXUS-RAT-2026-08-11-001` prevails within its named amended extent,
+`NEXUS-RAT-2026-08-10-001` prevails within its named amended extent outside that, and
+`NEXUS-RAT-2026-08-06-002` prevails everywhere else. This record neither enlarges, narrows, nor
+reinterprets the Authorized Builder Scope.
+```
+
+### S12 — Sprint record § Objective
+
+FIND (exactly once):
+
+```text
+Implement the RFC-0011 Final (Amended) v1.9 § Ratification Authority Snapshot Issuance contract, as amended by
+`NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, and `NEXUS-RAT-2026-08-10-001`, as one pure, standalone,
+directly invoked Kernel
+library capability (Boundary A):
+```
+
+REPLACE with:
+
+```text
+Implement the RFC-0011 Final (Amended) v1.10 § Ratification Authority Snapshot Issuance contract, as amended by
+`NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, `NEXUS-RAT-2026-08-10-001`, and
+`NEXUS-RAT-2026-08-11-001`, as one pure, standalone,
+directly invoked Kernel
+library capability (Boundary A):
+```
+
+### S13 — Sprint record § Governing Authority, the primary RFC bullet
+
+FIND (exactly once):
+
+```text
+- **RFC-0011 — Engineering Governance Model, Final (Amended) v1.9**,
+```
+
+REPLACE with:
+
+```text
+- **RFC-0011 — Engineering Governance Model, Final (Amended) v1.10**,
+```
+
+### S14 — Sprint record § Governing Authority, the `NEXUS-RAT-2026-07-31-001` lineage bullet
+
+FIND (exactly once):
+
+```text
+- **`NEXUS-RAT-2026-07-31-001`, as amended by `NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`, and
+  `NEXUS-RAT-2026-08-10-001`** — establishes the Issuance Contract and owns issuance, its derivation, and its
+```
+
+REPLACE with:
+
+```text
+- **`NEXUS-RAT-2026-07-31-001`, as amended by `NEXUS-RAT-2026-08-04-001`, `NEXUS-RAT-2026-08-05-001`,
+  `NEXUS-RAT-2026-08-10-001`, and `NEXUS-RAT-2026-08-11-001`** — establishes the Issuance Contract and owns
+  issuance, its derivation, and its
+```
+
+### S15 — Sprint record § Governing Authority, closing the `NEXUS-RAT-2026-07-31-001` lineage sentence
+
+FIND (exactly once):
+
+```text
+  closed public vocabulary, diagnostic precedence, duplicate-fingerprint outcome, and contract-violation
+  representation are amended by `NEXUS-RAT-2026-08-10-001` at those clauses only; every other clause stands
+  unchanged. As so amended it remains the contract authority.
+```
+
+REPLACE with:
+
+```text
+  closed public vocabulary, diagnostic precedence, duplicate-fingerprint outcome, and contract-violation
+  representation are amended by `NEXUS-RAT-2026-08-10-001` at those clauses only, and its diagnostic payload
+  contract is amended by `NEXUS-RAT-2026-08-11-001` solely by the pair-scoped empty-token exception over
+  data-String fields; every other clause stands
+  unchanged. As so amended it remains the contract authority.
+```
+
+### S16 — Sprint record § Governing Authority, the new amendment-authority bullet
+
+FIND (exactly once):
+
+```text
+- **`NEXUS-RAT-2026-07-15-017`**, **`NEXUS-RAT-2026-07-16-001`** — untouched.
+```
+
+REPLACE with:
+
+```text
+- **`NEXUS-RAT-2026-08-11-001`** — the binding amendment authority for exactly the semantics named in its
+  § Amendment Matrix, and for nothing else: the pair-scoped empty-token exception over data-String diagnostic
+  payload fields, comprising `malformed-scope-key` with `scopeKey` and `malformed-attribution` with
+  `declaredField`; the code-aware form of § Contract Violations rule 5; and one additive cross-reference
+  sentence at rule 3, which is otherwise preserved verbatim. It amends RFC-0011 to **v1.10**, which is the
+  current governing version. It changes no diagnostic identity, no phase, no precedence, no payload variant, no
+  result shape, no traversal order, no canonical encoding, and no schema version; the `payloadKind`
+  variant-match obligation is unchanged. It authorizes a bounded two-file implementation delta inside the
+  existing seven-file `BT-082-007` boundary, enlarges no inventory, authorizes no activation, creates no file,
+  dispatches no Builder task, and pulls no oracle work forward from `BT-082-010`. It does not displace,
+  supersede, or share the permanent authorization authority of `NEXUS-RAT-2026-08-06-002`.
+- **`NEXUS-RAT-2026-07-15-017`**, **`NEXUS-RAT-2026-07-16-001`** — untouched.
+```
+
+### S17 — Sprint record § Governing Authority, marking the v1.9 statement historical
+
+FIND (exactly once):
+
+```text
+  amends RFC-0011 to v1.9. It authorizes no activation, no new Sprint, no new file, and no scope beyond the
+  amended extent.
+```
+
+REPLACE with:
+
+```text
+  amended RFC-0011 to v1.9 at its issuance date, which is a historical statement of that instrument's extent
+  and not a current governing-version assertion; the current governing version is v1.10 as amended by
+  `NEXUS-RAT-2026-08-11-001`. It authorizes no activation, no new Sprint, no new file, and no scope beyond the
+  amended extent.
+```
+
+### S18 — Sprint record § RFC Coverage → Primary
+
+FIND (exactly once):
+
+```text
+RFC-0011 — Engineering Governance Model, Final (Amended) v1.9, `# Ratification Authority Snapshot Issuance`.
+```
+
+REPLACE with:
+
+```text
+RFC-0011 — Engineering Governance Model, Final (Amended) v1.10, `# Ratification Authority Snapshot Issuance`.
+```
+
+### S19 — Sprint record § Implementation Scope, item 14
+
+FIND (exactly once):
+
+```text
+    contract-violation codes are represented on the named non-public error channel of RFC-0011
+    v1.9 § Contract Violations and are never returned.
+```
+
+REPLACE with:
+
+```text
+    contract-violation codes are represented on the named non-public error channel of RFC-0011
+    v1.10 § Contract Violations and are never returned. Rule 5's non-empty obligation over
+    data-String payload fields is code-aware per `NEXUS-RAT-2026-08-11-001`, admitting an empty
+    value on exactly the two declared empty-token pairs and on no other of the sixty-three pairs;
+    the `payloadKind` variant-match obligation is unchanged and reaches no exception.
+```
+
+### S20 — Sprint record § Deterministic Failure Behavior
+
+FIND (exactly once):
+
+```text
+A `Rejected` result on the live corpus is a legitimate, informative Sprint outcome, not a Sprint failure.
+```
+
+REPLACE with:
+
+```text
+A `Rejected` result on the live corpus is a legitimate, informative Sprint outcome, not a Sprint failure.
+
+**Empty-token reporting.** Three governed inputs report a defect whose subject is itself the empty
+token: a declaration segment line declaring a present but empty scope key, an unrecognized input
+property key that is the empty String, and an unrecognized `producingAttribution` property key that
+is the empty String. Each returns a governed `Rejected` result — `malformed-scope-key` in
+`DeclarationGrammar` for the first, `malformed-attribution` in `Envelope` for the other two — and
+none reaches the contract-violation channel. Under `NEXUS-RAT-2026-08-11-001` the runtime payload
+validation of RFC-0011 v1.10 § Contract Violations rule 5 is code-aware over data-String fields and
+permits an empty value on exactly two code-and-field pairs, `malformed-scope-key` with `scopeKey`
+and `malformed-attribution` with `declaredField`; each of the other sixty-one pairs refuses an empty
+value as `malformed-diagnostic-payload`, and the `payloadKind` variant-match obligation is unchanged.
+```
+
+### S21 — Sprint record § Prohibited paths, the pre-Builder amendment statement
+
+FIND (exactly once):
+
+```text
+The entry `knowledge/specifications/rfc-0011-engineering-governance-model.md` in this list binds
+**the Builder**. RFC-0011 is amended to v1.9 by `NEXUS-RAT-2026-08-10-001`, applied by an
+authorized governance applier before Builder resumption and never by the Builder. The Builder
+SHALL NOT edit it under any task. Likewise, no prior Ledger entry's octets are edited by that
+amendment: `NEXUS-RAT-2026-07-31-001` and `NEXUS-RAT-2026-08-06-001` are amended by `NEXUS-RAT-2026-08-10-001`
+by named semantic extent only, as is `NEXUS-RAT-2026-08-06-002` by `NEXUS-RAT-2026-08-10-001`. Their octets stand.
+```
+
+REPLACE with:
+
+```text
+The entry `knowledge/specifications/rfc-0011-engineering-governance-model.md` in this list binds
+**the Builder**. RFC-0011 is amended to v1.10 — to v1.9 by `NEXUS-RAT-2026-08-10-001` and then to
+v1.10 by `NEXUS-RAT-2026-08-11-001` — each amendment applied by an
+authorized governance applier before Builder resumption and never by the Builder. The Builder
+SHALL NOT edit it under any task. Likewise, no prior Ledger entry's octets are edited by either
+amendment: `NEXUS-RAT-2026-07-31-001` and `NEXUS-RAT-2026-08-06-001` are amended by `NEXUS-RAT-2026-08-10-001`
+by named semantic extent only, as is `NEXUS-RAT-2026-08-06-002` by `NEXUS-RAT-2026-08-10-001`, and
+`NEXUS-RAT-2026-07-31-001` is further amended by `NEXUS-RAT-2026-08-11-001` by named semantic extent
+only. Their octets stand.
+```
+
+### S22 — Sprint record § Dependencies
+
+FIND (exactly once):
+
+```text
+RFC-0011 Final (Amended) v1.9 as amended through `NEXUS-RAT-2026-08-10-001`; RFC-0003's NCCS-1 and its normative
+```
+
+REPLACE with:
+
+```text
+RFC-0011 Final (Amended) v1.10 as amended through `NEXUS-RAT-2026-08-11-001`; RFC-0003's NCCS-1 and its normative
+```
+
+### S23 — Sprint record § Traceability, the Primary RFC row
+
+FIND (exactly once):
+
+```text
+| Primary RFC | RFC-0011 Final (Amended) v1.9 |
+```
+
+REPLACE with:
+
+```text
+| Primary RFC | RFC-0011 Final (Amended) v1.10 |
+```
+
+### S24 — Sprint record § Traceability, the amendment-authority row
+
+FIND (exactly once):
+
+```text
+| Amendment authority (phase model, vocabulary, contract-violation channel, T12/T14/T16/T17/T18) | `NEXUS-RAT-2026-08-10-001` |
+```
+
+REPLACE with:
+
+```text
+| Amendment authority (phase model, vocabulary, contract-violation channel, T12/T14/T16/T17/T18) | `NEXUS-RAT-2026-08-10-001` |
+| Amendment authority (pair-scoped empty-token exception over data-String diagnostic payload fields; code-aware rule 5) | `NEXUS-RAT-2026-08-11-001` |
+```
+
+### S25 — `builder-task.md` § `BT-082-006`, Governing RFC
+
+FIND (exactly once):
+
+```text
+82 Sprint Implementation Record T12, T14, T17 as amended. Governing RFC: RFC-0011 Final (Amended)
+v1.9 § Authority Root and Envelope Commitment, § Deterministic Ordering, § The Total Result
+Contract.
+```
+
+REPLACE with:
+
+```text
+82 Sprint Implementation Record T12, T14, T17 as amended. Governing RFC: RFC-0011 Final (Amended)
+v1.10 § Authority Root and Envelope Commitment, § Deterministic Ordering, § The Total Result
+Contract.
+```
+
+### S26 — `builder-task.md` § `BT-082-010`, Governing RFC
+
+FIND (exactly once):
+
+```text
+corpus. Governing RFC: RFC-0011 Final (Amended) v1.9 § Two Structurally Independent
+Implementations.
+```
+
+REPLACE with:
+
+```text
+corpus. Governing RFC: RFC-0011 Final (Amended) v1.10 § Two Structurally Independent
+Implementations.
+```
+
+### S27 — `builder-task.md` § `BT-082-008`, Authority and Governing RFC
+
+FIND (exactly once):
+
+```text
+**Authority:** `NEXUS-RAT-2026-08-10-001` D5 and objective test 4. Governing RFC: RFC-0011 Final
+(Amended) v1.9 § Contract Violations rule 4.
+```
+
+REPLACE with:
+
+```text
+**Authority:** `NEXUS-RAT-2026-08-10-001` D5 and objective test 4. Governing RFC: RFC-0011 Final
+(Amended) v1.10 § Contract Violations rule 4, which `NEXUS-RAT-2026-08-11-001` preserves verbatim.
+```
+
+### S28 — `builder-task.md` § `BT-082-007`, the `vocabulary.oracle.ts` derivation directive
+
+FIND (exactly once):
+
+```text
+  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.9
+  § Diagnostic Phases and from no implementation source. Add nothing else. The `Commitment` phase,
+```
+
+REPLACE with:
+
+```text
+  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.10
+  § Diagnostic Phases and from no implementation source. Add nothing else. The `Commitment` phase,
+```
+
+### Residual v1.9 occurrences, expressly historical and not amended
+
+After S1 through S28, exactly four occurrences of the literal `v1.9` remain in `builder-task.md`, and
+each is a description of what a prior instrument did or of the defect a prior version introduced,
+never a current governing-version assertion. They are preserved deliberately and are governed by the
+residual rule installed at S9:
+
+| Location | Text in substance | Why it remains |
+| --- | --- | --- |
+| § `BT-082-007` Summary | "RFC-0011 v1.9 replaces this with one exact behavior" | Historical: records what v1.9 changed relative to v1.8. The behavior it names is unchanged by this instrument. |
+| § `BT-082-008` Summary | "RFC-0011 v1.9 § Contract Violations rule 4 states the exact behavior" | Rule 4 is preserved verbatim; the operative citation for that task is corrected at S27. |
+| § `BT-082-010` narrative | "the v1.9 nine-phase model" | Historical: the nine-phase model is unchanged, and the operative citation for that task is corrected at S26. |
+| § Governance narrative | "amends RFC-0011 to v1.9 accordingly" | Historical: describes `NEXUS-RAT-2026-08-10-001` at its own issuance date. |
+
+Two occurrences of `v1.9` also remain in the Sprint 82 record, at the sites amended by S17 and S21,
+where the word appears inside text that expressly marks the reference historical.
+
+## Simulation Evidence
+
+The amended predicate was mechanically simulated over the complete declared matrix, derived from
+RFC-0011 text alone — the payload-variant field table under § Structured Diagnostic Payloads and the
+forty-seven-code listing under § The Closed Public Vocabulary — reading no implementation module.
+
+```text
+codes parsed from RFC vocabulary block: 47
+payload variants parsed: 7
+
+DOMAIN — (code, data-String-field) pairs, excluding the `payloadKind` discriminator
+and excluding the list-typed `pathIdentifiers`:
+  DeclarationPayload: 22
+  DeclarationScopePayload: 18
+  DeclaredInputPayload: 2
+  EntryPayload: 17
+  EntrySectionPayload: 4
+total data-String pairs: 63
+empty admitted: 2
+  ADMITTED  malformed-scope-key + scopeKey
+  ADMITTED  malformed-attribution + declaredField
+empty refused (malformed-diagnostic-payload): 61
+codes carrying pathIdentifiers (list, never a data-String field): cyclic-declaration-authority,
+  absent-relation-target, self-referential-relation, cyclic-lifecycle-relation
+
+DISCRIMINATOR — governed separately by the unchanged variant-match limb:
+  (code, payloadKind) pairs outside the data-String domain: 47
+  codes for which an EMPTY payloadKind is refused: 47 of 47
+  codes for which a WRONG payloadKind is refused: 47 of 47
+
+controls — same field name under a non-exempt code, and other fields of an exempt code:
+  REFUSED   duplicate-scope-key + scopeKey
+  REFUSED   missing-scope-description + scopeKey
+  REFUSED   residual-scope-description + scopeKey
+  REFUSED   incomplete-segmentation + scopeKey
+  REFUSED   status-relation-mismatch + scopeKey
+  REFUSED   malformed-capture-instant + declaredField
+  REFUSED   malformed-scope-key + declaringAuthority
+  REFUSED   malformed-scope-key + declarationSubject
+  REFUSED   missing-identifier + ratificationIdentifier
+
+exempt-pair count: 2 (required: 2)
+invariant dataStringPairs === 63 : true
+invariant admitted.length === 2 : true
+invariant refused === dataStringPairs - 2 : true
+invariant discriminator refused for all 47 codes : true
+```
+
+The per-variant breakdown 17 + 4 + 22 + 18 + 2 = 63 is the complete data-String domain. The final
+control is the case objective test 5 already asserts. It is refused, so that test survives this
+amendment unchanged.
+
+## Amendment Matrix
+
+| Instrument or document | Extent | Preserved |
+| --- | --- | --- |
+| RFC-0011 § Structured Diagnostic Payloads | The universal non-empty-String sentence is scoped to data-String fields and gains the pair-scoped exception; the data-String definition, the exception table, and the discriminator carve-out are added | Variant list, the seven exact ordered field lists, `payloadKind` first-field rule, `NoPayload` sole-field rule, `declaredField` exact-leaf rule, the variant-mismatch refusal, the canonical rendering rule |
+| RFC-0011 § Contract Violations rule 5 | The non-empty clause is scoped to data-String fields and gains the exception; that verification is required to be code-aware and table-driven; the discriminator carve-out is stated | Variant match, exact field set, field type, `pathIdentifiers` both limbs, the raise obligation, the type-system caveat |
+| RFC-0011 § Contract Violations rule 3 | One additive cross-reference sentence | The whole rule, verbatim, including the by-construction requirement and the digest-assumption prohibition |
+| RFC-0011 § Contract Violations rules 1, 2, 4, 6 | None | All, verbatim |
+| RFC-0011 version line and Amendment History | v1.9 → v1.10; one appended history bullet | All prior history bullets, verbatim; the head provenance paragraph, verbatim |
+| RFC-0011 § Repository Policy Corpus Source → Contract Violations | None | All, verbatim |
+| `NEXUS-RAT-2026-07-31-001` | Diagnostic payload contract gains the pair-scoped exception | Ownership boundary, input domain, preparation, grammars, schemas, constants, graphs, commitment layers, issuance facts, ordering, vocabulary, phase model, result contract, every deferral |
+| `NEXUS-RAT-2026-08-10-001` | Rule 5 becomes code-aware over data-String fields | The `Commitment` phase at rank 7, `duplicate-record-fingerprint`, the forty-seven-code vocabulary, the two `Envelope` precedence values, rules 1, 2, 3, 4, 6, the substitution and observation provisions |
+| `NEXUS-RAT-2026-08-06-002` | None | All, verbatim; it remains the permanent Sprint authorization authority, undisplaced and unshared |
+| `builder-task.md` § `BT-082-007` | The `…contract.ts` bullet restates rule 5 as code-aware over data-String fields and allocates the G5 evidence; Authority and Governing RFC cite v1.10 and the pinned corrective baseline | Targets, the seven-file boundary, execution-order requirement, prohibitions, acceptance, every other task |
+| `builder-task.md` § `BT-082-010` | The binding authoring rule and the Governing RFC line cite v1.10 | The task's status, targets, objective tests 9, 9b, 9c, 10, 11, 12, the independence prohibition, its deferral |
+| `builder-task.md` §§ `BT-082-006`, `BT-082-008` | The Governing RFC line of each cites v1.10; rule 4 is noted as preserved verbatim | Each task's status, position in the order, authority instruments, targets, objective-test ownership, and every other clause |
+| `builder-task.md` § Builder Instructions | The governing-specification statement names v1.10 and makes v1.8 and v1.9 task citations historical | The mandatory task order, the authorization authority, the no-independent-authority statement |
+| Sprint 82 record | Authority chain, conflict rule, Objective, Governing Authority, RFC Coverage, Implementation Scope item 14, Deterministic Failure Behavior, prohibited-paths amendment statement, Dependencies, and Traceability name v1.10 and the new instrument | Status, disposition of Approved with Findings, the twenty-four-file inventory, T1–T21, Stop Conditions 1–12, Completion Requirements, Validation Summary, Reviewer Notes, Final Disposition, and the permanent authorization authority |
+
+## Preserved Invariants
+
+The closed public vocabulary of exactly forty-seven codes; the nine governed phases and the
+`ContractViolation` partition at rank 9; every phase rank and every within-phase precedence,
+including `Commitment` at 7 and `Envelope` at 8; every traversal and target-selection order; the
+seven payload variants and their exact ordered field lists; the `payloadKind` variant-match
+obligation for every code; the `Issued` and `Rejected` result shapes and the three `Issued` counts;
+the encoded octets of `LifecycleAuthorityRecord`, `AuthorityRootBasis`, and
+`EnvelopeCommitmentBasis`; the schema version `nexus-ratification-authority-snapshot/3`; every
+record fingerprint, authority root, and envelope commitment; the twenty-four-file authorized
+inventory and the seven-file `BT-082-007` boundary within it; the permanent Sprint authorization
+authority of `NEXUS-RAT-2026-08-06-002`; the single operative Builder task order; objective-test
+ownership across `BT-082-006`, `BT-082-007`, `BT-082-008`, and `BT-082-010`; Sprint 82 Stop
+Conditions 1–12; oracle structural independence and the deferral of oracle payload work to
+`BT-082-010`; Sprint 82's disposition of Approved with Findings; and all deferred and prohibited
+scope, including DEP1.
+
+## Changed-File List (exact)
+
+**File 1 — `knowledge/governance/RATIFICATION_LEDGER.md`.** Pinned pre-application blob
+`9feca6d533aa0387d5317d4ee7a8aee12c1371e3`, 24,289 lines, 2,086,472 bytes, content SHA-256
+`7f09b216e2ce221215360f2b04f1913156a0a981d4f12bdd627a6dad3ddeca69`, zero CR bytes. One append at end
+of file. The file's last line is `Active`. Append a blank line, then `---`, then a blank line, then
+this entry in full. No other change.
+
+**File 2 — `knowledge/specifications/rfc-0011-engineering-governance-model.md`.** Pinned
+pre-application blob `271d2b291b90eda6f8ea24e3a29f5e49b718e866`, 4,079 lines, 385,933 bytes, content
+SHA-256 `e1a820735808320d57258913c59e1e5b174fc1df79cf49ef3b098416d1715aac`, zero CR bytes. Sites S1,
+S2, S3, S4, and S5. No other change.
+
+**File 3 — `builder-task.md`.** Pinned pre-application blob
+`1c59f0bb4e6126ed32ef09782bb2119111d6c3ab`, 1,176 lines, 83,615 bytes, content SHA-256
+`dca7ef42e01833c3ab89ffac0ea77f8908b2618424ca5d5bc20b90b152dcb7f9`, zero CR bytes. Sites S6, S7, S8,
+S9, S25, S26, S27, and S28. No other change.
+
+**File 4 — `knowledge/implementation/sprints/sprint-0082-ratification-authority-snapshot-issuance.md`.**
+Pinned pre-application blob `a9faedbe0a0d6aa2f3a3019f30e09093086d3947`, 737 lines, 67,161 bytes,
+content SHA-256 `c4362c84b1ad8359379f06546d86b430f5ddc32bf5e710dcbb2d4c43aba7a224`, zero CR bytes.
+Sites S10 through S24. No other change.
+
+All four pins are taken at HEAD `ee73806e928cd8ef4de9995228ea3c3cf2dcf565`. No fifth path is
+authorized. `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_MANIFEST.md`, `IMPLEMENTATION_REPORT.md`,
+`REVIEW_HISTORY.md`, `.gitattributes`, every other RFC, and every Kernel Canon document are outside
+this instrument.
+
+## Application Stop Conditions
+
+1. Any `FIND` block matching zero times, or more than once, at its own file immediately before its
+   own write.
+2. Any pinned blob, line count, byte count, or content SHA-256 not matching at application time.
+3. Any CR byte present in any target before or after application.
+4. The Ledger append not satisfying whole-file constructive equality
+   `pinned + LF + --- + LF + LF + this entry`, or the pinned octets not being an exact byte prefix
+   of the result.
+5. Any prior Ledger entry's octets, `## Current Status`, declaration block, or `sourceStatusDigest`
+   differing after application.
+6. Any non-target working-tree path differing in content before and after application.
+7. `NEXUS-RAT-2026-08-11-001` occurring anywhere in the governed corpus before application.
+8. Any operative statement asserting RFC-0011 v1.9 as the current governing version surviving in the
+   Sprint 82 record or in `builder-task.md` after application, other than a statement expressly
+   marked historical or governed by the residual rule at § Builder Instructions.
+9. Any change to the permanent Sprint authorization authority of `NEXUS-RAT-2026-08-06-002`, or to
+   the single operative Builder task order.
+10. Any verifier that cannot classify a condition reporting a governed-condition failure rather than
+    an invalid verifier result, per `NEXUS-REV-2026-08-11-001` Observation 1.
+
+## Builder Stop Conditions
+
+1. Any path in the incremental diff from PR #8 head `658dd5d973c031fb31fab2774c6241f807ca9a9a` other
+   than `…issuance.contract.ts` and `…-result-contract.test.ts`, or any path added, deleted, or
+   renamed relative to that head.
+2. The PR head differing from `658dd5d973c031fb31fab2774c6241f807ca9a9a` when the correction begins,
+   absent a formal reallocation of the corrective baseline.
+3. Any cumulative delta from `ee73806e928cd8ef4de9995228ea3c3cf2dcf565` outside the seven
+   `BT-082-007` targets, or any enlargement of the twenty-four-file inventory.
+4. Any third empty-token pair admitted, any exception attached to a payload variant rather than to a
+   code-and-data-String-field pair, or any exception reaching `payloadKind` or `pathIdentifiers`.
+5. Any cast, suppression, widened type, or call-site special case used to discharge the exception.
+6. Any change to a diagnostic code, phase, precedence, payload variant, result shape, traversal
+   order, canonical encoding, or schema version.
+7. Any weakening or re-scoping of objective test 3, 5, or 7, or of the rule-4 guard test.
+8. Any oracle change, or any work on `BT-082-008`, `BT-082-006`, `BT-082-010`, `BT-082-009`,
+   `-011`, `-012`, or `DOC-082-001`.
+9. Any governed-source correction. A correction to the live governed corpus is a separate governance
+   act and never a Builder repair; stop and report.
+10. Any commit, push, merge, or pull-request action, each of which is reserved to the human operator.
+
+## Related Sprint(s) / Related Review(s)
+
+Sprint 82 — Ratification Authority Snapshot Issuance Capability (Milestone 12, SGP-1).
+`NEXUS-RAT-2026-08-10-001` and `NEXUS-RAT-2026-07-31-001` (each amended by named extent).
+`NEXUS-RAT-2026-08-06-002` (permanent Sprint authorization authority, unamended and undisplaced).
+`NEXUS-RAT-2026-08-06-001` and `NEXUS-RAT-2026-08-10-002` (task boundary and evidence allocation,
+unamended). `NEXUS-REV-2026-08-11-001`. Claude Reviewer second-cycle re-review of `BT-082-007` at
+PR #8 head `658dd5d973c031fb31fab2774c6241f807ca9a9a`, 2026-08-11, finding B2. Owner Final Owner
+Review of 2026-08-11 confirming B2 and selecting the narrow governed-source amendment. Owner Final
+Owner Review of 2026-08-11, disposition APPROVE WITH NAMED CORRECTIONS, findings B1, M1, M2 and
+named corrections NC1 through NC5, closed by revision 2 of this instrument.
+
+## Current Status
+
+Active
