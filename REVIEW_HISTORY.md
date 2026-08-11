@@ -2,6 +2,79 @@
 
 ---
 
+## NEXUS-REV-2026-08-11-004 — Sprint 82 — `BT-082-007` CERTIFIED COMPLETED at Merge Commit `59decb2a…`
+
+- **Reviewed Sprint:** Sprint 82 — Ratification Authority Snapshot Issuance Capability. This entry certifies Builder task `BT-082-007` — the governed `Commitment` phase, the contract-violation channel, and runtime payload validation — as **COMPLETED** following the merge of PR #8 into the Sprint base branch.
+- **Reviewed Change:** merge commit `59decb2a325a9d431b12db14498ac9723be258bf`, merging PR #8 (`copilot/bt-082-007-implement-commitment-phase` → `copilot/push-committed-changes-20260710`) at head `f0ab77c9f49f7a9c6286d03680d2ccaca999494e`, merged 2026-08-11T05:16:10Z by `neil3cloud`. Base parent `411db1f2a2be913f14bf966d1d4b1182b1a1e95d`. Owner-approved implementation head `921db2cdec6b92c1ae51069624f8c504058035ed`.
+- **RFC Coverage:** RFC-0011 **Final (Amended) v1.10** § The Total Result Contract → Diagnostic Phases, Within-Phase Precedence, Target Selection Order, The Closed Public Vocabulary, Structured Diagnostic Payloads, Contract Violations. RFC-0003 consumed unchanged.
+- **Authority:** `NEXUS-RAT-2026-08-06-002` as amended by `NEXUS-RAT-2026-08-10-001` (D2, D3, D4, D5), `NEXUS-RAT-2026-08-10-002` (E1, E2, E4, E5, E7), and `NEXUS-RAT-2026-08-11-001` (G1, G1a, G2, G4, G5). No new Ratification and no new Ledger entry was created by this certification.
+- **Review Date:** 2026-08-11
+- **Reviewer:** Reviewer AI (Claude Code), post-merge closure review; Codex, independent concurrence; repository owner, final review
+- **Overall Disposition:** **COMPLETED — CERTIFIED.** No architectural violations detected. No Critical, Major, or Minor findings. One non-blocking Observation is recorded below.
+
+### Merge Identity, Independently Discovered
+
+The merge identity was discovered from the GitHub REST API, the GitHub GraphQL view, and local Git, not from review context. `merged true`, `merged_at 2026-08-11T05:16:10Z`, `merged_by neil3cloud`, `merge_commit_sha 59decb2a…`; `git ls-remote origin` confirms `59decb2a…` as the tip of `refs/heads/copilot/push-committed-changes-20260710`. The merge object carries two parents in base-then-head order — `411db1f2…` then `f0ab77c9…` — and is GPG-signed by GitHub. It is a true merge, neither a squash nor a rebase.
+
+**The merge tree equals the PR head tree exactly.** Both are `f089fce6db2d200b509e21c6871c558289793718`, and `git diff f0ab77c9 59decb2a` is empty. The merge resolved nothing and introduced no byte of its own. The owner-approved head `921db2cdec6b92c1ae51069624f8c504058035ed` is an ancestor of the merge and was not amended, rewritten, squashed, or replaced.
+
+### Delivered Boundary
+
+Relative to the base parent `411db1f2…`, the merge delivers **exactly the seven authorized `BT-082-007` paths, all modified**, with no addition, deletion, rename, or eighth path:
+
+| Path | Δ |
+| --- | ---: |
+| `src/kernel/governance/ratification-authority-snapshot-issuance.contract.ts` | `+88/-2` |
+| `src/kernel/governance/ratification-authority-snapshot-issuance.errors.ts` | `+14/-1` |
+| `src/kernel/governance/ratification-authority-snapshot-issuance.ts` | `+59/-19` |
+| `src/kernel/governance/ratification-authority-snapshot-issuance.types.ts` | `+2/-0` |
+| `test/kernel/governance/issuance-oracle/vocabulary.oracle.ts` | `+2/-2` |
+| `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts` | `+50/-1` |
+| `test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts` | `+414/-0` |
+
+All seven merged blobs are **byte-identical** to their owner-approved values at `921db2cd…`: `dde2f604…`, `2f22aeaf…`, `c9fc4faf…`, `ffcdd7d8…`, `2f01c687…`, `e2c5735b…`, `607bf6e8…`. A conflict-marker scan of all seven returned zero occurrences. The twenty-four-file authorized inventory is not enlarged; no file was created.
+
+### Certification Against Objective Tests 3, 5, and 7
+
+- **Objective test 3 — PASS.** `…-diagnostics.test.ts` asserts `diagnosticPhase` `Envelope` and `diagnosticPrecedence` **8** for both `malformed-capture-instant` and `malformed-attribution`, and the closed-vocabulary length assertion moved from 46 to **47**, matching the appended `duplicate-record-fingerprint`.
+- **Objective test 5 — PASS.** All five required cases exist against the validated constructor — wrong payload variant for the code, a missing declared field, an extra field, a wrongly typed field, and an empty String field together with an empty `pathIdentifiers` — each raising `RatificationAuthoritySnapshotIssuanceContractError` carrying `malformed-diagnostic-payload`.
+- **Objective test 7 — PASS, and exhaustive rather than sampled.** The complete 47-code public vocabulary is enumerated; a valid declared payload is constructed for each code's declared `payloadKind`; every corresponding `Rejected` result is built through `createRatificationAuthoritySnapshotRejectedResult`; every returned `diagnosticCode` and `diagnosticPhase` is asserted inside the closed 47-code and 9-phase public partitions; the three contract-violation codes and the `ContractViolation` phase are asserted absent from those partitions and unreturnable as `Issued` or `Rejected`; and an `Issued` result is asserted to carry no diagnostic fields.
+- **Code-aware rule 5, re-derived independently.** The Reviewer re-derived the RFC-0011 v1.10 admission matrix from the implementation's own metadata rather than from the commit message: 47 codes across 7 payload variants yield **63** `(code, data-String-field)` pairs, of which exactly **2** admit an empty value — `malformed-scope-key` with `scopeKey` and `malformed-attribution` with `declaredField` — and **61** refuse it. The exercised set matches the expected set exactly, with none missing and none extra. The `payloadKind` variant-match limb is textually unchanged and continues to refuse an empty or wrong discriminator for all 47 codes; `pathIdentifiers` remains list-typed, skipped by the data-String loop, and separately required non-empty.
+- **No exception escapes for any governed input — PASS.** `reject('internal-invariant-violation' as never, noPayload())` is removed and **zero** occurrences of `as never` remain anywhere in `src/`. The residual condition now raises `RatificationAuthoritySnapshotIssuanceContractError` carrying `internal-invariant-violation` on the named non-public channel.
+- **Binding execution-order requirement — PASS.** `deriveAuthorityCommitment` completes all five `Commitment` steps before `validateEnvelopeInput` is called, and envelope-commitment derivation remains after it.
+- **Prohibitions observed — PASS.** No change to the encoded octets of `LifecycleAuthorityRecord`, `AuthorityRootBasis`, or `EnvelopeCommitmentBasis`; no change to the snapshot schema version; no contract-violation code in `…types.ts` or in any result field; no new file.
+- **Deferred concepts correctly excluded.** Objective tests 1, 2, 2b, and 6 remain with `BT-082-006` and objective test 4 remains with `BT-082-008`; none is claimed, cited, or asserted at this boundary. `assertKnownDiagnosticCode` correctly remains defined and unwired — its deletion and the `undeclared-diagnostic` classification are `BT-082-008` scope, not a `BT-082-007` residue.
+
+### Governance State in the Merged Tree
+
+RFC-0011 is `Final (Amended)` **v1.10**. `NEXUS-RAT-2026-08-11-001` is present in the Ratification Ledger with `## Current Status` **`Active`**, and the v1.10 changelog entry records the code-aware empty data-String rule in its 63 / 2 / 61 form.
+
+### Validation and the `NEXUS-RAT-2026-08-10-002` § E7 Clean Completion
+
+`NEXUS-RAT-2026-08-10-002` § E7 defines a clean validation as the pipeline completing **with no failure of any kind**. That standard is applied here without narrowing, and no causal attribution is substituted for it.
+
+Validation was executed in a disposable detached worktree at `59decb2a…`; the primary working tree was not used for execution. `npx tsc --noEmit` exit 0; `npx eslint "src/**/*.ts" "test/**/*.ts"` exit 0; `node esbuild.js` exit 0.
+
+**The E7 clean completion relied upon is the explicitly labelled retry of `npx vitest run --exclude "test/extension-host/**"`: `Test Files 134 passed (134)`, `Tests 828 passed (828)`, exit 0, 75.37s.** It is recorded as a retry and is not presented as a first-execution result.
+
+**The first execution of that same command failed and is disclosed in full**, not absorbed: exit **1**, `Test Files 1 failed | 133 passed (134)`, `Tests 1 failed | 827 passed (828)`, 82.14s, retries 0, with a 10000ms per-test timeout at `test/integration/kernel-boundary-certification.integration.test.ts:347`. It is recorded below as Observation `NEXUS-REV-0082-OBS-001`. The base-commit and isolation controls classify that failure; they do **not** create an attribution exception to E7, and E7 is satisfied here solely by the labelled clean run above. The 828-vs-815 test-count difference against the base commit is the thirteen new `BT-082-007` cases, all passing.
+
+### Observation `NEXUS-REV-0082-OBS-001` — Pre-Existing Out-of-Scope Integration-Test Timeout
+
+**Non-blocking. Not a `BT-082-007` defect. No Builder task is generated.**
+
+`test/integration/kernel-boundary-certification.integration.test.ts:347` carries a 10000ms per-test timeout that is not robust under full-suite parallel load on this platform. Three controls establish that the failure is a pre-existing condition of the repository rather than a regression introduced by the certified change. **First and decisively**, the identical full suite executed at the base commit `411db1f2…`, which does not contain `BT-082-007` at all, reproduces the same timeout on the same test at the same line, returning `Tests 1 failed | 814 passed (815)` and exit 1. **Second**, the failing file is blob `61739b3b80ae1e6d73c828628a9e63d2de40fe8b` at both `411db1f2…` and `59decb2a…`, unchanged since baseline `ee73806e…`, and is not among the seven delivered paths. **Third**, executed in isolation at `59decb2a…` the file returns `5 passed (5)`, exit 0, with a test time of 1.15s against its 10s budget, while the same case consumed 17.1s under full-suite parallel load.
+
+These controls establish non-regression and support the Observation classification. They are **not** offered as a redefinition of E7. Raising the timeout of that integration case is recorded as a candidate for future maintenance; it lies outside the twenty-four-file authorized inventory question and no scope amendment is sought here. Any future recurrence SHALL be reported as a recurrence of this Observation and SHALL NOT be silently absorbed.
+
+### Certification
+
+`BT-082-007` is **COMPLETED**. It SHALL NOT be reopened, reimplemented, or revisited, and its deliverables SHALL remain passing and SHALL NOT be weakened, relaxed, or removed by any subsequent task. In particular, `BT-082-008` SHALL NOT delete, weaken, or re-scope the objective test 5 or objective test 7 assertions delivered here, and the sequential reuse of `…-result-contract.test.ts` authorized by `NEXUS-RAT-2026-08-10-002` § E4 is additive only.
+
+The mandatory task order recorded once only in `builder-task.md` § Builder Instructions is preserved and unchanged. With `BT-082-007` completed, **`BT-082-008` is the sole task claiming current, first, or next executability**; `BT-082-006`'s traceability status is corrected in the same act from "Open — executable now" to "Open — executable after `BT-082-008`" so that no second task claims present executability. This entry does **not** dispatch `BT-082-008`. Sprint 82 remains **Approved with Findings**; `IMPLEMENTATION_PLAN.md` remains unchanged and no sprint advances to Current.
+
+---
+
 ## NEXUS-REV-2026-08-11-003 — Sprint 82 — `BT-082-007` Approved at PR #8 Head `921db2cd…` (RFC-0011 v1.10 Correction)
 
 - **Reviewed Sprint:** Sprint 82 — Ratification Authority Snapshot Issuance Capability. This entry records an implementation review of Builder task `BT-082-007` (Commitment phase and contract-violation checks) at a specific approved head. Sprint 82's own disposition remains **Approved with Findings** under `NEXUS-REV-2026-08-09-001`; nothing here alters it.

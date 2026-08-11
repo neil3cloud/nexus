@@ -118,13 +118,14 @@ evidence (`NEXUS-REV-0082-CRIT-001` resolved), and `BT-082-003` extended oracle 
 
 Twelve tasks now exist across the Sprint's full remediation history. Current standing:
 
-- **3 Completed Builder Tasks** — `BT-082-002` (certified by `NEXUS-REV-2026-08-07-001`), `BT-082-003` (certified
-  by `NEXUS-REV-2026-08-07-002`), and `BT-082-005` (certified by `NEXUS-REV-2026-08-07-003`). All are carried
+- **4 Completed Builder Tasks** — `BT-082-002` (certified by `NEXUS-REV-2026-08-07-001`), `BT-082-003` (certified
+  by `NEXUS-REV-2026-08-07-002`), `BT-082-005` (certified by `NEXUS-REV-2026-08-07-003`), and `BT-082-007`
+  (certified by `NEXUS-REV-2026-08-11-004`, delivered through merge commit `59decb2a…`). All are carried
   forward under § Resolved Builder Tasks and **SHALL NOT be reopened or reimplemented**.
 - **1 Retired Builder Task** — `BT-082-004`, generated from `NEXUS-REV-0082-MAJ-001`. That finding is **resolved**
   as a collateral effect of `BT-082-003`'s corpus-completeness assertion, which mechanically forces all 46 closed
   vocabulary codes reachable. Per the Reviewer's recorded disposition this task is **retired, not regenerated**.
-- **7 Open Builder Tasks** — `BT-082-006`, `BT-082-010` (Major); `BT-082-007`, `BT-082-008`, `BT-082-009`,
+- **6 Open Builder Tasks** — `BT-082-006`, `BT-082-010` (Major); `BT-082-008`, `BT-082-009`,
   `BT-082-011`, `BT-082-012` (Minor). All are **executable follow-up work**; none blocks the Sprint's approval.
 - **1 Open Documentation Task** — `DOC-082-001`, **unblocked** by `NEXUS-REV-2026-08-07-002` now that both Critical
   findings it was gated behind are resolved.
@@ -408,111 +409,10 @@ substituted inputs.
 
 **Acceptance:** objective tests 9, 9b, 9c, 10, 11, and 12 pass; repository validation clean.
 
-## BT-082-007 — Implement the governed `Commitment` phase and the contract-violation channel
-
-**Status:** OPEN. **Executable first. Nothing else may precede it.** Restated under
-`NEXUS-RAT-2026-08-10-001`; the prior form of this task, which offered two incompatible
-alternatives, is withdrawn.
-
-**Summary:** `reject('internal-invariant-violation' as never, …)` at
-`…issuance.ts:920-924` references a code with no metadata entry and no phase; the path raises a
-`TypeError` that escapes the boundary. RFC-0011 v1.9 replaces this with one exact behavior: the
-condition is governed, and the residual contract violations are raised on a named non-public
-channel.
-
-**Authority:** `NEXUS-RAT-2026-08-10-001` D2, D3, D4, D5, and objective tests 1, 2, 2b, 3, 5, 6, 7;
-and `NEXUS-RAT-2026-08-11-001` G1, G1a, G2, G4, and G5, which correct the runtime payload validation
-of this task and pin its corrective baseline to PR head
-`658dd5d973c031fb31fab2774c6241f807ca9a9a`. Governing RFC: RFC-0011 Final (Amended) **v1.10** § The
-Total Result Contract → Diagnostic Phases, Within-Phase Precedence, Target Selection Order, The
-Closed Public Vocabulary, Structured Diagnostic Payloads, Contract Violations.
-
-**Targets (exact, seven files):** production — `…issuance.types.ts`, `…issuance.errors.ts`,
-`…issuance.contract.ts`, `…issuance.ts`; evidence, added by `NEXUS-RAT-2026-08-10-002` § Governance
-Decision E2 — `test/kernel/governance/ratification-authority-snapshot-issuance-diagnostics.test.ts`,
-`test/kernel/governance/ratification-authority-snapshot-issuance-result-contract.test.ts`, and
-`test/kernel/governance/issuance-oracle/vocabulary.oracle.ts`. All seven are already inside the
-twenty-four-file authorized inventory; it is **not** enlarged and no new file may be created.
-
-**Required evidence work, in addition to the production changes below:**
-
-- `…-diagnostics.test.ts`: change the closed-vocabulary length assertion from 46 to 47; add
-  objective test 3, asserting `diagnosticPhase` `Envelope` and `diagnosticPrecedence` 8 for both
-  `malformed-capture-instant` and `malformed-attribution`.
-- `…-result-contract.test.ts`: add objective test 5 — five cases against the validated constructor
-  (wrong payload variant for the code; a missing declared field; an extra field; a wrongly typed
-  field; an empty String field and an empty `pathIdentifiers`), each raising
-  `RatificationAuthoritySnapshotIssuanceContractError` carrying `malformed-diagnostic-payload`. Add
-  objective test 7 as the exhaustive central-construction test specified by
-  `NEXUS-RAT-2026-08-10-002` § Governance Decision E5: enumerate the complete 47-code public
-  vocabulary, construct a valid declared payload for each code's declared `payloadKind`, construct
-  every corresponding `Rejected` result through
-  `createRatificationAuthoritySnapshotRejectedResult`, and assert that every returned
-  `diagnosticCode` and `diagnosticPhase` lies inside the closed 47-code and 9-phase public
-  partitions; assert that the three contract-violation codes and the `ContractViolation` phase are
-  absent from those partitions and cannot be returned as an `Issued` or `Rejected` result; and
-  assert that an `Issued` result carries no diagnostic fields. Sampling does not satisfy this test.
-- `vocabulary.oracle.ts`: **metadata only** — change `malformed-capture-instant` and
-  `malformed-attribution` from `['Envelope', 7]` to `['Envelope', 8]`, derived from RFC-0011 v1.10
-  § Diagnostic Phases and from no implementation source. Add nothing else. The `Commitment` phase,
-  `duplicate-record-fingerprint`, the collision and encoder-disagreement mechanisms, and the
-  stage-order trace remain `BT-082-010`. The oracle SHALL NOT import any `src/` module, and
-  `oracle-independence.test.ts` SHALL continue to pass unchanged.
-
-**Required changes:**
-
-- `…types.ts`: insert `'Commitment'` between `'Resolution'` and `'Envelope'` in
-  `ratificationAuthoritySnapshotDiagnosticPhases`; append `'duplicate-record-fingerprint'` to
-  `ratificationAuthoritySnapshotDiagnosticCodes`. No contract-violation code is added to either.
-- `…errors.ts`: declare the three-member contract-violation code union **in this file only**; give
-  `RatificationAuthoritySnapshotIssuanceContractError` a required code parameter and the readonly
-  fields `contractViolationCode`, `diagnosticPhase: 'ContractViolation'`, `diagnosticPrecedence: 9`.
-- `…contract.ts`: add the metadata row
-  `'duplicate-record-fingerprint': { phase: 'Commitment', precedence: 7, payloadKind: 'EntryPayload' }`;
-  change `malformed-capture-instant` and `malformed-attribution` precedence from 7 to 8; add to
-  `createRatificationAuthoritySnapshotRejectedResult` the runtime payload validation of RFC-0011
-  v1.10 § Contract Violations rule 5 — variant match, exact field set, field type, code-aware
-  non-empty data-String fields, non-empty `pathIdentifiers` — raising the contract error carrying
-  `malformed-diagnostic-payload`. The non-empty check over data-String fields is **code-aware** per
-  `NEXUS-RAT-2026-08-11-001` § Governance Decision G1 and G2: it is driven by a declared table of
-  exactly two permitted empty-token pairs — `malformed-scope-key` with `scopeKey`, and
-  `malformed-attribution` with `declaredField` — and refuses an empty value on every one of the
-  other sixty-one code-and-data-String-field pairs. The `payloadKind` variant-match limb is
-  unchanged and reaches no exception, per G1a. The evidence required by
-  `NEXUS-RAT-2026-08-11-001` § Governance Decision G5 is added to
-  `…-result-contract.test.ts` and to no other file;
-  relocate `sha256Hex` here from `…issuance.ts` as a named export.
-- `…issuance.ts`: import `sha256Hex` from `…contract.ts`; add the module-private
-  `AuthorityCommitmentStage` interface and `deriveAuthorityCommitment(preparedText, records)`
-  returning `{ result?, value? }`; call it **before** `validateEnvelopeInput`; within it derive
-  `authoritySourceRevision`, the record fingerprints in record order, run the record-order
-  uniqueness pass returning `Rejected` with `duplicate-record-fingerprint` and an `EntryPayload`
-  naming the second repeating record, run `encodeNccsOrderInsensitiveStrings` and raise the contract
-  error carrying `internal-invariant-violation` if it returns `undefined`, and derive
-  `AuthorityRootBasis` and the authority root; reduce `issueResult` to consuming
-  `AuthorityCommitmentStage` and deriving only the envelope commitment, the three counts, and the
-  `Issued` object; remove `reject('internal-invariant-violation' as never, noPayload())` and the
-  `as never` cast.
-
-**Binding execution-order requirement:** all five steps of the `Commitment` phase SHALL complete
-before `validateEnvelopeInput` is called. Envelope-commitment derivation SHALL remain after it. An
-implementation that can report an `Envelope` diagnostic without having derived the authority root
-does not satisfy this task.
-
-**Prohibited:** no change to the encoded octets of `LifecycleAuthorityRecord`, `AuthorityRootBasis`,
-or `EnvelopeCommitmentBasis`; no change to the snapshot schema version; no contract-violation code
-in `…types.ts` or in any result field; no new file.
-
-**Acceptance:** objective tests **3, 5, and 7** pass; no exception escapes for any governed input;
-**repository validation is clean, with no failing test of any kind**. Objective tests 1, 2, 2b, and
-6 are **deferred to `BT-082-006`**, whose authorized D8a, D8b, and D8c mechanisms and authorized
-test file supply them; they SHALL NOT be claimed, cited, or asserted at this boundary. Objective
-test 4 is `BT-082-008`. Restated by `NEXUS-RAT-2026-08-10-002` § Governance Decision E1, E2, E4,
-and E5.
-
 ## BT-082-008 — Implement the `undeclared-diagnostic` classification
 
-**Status:** OPEN. **Executable second**, immediately after `BT-082-007`. Restated under
+**Status:** OPEN. **Executable now** — `BT-082-007`, which it follows immediately, is COMPLETED
+(`NEXUS-REV-2026-08-11-004`). Restated under
 `NEXUS-RAT-2026-08-10-001`; the "implement or remove" alternative is withdrawn — the rule is
 implemented, not removed.
 
@@ -813,10 +713,9 @@ named extent only. This document carries no independent authority.
 2. `BT-082-003` — **COMPLETED** (`NEXUS-REV-2026-08-07-002`, 2026-08-07)
 3. `BT-082-004` — **RETIRED, resolved** (`NEXUS-REV-0082-MAJ-001` resolved collaterally by `BT-082-003`)
 4. `BT-082-005` — **COMPLETED** (`NEXUS-REV-2026-08-07-003`, 2026-08-07)
-5. `BT-082-007` — the governed `Commitment` phase, the contract-violation channel, and runtime
-   payload validation. **First. Nothing else may precede it.**
+5. `BT-082-007` — **COMPLETED** (`NEXUS-REV-2026-08-11-004`, 2026-08-11, merge commit `59decb2a…`)
 6. `BT-082-008` — the `undeclared-diagnostic` classification and deletion of
-   `assertKnownDiagnosticCode`.
+   `assertKnownDiagnosticCode`. **First among the remaining tasks. Nothing else may precede it.**
 7. `BT-082-006` — corrected T12 and T14 evidence, including the collision-forcing and
    encoder-disagreement tests.
 8. `BT-082-010` — oracle parity for the `Commitment` phase and the recalculated agreement
@@ -827,9 +726,9 @@ named extent only. This document carries no independent authority.
 **Sprint 82 is Approved with Findings.** Every remaining task is follow-up work that does **not** block that
 approval. This is a change from prior generations of this document, in which `OPEN` did not confer eligibility.
 
-`BT-082-002`, `BT-082-003`, and `BT-082-005` are **COMPLETED** and SHALL NOT be reopened, reimplemented, or
-revisited. Their deliverables SHALL remain passing and SHALL NOT be weakened, relaxed, or removed by any subsequent
-task:
+`BT-082-002`, `BT-082-003`, `BT-082-005`, and `BT-082-007` are **COMPLETED** and SHALL NOT be reopened,
+reimplemented, or revisited. Their deliverables SHALL remain passing and SHALL NOT be weakened, relaxed, or removed
+by any subsequent task:
 
 - `nccs1-conformance-vectors.test.ts` asserting RFC-0003 Positive Vectors 4, 5, and 6 against both encoders.
 - `oracle-agreement.test.ts`'s corpus coverage — the live Ratification Ledger, four `Issued` cases,
@@ -844,6 +743,14 @@ task:
 - The five T11 cases in `ratification-authority-snapshot-issuance-graphs.test.ts`, including the three exact
   `RelationPathPayload` assertions the Reviewer verified against RFC-0011 § Cycle Selection. `BT-082-012` extends
   this file; it SHALL NOT relax or replace any existing case.
+- The `BT-082-007` deliverables: the `Commitment` phase and `duplicate-record-fingerprint` in
+  `…types.ts`; the three-member contract-violation union and the coded
+  `RatificationAuthoritySnapshotIssuanceContractError` in `…errors.ts`; the RFC-0011 v1.10 runtime payload
+  validation in `…contract.ts`, including the code-aware non-empty data-String rule with its two permitted
+  empty-token pairs and its sixty-one refusals; objective test 3 in `…-diagnostics.test.ts`; and objective
+  tests 5 and 7 in `…-result-contract.test.ts`. `BT-082-008` reuses `…-result-contract.test.ts` sequentially
+  under `NEXUS-RAT-2026-08-10-002` § E4 and its additions are **additive only**: it SHALL NOT delete, weaken,
+  or re-scope the objective test 5 or objective test 7 assertions.
 
 Per § Determinism, completed tasks are closed and generate no further Builder action.
 
@@ -882,10 +789,10 @@ No git commit, push, merge, or PR action is authorized; those remain reserved to
 | `BT-082-003`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-CRIT-002`   | Completed (`NEXUS-REV-2026-08-07-002`) |
 | `BT-082-004`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MAJ-001`    | Retired — finding resolved (`NEXUS-REV-2026-08-07-002`) |
 | `BT-082-005`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MAJ-002`    | Completed (`NEXUS-REV-2026-08-07-003`) |
-| `BT-082-006`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MAJ-003`    | **Open — executable now** |
+| `BT-082-006`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MAJ-003`    | Open — executable after `BT-082-008` |
 | `BT-082-010`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MAJ-004`    | Open — executable |
-| `BT-082-007`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-001`    | Open — executable |
-| `BT-082-008`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-002`    | Open — executable |
+| `BT-082-007`  | Sprint 82 | RFC-0011 v1.10 | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-001`    | Completed (`NEXUS-REV-2026-08-11-004`) |
+| `BT-082-008`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-002`    | **Open — executable now** |
 | `BT-082-009`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-003`    | Open — executable |
 | `BT-082-011`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-004`    | Open — executable |
 | `BT-082-012`  | Sprint 82 | RFC-0011 v1.8  | `NEXUS-RAT-2026-08-06-002`   | `NEXUS-REV-0082-MIN-005`    | Open — executable |
@@ -931,6 +838,58 @@ non-extension suite. Live-Ledger conformance checkpoint independently reproduced
 ---
 
 # Resolved Builder Tasks (carried forward for traceability)
+
+## BT-082-007 — Implement the governed `Commitment` phase and the contract-violation channel
+
+**Status:** COMPLETED. Verified by `NEXUS-REV-2026-08-11-004` (2026-08-11) at merge commit
+`59decb2a325a9d431b12db14498ac9723be258bf`. Resolves `NEXUS-REV-0082-MIN-001`. Delivered through PR #8 at
+owner-approved head `921db2cdec6b92c1ae51069624f8c504058035ed`, merged 2026-08-11T05:16:10Z by the human
+operator into `copilot/push-committed-changes-20260710`.
+
+**Authority:** `NEXUS-RAT-2026-08-10-001` D2, D3, D4, D5 and objective tests 1, 2, 2b, 3, 5, 6, 7;
+`NEXUS-RAT-2026-08-10-002` § Governance Decision E1, E2, E4, E5, E7; `NEXUS-RAT-2026-08-11-001` G1, G1a, G2,
+G4, G5. Governing RFC: RFC-0011 Final (Amended) **v1.10**. Execution authority: existing
+`NEXUS-RAT-2026-08-06-002` — no new Ratification and no new Ledger entry was created.
+
+**Delivered:** exactly the seven authorized target files, all modified, none created, with the
+twenty-four-file authorized inventory unchanged — `…issuance.types.ts` (`+2/-0`), `…issuance.errors.ts`
+(`+14/-1`), `…issuance.contract.ts` (`+88/-2`), `…issuance.ts` (`+59/-19`), `…-diagnostics.test.ts`
+(`+50/-1`), `…-result-contract.test.ts` (`+414/-0`), and `issuance-oracle/vocabulary.oracle.ts` (`+2/-2`,
+metadata only). The `Commitment` phase and `duplicate-record-fingerprint` were added; the three-member
+contract-violation union and the coded error type were declared in `…errors.ts` alone;
+`deriveAuthorityCommitment` now completes all five `Commitment` steps before `validateEnvelopeInput`;
+`reject('internal-invariant-violation' as never, …)` and the `as never` cast were removed, leaving zero
+occurrences of `as never` in `src/`; and RFC-0011 v1.10 § Contract Violations rule 5 runtime payload
+validation was added to `createRatificationAuthoritySnapshotRejectedResult`.
+
+**Reviewer certification:** The Reviewer discovered the merge identity independently from the GitHub REST
+API, the GraphQL view, and local Git. The merge tree equals the PR head tree exactly, the approved head is
+reachable unchanged, all seven merged blobs are byte-identical to their approved values, and a
+conflict-marker scan returned zero. Objective tests 3, 5, and 7 all pass. Objective test 7 was confirmed
+**exhaustive rather than sampled**: all 47 vocabulary codes are enumerated and constructed through the
+public constructor, and the three contract-violation codes and the `ContractViolation` phase are asserted
+unreachable through the public contract. The code-aware rule 5 admission matrix was re-derived
+independently from the implementation's own metadata — **63** `(code, data-String-field)` pairs, exactly
+**2** admitted empty, **61** refused — matching the exercised set exactly, with none missing and none
+extra.
+
+**Validation:** `tsc --noEmit`, lint, and build clean. The `NEXUS-RAT-2026-08-10-002` § E7 clean completion
+is the **explicitly labelled retry** of the full non-extension suite — **134/134 files, 828/828 tests, exit
+0** — thirteen cases above the 815 of the base commit, with zero regressions. **The first execution of that
+same command failed** (exit 1, `Tests 1 failed | 827 passed (828)`) on a 10000ms timeout in
+`test/integration/kernel-boundary-certification.integration.test.ts:347` and is disclosed, not absorbed.
+
+**Observation recorded, not a defect:** that file is blob `61739b3b…` at both the base commit and the merge,
+is outside the seven-file boundary, passes in 1.15s in isolation, and **times out identically at the base
+commit `411db1f2…` where `BT-082-007` does not exist**. The base and isolation controls establish
+non-regression; they do **not** narrow E7, which is satisfied solely by the labelled clean run above.
+Recorded as `NEXUS-REV-0082-OBS-001`; no Builder task is generated.
+
+**Objective tests 1, 2, 2b, and 6 remain deferred to `BT-082-006`; objective test 4 remains `BT-082-008`.**
+None was claimed, cited, or asserted at this boundary. `assertKnownDiagnosticCode` correctly remains defined
+and unwired — its deletion is `BT-082-008` scope. **`BT-082-007` SHALL NOT be reopened or reimplemented.**
+
+---
 
 ## BT-082-005 — Add cycle-selection and `closed`-marking coverage for both graphs (T11)
 
