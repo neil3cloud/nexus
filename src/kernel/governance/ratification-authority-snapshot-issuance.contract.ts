@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import type {
   RatificationAuthoritySnapshotDiagnosticCode,
   RatificationAuthoritySnapshotDiagnosticPayload,
@@ -14,6 +16,9 @@ import {
   ratificationAuthoritySnapshotSchemaVersion,
   ratificationAuthoritySnapshotSourceIdentity,
 } from './ratification-authority-snapshot-issuance.types';
+import {
+  RatificationAuthoritySnapshotIssuanceContractError,
+} from './ratification-authority-snapshot-issuance.errors';
 
 export {
   ratificationAuthoritySnapshotCanonicalSerializationProtocolId,
@@ -83,15 +88,24 @@ export const ratificationAuthoritySnapshotDiagnosticMetadata: Readonly<
   'self-referential-relation': { phase: 'LifecycleGraph', precedence: 5, payloadKind: 'RelationPathPayload' },
   'cyclic-lifecycle-relation': { phase: 'LifecycleGraph', precedence: 5, payloadKind: 'RelationPathPayload' },
   'unresolved-lifecycle': { phase: 'Resolution', precedence: 6, payloadKind: 'EntryPayload' },
-  'malformed-capture-instant': { phase: 'Envelope', precedence: 7, payloadKind: 'DeclaredInputPayload' },
-  'malformed-attribution': { phase: 'Envelope', precedence: 7, payloadKind: 'DeclaredInputPayload' },
+  'duplicate-record-fingerprint': { phase: 'Commitment', precedence: 7, payloadKind: 'EntryPayload' },
+  'malformed-capture-instant': { phase: 'Envelope', precedence: 8, payloadKind: 'DeclaredInputPayload' },
+  'malformed-attribution': { phase: 'Envelope', precedence: 8, payloadKind: 'DeclaredInputPayload' },
 });
 
 export function createRatificationAuthoritySnapshotRejectedResult(
   code: RatificationAuthoritySnapshotDiagnosticCode,
   diagnosticPayload: RatificationAuthoritySnapshotDiagnosticPayload,
 ): RatificationAuthoritySnapshotIssuanceResult {
+  if (!ratificationAuthoritySnapshotDiagnosticCodes.includes(code)) {
+    throw new RatificationAuthoritySnapshotIssuanceContractError(
+      'undeclared-diagnostic',
+      `Diagnostic code is not a member of the declared public vocabulary: ${String(code)}`,
+    );
+  }
+
   const metadata = ratificationAuthoritySnapshotDiagnosticMetadata[code];
+  validateDiagnosticPayload(code, metadata.payloadKind, diagnosticPayload);
 
   return Object.freeze({
     result: 'Rejected',
@@ -260,4 +274,76 @@ function freezeDiagnosticPayload(
   }
 
   return Object.freeze({ ...diagnosticPayload });
+}
+
+const payloadFieldSets: Readonly<Record<RatificationAuthoritySnapshotDiagnosticPayload['payloadKind'], readonly string[]>> = Object.freeze({
+  NoPayload: ['payloadKind'],
+  EntryPayload: ['payloadKind', 'ratificationIdentifier'],
+  EntrySectionPayload: ['payloadKind', 'ratificationIdentifier', 'sectionHeading'],
+  DeclarationPayload: ['payloadKind', 'declaringAuthority', 'declarationSubject'],
+  DeclarationScopePayload: ['payloadKind', 'declaringAuthority', 'declarationSubject', 'scopeKey'],
+  RelationPathPayload: ['payloadKind', 'pathIdentifiers'],
+  DeclaredInputPayload: ['payloadKind', 'declaredField'],
+});
+
+function validateDiagnosticPayload(
+  code: RatificationAuthoritySnapshotDiagnosticCode,
+  expectedKind: RatificationAuthoritySnapshotDiagnosticPayload['payloadKind'],
+  payload: RatificationAuthoritySnapshotDiagnosticPayload,
+): void {
+  const contractViolation = (detail: string): never => {
+    throw new RatificationAuthoritySnapshotIssuanceContractError(
+      'malformed-diagnostic-payload',
+      `Diagnostic payload is malformed: ${detail}`,
+    );
+  };
+
+  if (payload.payloadKind !== expectedKind) {
+    contractViolation(`expected payloadKind '${expectedKind}', got '${payload.payloadKind}'`);
+  }
+
+  const expectedFields = payloadFieldSets[expectedKind];
+  const actualFields = Object.keys(payload as unknown as Record<string, unknown>);
+  const expectedSet = new Set(expectedFields);
+  const actualSet = new Set(actualFields);
+
+  for (const field of expectedFields) {
+    if (!actualSet.has(field)) {
+      contractViolation(`missing field '${field}'`);
+    }
+  }
+
+  for (const field of actualFields) {
+    if (!expectedSet.has(field)) {
+      contractViolation(`unexpected field '${field}'`);
+    }
+  }
+
+  for (const field of actualFields) {
+    if (field === 'payloadKind') continue;
+    if (field === 'pathIdentifiers') continue;
+    const value = (payload as unknown as Record<string, unknown>)[field];
+    const isEmptyPermitted =
+      (code === 'malformed-scope-key' && field === 'scopeKey') ||
+      (code === 'malformed-attribution' && field === 'declaredField');
+    if (typeof value !== 'string' || (value.length === 0 && !isEmptyPermitted)) {
+      contractViolation(`field '${field}' must be a non-empty string`);
+    }
+  }
+
+  if (payload.payloadKind === 'RelationPathPayload') {
+    const { pathIdentifiers } = payload;
+    if (!Array.isArray(pathIdentifiers) || pathIdentifiers.length === 0) {
+      contractViolation(`'pathIdentifiers' must be a non-empty list`);
+    }
+    for (const item of pathIdentifiers) {
+      if (typeof item !== 'string' || item.length === 0) {
+        contractViolation(`every element of 'pathIdentifiers' must be a non-empty string`);
+      }
+    }
+  }
+}
+
+export function sha256Hex(value: Uint8Array): string {
+  return createHash('sha256').update(value).digest('hex');
 }

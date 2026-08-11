@@ -92,7 +92,7 @@ export const oracleDiagnosticMetadata = Object.freeze({
   'self-referential-relation': ['LifecycleGraph', 5],
   'cyclic-lifecycle-relation': ['LifecycleGraph', 5],
   'unresolved-lifecycle': ['Resolution', 6],
-  'malformed-capture-instant': ['Envelope', 7],
-  'malformed-attribution': ['Envelope', 7],
+  'malformed-capture-instant': ['Envelope', 8],
+  'malformed-attribution': ['Envelope', 8],
 } as const);
 

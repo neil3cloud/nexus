@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto';
-
 import {
   createRatificationAuthoritySnapshotRejectedResult,
   encodeLifecycleAuthorityRecord,
@@ -16,7 +14,11 @@ import {
   ratificationAuthoritySnapshotRecordFingerprintPrefix,
   ratificationAuthoritySnapshotSchemaVersion,
   ratificationAuthoritySnapshotSourceIdentity,
+  sha256Hex,
 } from './ratification-authority-snapshot-issuance.contract';
+import {
+  RatificationAuthoritySnapshotIssuanceContractError,
+} from './ratification-authority-snapshot-issuance.errors';
 import type {
   RatificationAuthoritySnapshotDiagnosticPayload,
   RatificationAuthoritySnapshotGovernedDeclarationRecord,
@@ -148,15 +150,21 @@ export function issueRatificationAuthoritySnapshot(
     return reject('unresolved-lifecycle', entryPayload(unresolved.entry.identifier));
   }
 
+  const records = provisionalRecords.map((record) => record.record).filter(isDefined);
+
+  const commitment = deriveAuthorityCommitment(prepared.value.text, records);
+
+  if (commitment.result !== undefined) {
+    return commitment.result;
+  }
+
   const envelopeInput = validateEnvelopeInput(input);
 
   if (envelopeInput.result !== undefined) {
     return envelopeInput.result;
   }
 
-  const records = provisionalRecords.map((record) => record.record).filter(isDefined);
-
-  return issueResult(prepared.value.text, records, envelopeInput.value);
+  return issueResult(commitment.value, records, envelopeInput.value);
 }
 
 function readSourceInput(input: unknown): RatificationAuthoritySnapshotSourceInput | undefined {
@@ -905,22 +913,45 @@ function validateEnvelopeInput(
   };
 }
 
-function issueResult(
+interface AuthorityCommitmentStage {
+  readonly authoritySourceRevision: string;
+  readonly recordFingerprints: readonly string[];
+  readonly encodedFingerprints: Uint8Array;
+  readonly authorityRoot: string;
+}
+
+type AuthorityCommitmentResult =
+  | { readonly result?: undefined; readonly value: AuthorityCommitmentStage }
+  | { readonly result: RatificationAuthoritySnapshotIssuanceResult; readonly value?: undefined };
+
+function deriveAuthorityCommitment(
   preparedText: string,
   records: readonly RatificationAuthoritySnapshotRecord[],
-  envelopeInput: {
-    readonly capturedAt: string;
-    readonly producingAttribution: RatificationAuthoritySnapshotProducingAttribution;
-  },
-): RatificationAuthoritySnapshotIssuanceResult {
+): AuthorityCommitmentResult {
   const authoritySourceRevision = sha256Hex(encodeNccsString(preparedText));
-  const recordFingerprints = records.map((record) =>
-    `${ratificationAuthoritySnapshotRecordFingerprintPrefix}${sha256Hex(encodeLifecycleAuthorityRecord(record))}`,
-  );
+
+  const recordFingerprints: string[] = [];
+  const seenFingerprints = new Set<string>();
+
+  for (const record of records) {
+    const fingerprint =
+      `${ratificationAuthoritySnapshotRecordFingerprintPrefix}${sha256Hex(encodeLifecycleAuthorityRecord(record))}`;
+
+    if (seenFingerprints.has(fingerprint)) {
+      return { result: reject('duplicate-record-fingerprint', entryPayload(record.ratificationIdentifier)) };
+    }
+
+    seenFingerprints.add(fingerprint);
+    recordFingerprints.push(fingerprint);
+  }
+
   const encodedFingerprints = encodeNccsOrderInsensitiveStrings(recordFingerprints);
 
   if (encodedFingerprints === undefined) {
-    return reject('internal-invariant-violation' as never, noPayload());
+    throw new RatificationAuthoritySnapshotIssuanceContractError(
+      'internal-invariant-violation',
+      'Canonical order-insensitive encoding refused the record-fingerprint collection after the uniqueness check passed',
+    );
   }
 
   const authorityRootBasis = encodeNccsRecord([
@@ -932,6 +963,19 @@ function issueResult(
     ['snapshotSchemaVersion', encodeNccsString(ratificationAuthoritySnapshotSchemaVersion)],
   ]);
   const authorityRoot = `${ratificationAuthoritySnapshotAuthorityRootPrefix}${sha256Hex(authorityRootBasis)}`;
+
+  return { value: { authoritySourceRevision, recordFingerprints, encodedFingerprints, authorityRoot } };
+}
+
+function issueResult(
+  commitment: AuthorityCommitmentStage,
+  records: readonly RatificationAuthoritySnapshotRecord[],
+  envelopeInput: {
+    readonly capturedAt: string;
+    readonly producingAttribution: RatificationAuthoritySnapshotProducingAttribution;
+  },
+): RatificationAuthoritySnapshotIssuanceResult {
+  const { authoritySourceRevision, recordFingerprints, authorityRoot } = commitment;
   const envelopeCommitmentBasis = encodeNccsRecord([
     ['authorityRoot', encodeNccsString(authorityRoot)],
     ['authoritySourceIdentity', encodeNccsString(ratificationAuthoritySnapshotSourceIdentity)],
@@ -1344,10 +1388,6 @@ function firstDuplicate(values: readonly string[]): string | undefined {
   }
 
   return undefined;
-}
-
-function sha256Hex(value: Uint8Array): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function freezeRecords(
