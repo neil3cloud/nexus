@@ -200,6 +200,29 @@ describe('RatificationAuthoritySnapshotIssuance total result contract', () => {
       }
     }
   });
+
+  it('objective test 4 — createRatificationAuthoritySnapshotRejectedResult raises RatificationAuthoritySnapshotIssuanceContractError carrying undeclared-diagnostic for an arbitrary undeclared code', () => {
+    let result: unknown;
+    let thrown: unknown;
+
+    try {
+      result = createRatificationAuthoritySnapshotRejectedResult(
+        'bt-082-008-arbitrary-undeclared-code' as never,
+        { payloadKind: 'NoPayload' },
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(result).toBeUndefined();
+    expect(thrown).toBeInstanceOf(RatificationAuthoritySnapshotIssuanceContractError);
+
+    if (thrown instanceof RatificationAuthoritySnapshotIssuanceContractError) {
+      expect(thrown.contractViolationCode).toBe('undeclared-diagnostic');
+      expect(thrown.diagnosticPhase).toBe('ContractViolation');
+      expect(thrown.diagnosticPrecedence).toBe(9);
+    }
+  });
 });
 
 describe('RFC-0011 v1.10 — code-aware empty data-String field admission', () => {

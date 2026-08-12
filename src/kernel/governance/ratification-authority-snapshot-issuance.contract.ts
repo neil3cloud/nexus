@@ -253,16 +253,6 @@ export function encodeLifecycleAuthorityRecord(
   ]);
 }
 
-export function assertKnownDiagnosticCode(
-  code: RatificationAuthoritySnapshotDiagnosticCode,
-): RatificationAuthoritySnapshotDiagnosticCode {
-  if (!ratificationAuthoritySnapshotDiagnosticCodes.includes(code)) {
-    return 'invalid-input';
-  }
-
-  return code;
-}
-
 function freezeDiagnosticPayload(
   diagnosticPayload: RatificationAuthoritySnapshotDiagnosticPayload,
 ): RatificationAuthoritySnapshotDiagnosticPayload {
